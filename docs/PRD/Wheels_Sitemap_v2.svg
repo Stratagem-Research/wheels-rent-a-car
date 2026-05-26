@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1480" font-family="Geist, 'Helvetica Neue', Arial, sans-serif">
+  <defs>
+    <style><![CDATA[
+      /* INK & SIGNAL palette */
+      .root        { fill: #000000; stroke: #000000; }
+      .root-text   { fill: #FFFFFF; font-weight: 800; font-size: 22px; letter-spacing: -0.01em; text-transform: uppercase; }
+      .l1          { fill: #FFFFFF; stroke: #000000; stroke-width: 2; }
+      .l1-text     { fill: #0A0A0A; font-weight: 800; font-size: 16px; text-transform: uppercase; letter-spacing: 0.02em; }
+      .l2          { fill: #F5F5F5; stroke: #E5E5E5; stroke-width: 1; }
+      .l2-text     { fill: #0A0A0A; font-size: 13px; font-family: 'Geist Mono', 'Courier New', monospace; }
+      .l2-note     { fill: #737373; font-size: 11px; font-style: italic; }
+      .booking     { fill: #C8102E; stroke: #C8102E; }
+      .booking-text{ fill: #FFFFFF; font-weight: 800; font-size: 16px; text-transform: uppercase; letter-spacing: 0.02em; }
+      .step        { fill: #FFF0F2; stroke: #C8102E; stroke-width: 1.5; }
+      .step-text   { fill: #C8102E; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 0.02em; }
+      .gated       { fill: #FFFBEB; stroke: #F59E0B; stroke-width: 1.5; }
+      .gated-text  { fill: #B45309; font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: 0.04em; }
+      .meta        { fill: #EFEFEF; stroke: #D4D4D4; }
+      .meta-text   { fill: #525252; font-size: 12px; font-family: 'Geist Mono', 'Courier New', monospace; }
+      .legend      { fill: #525252; font-size: 13px; }
+      .title       { fill: #000000; font-weight: 800; font-size: 28px; text-transform: uppercase; letter-spacing: -0.01em; }
+      .subtitle    { fill: #737373; font-size: 15px; }
+      .descoped    { fill: #FAFAFA; stroke: #D4D4D4; stroke-dasharray: 4 3; }
+      .descoped-text { fill: #A3A3A3; font-size: 13px; font-family: 'Geist Mono', 'Courier New', monospace; }
+      .descoped-tag { fill: #A3A3A3; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; }
+      .redirect    { fill: #EFEFEF; stroke: #C8102E; stroke-width: 1; stroke-dasharray: 4 3; }
+      .redirect-text { fill: #C8102E; font-size: 12px; font-family: 'Geist Mono', 'Courier New', monospace; }
+      line         { stroke: #737373; stroke-width: 1.5; }
+      .conn-bold   { stroke: #C8102E; stroke-width: 2; }
+      .conn-dotted { stroke: #C8102E; stroke-width: 1.5; stroke-dasharray: 4 3; }
+    ]]></style>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#737373"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#C8102E"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="40" y="44" class="title">Wheels Rent A Car — Sitemap</text>
+  <text x="40" y="68" class="subtitle">Phase 12 / Revision 2 · INK &amp; SIGNAL · Customer-facing site · English · + admin CMS</text>
+
+  <!-- ROOT: Home -->
+  <rect x="700" y="100" width="200" height="56" rx="8" class="root"/>
+  <text x="800" y="135" text-anchor="middle" class="root-text">HOME  /</text>
+
+  <!-- L1 nodes — 6 top-level pages (was 8; Chauffeur + Corporate descoped) -->
+  <!-- Vehicles -->
+  <rect x="60"  y="220" width="200" height="48" rx="6" class="l1"/>
+  <text x="160" y="250" text-anchor="middle" class="l1-text">Vehicles</text>
+  <!-- Locations -->
+  <rect x="290" y="220" width="200" height="48" rx="6" class="l1"/>
+  <text x="390" y="250" text-anchor="middle" class="l1-text">Locations</text>
+  <!-- Long-term -->
+  <rect x="520" y="220" width="200" height="48" rx="6" class="l1"/>
+  <text x="620" y="250" text-anchor="middle" class="l1-text">Long-term</text>
+  <!-- About -->
+  <rect x="750" y="220" width="200" height="48" rx="6" class="l1"/>
+  <text x="850" y="250" text-anchor="middle" class="l1-text">About</text>
+  <!-- Help -->
+  <rect x="980" y="220" width="200" height="48" rx="6" class="l1"/>
+  <text x="1080" y="250" text-anchor="middle" class="l1-text">Help &amp; FAQ</text>
+  <!-- Contact -->
+  <rect x="1210" y="220" width="200" height="48" rx="6" class="l1"/>
+  <text x="1310" y="250" text-anchor="middle" class="l1-text">Contact</text>
+
+  <!-- Connectors from Home -->
+  <line x1="800" y1="156" x2="800" y2="195" />
+  <line x1="160" y1="195" x2="1310" y2="195" />
+  <line x1="160" y1="195" x2="160" y2="220" />
+  <line x1="390" y1="195" x2="390" y2="220" />
+  <line x1="620" y1="195" x2="620" y2="220" />
+  <line x1="850" y1="195" x2="850" y2="220" />
+  <line x1="1080" y1="195" x2="1080" y2="220" />
+  <line x1="1310" y1="195" x2="1310" y2="220" />
+
+  <!-- L2 under Vehicles — UNIFIED single page (Phase 7 dropped PDP + category routes) -->
+  <rect x="40"  y="320" width="240" height="44" rx="4" class="l2"/>
+  <text x="160" y="346" text-anchor="middle" class="l2-text">/vehicles</text>
+  <text x="160" y="360" text-anchor="middle" class="l2-note">canonical results page</text>
+
+  <rect x="40"  y="372" width="240" height="36" rx="4" class="l2"/>
+  <text x="160" y="395" text-anchor="middle" class="l2-text">?category=&lt;slug&gt;</text>
+
+  <rect x="40"  y="416" width="240" height="36" rx="4" class="l2"/>
+  <text x="160" y="439" text-anchor="middle" class="l2-text">?selected=&lt;slug&gt;</text>
+
+  <rect x="40"  y="460" width="240" height="36" rx="4" class="l2"/>
+  <text x="160" y="483" text-anchor="middle" class="l2-text">?step=1 (funnel mode)</text>
+
+  <line x1="160" y1="268" x2="160" y2="320" />
+  <line x1="160" y1="364" x2="160" y2="372" />
+  <line x1="160" y1="408" x2="160" y2="416" />
+  <line x1="160" y1="452" x2="160" y2="460" />
+
+  <!-- L2 under Locations — single Hazmieh branch (multi-branch dropped) -->
+  <rect x="290" y="320" width="200" height="44" rx="4" class="l2"/>
+  <text x="390" y="346" text-anchor="middle" class="l2-text">/locations</text>
+  <text x="390" y="360" text-anchor="middle" class="l2-note">single Hazmieh hub</text>
+  <line x1="390" y1="268" x2="390" y2="320" />
+
+  <!-- L2 under Long-term -->
+  <rect x="520" y="320" width="200" height="44" rx="4" class="l2"/>
+  <text x="620" y="346" text-anchor="middle" class="l2-text">/long-term</text>
+  <text x="620" y="360" text-anchor="middle" class="l2-note">monthly tiers · enquiry</text>
+  <line x1="620" y1="268" x2="620" y2="320" />
+
+  <!-- L2 under About -->
+  <rect x="750" y="320" width="200" height="44" rx="4" class="l2"/>
+  <text x="850" y="346" text-anchor="middle" class="l2-text">/about</text>
+  <text x="850" y="360" text-anchor="middle" class="l2-note">brand story · team</text>
+  <line x1="850" y1="268" x2="850" y2="320" />
+
+  <!-- L2 under Help -->
+  <rect x="980" y="320" width="200" height="36" rx="4" class="l2"/>
+  <text x="1080" y="343" text-anchor="middle" class="l2-text">/help (hub)</text>
+  <rect x="980" y="364" width="200" height="36" rx="4" class="l2"/>
+  <text x="1080" y="387" text-anchor="middle" class="l2-text">/help/faq</text>
+  <rect x="980" y="408" width="200" height="36" rx="4" class="l2"/>
+  <text x="1080" y="431" text-anchor="middle" class="l2-text">/help/rental-terms</text>
+  <rect x="980" y="452" width="200" height="36" rx="4" class="l2"/>
+  <text x="1080" y="475" text-anchor="middle" class="l2-text">/help/insurance-and-coverage</text>
+  <rect x="980" y="496" width="200" height="36" rx="4" class="l2"/>
+  <text x="1080" y="519" text-anchor="middle" class="l2-text">/help/payment-and-deposits</text>
+  <rect x="980" y="540" width="200" height="36" rx="4" class="l2"/>
+  <text x="1080" y="563" text-anchor="middle" class="l2-text">/help/cancellation-policy</text>
+  <line x1="1080" y1="268" x2="1080" y2="320" />
+  <line x1="1080" y1="356" x2="1080" y2="364" />
+  <line x1="1080" y1="400" x2="1080" y2="408" />
+  <line x1="1080" y1="444" x2="1080" y2="452" />
+  <line x1="1080" y1="488" x2="1080" y2="496" />
+  <line x1="1080" y1="532" x2="1080" y2="540" />
+
+  <!-- L2 under Contact -->
+  <rect x="1210" y="320" width="200" height="44" rx="4" class="l2"/>
+  <text x="1310" y="346" text-anchor="middle" class="l2-text">/contact</text>
+  <text x="1310" y="360" text-anchor="middle" class="l2-note">WhatsApp · phone · email · form</text>
+  <line x1="1310" y1="268" x2="1310" y2="320" />
+
+  <!-- Revision 2 additions — Chauffeur + Corporate restored, Trips + Itineraries added. -->
+  <rect x="60"   y="980" width="1400" height="36" rx="4" class="meta" stroke="#000000" stroke-width="1.5"/>
+  <text x="760"  y="1004" text-anchor="middle" class="l1-text" style="font-size:14px">Revision 2 surfaces (restored / added in Phase 12)</text>
+
+  <rect x="60"   y="1024" width="260" height="40" rx="4" class="l1"/>
+  <text x="190"  y="1042" text-anchor="middle" class="l1-text">Chauffeur</text>
+  <text x="190"  y="1058" text-anchor="middle" class="l2-note">/chauffeur (restored)</text>
+
+  <rect x="330"  y="1024" width="260" height="40" rx="4" class="l1"/>
+  <text x="460"  y="1042" text-anchor="middle" class="l1-text">Corporate</text>
+  <text x="460"  y="1058" text-anchor="middle" class="l2-note">/corporate (restored)</text>
+
+  <rect x="600"  y="1024" width="260" height="40" rx="4" class="l1"/>
+  <text x="730"  y="1042" text-anchor="middle" class="l1-text">Trips</text>
+  <text x="730"  y="1058" text-anchor="middle" class="l2-note">/trips · /trips/[slug]</text>
+
+  <rect x="870"  y="1024" width="280" height="40" rx="4" class="l1"/>
+  <text x="1010" y="1042" text-anchor="middle" class="l1-text">Itineraries</text>
+  <text x="1010" y="1058" text-anchor="middle" class="l2-note">/itineraries · /itineraries/[slug]</text>
+
+  <rect x="1160" y="1024" width="300" height="40" rx="4" class="gated"/>
+  <text x="1310" y="1042" text-anchor="middle" class="gated-text">Admin (staging only)</text>
+  <text x="1310" y="1058" text-anchor="middle" class="l2-note">/admin/* · noindex</text>
+
+  <!-- BOOKING FLOW header -->
+  <rect x="410" y="600" width="580" height="64" rx="8" class="booking"/>
+  <text x="700" y="630" text-anchor="middle" class="booking-text">Booking flow  /book</text>
+  <text x="700" y="654" text-anchor="middle" class="booking-text" style="font-size:12px;font-weight:500;opacity:0.85;text-transform:none;letter-spacing:0">5-step linear funnel · sticky search summary · pending state for cash + transfer</text>
+
+  <!-- Connector from /vehicles?step=1 → Booking flow (red dashed: query-mode entry) -->
+  <line x1="160" y1="496" x2="160" y2="635" />
+  <line x1="160" y1="635" x2="410" y2="635" class="conn-bold" marker-end="url(#arrow-red)"/>
+
+  <!-- /book/select-vehicle (redirect → /vehicles?step=1) -->
+  <rect x="40" y="600" width="260" height="44" rx="4" class="redirect"/>
+  <text x="170" y="623" text-anchor="middle" class="redirect-text">/book/select-vehicle</text>
+  <text x="170" y="638" text-anchor="middle" class="l2-note">redirect → /vehicles?step=1</text>
+  <line x1="160" y1="540" x2="160" y2="600" class="conn-dotted" marker-end="url(#arrow-red)"/>
+
+  <!-- Booking steps -->
+  <rect x="60" y="720" width="200" height="64" rx="6" class="step"/>
+  <text x="160" y="747" text-anchor="middle" class="step-text">Step 1 · Vehicle</text>
+  <text x="160" y="767" text-anchor="middle" class="meta-text">/vehicles?step=1</text>
+
+  <rect x="290" y="720" width="170" height="64" rx="6" class="step"/>
+  <text x="375" y="747" text-anchor="middle" class="step-text">Step 2 · Extras</text>
+  <text x="375" y="767" text-anchor="middle" class="meta-text">/book/extras</text>
+
+  <rect x="490" y="720" width="180" height="64" rx="6" class="step"/>
+  <text x="580" y="747" text-anchor="middle" class="step-text">Step 3 · Protection</text>
+  <text x="580" y="767" text-anchor="middle" class="meta-text">/book/protection</text>
+
+  <rect x="700" y="720" width="180" height="64" rx="6" class="step"/>
+  <text x="790" y="747" text-anchor="middle" class="step-text">Step 4 · Checkout</text>
+  <text x="790" y="767" text-anchor="middle" class="meta-text">/book/checkout</text>
+
+  <rect x="910" y="720" width="240" height="64" rx="6" class="step"/>
+  <text x="1030" y="747" text-anchor="middle" class="step-text">Step 5 · Confirmation</text>
+  <text x="1030" y="767" text-anchor="middle" class="meta-text">/book/confirmation/[ref]</text>
+
+  <!-- Booking flow connectors -->
+  <line x1="700" y1="664" x2="700" y2="690" />
+  <line x1="160" y1="690" x2="1030" y2="690" />
+  <line x1="160" y1="690" x2="160" y2="720" />
+  <line x1="375" y1="690" x2="375" y2="720" />
+  <line x1="580" y1="690" x2="580" y2="720" />
+  <line x1="790" y1="690" x2="790" y2="720" />
+  <line x1="1030" y1="690" x2="1030" y2="720" />
+
+  <!-- Step-to-step arrows -->
+  <line x1="260" y1="752" x2="290" y2="752" marker-end="url(#arrow)"/>
+  <line x1="460" y1="752" x2="490" y2="752" marker-end="url(#arrow)"/>
+  <line x1="670" y1="752" x2="700" y2="752" marker-end="url(#arrow)"/>
+  <line x1="880" y1="752" x2="910" y2="752" marker-end="url(#arrow)"/>
+
+  <!-- AUTH cluster -->
+  <rect x="60"  y="840" width="370" height="36" rx="4" class="meta" stroke="#000000" stroke-width="1.5"/>
+  <text x="245" y="864" text-anchor="middle" class="l1-text" style="font-size:14px">Auth (public)</text>
+
+  <rect x="60"  y="884" width="180" height="34" rx="4" class="l2"/>
+  <text x="150" y="906" text-anchor="middle" class="l2-text">/login</text>
+  <rect x="250" y="884" width="180" height="34" rx="4" class="l2"/>
+  <text x="340" y="906" text-anchor="middle" class="l2-text">/register</text>
+  <rect x="60"  y="926" width="180" height="34" rx="4" class="l2"/>
+  <text x="150" y="948" text-anchor="middle" class="l2-text">/forgot-password</text>
+  <rect x="250" y="926" width="180" height="34" rx="4" class="l2"/>
+  <text x="340" y="948" text-anchor="middle" class="l2-text">/reset-password</text>
+
+  <!-- ACCOUNT cluster (gated) -->
+  <rect x="490" y="840" width="600" height="36" rx="4" class="gated"/>
+  <text x="790" y="864" text-anchor="middle" class="gated-text">Account (authenticated)</text>
+
+  <rect x="490" y="884" width="180" height="34" rx="4" class="l2"/>
+  <text x="580" y="906" text-anchor="middle" class="l2-text">/account</text>
+  <rect x="680" y="884" width="200" height="34" rx="4" class="l2"/>
+  <text x="780" y="906" text-anchor="middle" class="l2-text">/account/bookings</text>
+  <rect x="890" y="884" width="200" height="34" rx="4" class="l2"/>
+  <text x="990" y="906" text-anchor="middle" class="l2-text">/account/bookings/[ref]</text>
+  <rect x="490" y="926" width="180" height="34" rx="4" class="l2"/>
+  <text x="580" y="948" text-anchor="middle" class="l2-text">/account/profile</text>
+  <rect x="680" y="926" width="200" height="34" rx="4" class="l2"/>
+  <text x="780" y="948" text-anchor="middle" class="l2-text">/account/documents</text>
+  <rect x="890" y="926" width="200" height="34" rx="4" class="l2"/>
+  <text x="990" y="948" text-anchor="middle" class="l2-text">/account/saved-vehicles</text>
+
+  <!-- MANAGE BOOKING -->
+  <rect x="1130" y="840" width="330" height="36" rx="4" class="meta" stroke="#000000" stroke-width="1.5"/>
+  <text x="1295" y="864" text-anchor="middle" class="l1-text" style="font-size:14px">Manage booking (no login)</text>
+  <rect x="1130" y="884" width="330" height="34" rx="4" class="l2"/>
+  <text x="1295" y="906" text-anchor="middle" class="l2-text">/manage-booking · ref + email lookup</text>
+
+  <!-- LEGAL & UTILITY -->
+  <rect x="60"   y="1060" width="1400" height="36" rx="4" class="meta" stroke="#737373" stroke-width="1"/>
+  <text x="760" y="1084" text-anchor="middle" class="l1-text" style="font-size:14px">Legal &amp; Utility</text>
+  <rect x="60"   y="1104" width="220" height="34" rx="4" class="l2"/>
+  <text x="170" y="1126" text-anchor="middle" class="l2-text">/privacy</text>
+  <rect x="290"  y="1104" width="220" height="34" rx="4" class="l2"/>
+  <text x="400" y="1126" text-anchor="middle" class="l2-text">/terms</text>
+  <rect x="520"  y="1104" width="220" height="34" rx="4" class="l2"/>
+  <text x="630" y="1126" text-anchor="middle" class="l2-text">/cookies</text>
+  <rect x="750"  y="1104" width="220" height="34" rx="4" class="l2"/>
+  <text x="860" y="1126" text-anchor="middle" class="l2-text">/404 (not-found)</text>
+  <rect x="980"  y="1104" width="220" height="34" rx="4" class="l2"/>
+  <text x="1090" y="1126" text-anchor="middle" class="l2-text">/500 (error)</text>
+  <rect x="1210" y="1104" width="250" height="34" rx="4" class="l2"/>
+  <text x="1335" y="1126" text-anchor="middle" class="l2-text">/maintenance</text>
+
+  <!-- GLOBAL MODALS / OVERLAYS -->
+  <rect x="60"   y="1180" width="1400" height="36" rx="4" class="meta" stroke="#737373" stroke-width="1"/>
+  <text x="760" y="1204" text-anchor="middle" class="l1-text" style="font-size:14px">Global modals &amp; overlays (no URL)</text>
+  <rect x="60"   y="1224" width="220" height="34" rx="4" class="l2"/>
+  <text x="170" y="1246" text-anchor="middle" class="l2-text">Location picker</text>
+  <rect x="290"  y="1224" width="220" height="34" rx="4" class="l2"/>
+  <text x="400" y="1246" text-anchor="middle" class="l2-text">Date range + time picker</text>
+  <rect x="520"  y="1224" width="220" height="34" rx="4" class="l2"/>
+  <text x="630" y="1246" text-anchor="middle" class="l2-text">Inline car-selected panel</text>
+  <rect x="750"  y="1224" width="220" height="34" rx="4" class="l2"/>
+  <text x="860" y="1246" text-anchor="middle" class="l2-text">Filter sheet (FilterSidebar)</text>
+  <rect x="980"  y="1224" width="220" height="34" rx="4" class="l2"/>
+  <text x="1090" y="1246" text-anchor="middle" class="l2-text">WhatsApp FAB (every page)</text>
+  <rect x="1210" y="1224" width="250" height="34" rx="4" class="l2"/>
+  <text x="1335" y="1246" text-anchor="middle" class="l2-text">Cookie banner · Newsletter</text>
+
+  <!-- LEGEND -->
+  <text x="40" y="1340" class="legend" style="font-weight:700">Legend:</text>
+  <rect x="120" y="1328" width="22" height="14" rx="2" class="root"/>
+  <text x="150" y="1340" class="legend">Root</text>
+  <rect x="200" y="1328" width="22" height="14" rx="2" class="l1"/>
+  <text x="230" y="1340" class="legend">Top-level page</text>
+  <rect x="350" y="1328" width="22" height="14" rx="2" class="l2"/>
+  <text x="380" y="1340" class="legend">Sub-page / route / query state</text>
+  <rect x="600" y="1328" width="22" height="14" rx="2" class="booking"/>
+  <text x="630" y="1340" class="legend">Booking funnel</text>
+  <rect x="745" y="1328" width="22" height="14" rx="2" class="step"/>
+  <text x="775" y="1340" class="legend">Booking step</text>
+  <rect x="890" y="1328" width="22" height="14" rx="2" class="gated"/>
+  <text x="920" y="1340" class="legend">Authenticated area</text>
+  <rect x="1060" y="1328" width="22" height="14" rx="2" class="redirect"/>
+  <text x="1090" y="1340" class="legend">Redirect (legacy URL)</text>
+  <rect x="1240" y="1328" width="22" height="14" rx="2" class="gated"/>
+  <text x="1270" y="1340" class="legend">Admin / authenticated</text>
+
+  <!-- Footer notes -->
+  <text x="40" y="1395" class="legend">Revision 2 (Phase 12): Chauffeur + Corporate restored; new /trips and /itineraries CMS-driven surfaces; staging-only /admin dashboard at admin/admin123; hero cinematic photo.</text>
+  <text x="40" y="1415" class="legend">Carried over from v2: PDP removed (Sixt-style inline expansion); /vehicles is canonical (category/select/step via query); single Hazmieh branch; /book/select-vehicle redirects to /vehicles?step=1.</text>
+  <text x="40" y="1440" class="legend">Design system: WHEELS / INK &amp; SIGNAL — Geist typography, ink-100 spine, paper canvas, signal-red singular CTA, signal-blue informational. See /docs/Design/DESIGN.md.</text>
+</svg>

@@ -1,0 +1,1270 @@
+{
+  "success": true,
+  "data": {
+    "start_date_time": "2027-04-15 10:00:00",
+    "end_date_time": "2027-04-19 10:00:00",
+    "count": 63,
+    "vehicles": [
+      {
+        "id": 131,
+        "name": "MICRA",
+        "model": "MICRA",
+        "license_plate": null,
+        "vehicle_type_id": 1,
+        "vehicle_type": "small",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": false,
+        "unavailable_reason": "booked",
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 20,
+          "total": 80
+        }
+      },
+      {
+        "id": 132,
+        "name": "MICRA",
+        "model": "MICRA",
+        "license_plate": null,
+        "vehicle_type_id": 1,
+        "vehicle_type": "small",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 20,
+          "total": 80
+        }
+      },
+      {
+        "id": 134,
+        "name": "MICRA",
+        "model": "MICRA",
+        "license_plate": null,
+        "vehicle_type_id": 1,
+        "vehicle_type": "small",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 20,
+          "total": 80
+        }
+      },
+      {
+        "id": 135,
+        "name": "MICRA",
+        "model": "MICRA",
+        "license_plate": null,
+        "vehicle_type_id": 1,
+        "vehicle_type": "small",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 20,
+          "total": 80
+        }
+      },
+      {
+        "id": 137,
+        "name": "RIO",
+        "model": "RIO",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 138,
+        "name": "RIO",
+        "model": "RIO",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 139,
+        "name": "YARIS",
+        "model": "YARIS",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 142,
+        "name": "AVEO",
+        "model": "AVEO",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 143,
+        "name": "CERATO",
+        "model": "CERATO",
+        "license_plate": null,
+        "vehicle_type_id": 5,
+        "vehicle_type": "FAMILY",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 35,
+          "total": 140
+        }
+      },
+      {
+        "id": 144,
+        "name": "CERATO",
+        "model": "CERATO",
+        "license_plate": null,
+        "vehicle_type_id": 5,
+        "vehicle_type": "FAMILY",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 35,
+          "total": 140
+        }
+      },
+      {
+        "id": 145,
+        "name": "CERATO",
+        "model": "CERATO",
+        "license_plate": null,
+        "vehicle_type_id": 5,
+        "vehicle_type": "FAMILY",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 35,
+          "total": 140
+        }
+      },
+      {
+        "id": 147,
+        "name": "RIO",
+        "model": "RIO",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 148,
+        "name": "OUTLANDER",
+        "model": "OUTLANDER",
+        "license_plate": null,
+        "vehicle_type_id": 2,
+        "vehicle_type": "4X4 7SEATS",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 6,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 100,
+          "total": 400
+        }
+      },
+      {
+        "id": 149,
+        "name": "OUTLANDER",
+        "model": "OUTLANDER",
+        "license_plate": null,
+        "vehicle_type_id": 2,
+        "vehicle_type": "4X4 7SEATS",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 6,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 100,
+          "total": 400
+        }
+      },
+      {
+        "id": 150,
+        "name": "SPARK",
+        "model": "SPARK",
+        "license_plate": null,
+        "vehicle_type_id": 1,
+        "vehicle_type": "small",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 20,
+          "total": 80
+        }
+      },
+      {
+        "id": 151,
+        "name": "SPARK",
+        "model": "SPARK",
+        "license_plate": null,
+        "vehicle_type_id": 1,
+        "vehicle_type": "small",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 20,
+          "total": 80
+        }
+      },
+      {
+        "id": 152,
+        "name": "SPARK",
+        "model": "SPARK",
+        "license_plate": null,
+        "vehicle_type_id": 1,
+        "vehicle_type": "small",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 20,
+          "total": 80
+        }
+      },
+      {
+        "id": 153,
+        "name": "SPARK",
+        "model": "SPARK",
+        "license_plate": null,
+        "vehicle_type_id": 1,
+        "vehicle_type": "small",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 20,
+          "total": 80
+        }
+      },
+      {
+        "id": 159,
+        "name": "YARIS",
+        "model": "YARIS",
+        "license_plate": null,
+        "vehicle_type_id": 6,
+        "vehicle_type": "MEDIUM HATCHBACK",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 22,
+          "total": 88
+        }
+      },
+      {
+        "id": 160,
+        "name": "YARIS",
+        "model": "YARIS",
+        "license_plate": null,
+        "vehicle_type_id": 6,
+        "vehicle_type": "MEDIUM HATCHBACK",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 22,
+          "total": 88
+        }
+      },
+      {
+        "id": 162,
+        "name": "YARIS",
+        "model": "YARIS",
+        "license_plate": null,
+        "vehicle_type_id": 6,
+        "vehicle_type": "MEDIUM HATCHBACK",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 22,
+          "total": 88
+        }
+      },
+      {
+        "id": 163,
+        "name": "YARIS",
+        "model": "YARIS",
+        "license_plate": null,
+        "vehicle_type_id": 6,
+        "vehicle_type": "MEDIUM HATCHBACK",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 22,
+          "total": 88
+        }
+      },
+      {
+        "id": 167,
+        "name": "SUNNY",
+        "model": "SUNNY",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 169,
+        "name": "SPARK",
+        "model": "SPARK",
+        "license_plate": null,
+        "vehicle_type_id": 1,
+        "vehicle_type": "small",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 20,
+          "total": 80
+        }
+      },
+      {
+        "id": 170,
+        "name": "SPARK",
+        "model": "SPARK",
+        "license_plate": null,
+        "vehicle_type_id": 1,
+        "vehicle_type": "small",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 20,
+          "total": 80
+        }
+      },
+      {
+        "id": 171,
+        "name": "COBALT",
+        "model": "COBALT",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 172,
+        "name": "COBALT",
+        "model": "COBALT",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 173,
+        "name": "COBALT",
+        "model": "COBALT",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 174,
+        "name": "SPORTAGE",
+        "model": "SPORTAGE",
+        "license_plate": null,
+        "vehicle_type_id": 7,
+        "vehicle_type": "SMALL SUV",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 45,
+          "total": 180
+        }
+      },
+      {
+        "id": 175,
+        "name": "SPORTAGE",
+        "model": "SPORTAGE",
+        "license_plate": null,
+        "vehicle_type_id": 7,
+        "vehicle_type": "SMALL SUV",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 45,
+          "total": 180
+        }
+      },
+      {
+        "id": 176,
+        "name": "TAHOE",
+        "model": "TAHOE",
+        "license_plate": null,
+        "vehicle_type_id": 3,
+        "vehicle_type": "Luxury",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 6,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 120,
+          "total": 480
+        }
+      },
+      {
+        "id": 177,
+        "name": "SUNNY",
+        "model": "SUNNY",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 178,
+        "name": "SUNNY",
+        "model": "SUNNY",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 179,
+        "name": "SUNNY",
+        "model": "SUNNY",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 180,
+        "name": "SUNNY",
+        "model": "SUNNY",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 181,
+        "name": "SUNNY",
+        "model": "SUNNY",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 182,
+        "name": "SUNNY",
+        "model": "SUNNY",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 183,
+        "name": "SPARK",
+        "model": "SPARK",
+        "license_plate": null,
+        "vehicle_type_id": 1,
+        "vehicle_type": "small",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 20,
+          "total": 80
+        }
+      },
+      {
+        "id": 184,
+        "name": "SPARK",
+        "model": "SPARK",
+        "license_plate": null,
+        "vehicle_type_id": 1,
+        "vehicle_type": "small",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 20,
+          "total": 80
+        }
+      },
+      {
+        "id": 185,
+        "name": "SPARK",
+        "model": "SPARK",
+        "license_plate": null,
+        "vehicle_type_id": 1,
+        "vehicle_type": "small",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 20,
+          "total": 80
+        }
+      },
+      {
+        "id": 186,
+        "name": "SPARK",
+        "model": "SPARK",
+        "license_plate": null,
+        "vehicle_type_id": 1,
+        "vehicle_type": "small",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 20,
+          "total": 80
+        }
+      },
+      {
+        "id": 187,
+        "name": "SPARK",
+        "model": "SPARK",
+        "license_plate": null,
+        "vehicle_type_id": 1,
+        "vehicle_type": "small",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 20,
+          "total": 80
+        }
+      },
+      {
+        "id": 188,
+        "name": "SPARK",
+        "model": "SPARK",
+        "license_plate": null,
+        "vehicle_type_id": 1,
+        "vehicle_type": "small",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 20,
+          "total": 80
+        }
+      },
+      {
+        "id": 189,
+        "name": "SPARK",
+        "model": "SPARK",
+        "license_plate": null,
+        "vehicle_type_id": 1,
+        "vehicle_type": "small",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 20,
+          "total": 80
+        }
+      },
+      {
+        "id": 190,
+        "name": "SPARK",
+        "model": "SPARK",
+        "license_plate": null,
+        "vehicle_type_id": 1,
+        "vehicle_type": "small",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 20,
+          "total": 80
+        }
+      },
+      {
+        "id": 191,
+        "name": "SPARK",
+        "model": "SPARK",
+        "license_plate": null,
+        "vehicle_type_id": 1,
+        "vehicle_type": "small",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 20,
+          "total": 80
+        }
+      },
+      {
+        "id": 192,
+        "name": "SPARK",
+        "model": "SPARK",
+        "license_plate": null,
+        "vehicle_type_id": 1,
+        "vehicle_type": "small",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 20,
+          "total": 80
+        }
+      },
+      {
+        "id": 193,
+        "name": "SUNNY",
+        "model": "SUNNY",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 194,
+        "name": "SUNNY",
+        "model": "SUNNY",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 195,
+        "name": "SUNNY",
+        "model": "SUNNY",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 196,
+        "name": "SUNNY",
+        "model": "SUNNY",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 220,
+        "name": "ASX",
+        "model": "ASX",
+        "license_plate": null,
+        "vehicle_type_id": 7,
+        "vehicle_type": "SMALL SUV",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 45,
+          "total": 180
+        }
+      },
+      {
+        "id": 221,
+        "name": "ASX",
+        "model": "ASX",
+        "license_plate": null,
+        "vehicle_type_id": 7,
+        "vehicle_type": "SMALL SUV",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 45,
+          "total": 180
+        }
+      },
+      {
+        "id": 222,
+        "name": "ASX",
+        "model": "ASX",
+        "license_plate": null,
+        "vehicle_type_id": 7,
+        "vehicle_type": "SMALL SUV",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 45,
+          "total": 180
+        }
+      },
+      {
+        "id": 223,
+        "name": "ASX",
+        "model": "ASX",
+        "license_plate": null,
+        "vehicle_type_id": 7,
+        "vehicle_type": "SMALL SUV",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 45,
+          "total": 180
+        }
+      },
+      {
+        "id": 224,
+        "name": "SUNNY",
+        "model": "SUNNY",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 225,
+        "name": "SUNNY",
+        "model": "SUNNY",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 226,
+        "name": "SUNNY",
+        "model": "SUNNY",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 227,
+        "name": "SUNNY",
+        "model": "SUNNY",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 228,
+        "name": "SUNNY",
+        "model": "SUNNY",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 229,
+        "name": "SUNNY",
+        "model": "SUNNY",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 230,
+        "name": "SUNNY",
+        "model": "SUNNY",
+        "license_plate": null,
+        "vehicle_type_id": 4,
+        "vehicle_type": "MEDIUM",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 25,
+          "total": 100
+        }
+      },
+      {
+        "id": 231,
+        "name": "MAGNITE",
+        "model": "MAGNITE",
+        "license_plate": null,
+        "vehicle_type_id": 7,
+        "vehicle_type": "SMALL SUV",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 45,
+          "total": 180
+        }
+      }
+    ]
+  }
+}

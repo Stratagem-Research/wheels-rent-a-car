@@ -1,0 +1,4 @@
+{
+  "message": "Too Many Attempts.",
+  "exception": "Illuminate\\Http\\Exceptions\\ThrottleRequestsException"
+}

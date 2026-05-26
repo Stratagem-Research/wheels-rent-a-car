@@ -1,0 +1,11 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`wheels-public/adapters > serializeAddonsAndProtectionAsNotes > preserves a stable ordering for snapshot use 1`] = `
+"Please clean the seats.
+Rate: Best Price · 200 km/day
+Protection: Smart (+$15/day)
+Add-ons: 2 × Underage driver fee ($10/day), Additional driver ($5/day)
+Flight: ME203
+Promo code: SUMMER15
+Customer opted into WhatsApp updates."
+`;

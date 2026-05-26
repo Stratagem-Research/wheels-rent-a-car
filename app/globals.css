@@ -1,0 +1,126 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+/*
+ * Wheels Rent A Car — global stylesheet.
+ *
+ * Tokens live in styles/tokens.css (imported above) and are exposed as
+ * Tailwind utilities via the @theme block. Component primitives consume
+ * those utilities; never hardcode hex values in components.
+ */
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-surface);
+  color: var(--color-on-surface);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Accordion expand/collapse keyframes consumed by components/ui/Accordion.tsx. */
+@keyframes wheels-accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+@keyframes wheels-accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+/* Infinite-marquee keyframe consumed by the Reviews carousel.
+ *
+ * The track contains TWO copies of the review list rendered back-to-back, so
+ * translating by -50% lands the track right at the start of the second copy
+ * — visually identical to the start of the first copy, making the loop seam
+ * invisible. Duration is set per-call via Tailwind arbitrary value. */
+@keyframes wheels-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Honour reduced-motion globally — overrides scoped transitions on opt-in. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/*
+ * Skip-to-content target. The <SkipToContent /> primitive jumps to #content;
+ * the focused element must escape the visually-hidden state to be useful.
+ */
+.wheels-skip-link {
+  position: absolute;
+  top: -40px;
+  left: 1rem;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  background: var(--color-ink-100);
+  color: var(--color-paper);
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+}
+.wheels-skip-link:focus {
+  top: 1rem;
+}
+
+/*
+ * Print stylesheet per 15_legal_and_utility.md.
+ * Hides chrome, expands the legal article to full width, and prints the
+ * URL + date in the page footer so a reader can find the source online.
+ */
+@media print {
+  header,
+  footer,
+  nav[aria-label="Cookie consent"],
+  nav[aria-label="On this page"],
+  [aria-label="Chat with us on WhatsApp"],
+  .wheels-skip-link {
+    display: none !important;
+  }
+  body {
+    background: #ffffff;
+    color: #000000;
+  }
+  main {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+  article {
+    max-width: none !important;
+  }
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+    color: #444;
+  }
+  @page {
+    margin: 24mm 18mm;
+  }
+}

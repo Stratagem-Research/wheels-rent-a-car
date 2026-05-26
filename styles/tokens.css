@@ -1,0 +1,480 @@
+/*
+ * Wheels Rent A Car — Design Tokens (INK & SIGNAL)
+ *
+ * Source of truth: /docs/Design/DESIGN.md (WHEELS / INK & SIGNAL).
+ *
+ * Tailwind v4 @theme block exposes these as utilities (bg-ink-100, text-paper,
+ * text-signal-red, rounded-xl, etc.). Raw CSS variables are also emitted on
+ * :root for components that bypass Tailwind (inline focus rings, dynamic
+ * styles, animation tokens).
+ *
+ * Brand rules — see CLAUDE.md §4:
+ * - Black (ink-100) is the spine. Default primary CTA on light pages.
+ * - White (paper) is the canvas.
+ * - Red (signal-red) is reserved for the SINGLE highest-conversion CTA per
+ *   screen. Never decorative.
+ * - Blue (signal-blue) is informational: inline links, info banners, selected
+ *   states. Never a primary action.
+ * - WhatsApp green (#25D366) is locked to the WhatsApp FAB and WhatsApp CTAs.
+ */
+
+@theme {
+  /* ── INK SCALE — the spine ─────────────────────────────────────────────── */
+  /* Pure-black + 13 true greys. Never tint. Bluish grey is not a Wheels grey. */
+  --color-ink-100: #000000;
+  --color-ink-95: #0a0a0a;
+  --color-ink-90: #141414;
+  --color-ink-80: #1f1f1f;
+  --color-ink-70: #2e2e2e;
+  --color-ink-60: #525252;
+  --color-ink-50: #737373;
+  --color-ink-40: #a3a3a3;
+  --color-ink-30: #d4d4d4;
+  --color-ink-20: #e5e5e5;
+  --color-ink-15: #efefef;
+  --color-ink-10: #f5f5f5;
+  --color-ink-05: #fafafa;
+
+  --color-paper: #ffffff;
+
+  /* ── SIGNAL — RED (Cedar) — single CTA per screen ────────────────────── */
+  --color-signal-red: #c8102e;
+  --color-signal-red-hover: #a50c24;
+  --color-signal-red-press: #7a0819;
+  --color-signal-red-bg: #fff0f2;
+  --color-signal-red-on: #ffffff;
+
+  /* ── SIGNAL — BLUE (Beirut) — info / link / selected ─────────────────── */
+  --color-signal-blue: #0e4f94;
+  --color-signal-blue-hover: #0a3e76;
+  --color-signal-blue-bg: #eaf2fb;
+  --color-signal-blue-on: #ffffff;
+
+  /* ── SEMANTIC ─────────────────────────────────────────────────────────── */
+  --color-success: #10b981;
+  --color-success-bg: #ecfdf5;
+  --color-warning: #f59e0b;
+  --color-warning-bg: #fffbeb;
+  --color-error: #c8102e;
+  --color-error-bg: #fff0f2;
+  --color-info: #0e4f94;
+  --color-info-bg: #eaf2fb;
+
+  /* ── SEMANTIC ALIASES — use these in components, not the raw ramp ────── */
+  --color-surface: #ffffff; /* paper */
+  --color-surface-tint: #fafafa; /* ink-05 */
+  --color-surface-subtle: #f5f5f5; /* ink-10 */
+  --color-surface-muted: #efefef; /* ink-15 */
+  --color-surface-inverse: #000000; /* ink-100 */
+  --color-surface-inverse-tint: #141414; /* ink-90 */
+
+  --color-on-surface: #0a0a0a; /* ink-95 */
+  --color-on-surface-muted: #525252; /* ink-60 */
+  --color-on-surface-faint: #737373; /* ink-50 */
+  --color-on-surface-inverse: #ffffff; /* paper */
+  --color-on-surface-inverse-muted: #a3a3a3; /* ink-40 */
+
+  --color-border: #e5e5e5; /* ink-20 */
+  --color-border-strong: #d4d4d4; /* ink-30 */
+  --color-border-inverse: #1f1f1f; /* ink-80 */
+  --color-divider: #efefef; /* ink-15 */
+
+  --color-focus-ring: #000000; /* ink-100 */
+  --color-focus-ring-inverse: #ffffff; /* paper */
+  --color-focus: #000000; /* legacy alias (was primary-50); points to ink-100 */
+
+  /* ── WHATSAPP brand (locked, never restyle) ──────────────────────────── */
+  --color-whatsapp: #25d366;
+  --color-whatsapp-pressed: #1eb256;
+
+  /* ──────────────────────────────────────────────────────────────────────
+   * LEGACY COLOUR TOKENS — kept for Button.tsx and any other component
+   * that has not yet been rebuilt under Phase 4. These are aliases over
+   * the INK & SIGNAL scale; Phase 4 will remove them.
+   * Until then, `bg-primary-40` etc. still resolves to the right hex.
+   * ────────────────────────────────────────────────────────────────────── */
+  --color-primary-99: #f7fafe;
+  --color-primary-95: #eaf2fb;
+  --color-primary-90: #d2e2f4;
+  --color-primary-80: #a5c3e8;
+  --color-primary-70: #6fa0d6;
+  --color-primary-60: #3d7dc0;
+  --color-primary-50: #1a60a8;
+  --color-primary-40: #0e4f94;
+  --color-primary-30: #0a3e76;
+  --color-primary-20: #072c56;
+  --color-primary-10: #031b36;
+  --color-primary-05: #010e1f;
+
+  --color-secondary-99: #fff6f7;
+  --color-secondary-95: #ffe6e9;
+  --color-secondary-90: #ffc8cd;
+  --color-secondary-80: #f89098;
+  --color-secondary-70: #ee5d69;
+  --color-secondary-60: #e0303f;
+  --color-secondary-50: #c8102e;
+  --color-secondary-40: #a50c24;
+  --color-secondary-30: #7a0819;
+  --color-secondary-20: #4f040f;
+  --color-secondary-10: #2a0207;
+
+  --color-neutral-99: #ffffff;
+  --color-neutral-95: #f5f5f5;
+  --color-neutral-90: #ebebeb;
+  --color-neutral-80: #d4d4d4;
+  --color-neutral-70: #a3a3a3;
+  --color-neutral-60: #737373;
+  --color-neutral-50: #525252;
+  --color-neutral-40: #404040;
+  --color-neutral-30: #262626;
+  --color-neutral-20: #171717;
+  --color-neutral-10: #0a0a0a;
+
+  /*
+   * Containers and `--radius-full` deliberately live OUTSIDE `@theme`
+   * below. Tailwind v4 treats every `--container-{key}` / `--radius-{key}`
+   * declared in @theme as a utility-generator key — `--container-full`
+   * hijacks `w-full` (resolving it to 1600px instead of 100%), and
+   * `--radius-full` overrides `rounded-full`. Spec is preserved by exposing
+   * them as plain CSS variables (still consumed via
+   * `max-w-[var(--container-default)]`, `rounded-[var(--radius-full)]`).
+   */
+
+  /* ── Radius scale (named tokens only — `full` lives on :root) ────────── */
+  --radius-xs: 0.25rem; /* 4px */
+  --radius-sm: 0.5rem; /* 8px */
+  --radius-md: 0.75rem; /* 12px */
+  --radius-lg: 1rem; /* 16px — inputs */
+  --radius-xl: 1.25rem; /* 20px — cards */
+  --radius-2xl: 1.5rem; /* 24px — floating card */
+  --radius-3xl: 2rem; /* 32px — modals + sheets */
+  --radius-pill: 9999px;
+
+  /* ── Typography families ──────────────────────────────────────────────── */
+  /* Geist is the only typeface. font-display aliases to Geist so legacy
+   * `font-display` utility callsites keep working until Phase 4 cleans them up. */
+  --font-sans: var(--font-geist-sans, "Geist"), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono, "Geist Mono"), ui-monospace, monospace;
+  --font-display: var(--font-geist-sans, "Geist"), system-ui, sans-serif;
+
+  /* ── Elevation ────────────────────────────────────────────────────────── */
+  /* Reserved for elements that detach from the page: modals, popovers, the
+   * sticky search bar, sticky booking summary, FAB. Cards default to 0. */
+  --shadow-elevation-1: 0 1px 2px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow-elevation-2: 0 4px 12px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-elevation-3: 0 12px 32px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-elevation-4: 0 24px 56px rgba(0, 0, 0, 0.16), 0 8px 16px rgba(0, 0, 0, 0.08);
+
+  --shadow-photo: 0 12px 32px rgba(10, 10, 10, 0.12), 0 4px 12px rgba(10, 10, 10, 0.06);
+}
+
+/*
+ * Plain CSS variables on :root — NOT in @theme. Tailwind v4 only generates
+ * `w-{key}` / `rounded-{key}` utilities from keys declared inside @theme,
+ * so keeping these outside avoids hijacking `w-full` / `rounded-full`.
+ * They're still readable via `var(--…)` in arbitrary value classes:
+ *   max-w-[var(--container-default)]   rounded-[var(--radius-full)]
+ */
+:root {
+  --container-narrow: 55rem; /* 880px */
+  --container-default: 80rem; /* 1280px */
+  --container-wide: 90rem; /* 1440px */
+  --container-full: 87.5rem; /* 1400px */
+  --radius-full: 9999px;
+
+  /* Dark card / surface gradient — single source of truth.
+   *
+   * Used by VehicleCard, VehicleCardExpanded, CategoryWordmarkCard, the
+   * dark-accent benefit card, and the global Footer surface. Bright spot
+   * sits in the top-right corner so light reads diagonally across the
+   * surface, fading to near-black at the bottom-left. */
+  --gradient-card-dark: radial-gradient(
+    131.89% 141.42% at 100% 0%,
+    #373737 0%,
+    #161616 61.06%,
+    #121212 100%
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * Typography utilities — INK & SIGNAL token set.
+ *
+ * Match DESIGN.md frontmatter 1:1. Display + headline + button + label +
+ * overline are UPPERCASE Geist ExtraBold/Bold. Lead / body / field-* are
+ * sentence-case Geist Regular/Medium. Mono-* and price-* use tabular-nums.
+ * ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── DISPLAY — monumental scale, used like a wordmark ───────────────────── */
+@utility display-mega {
+  font-family: var(--font-sans);
+  font-size: 144px;
+  font-weight: 800;
+  line-height: 0.92;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+@utility display-2xl {
+  font-family: var(--font-sans);
+  font-size: 112px;
+  font-weight: 800;
+  line-height: 0.94;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+}
+@utility display-xl {
+  font-family: var(--font-sans);
+  font-size: 88px;
+  font-weight: 800;
+  line-height: 0.96;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+@utility display-lg {
+  font-family: var(--font-sans);
+  font-size: 72px;
+  font-weight: 800;
+  line-height: 0.98;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+}
+@utility display-md {
+  font-family: var(--font-sans);
+  font-size: 56px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.022em;
+  text-transform: uppercase;
+}
+
+/* ── HEADLINES — uppercase, ExtraBold (800), tight tracking ──────────────── */
+@utility headline-xl {
+  font-family: var(--font-sans);
+  font-size: 44px;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+@utility headline-lg {
+  font-family: var(--font-sans);
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  text-transform: uppercase;
+}
+@utility headline-md {
+  font-family: var(--font-sans);
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.012em;
+  text-transform: uppercase;
+}
+@utility headline-sm {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+  text-transform: uppercase;
+}
+@utility headline-xs {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+/* ── LEAD — Geist Medium 500, sentence case (sub-heads / intros) ─────────── */
+@utility lead-xl {
+  font-family: var(--font-sans);
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+}
+@utility lead-lg {
+  font-family: var(--font-sans);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.005em;
+}
+@utility lead-md {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+@utility lead-sm {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+/* ── BODY — Geist Regular 400, sentence case ─────────────────────────────── */
+@utility body-lg {
+  font-family: var(--font-sans);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.55;
+}
+@utility body-md {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+@utility body-sm {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.55;
+}
+@utility body-xs {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+/* ── BUTTONS — Geist Bold 700, uppercase, tight ──────────────────────────── */
+@utility button-lg {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+@utility button-md {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+@utility button-sm {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ── LABELS / OVERLINE — Geist Medium 500, uppercase, wide tracking ─────── */
+@utility label-lg {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+@utility label-md {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+@utility label-sm {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+@utility overline {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  /* Tailwind v4 also ships a built-in `overline` text-decoration utility
+   * that paints a line ABOVE the text. We want only the typography
+   * (uppercase, tight tracking) — never the decorative line. We use the
+   * longhand + !important to beat the built-in regardless of cascade
+   * source order. */
+  text-decoration-line: none !important;
+}
+
+/* ── FORM HELPERS ────────────────────────────────────────────────────────── */
+@utility field-label {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+@utility field-helper {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.4;
+}
+@utility field-error {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+/* ── MONO — Geist Mono for tabular numerics ──────────────────────────────── */
+@utility mono-md {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+@utility mono-lg {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+/* ── PRICES — display-weighted Geist for headline price moments ─────────── */
+@utility price-xl {
+  font-family: var(--font-sans);
+  font-size: 56px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+}
+@utility price-lg {
+  font-family: var(--font-sans);
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+@utility price-md {
+  font-family: var(--font-sans);
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
+}
+@utility price-sm {
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}

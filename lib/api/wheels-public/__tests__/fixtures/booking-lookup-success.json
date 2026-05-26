@@ -1,0 +1,41 @@
+{
+  "success": true,
+  "data": {
+    "reference": "WRC-270415-9KQ4",
+    "booking_id": 1197,
+    "status": "pending_approval",
+    "payment_status": "unpaid",
+    "amount": 80,
+    "paid_amount": 0,
+    "due_amount": 80,
+    "start_date_time": "2027-04-15 10:00",
+    "end_date_time": "2027-04-19 14:00",
+    "internal_block_until": "2027-04-19 14:30",
+    "timezone": "Asia/Beirut",
+    "pickup_address": 1,
+    "drop_off_address": 1,
+    "rate": {
+      "rate_type": "best_price",
+      "mileage_plan": "200km_day",
+      "selected_rate_label": "Best Price",
+      "selected_rate_price": 80,
+      "selected_mileage_limit": "200 km/day"
+    },
+    "vehicle": {
+      "id": 131,
+      "name": "MICRA",
+      "model": "Nissan Micra",
+      "license_plate": null,
+      "vehicle_type_id": 1
+    },
+    "customer": {
+      "id": 694,
+      "name": "Smoke Test",
+      "first_name": "Smoke",
+      "last_name": "Test",
+      "email": "smoke+1779262380@stratagemresearch.co",
+      "phone_number": "+96170000000"
+    },
+    "notes": "Created by fixtures"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "success": true,
+  "data": {
+    "id": 131,
+    "name": "MICRA",
+    "model": "MICRA",
+    "license_plate": null,
+    "vehicle_type_id": 1,
+    "vehicle_type": "small",
+    "gearbox": "automatic",
+    "fuel_type": "petrol",
+    "number_of_seats": 4,
+    "is_available": true,
+    "unavailable_reason": null,
+    "pricing": {
+      "days": 4,
+      "price_option": "standard",
+      "price_label": "Standard Price",
+      "daily_price": 20,
+      "total": 80
+    }
+  }
+}

@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1400" font-family="Arial, sans-serif">
+  <defs>
+    <style>
+      .root { fill: #0F3D5C; stroke: #0F3D5C; }
+      .root-text { fill: #FFFFFF; font-weight: 700; font-size: 22px; }
+      .l1 { fill: #FFFFFF; stroke: #0F3D5C; stroke-width: 2; }
+      .l1-text { fill: #0B1F2A; font-weight: 700; font-size: 16px; }
+      .l2 { fill: #EAF1F5; stroke: #5A6B73; stroke-width: 1; }
+      .l2-text { fill: #0B1F2A; font-size: 13px; }
+      .booking { fill: #C8102E; stroke: #C8102E; }
+      .booking-text { fill: #FFFFFF; font-weight: 700; font-size: 16px; }
+      .step { fill: #FDECEE; stroke: #C8102E; stroke-width: 1.5; }
+      .step-text { fill: #C8102E; font-weight: 700; font-size: 13px; }
+      .gated { fill: #FFF7E6; stroke: #B45309; stroke-width: 1.5; }
+      .gated-text { fill: #B45309; font-weight: 700; font-size: 13px; }
+      .meta { fill: #F4F6F8; stroke: #D7DEE3; }
+      .meta-text { fill: #5A6B73; font-size: 12px; }
+      .legend { fill: #5A6B73; font-size: 13px; }
+      .title { fill: #0F3D5C; font-weight: 700; font-size: 26px; }
+      .subtitle { fill: #5A6B73; font-size: 15px; }
+      line { stroke: #5A6B73; stroke-width: 1.5; }
+      .conn-bold { stroke: #C8102E; stroke-width: 2; }
+    </style>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#5A6B73"/>
+    </marker>
+    <marker id="arrow-red" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#C8102E"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="40" y="40" class="title">Wheels Rent A Car — Sitemap</text>
+  <text x="40" y="62" class="subtitle">Phase 1 · Customer-facing site · English</text>
+
+  <!-- ROOT: Home -->
+  <rect x="700" y="100" width="200" height="56" rx="8" class="root"/>
+  <text x="800" y="135" text-anchor="middle" class="root-text">HOME  /</text>
+
+  <!-- L1 nodes -->
+  <!-- Vehicles -->
+  <rect x="60"  y="220" width="180" height="48" rx="6" class="l1"/>
+  <text x="150" y="250" text-anchor="middle" class="l1-text">Vehicles</text>
+  <!-- Locations -->
+  <rect x="270" y="220" width="180" height="48" rx="6" class="l1"/>
+  <text x="360" y="250" text-anchor="middle" class="l1-text">Locations</text>
+  <!-- Long-term -->
+  <rect x="480" y="220" width="180" height="48" rx="6" class="l1"/>
+  <text x="570" y="250" text-anchor="middle" class="l1-text">Long-term</text>
+  <!-- Chauffeur -->
+  <rect x="690" y="220" width="180" height="48" rx="6" class="l1"/>
+  <text x="780" y="250" text-anchor="middle" class="l1-text">Chauffeur</text>
+  <!-- Corporate -->
+  <rect x="900" y="220" width="180" height="48" rx="6" class="l1"/>
+  <text x="990" y="250" text-anchor="middle" class="l1-text">Corporate</text>
+  <!-- About -->
+  <rect x="1110" y="220" width="160" height="48" rx="6" class="l1"/>
+  <text x="1190" y="250" text-anchor="middle" class="l1-text">About</text>
+  <!-- Help -->
+  <rect x="1300" y="220" width="160" height="48" rx="6" class="l1"/>
+  <text x="1380" y="250" text-anchor="middle" class="l1-text">Help &amp; FAQ</text>
+  <!-- Contact (second row) -->
+  <rect x="1300" y="290" width="160" height="48" rx="6" class="l1"/>
+  <text x="1380" y="320" text-anchor="middle" class="l1-text">Contact</text>
+
+  <!-- Connectors from Home -->
+  <line x1="800" y1="156" x2="800" y2="195" />
+  <line x1="150" y1="195" x2="1380" y2="195" />
+  <line x1="150" y1="195" x2="150" y2="220" />
+  <line x1="360" y1="195" x2="360" y2="220" />
+  <line x1="570" y1="195" x2="570" y2="220" />
+  <line x1="780" y1="195" x2="780" y2="220" />
+  <line x1="990" y1="195" x2="990" y2="220" />
+  <line x1="1190" y1="195" x2="1190" y2="220" />
+  <line x1="1380" y1="195" x2="1380" y2="220" />
+  <line x1="1380" y1="268" x2="1380" y2="290" />
+
+  <!-- L2 under Vehicles -->
+  <rect x="40"  y="320" width="220" height="36" rx="4" class="l2"/>
+  <text x="150" y="343" text-anchor="middle" class="l2-text">/vehicles</text>
+  <rect x="40"  y="364" width="220" height="36" rx="4" class="l2"/>
+  <text x="150" y="387" text-anchor="middle" class="l2-text">/vehicles/[category]</text>
+  <rect x="40"  y="408" width="220" height="36" rx="4" class="l2"/>
+  <text x="150" y="431" text-anchor="middle" class="l2-text">/vehicles/[slug]  (PDP)</text>
+  <line x1="150" y1="268" x2="150" y2="320" />
+  <line x1="150" y1="356" x2="150" y2="364" />
+  <line x1="150" y1="400" x2="150" y2="408" />
+
+  <!-- L2 under Locations -->
+  <rect x="270" y="320" width="180" height="36" rx="4" class="l2"/>
+  <text x="360" y="343" text-anchor="middle" class="l2-text">/locations</text>
+  <rect x="270" y="364" width="180" height="36" rx="4" class="l2"/>
+  <text x="360" y="387" text-anchor="middle" class="l2-text">/locations/beirut-airport</text>
+  <rect x="270" y="408" width="180" height="36" rx="4" class="l2"/>
+  <text x="360" y="431" text-anchor="middle" class="l2-text">/locations/[branch]</text>
+  <line x1="360" y1="268" x2="360" y2="320" />
+  <line x1="360" y1="356" x2="360" y2="364" />
+  <line x1="360" y1="400" x2="360" y2="408" />
+
+  <!-- L2 under Long-term -->
+  <rect x="480" y="320" width="180" height="36" rx="4" class="l2"/>
+  <text x="570" y="343" text-anchor="middle" class="l2-text">/long-term</text>
+  <rect x="480" y="364" width="180" height="36" rx="4" class="l2"/>
+  <text x="570" y="387" text-anchor="middle" class="l2-text">monthly tiers · enquiry</text>
+  <line x1="570" y1="268" x2="570" y2="320" />
+  <line x1="570" y1="356" x2="570" y2="364" />
+
+  <!-- L2 under Chauffeur -->
+  <rect x="690" y="320" width="180" height="36" rx="4" class="l2"/>
+  <text x="780" y="343" text-anchor="middle" class="l2-text">/chauffeur</text>
+  <rect x="690" y="364" width="180" height="36" rx="4" class="l2"/>
+  <text x="780" y="387" text-anchor="middle" class="l2-text">enquiry form</text>
+  <line x1="780" y1="268" x2="780" y2="320" />
+  <line x1="780" y1="356" x2="780" y2="364" />
+
+  <!-- L2 under Corporate -->
+  <rect x="900" y="320" width="180" height="36" rx="4" class="l2"/>
+  <text x="990" y="343" text-anchor="middle" class="l2-text">/corporate</text>
+  <rect x="900" y="364" width="180" height="36" rx="4" class="l2"/>
+  <text x="990" y="387" text-anchor="middle" class="l2-text">B2B enquiry form</text>
+  <line x1="990" y1="268" x2="990" y2="320" />
+  <line x1="990" y1="356" x2="990" y2="364" />
+
+  <!-- L2 under About -->
+  <rect x="1110" y="320" width="160" height="36" rx="4" class="l2"/>
+  <text x="1190" y="343" text-anchor="middle" class="l2-text">/about</text>
+  <line x1="1190" y1="268" x2="1190" y2="320" />
+
+  <!-- L2 under Help -->
+  <rect x="1300" y="364" width="160" height="36" rx="4" class="l2"/>
+  <text x="1380" y="387" text-anchor="middle" class="l2-text">/help (hub)</text>
+  <rect x="1300" y="408" width="160" height="36" rx="4" class="l2"/>
+  <text x="1380" y="431" text-anchor="middle" class="l2-text">/help/faq</text>
+  <rect x="1300" y="452" width="160" height="36" rx="4" class="l2"/>
+  <text x="1380" y="475" text-anchor="middle" class="l2-text">/help/rental-terms</text>
+  <rect x="1300" y="496" width="160" height="36" rx="4" class="l2"/>
+  <text x="1380" y="519" text-anchor="middle" class="l2-text">/help/insurance</text>
+  <rect x="1300" y="540" width="160" height="36" rx="4" class="l2"/>
+  <text x="1380" y="563" text-anchor="middle" class="l2-text">/help/payment</text>
+  <rect x="1300" y="584" width="160" height="36" rx="4" class="l2"/>
+  <text x="1380" y="607" text-anchor="middle" class="l2-text">/help/cancellation</text>
+  <line x1="1380" y1="338" x2="1380" y2="364" />
+  <line x1="1380" y1="400" x2="1380" y2="408" />
+  <line x1="1380" y1="444" x2="1380" y2="452" />
+  <line x1="1380" y1="488" x2="1380" y2="496" />
+  <line x1="1380" y1="532" x2="1380" y2="540" />
+  <line x1="1380" y1="576" x2="1380" y2="584" />
+
+  <!-- L2 under Contact -->
+  <rect x="1300" y="650" width="160" height="36" rx="4" class="l2"/>
+  <text x="1380" y="673" text-anchor="middle" class="l2-text">/contact</text>
+  <line x1="1380" y1="338" x2="1380" y2="338" />
+  <line x1="1380" y1="650" x2="1380" y2="638" />
+  <line x1="1380" y1="638" x2="1380" y2="638" />
+
+  <!-- BOOKING FLOW header -->
+  <rect x="450" y="540" width="500" height="60" rx="8" class="booking"/>
+  <text x="700" y="567" text-anchor="middle" class="booking-text">BOOKING FLOW  /book</text>
+  <text x="700" y="588" text-anchor="middle" class="booking-text" style="font-size:12px;font-weight:400;opacity:0.85">5-step linear funnel · sticky search summary</text>
+
+  <!-- Arrow PDP → Booking flow -->
+  <line x1="150" y1="444" x2="150" y2="560" />
+  <line x1="150" y1="560" x2="450" y2="560" class="conn-bold" marker-end="url(#arrow-red)"/>
+
+  <!-- Booking steps -->
+  <rect x="100" y="660" width="190" height="56" rx="6" class="step"/>
+  <text x="195" y="685" text-anchor="middle" class="step-text">1. Select vehicle</text>
+  <text x="195" y="703" text-anchor="middle" class="meta-text">/book/select-vehicle</text>
+
+  <rect x="310" y="660" width="160" height="56" rx="6" class="step"/>
+  <text x="390" y="685" text-anchor="middle" class="step-text">2. Extras</text>
+  <text x="390" y="703" text-anchor="middle" class="meta-text">/book/extras</text>
+
+  <rect x="490" y="660" width="170" height="56" rx="6" class="step"/>
+  <text x="575" y="685" text-anchor="middle" class="step-text">3. Protection</text>
+  <text x="575" y="703" text-anchor="middle" class="meta-text">/book/protection</text>
+
+  <rect x="680" y="660" width="170" height="56" rx="6" class="step"/>
+  <text x="765" y="685" text-anchor="middle" class="step-text">4. Checkout</text>
+  <text x="765" y="703" text-anchor="middle" class="meta-text">/book/checkout</text>
+
+  <rect x="870" y="660" width="220" height="56" rx="6" class="step"/>
+  <text x="980" y="685" text-anchor="middle" class="step-text">5. Confirmation</text>
+  <text x="980" y="703" text-anchor="middle" class="meta-text">/book/confirmation/[ref]</text>
+
+  <!-- Booking flow connectors -->
+  <line x1="700" y1="600" x2="700" y2="630" />
+  <line x1="195" y1="630" x2="980" y2="630" />
+  <line x1="195" y1="630" x2="195" y2="660" />
+  <line x1="390" y1="630" x2="390" y2="660" />
+  <line x1="575" y1="630" x2="575" y2="660" />
+  <line x1="765" y1="630" x2="765" y2="660" />
+  <line x1="980" y1="630" x2="980" y2="660" />
+
+  <!-- Step-to-step arrows -->
+  <line x1="290" y1="688" x2="310" y2="688" marker-end="url(#arrow)"/>
+  <line x1="470" y1="688" x2="490" y2="688" marker-end="url(#arrow)"/>
+  <line x1="660" y1="688" x2="680" y2="688" marker-end="url(#arrow)"/>
+  <line x1="850" y1="688" x2="870" y2="688" marker-end="url(#arrow)"/>
+
+  <!-- AUTH & ACCOUNT cluster -->
+  <rect x="60"  y="800" width="370" height="36" rx="4" class="meta" stroke="#0F3D5C" stroke-width="1.5"/>
+  <text x="245" y="824" text-anchor="middle" class="l1-text" style="font-size:14px">Auth (public)</text>
+
+  <rect x="60"  y="844" width="180" height="34" rx="4" class="l2"/>
+  <text x="150" y="866" text-anchor="middle" class="l2-text">/login</text>
+  <rect x="250" y="844" width="180" height="34" rx="4" class="l2"/>
+  <text x="340" y="866" text-anchor="middle" class="l2-text">/register</text>
+  <rect x="60"  y="886" width="180" height="34" rx="4" class="l2"/>
+  <text x="150" y="908" text-anchor="middle" class="l2-text">/forgot-password</text>
+  <rect x="250" y="886" width="180" height="34" rx="4" class="l2"/>
+  <text x="340" y="908" text-anchor="middle" class="l2-text">/reset-password</text>
+
+  <rect x="490" y="800" width="600" height="36" rx="4" class="gated"/>
+  <text x="790" y="824" text-anchor="middle" class="gated-text">Account (authenticated)</text>
+
+  <rect x="490" y="844" width="180" height="34" rx="4" class="l2"/>
+  <text x="580" y="866" text-anchor="middle" class="l2-text">/account</text>
+  <rect x="680" y="844" width="200" height="34" rx="4" class="l2"/>
+  <text x="780" y="866" text-anchor="middle" class="l2-text">/account/bookings</text>
+  <rect x="890" y="844" width="200" height="34" rx="4" class="l2"/>
+  <text x="990" y="866" text-anchor="middle" class="l2-text">/account/bookings/[ref]</text>
+  <rect x="490" y="886" width="180" height="34" rx="4" class="l2"/>
+  <text x="580" y="908" text-anchor="middle" class="l2-text">/account/profile</text>
+  <rect x="680" y="886" width="200" height="34" rx="4" class="l2"/>
+  <text x="780" y="908" text-anchor="middle" class="l2-text">/account/documents</text>
+  <rect x="890" y="886" width="200" height="34" rx="4" class="l2"/>
+  <text x="990" y="908" text-anchor="middle" class="l2-text">/account/saved-vehicles</text>
+
+  <!-- Manage Booking -->
+  <rect x="1130" y="800" width="330" height="36" rx="4" class="meta" stroke="#0F3D5C" stroke-width="1.5"/>
+  <text x="1295" y="824" text-anchor="middle" class="l1-text" style="font-size:14px">Manage Booking (no login)</text>
+  <rect x="1130" y="844" width="330" height="34" rx="4" class="l2"/>
+  <text x="1295" y="866" text-anchor="middle" class="l2-text">/manage-booking · ref + email lookup</text>
+
+  <!-- Legal & utility -->
+  <rect x="60"   y="980" width="1400" height="36" rx="4" class="meta" stroke="#5A6B73" stroke-width="1"/>
+  <text x="760" y="1004" text-anchor="middle" class="l1-text" style="font-size:14px">Legal &amp; Utility</text>
+  <rect x="60"   y="1024" width="220" height="34" rx="4" class="l2"/>
+  <text x="170" y="1046" text-anchor="middle" class="l2-text">/privacy</text>
+  <rect x="290"  y="1024" width="220" height="34" rx="4" class="l2"/>
+  <text x="400" y="1046" text-anchor="middle" class="l2-text">/terms</text>
+  <rect x="520"  y="1024" width="220" height="34" rx="4" class="l2"/>
+  <text x="630" y="1046" text-anchor="middle" class="l2-text">/cookies</text>
+  <rect x="750"  y="1024" width="220" height="34" rx="4" class="l2"/>
+  <text x="860" y="1046" text-anchor="middle" class="l2-text">/404</text>
+  <rect x="980"  y="1024" width="220" height="34" rx="4" class="l2"/>
+  <text x="1090" y="1046" text-anchor="middle" class="l2-text">/500</text>
+  <rect x="1210" y="1024" width="250" height="34" rx="4" class="l2"/>
+  <text x="1335" y="1046" text-anchor="middle" class="l2-text">/maintenance</text>
+
+  <!-- Modal/Overlay components band -->
+  <rect x="60"   y="1100" width="1400" height="36" rx="4" class="meta" stroke="#5A6B73" stroke-width="1"/>
+  <text x="760" y="1124" text-anchor="middle" class="l1-text" style="font-size:14px">Global modals &amp; overlays (no URL)</text>
+  <rect x="60"   y="1144" width="220" height="34" rx="4" class="l2"/>
+  <text x="170" y="1166" text-anchor="middle" class="l2-text">Pickup location picker</text>
+  <rect x="290"  y="1144" width="220" height="34" rx="4" class="l2"/>
+  <text x="400" y="1166" text-anchor="middle" class="l2-text">Calendar + time picker</text>
+  <rect x="520"  y="1144" width="220" height="34" rx="4" class="l2"/>
+  <text x="630" y="1166" text-anchor="middle" class="l2-text">Vehicle quick-view</text>
+  <rect x="750"  y="1144" width="220" height="34" rx="4" class="l2"/>
+  <text x="860" y="1166" text-anchor="middle" class="l2-text">Login modal (mid-checkout)</text>
+  <rect x="980"  y="1144" width="220" height="34" rx="4" class="l2"/>
+  <text x="1090" y="1166" text-anchor="middle" class="l2-text">WhatsApp assistance</text>
+  <rect x="1210" y="1144" width="250" height="34" rx="4" class="l2"/>
+  <text x="1335" y="1166" text-anchor="middle" class="l2-text">Cookie consent banner</text>
+
+  <!-- Legend -->
+  <text x="40" y="1280" class="legend">Legend:</text>
+  <rect x="100" y="1268" width="22" height="14" rx="2" class="root"/>
+  <text x="130" y="1280" class="legend">Root</text>
+  <rect x="180" y="1268" width="22" height="14" rx="2" class="l1"/>
+  <text x="210" y="1280" class="legend">Top-level page</text>
+  <rect x="320" y="1268" width="22" height="14" rx="2" class="l2"/>
+  <text x="350" y="1280" class="legend">Sub-page / route</text>
+  <rect x="470" y="1268" width="22" height="14" rx="2" class="booking"/>
+  <text x="500" y="1280" class="legend">Booking funnel</text>
+  <rect x="610" y="1268" width="22" height="14" rx="2" class="step"/>
+  <text x="640" y="1280" class="legend">Booking step</text>
+  <rect x="740" y="1268" width="22" height="14" rx="2" class="gated"/>
+  <text x="770" y="1280" class="legend">Authenticated area</text>
+
+  <!-- Footer note -->
+  <text x="40" y="1340" class="legend">Notes: Guest checkout is supported throughout the funnel. The floating WhatsApp button is global. Account is optional and can be created in 1-click on the confirmation screen.</text>
+</svg>

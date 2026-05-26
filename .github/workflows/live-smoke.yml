@@ -1,0 +1,40 @@
+name: Live Wheels API smoke
+
+# Manual-only. Never runs on push/PR. Use the Actions tab → "Run workflow"
+# to verify the live Laravel backend hasn't drifted from our schemas.
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Wheels API base URL (overrides NEXT_PUBLIC_WHEELS_API_BASE_URL)"
+        required: false
+        default: "https://lucid-mclean.217-160-215-26.plesk.page/api/public"
+
+concurrency:
+  # Only one live smoke at a time — we hit a shared backend.
+  group: live-smoke
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    name: live smoke (Vitest)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      RUN_LIVE_API_TESTS: "1"
+      NEXT_PUBLIC_WHEELS_API_BASE_URL: ${{ inputs.base_url }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Run live integration suite
+        run: pnpm test -- tests/integration/wheels-public.live.test.ts
+
+      - name: Optional curl smoke pass
+        if: failure()
+        run: ./scripts/wheels-api-smoke.sh --no-write || true

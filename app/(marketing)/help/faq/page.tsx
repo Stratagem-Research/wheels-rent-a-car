@@ -1,0 +1,82 @@
+"use client";
+
+import Link from "next/link";
+import { FaqTopicNav } from "@/app/(marketing)/help/faq/_components/FaqTopicNav";
+import { FaqAccordion } from "@/components/help/FaqAccordion";
+import { Button } from "@/components/ui/Button";
+import { useFaqs } from "@/lib/admin/useAdminStore";
+import { whatsAppHref } from "@/lib/whatsapp";
+
+/**
+ * /help/faq — central FAQ surface.
+ *
+ * Reads from the admin store (`useFaqs`) so admin edits reflect immediately
+ * on the public help page. The seeded `FAQS` fixture is the fallback when
+ * localStorage is empty. JSON-LD is rendered from the same hook so the
+ * structured data matches the visible content.
+ */
+export default function FaqPage() {
+  const faqs = useFaqs();
+
+  return (
+    <>
+      <header className="bg-ink-10">
+        <div className="mx-auto max-w-[var(--container-default)] px-5 py-10 sm:px-10 sm:py-14">
+          <h1 className="headline-xl text-ink-95">Frequently asked questions</h1>
+          <p className="body-md text-ink-60 mt-2 max-w-2xl">
+            Quick answers. Tap a question to expand. Share a specific answer with someone via the
+            URL.
+          </p>
+        </div>
+      </header>
+
+      <FaqTopicNav topics={faqs.map((g) => ({ id: g.id, title: g.title }))} />
+
+      <section className="mx-auto max-w-3xl px-5 py-12 sm:px-10 sm:py-16">
+        <div className="flex flex-col gap-12">
+          {faqs.map((group) => (
+            <section key={group.id} id={group.id} className="scroll-mt-32">
+              <h2 className="headline-md text-ink-95">{group.title}</h2>
+              <div className="mt-4">
+                <FaqAccordion entries={group.entries} />
+              </div>
+            </section>
+          ))}
+        </div>
+      </section>
+
+      <section className="bg-surface-subtle">
+        <div className="mx-auto flex max-w-3xl flex-col items-center gap-3 px-5 py-12 text-center sm:px-10 sm:py-14">
+          <h2 className="headline-md text-ink-95">Still didn&apos;t find your answer?</h2>
+          <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
+            <Button asChild variant="whatsapp" size="md">
+              <a href={whatsAppHref("default")} target="_blank" rel="noopener noreferrer">
+                Chat on WhatsApp
+              </a>
+            </Button>
+            <Button asChild variant="secondary" size="md">
+              <Link href="/contact">All channels</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqs.flatMap((g) =>
+              g.entries.map((e) => ({
+                "@type": "Question",
+                name: e.question,
+                acceptedAnswer: { "@type": "Answer", text: e.answer },
+              })),
+            ),
+          }),
+        }}
+      />
+    </>
+  );
+}

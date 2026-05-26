@@ -1,0 +1,57 @@
+{
+  "global": {
+    "brand": "Wheels Rent A Car",
+    "tagline": "Premium car rental in Lebanon",
+    "skipToContent": "Skip to content",
+    "signIn": "Sign in",
+    "register": "Register",
+    "callUs": "Call us",
+    "whatsapp": "WhatsApp",
+    "manageBooking": "Manage booking"
+  },
+  "nav": {
+    "vehicles": "Vehicles",
+    "locations": "Locations",
+    "longTerm": "Long-term",
+    "chauffeur": "Chauffeur",
+    "corporate": "Corporate",
+    "about": "About",
+    "help": "Help",
+    "contact": "Contact"
+  },
+  "footer": {
+    "wheels": "Wheels",
+    "help": "Help",
+    "contact": "Contact",
+    "trust": "Trust & social",
+    "copyright": "© {year} Wheels Rent A Car",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "cookies": "Cookies",
+    "languageEnglish": "English",
+    "languageArabic": "Arabic — coming soon",
+    "languageFrench": "French — coming soon"
+  },
+  "promo": {
+    "dismiss": "Dismiss promo banner"
+  },
+  "whatsapp": {
+    "fabLabel": "Chat with us on WhatsApp",
+    "messages": {
+      "default": "Hi Wheels — I have a question about renting a car.",
+      "fleet": "Hi Wheels — I'm browsing your fleet and would like some help.",
+      "pdp": "Hi Wheels — I'm interested in the {model}.",
+      "selectVehicle": "Hi Wheels — I need help choosing a car.",
+      "checkout": "Hi Wheels — I'm completing a booking and need help.",
+      "confirmation": "Hi Wheels — my booking ref is {ref}. I have a question."
+    }
+  },
+  "home": {
+    "heroHeadline": "Drive Lebanon, your way.",
+    "heroSubline": "Premium cars from $25/day · Free Beirut Airport pickup · WhatsApp support 24/7"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "offline": "Online booking is temporarily unavailable. Reach us on WhatsApp."
+  }
+}

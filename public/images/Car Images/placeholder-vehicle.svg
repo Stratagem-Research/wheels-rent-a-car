@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" role="img" aria-label="Vehicle placeholder">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#EAF2FB"/>
+      <stop offset="100%" stop-color="#D2E2F4"/>
+    </linearGradient>
+  </defs>
+  <rect width="480" height="360" fill="url(#bg)"/>
+  <g fill="none" stroke="#0E4F94" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.55">
+    <path d="M80 220 L120 160 L240 150 L320 150 L360 180 L400 200 L400 220"/>
+    <path d="M80 220 L400 220"/>
+    <circle cx="150" cy="240" r="22" fill="#FFFFFF"/>
+    <circle cx="150" cy="240" r="10"/>
+    <circle cx="340" cy="240" r="22" fill="#FFFFFF"/>
+    <circle cx="340" cy="240" r="10"/>
+    <path d="M140 175 L200 165 L260 165 L300 175"/>
+  </g>
+  <text x="240" y="305" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14" font-weight="600" fill="#0E4F94" text-anchor="middle" letter-spacing="1.2">
+    WHEELS · OR SIMILAR
+  </text>
+</svg>
