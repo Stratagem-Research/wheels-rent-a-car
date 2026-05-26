@@ -37,22 +37,35 @@ export default function AboutPage() {
         </div>
       </header>
 
-      {/* Narrow story container — body-lg sentence case. */}
+      {/* Editorial story block — image left, copy right. */}
       <section className="bg-paper">
-        <div className="mx-auto max-w-[720px] px-5 py-16 sm:px-10 lg:py-24">
-          <h2 className="headline-lg text-ink-100">Our story</h2>
-          <div className="body-lg text-ink-80 mt-6 flex flex-col gap-5 leading-relaxed">
-            {ABOUT_STORY_PARAGRAPHS.slice(0, 2).map((p, i) => (
-              <p key={i}>{p}</p>
-            ))}
-          </div>
-          <blockquote className="border-ink-100 my-10 border-l-2 pl-6">
-            <p className="headline-md text-ink-100 italic">“{ABOUT_PULL_QUOTE}”</p>
-          </blockquote>
-          <div className="body-lg text-ink-80 flex flex-col gap-5 leading-relaxed">
-            {ABOUT_STORY_PARAGRAPHS.slice(2).map((p, i) => (
-              <p key={i}>{p}</p>
-            ))}
+        <div className="mx-auto max-w-[var(--container-default)] px-5 py-16 sm:px-10 lg:py-24">
+          <div className="grid gap-10 lg:grid-cols-[1fr_1.25fr] lg:items-center">
+            <div className="bg-ink-10 relative aspect-[4/5] overflow-hidden rounded-xl">
+              <Image
+                src="/images/Hero Images/ramy-kabalan-mF4_MHgp4ps-unsplash.jpg"
+                alt="Raouche rocks at sunset in Beirut"
+                fill
+                sizes="(min-width: 1024px) 520px, 100vw"
+                className="object-cover"
+              />
+            </div>
+            <div>
+              <h2 className="headline-lg text-ink-100">Our story</h2>
+              <div className="body-lg text-ink-80 mt-6 flex flex-col gap-5 leading-relaxed">
+                {ABOUT_STORY_PARAGRAPHS.slice(0, 2).map((p, i) => (
+                  <p key={i}>{p}</p>
+                ))}
+              </div>
+              <blockquote className="border-ink-100 my-10 border-l-2 pl-6">
+                <p className="headline-md text-ink-100 italic">“{ABOUT_PULL_QUOTE}”</p>
+              </blockquote>
+              <div className="body-lg text-ink-80 flex flex-col gap-5 leading-relaxed">
+                {ABOUT_STORY_PARAGRAPHS.slice(2).map((p, i) => (
+                  <p key={i}>{p}</p>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>
