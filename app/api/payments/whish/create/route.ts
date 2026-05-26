@@ -18,7 +18,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Invalid Whish create payload." }, { status: 400 });
   }
 
-  const env = getServerEnv();
+  const envResult = safeGetServerEnv();
+  if (!envResult.success) {
+    return NextResponse.json(
+      {
+        message:
+          "Whish online payment is not configured in this environment. Choose cash, bank transfer, or manual OMT/Whish for local testing.",
+      },
+      { status: 503 },
+    );
+  }
+
+  const env = envResult.data;
   const whish = getWhishClient();
   const externalId = whish.generateExternalId();
   const result = await whish.createPayment({
@@ -54,4 +65,14 @@ export async function POST(request: Request) {
   });
 
   return NextResponse.json({ collectUrl: result.collectUrl, externalId });
+}
+
+function safeGetServerEnv():
+  | { success: true; data: ReturnType<typeof getServerEnv> }
+  | { success: false } {
+  try {
+    return { success: true, data: getServerEnv() };
+  } catch {
+    return { success: false };
+  }
 }

@@ -285,6 +285,10 @@ export default function CheckoutPage() {
         // after step 1", redirect back with an explanatory toast.
         toast.warning("That vehicle was just taken — choose another.");
         router.push("/vehicles?step=1");
+      } else if (err instanceof ApiError && err.status === 503) {
+        toast.warning(
+          "Whish online payment isn't configured locally. Choose cash, bank transfer, or OMT/Whish branch payment to test checkout.",
+        );
       } else {
         toast.error(
           "We couldn't submit your booking. Please try again or chat with us on WhatsApp.",
