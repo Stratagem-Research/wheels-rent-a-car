@@ -116,7 +116,7 @@ export default function AdminFaqsPage() {
         <div className="bg-paper border-border flex flex-col gap-2 rounded-xl border p-4">
           <div className="flex items-center justify-between">
             <h2 className="headline-sm text-ink-100">Sections</h2>
-            <Button variant="secondary" size="sm" onClick={addGroup}>
+            <Button className="hover:cursor-pointer" variant="secondary" size="sm" onClick={addGroup}>
               <Plus className="size-4" aria-hidden="true" />
               New
             </Button>
@@ -147,7 +147,7 @@ export default function AdminFaqsPage() {
                       onClick={() => renameGroup(g.id)}
                       aria-label={`Rename ${g.title}`}
                       className={cn(
-                        "inline-flex size-7 items-center justify-center rounded-full",
+                        "inline-flex size-7 items-center justify-center rounded-full hover:cursor-pointer",
                         active ? "text-paper/80 hover:bg-white/10" : "text-ink-60 hover:bg-ink-20",
                       )}
                     >
@@ -158,7 +158,7 @@ export default function AdminFaqsPage() {
                       onClick={() => deleteGroup(g.id)}
                       aria-label={`Delete ${g.title}`}
                       className={cn(
-                        "inline-flex size-7 items-center justify-center rounded-full",
+                        "inline-flex size-7 items-center justify-center rounded-full hover:cursor-pointer",
                         active ? "text-paper/80 hover:bg-white/10" : "text-ink-60 hover:bg-ink-20",
                       )}
                     >
@@ -185,7 +185,7 @@ export default function AdminFaqsPage() {
                   <p className="text-ink-60 overline">Section</p>
                   <h2 className="headline-md text-ink-100">{activeGroup.title}</h2>
                 </div>
-                <Button variant="primary" size="sm" onClick={newEntry}>
+                <Button variant="primary" size="sm" className="hover:cursor-pointer" onClick={newEntry}>
                   <Plus className="size-4" aria-hidden="true" />
                   New question
                 </Button>
