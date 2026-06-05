@@ -28,7 +28,7 @@ import {
   LONG_TERM_TIERS,
   PROTECTION_TIERS,
 } from "./fixtures/catalog";
-import { FAQS, REVIEWS, SITE_CONFIG } from "./fixtures/content";
+import { REVIEWS, SITE_CONFIG } from "./fixtures/content";
 import { computePrice, generateBookingRef, perDayRate, rentalDays } from "./pricing";
 import {
   liveAvailability,
@@ -181,15 +181,6 @@ export const handlers = [
     const url = new URL(request.url);
     const limit = Number(url.searchParams.get("limit") ?? "10");
     return HttpResponse.json({ items: REVIEWS.slice(0, limit) });
-  }),
-
-  http.get(endpoints.helpSearch, ({ request }) => {
-    const url = new URL(request.url);
-    const q = (url.searchParams.get("q") ?? "").toLowerCase();
-    const matches = FAQS.flatMap((g) => g.entries).filter(
-      (e) => e.question.toLowerCase().includes(q) || e.answer.toLowerCase().includes(q),
-    );
-    return HttpResponse.json({ items: matches.slice(0, 12) });
   }),
 
   // ── Booking funnel ─────────────────────────────────────────────────────

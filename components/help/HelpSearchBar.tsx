@@ -13,7 +13,7 @@ import type { FaqEntry } from "@/types/domain";
 /**
  * Help-desk centred search bar per 10_help_faq.md §2.
  *
- * Queries the mocked /api/help/search endpoint. Renders a card list of
+ * Queries `/api/help/search` (Supabase-backed). Renders a card list of
  * matching FAQ entries below the search input on submit. Empty-state
  * surfaces the WhatsApp fallback.
  */

@@ -251,7 +251,7 @@ export default function ChauffeurPage() {
       {/* Sample itineraries — scroll-right carousel of our most-requested
        * chauffeur-led tours, with "See all itineraries →" routing to the
        * dedicated /itineraries listing page. Pulls from the ITINERARIES
-       * fixture (admin CRUD overlays this via lib/admin/store.ts). */}
+       * Supabase CMS via useItineraries(). */}
       <section className="bg-ink-10">
         <div className="mx-auto max-w-[var(--container-default)] px-5 py-16 sm:px-10 lg:py-24">
           <div className="mb-10 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end lg:mb-14">

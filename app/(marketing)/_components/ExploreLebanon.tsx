@@ -9,9 +9,8 @@ import { useTrips } from "@/lib/admin/useAdminStore";
 /**
  * Explore Lebanon — Revision 2 carousel rewrite.
  *
- * Horizontal snap-scroll carousel sourced from `useTrips()` (defaults
- * to the seeded TRIPS fixture, overlayed by admin CRUD writes from
- * lib/admin/store.ts). Cap to 6 trips on the homepage with a trailing
+ * Horizontal snap-scroll carousel sourced from `useTrips()` (Supabase CMS).
+ * Cap to 6 trips on the homepage with a trailing
  * "View all trips →" link to /trips.
  *
  * Client component so admin writes reflect live without a page reload.

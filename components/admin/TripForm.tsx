@@ -8,13 +8,14 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
-import { readTrips, writeTrips } from "@/lib/admin/store";
+import { useTrips } from "@/lib/admin/useAdminStore";
+import { writeTrips } from "@/lib/admin/store";
 import type { Trip, TripRegion, VehicleCategory } from "@/types/domain";
 
 /**
  * TripForm — shared create/edit form for /admin/trips/{new,[slug]}.
  *
- * Validates client-side, writes to localStorage via `writeTrips()`, and
+ * Validates client-side, persists via `writeTrips()` (Supabase), and
  * routes back to /admin/trips on save. Slug edits update the existing
  * trip in place; creating reuses the same form against an empty seed.
  */
@@ -47,15 +48,22 @@ export interface TripFormProps {
 export function TripForm({ slug }: TripFormProps) {
   const router = useRouter();
   const isEdit = Boolean(slug);
+  const trips = useTrips();
+  const [saving, setSaving] = React.useState(false);
 
   const initial = React.useMemo<Trip>(() => {
     if (!slug) return emptyTrip();
-    return readTrips().find((t) => t.slug === slug) ?? emptyTrip();
-  }, [slug]);
+    return trips.find((t) => t.slug === slug) ?? emptyTrip();
+  }, [slug, trips]);
 
   const [form, setForm] = React.useState<Trip>(initial);
   const [tagsInput, setTagsInput] = React.useState(initial.tags.join(", "));
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+
+  React.useEffect(() => {
+    setForm(initial);
+    setTagsInput(initial.tags.join(", "));
+  }, [initial]);
 
   const update = <K extends keyof Trip>(key: K, value: Trip[K]) => {
     setForm((f) => ({ ...f, [key]: value }));
@@ -73,44 +81,61 @@ export function TripForm({ slug }: TripFormProps) {
     return e;
   };
 
-  const onSubmit = (event: React.FormEvent) => {
+  const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const next = validate();
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
     const now = new Date().toISOString();
-    const trips = readTrips();
     const tags = tagsInput
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
 
-    if (isEdit && slug) {
-      const idx = trips.findIndex((t) => t.slug === slug);
-      const updated: Trip = { ...form, tags, updatedAt: now };
-      if (idx >= 0) trips[idx] = updated;
-      else trips.push(updated);
-      writeTrips(trips);
-    } else {
-      // Refuse duplicate slug.
-      if (trips.some((t) => t.slug === form.slug)) {
-        setErrors({ slug: "That slug already exists. Choose another." });
-        return;
+    setSaving(true);
+    try {
+      if (isEdit && slug) {
+        const idx = trips.findIndex((t) => t.slug === slug);
+        const updated: Trip = { ...form, tags, updatedAt: now };
+        const nextTrips = [...trips];
+        if (idx >= 0) nextTrips[idx] = updated;
+        else nextTrips.push(updated);
+        await writeTrips(nextTrips);
+      } else {
+        if (trips.some((t) => t.slug === form.slug)) {
+          setErrors({ slug: "That slug already exists. Choose another." });
+          return;
+        }
+        await writeTrips([
+          ...trips,
+          { ...form, tags, publishedAt: form.publishedAt || now.slice(0, 10), updatedAt: now },
+        ]);
       }
-      writeTrips([
-        ...trips,
-        { ...form, tags, publishedAt: form.publishedAt || now.slice(0, 10), updatedAt: now },
-      ]);
+      router.push("/admin/trips");
+    } catch (error) {
+      setErrors({
+        slug: error instanceof Error ? error.message : "Could not save trip.",
+      });
+    } finally {
+      setSaving(false);
     }
-    router.push("/admin/trips");
   };
 
-  const onDelete = () => {
+  const onDelete = async () => {
     if (!isEdit || !slug) return;
     if (!confirm("Delete this trip? This cannot be undone.")) return;
-    writeTrips(readTrips().filter((t) => t.slug !== slug));
-    router.push("/admin/trips");
+    setSaving(true);
+    try {
+      await writeTrips(trips.filter((t) => t.slug !== slug));
+      router.push("/admin/trips");
+    } catch (error) {
+      setErrors({
+        slug: error instanceof Error ? error.message : "Could not delete trip.",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

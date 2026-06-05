@@ -72,25 +72,6 @@ body {
 }
 
 /*
- * Skip-to-content target. The <SkipToContent /> primitive jumps to #content;
- * the focused element must escape the visually-hidden state to be useful.
- */
-.wheels-skip-link {
-  position: absolute;
-  top: -40px;
-  left: 1rem;
-  z-index: 100;
-  padding: 0.75rem 1rem;
-  background: var(--color-ink-100);
-  color: var(--color-paper);
-  border-radius: var(--radius-pill);
-  text-decoration: none;
-}
-.wheels-skip-link:focus {
-  top: 1rem;
-}
-
-/*
  * Print stylesheet per 15_legal_and_utility.md.
  * Hides chrome, expands the legal article to full width, and prints the
  * URL + date in the page footer so a reader can find the source online.
@@ -101,7 +82,7 @@ body {
   nav[aria-label="Cookie consent"],
   nav[aria-label="On this page"],
   [aria-label="Chat with us on WhatsApp"],
-  .wheels-skip-link {
+  .skip-to-content {
     display: none !important;
   }
   body {

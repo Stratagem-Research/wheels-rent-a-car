@@ -9,8 +9,7 @@ import type { TripRegion } from "@/types/domain";
  * /trips — self-drive trip articles listing.
  *
  * Inverse hero band + filter chips (All / Mountains / Coast / Bekaa /
- * Cultural / North / South) + 3-up tile grid. Sources from the TRIPS
- * fixture; admin CRUD overlays it via lib/admin/store.ts (commit 6).
+ * Cultural / North / South) + 3-up tile grid. Sources from Supabase via `useTrips()`.
  *
  * Article slugs live at /trips/[slug].
  */

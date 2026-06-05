@@ -14,7 +14,7 @@ import { formatUsd } from "@/lib/booking/pricing";
  * /itineraries/[slug] — chauffeur itinerary detail.
  *
  * Client component for the same reason as /trips/[slug] — admin writes
- * are localStorage-backed, so the detail page must read from the same
+ * load from Supabase via `useItineraries()`, so the detail page reads the same
  * hook the listing uses. Lone red CTA is "Request this itinerary".
  */
 

@@ -77,48 +77,58 @@ Copy `.env.example` → `.env.local`. None are strictly required for local dev (
 
 ```
 app/
-  (marketing)/    customer-facing routes (home, fleet, locations, services, content)
+  (marketing)/    customer-facing routes (home, /vehicles, locations, trips, itineraries, services, content)
   (booking)/      slim funnel shell — /book/* steps + confirmation
   (auth)/         centred-card login/register/forgot/reset
   (account)/      gated dashboard + bookings + profile + documents + saved
-  dev/components  internal QA route (every primitive in every state)
+  admin/          staging CMS (trips, itineraries, FAQs, corporate tiers) — not for production as-is
+  dev/components  internal QA route (every primitive in every state; not linked from the site)
+  api/            Route handlers (auth, leads, Whish payments, wizard sync, notifications)
   sitemap.ts      Next metadata sitemap
   robots.ts       Next metadata robots
   global-error.tsx, error.tsx, not-found.tsx, maintenance/
 
 components/
-  ui/             primitives (Button, Modal, Input, Select…)
+  ui/             primitives (Button, Card, Modal, Sheet, Input, Select, Chip, DatePopover…)
   shell/          Header, Footer, PromoStrip, WhatsAppFab, AuthCluster
-  search/         SearchBar, LocationPicker
-  vehicle/        VehicleCard, CategoryChips, FilterSidebar, PdpGallery, SimilarVehiclesCarousel
-  booking/        Stepper, FlowSummaryPanel, RateSelectorCard, AddOnRow, ProtectionTierCard,
-                  HoldTimer, PaymentMethodSelector, ConfirmationStatusBlock, SaveAndExitModal
+  search/         SearchBar, LocationPicker, HeroSearchTabs
+  vehicle/        VehicleCard, VehicleCardExpanded, FilterSidebar (filter sheet — wire-up pending)
+  booking/        Stepper, FlowSummaryPanel, AddOnRow, ProtectionTierCard, HoldTimer,
+                  PaymentMethodSelector, ConfirmationStatusBlock, SaveAndExitModal
   account/        AuthCard, BookingHistoryRow, BookingDetailPanel, BookingActionModals,
                   BookingLookupForm, DocumentVaultCard, PasswordStrengthIndicator
-  locations/      LocationsMap, BranchHeroCard, HowItWorksRow
-  marketing/      TierCardLongTerm, ServiceCategoryCard, ItineraryCard, ValuePropTile, ComparisonTable
+  landing/        CategoryWordmarkCard, InversePromoBlock, DestinationTile, ReviewCard, ItineraryCard
+  locations/      LocationsMap, HowItWorksRow
+  marketing/      TierCardLongTerm, TierCardCorporate, ServiceCategoryCard, ItineraryCard,
+                  ValuePropTile, ComparisonTable
   leads/          EnquiryFormLongTerm, EnquiryFormChauffeur, EnquiryFormCorporate, SuccessState
-  help/           TocSidebar, LegalArticleLayout, HelpSearchBar, FaqAccordion
+  help/           TocSidebar, LegalArticleLayout, LegalArticle, HelpSearchBar, FaqAccordion
   about/          StatStrip, TeamCard
   contact/        ChannelCard, ContactForm
   consent/        CookieBanner, NewsletterPopup
+  admin/          AdminSidebar, AdminPageShell, AdminDataTable, AdminFormShell, TripForm, ItineraryForm
+  motion/         Reveal (framer-motion wrapper; honours prefers-reduced-motion)
 
 lib/
   api/            typed fetch wrapper + endpoint catalog
   api/mocks/      MSW worker + handlers + fixtures
-  auth/           session helpers (localStorage + cookie)
-  booking/        pricing engine, .ics generator, ref helpers
+  api/wheels-public/  Laravel public booking client + adapters (when real API is on)
+  admin/          demo CMS auth + Supabase-backed store + useAdminStore hooks
+  auth/           session helpers + Supabase user mapping
+  booking/        pricing engine, calendar helpers, .ics generator, ref helpers
   search/         search criteria types + persistence
-  vehicles/       filter logic
+  vehicles/       filter logic + category labels
+  motion/         framer-motion variants + useMotionGate
   content/        about + help + legal article copy (TypeScript modules)
   analytics/      dataLayer push + event constants + consent gating
+  supabase/       browser + server + admin Supabase clients
   whatsapp.ts     wa.me deep-link helpers + per-page context messages
   utils.ts        cn() className helper
 
 hooks/            useBookingDraft, useSession, useLastSearch
 types/domain.ts   single source of truth for every API shape
-messages/en.json  i18n catalog
-middleware.ts     auth gating + maintenance-mode rewrite
+messages/en.json  i18n catalog (wired; most UI copy still inline until migration)
+middleware.ts     auth gating + maintenance-mode rewrite + admin noindex
 ```
 
 ## Mock backend

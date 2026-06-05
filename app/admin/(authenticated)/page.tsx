@@ -1,14 +1,12 @@
 "use client";
 
+import * as React from "react";
 import Link from "next/link";
 import { Building2, HelpCircle, MapPinned } from "lucide-react";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { useCorporateTiers, useFaqs, useItineraries, useTrips } from "@/lib/admin/useAdminStore";
 
-/**
- * /admin — dashboard. Four quick-action tiles linking to each CRUD
- * surface, with live counts pulled from the admin store.
- */
+/** /admin — dashboard with live counts from Supabase CMS API. */
 export default function AdminDashboardPage() {
   const trips = useTrips();
   const itineraries = useItineraries();
@@ -24,7 +22,7 @@ export default function AdminDashboardPage() {
       eyebrow: "Self-drive blog",
       title: "Trips",
       count: `${trips.length} ${trips.length === 1 ? "article" : "articles"}`,
-      body: "Create and edit the trip articles that appear in Explore Lebanon and /trips.",
+      body: "Trip articles on the homepage Explore Lebanon carousel and /trips.",
     },
     {
       href: "/admin/itineraries",
@@ -32,7 +30,7 @@ export default function AdminDashboardPage() {
       eyebrow: "Chauffeur tours",
       title: "Itineraries",
       count: `${itineraries.length} ${itineraries.length === 1 ? "itinerary" : "itineraries"}`,
-      body: "Manage chauffeur-led itineraries shown on /chauffeur and /itineraries.",
+      body: "Chauffeur itineraries on /chauffeur and /itineraries.",
     },
     {
       href: "/admin/faqs",
@@ -40,7 +38,7 @@ export default function AdminDashboardPage() {
       eyebrow: "Help centre",
       title: "FAQs",
       count: `${faqs.length} sections · ${totalFaqQuestions} questions`,
-      body: "Maintain FAQ sections + questions used across /help and the homepage.",
+      body: "FAQ sections and questions on /help/faq.",
     },
     {
       href: "/admin/corporate",
@@ -48,7 +46,7 @@ export default function AdminDashboardPage() {
       eyebrow: "B2B",
       title: "Corporate",
       count: `${corporate.length} ${corporate.length === 1 ? "tier" : "tiers"}`,
-      body: "Tier comparison, inclusions, and tagline content on /corporate.",
+      body: "Tier comparison and inclusions on /corporate.",
     },
   ];
 
@@ -56,7 +54,7 @@ export default function AdminDashboardPage() {
     <AdminPageShell
       eyebrow="Welcome"
       title="What would you like to manage?"
-      description="Add, edit, or remove the content that appears on the customer-facing site. Changes save instantly and reflect on the live pages."
+      description="Edits save to the website Supabase database and appear on the customer-facing site."
     >
       <ul className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-2">
         {tiles.map((t) => (
@@ -78,17 +76,6 @@ export default function AdminDashboardPage() {
           </li>
         ))}
       </ul>
-
-      <div className="bg-paper border-border mt-10 flex flex-col gap-2 rounded-xl border p-6">
-        <h2 className="headline-sm text-ink-100">Demo notes</h2>
-        <p className="body-sm text-ink-60">
-          Edits persist in your browser&apos;s local storage, not a real backend yet. Clearing
-          browser data resets everything to the seeded defaults. The credentials, gate, and
-          storage layer are all designed for staging only — the swap-in path to the real backend
-          lives in <code className="mono-md">lib/admin/store.ts</code> and{" "}
-          <code className="mono-md">lib/admin/auth.ts</code>.
-        </p>
-      </div>
     </AdminPageShell>
   );
 }

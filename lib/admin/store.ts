@@ -1,130 +1,66 @@
 "use client";
 
 /**
- * Admin content store — localStorage-backed CRUD for editable surfaces.
- *
- * Phase 12 ships a frontend-only admin dashboard. The admin can add/edit/
- * delete trips, itineraries, FAQ groups + entries, and corporate tiers;
- * the writes persist to localStorage under namespaced keys. Public pages
- * read from this store at render time, falling back to the seeded
- * fixtures in `lib/api/mocks/fixtures/*.ts` when no override is set.
- *
- * REPLACE BEFORE PRODUCTION:
- *   - Swap each `read*()` for a typed `fetch()` against the backend API.
- *   - Swap each `write*()` for a typed POST/PUT/DELETE.
- *   - Surface the loading + error states in the admin UI.
- *
- * The shape returned by each `read*()` MUST match the seeded fixtures so
- * components don't care whether they're reading from localStorage or the
- * default seed.
+ * Admin CMS client — reads/writes via /api/cms/* (Supabase-backed).
  */
 
 import type { CorporateTier, FaqGroup, Itinerary, Trip } from "@/types/domain";
-import { CORPORATE_TIERS } from "@/lib/api/mocks/fixtures/catalog";
-import { FAQS, ITINERARIES, TRIPS } from "@/lib/api/mocks/fixtures/content";
+import { notifyCmsUpdated, type CmsResource } from "@/lib/admin/cms-events";
 
-const KEYS = {
-  trips: "wheels.admin.trips",
-  itineraries: "wheels.admin.itineraries",
-  faqs: "wheels.admin.faqs",
-  corporate: "wheels.admin.corporate",
-} as const;
-
-/* ── Generic read/write helpers ─────────────────────────────────────── */
-
-function readJSON<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return fallback;
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
+async function cmsGet<T>(path: string): Promise<T> {
+  const res = await fetch(path, { cache: "no-store" });
+  if (!res.ok) {
+    const data = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new Error(data.message ?? `Failed to load ${path}`);
   }
-}
-
-function writeJSON<T>(key: string, value: T): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-    // Notify same-window listeners (the cross-tab `storage` event fires
-    // only on OTHER tabs, so we manually dispatch one for the active tab).
-    window.dispatchEvent(new StorageEvent("storage", { key }));
-  } catch {
-    // Quota exceeded or storage disabled — silently skip; the admin form
-    // will surface the failure separately if needed.
+  const data = (await res.json()) as { items?: T };
+  if (!Array.isArray(data.items)) {
+    throw new Error(`Invalid response from ${path}`);
   }
+  return data.items;
 }
 
-function reset(key: string): void {
-  if (typeof window === "undefined") return;
-  localStorage.removeItem(key);
-  window.dispatchEvent(new StorageEvent("storage", { key }));
+async function cmsPut<T>(path: string, items: T[], resource: CmsResource): Promise<void> {
+  const res = await fetch(path, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items }),
+  });
+  if (!res.ok) {
+    const data = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new Error(data.message ?? "Save failed.");
+  }
+  notifyCmsUpdated(resource);
 }
 
-/* ── Trips ──────────────────────────────────────────────────────────── */
-
-export function readTrips(): Trip[] {
-  return readJSON<Trip[]>(KEYS.trips, TRIPS);
+export async function fetchTrips(): Promise<Trip[]> {
+  return cmsGet<Trip[]>("/api/cms/trips");
 }
 
-export function writeTrips(items: Trip[]): void {
-  writeJSON(KEYS.trips, items);
+export async function writeTrips(items: Trip[]): Promise<void> {
+  await cmsPut("/api/cms/trips", items, "trips");
 }
 
-export function resetTrips(): void {
-  reset(KEYS.trips);
+export async function fetchItineraries(): Promise<Itinerary[]> {
+  return cmsGet<Itinerary[]>("/api/cms/itineraries");
 }
 
-/* ── Itineraries ────────────────────────────────────────────────────── */
-
-export function readItineraries(): Itinerary[] {
-  return readJSON<Itinerary[]>(KEYS.itineraries, ITINERARIES);
+export async function writeItineraries(items: Itinerary[]): Promise<void> {
+  await cmsPut("/api/cms/itineraries", items, "itineraries");
 }
 
-export function writeItineraries(items: Itinerary[]): void {
-  writeJSON(KEYS.itineraries, items);
+export async function fetchFaqs(): Promise<FaqGroup[]> {
+  return cmsGet<FaqGroup[]>("/api/cms/faqs");
 }
 
-export function resetItineraries(): void {
-  reset(KEYS.itineraries);
+export async function writeFaqs(items: FaqGroup[]): Promise<void> {
+  await cmsPut("/api/cms/faqs", items, "faqs");
 }
 
-/* ── FAQs (groups with nested entries) ──────────────────────────────── */
-
-export function readFaqs(): FaqGroup[] {
-  return readJSON<FaqGroup[]>(KEYS.faqs, FAQS);
+export async function fetchCorporateTiers(): Promise<CorporateTier[]> {
+  return cmsGet<CorporateTier[]>("/api/cms/corporate");
 }
 
-export function writeFaqs(items: FaqGroup[]): void {
-  writeJSON(KEYS.faqs, items);
+export async function writeCorporateTiers(items: CorporateTier[]): Promise<void> {
+  await cmsPut("/api/cms/corporate", items, "corporate");
 }
-
-export function resetFaqs(): void {
-  reset(KEYS.faqs);
-}
-
-/* ── Corporate tiers ────────────────────────────────────────────────── */
-
-export function readCorporateTiers(): CorporateTier[] {
-  return readJSON<CorporateTier[]>(KEYS.corporate, CORPORATE_TIERS);
-}
-
-export function writeCorporateTiers(items: CorporateTier[]): void {
-  writeJSON(KEYS.corporate, items);
-}
-
-export function resetCorporateTiers(): void {
-  reset(KEYS.corporate);
-}
-
-/** Convenience: clear EVERYTHING the admin has written. */
-export function resetAll(): void {
-  resetTrips();
-  resetItineraries();
-  resetFaqs();
-  resetCorporateTiers();
-}
-
-/** All localStorage keys touched by the admin store. */
-export const ADMIN_STORE_KEYS = KEYS;

@@ -15,8 +15,7 @@ import type { ItineraryCategory } from "@/types/domain";
  * itineraries themselves are catalog content; conversion happens through
  * the chauffeur enquiry form.
  *
- * Sources from the ITINERARIES fixture; admin CRUD overlay applies via
- * lib/admin/store.ts in commit 6.
+ * Sources from Supabase via `useItineraries()` → `/api/cms/itineraries`.
  */
 
 type CategoryFilter = "all" | ItineraryCategory;

@@ -9,14 +9,15 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
-import { readItineraries, writeItineraries } from "@/lib/admin/store";
+import { writeItineraries } from "@/lib/admin/store";
+import { useItineraries } from "@/lib/admin/useAdminStore";
 import type { Itinerary, ItineraryCategory, ItineraryScheduleItem } from "@/types/domain";
 
 /**
  * ItineraryForm — shared create/edit form for /admin/itineraries/{new,[slug]}.
  *
  * Highlights + schedule are repeater fields (add/remove rows in-place).
- * Saves to localStorage via `writeItineraries()`.
+ * Persists via `writeItineraries()` (Supabase).
  */
 
 const CATEGORIES: Array<{ id: ItineraryCategory; label: string }> = [
@@ -41,17 +42,24 @@ export interface ItineraryFormProps {
 export function ItineraryForm({ slug }: ItineraryFormProps) {
   const router = useRouter();
   const isEdit = Boolean(slug);
+  const itineraries = useItineraries();
+  const [saving, setSaving] = React.useState(false);
 
   const initial = React.useMemo<Itinerary>(() => {
     if (!slug) return emptyItinerary();
-    return readItineraries().find((i) => i.slug === slug) ?? emptyItinerary();
-  }, [slug]);
+    return itineraries.find((i) => i.slug === slug) ?? emptyItinerary();
+  }, [slug, itineraries]);
 
   const [form, setForm] = React.useState<Itinerary>(initial);
   const [priceUsd, setPriceUsd] = React.useState(
     initial.priceFromCents > 0 ? String(initial.priceFromCents / 100) : "0",
   );
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+
+  React.useEffect(() => {
+    setForm(initial);
+    setPriceUsd(initial.priceFromCents > 0 ? String(initial.priceFromCents / 100) : "0");
+  }, [initial]);
 
   const update = <K extends keyof Itinerary>(key: K, value: Itinerary[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
@@ -98,50 +106,68 @@ export function ItineraryForm({ slug }: ItineraryFormProps) {
     return e;
   };
 
-  const onSubmit = (event: React.FormEvent) => {
+  const onSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     const next = validate();
     setErrors(next);
     if (Object.keys(next).length > 0) return;
 
     const now = new Date().toISOString();
-    const itineraries = readItineraries();
     const priceFromCents = Math.round(Number(priceUsd) * 100);
     const highlights = form.highlights.map((h) => h.trim()).filter(Boolean);
     const schedule = form.schedule
       .map((s) => ({ ...s, title: s.title.trim(), body: s.body?.trim() || undefined }))
       .filter((s) => s.title);
 
-    if (isEdit && slug) {
-      const idx = itineraries.findIndex((i) => i.slug === slug);
-      const updated: Itinerary = {
-        ...form,
-        highlights,
-        schedule,
-        priceFromCents,
-        updatedAt: now,
-      };
-      if (idx >= 0) itineraries[idx] = updated;
-      else itineraries.push(updated);
-      writeItineraries(itineraries);
-    } else {
-      if (itineraries.some((i) => i.slug === form.slug)) {
-        setErrors({ slug: "That slug already exists. Choose another." });
-        return;
+    setSaving(true);
+    try {
+      if (isEdit && slug) {
+        const idx = itineraries.findIndex((i) => i.slug === slug);
+        const updated: Itinerary = {
+          ...form,
+          highlights,
+          schedule,
+          priceFromCents,
+          updatedAt: now,
+        };
+        const nextItineraries = [...itineraries];
+        if (idx >= 0) nextItineraries[idx] = updated;
+        else nextItineraries.push(updated);
+        await writeItineraries(nextItineraries);
+      } else {
+        if (itineraries.some((i) => i.slug === form.slug)) {
+          setErrors({ slug: "That slug already exists. Choose another." });
+          return;
+        }
+        await writeItineraries([
+          ...itineraries,
+          { ...form, highlights, schedule, priceFromCents, updatedAt: now },
+        ]);
       }
-      writeItineraries([
-        ...itineraries,
-        { ...form, highlights, schedule, priceFromCents, updatedAt: now },
-      ]);
+      router.push("/admin/itineraries");
+    } catch (error) {
+      setErrors({
+        slug: error instanceof Error ? error.message : "Could not save itinerary.",
+      });
+    } finally {
+      setSaving(false);
     }
-    router.push("/admin/itineraries");
   };
 
-  const onDelete = () => {
+  const onDelete = async () => {
     if (!isEdit || !slug) return;
     if (!confirm("Delete this itinerary? This cannot be undone.")) return;
-    writeItineraries(readItineraries().filter((i) => i.slug !== slug));
-    router.push("/admin/itineraries");
+    setSaving(true);
+    try {
+      await writeItineraries(itineraries.filter((i) => i.slug !== slug));
+      router.push("/admin/itineraries");
+    } catch (error) {
+      setErrors({
+        slug: error instanceof Error ? error.message : "Could not delete itinerary.",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

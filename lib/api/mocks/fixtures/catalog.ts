@@ -1,10 +1,4 @@
-import type {
-  AddOn,
-  ChauffeurItinerary,
-  CorporateTier,
-  LongTermTier,
-  ProtectionTier,
-} from "@/types/domain";
+import type { AddOn, ChauffeurItinerary, LongTermTier, ProtectionTier } from "@/types/domain";
 
 /** 11 add-ons across all 5 categories (matches 04_booking_flow.md step 2). */
 export const ADD_ONS: AddOn[] = [
@@ -214,54 +208,6 @@ export const LONG_TERM_TIERS: LongTermTier[] = [
       "Monthly billing",
       "Dedicated account manager",
     ],
-  },
-];
-
-/** Corporate tiers for /corporate (un-descoped in Phase 12). */
-export const CORPORATE_TIERS: CorporateTier[] = [
-  {
-    id: "co-starter",
-    name: "Starter",
-    tagline: "For lean teams renting occasionally",
-    perDayCents: 2400,
-    fleetSize: "1-2 cars / month",
-    inclusions: [
-      "Corporate billing portal",
-      "Single monthly invoice",
-      "Priority WhatsApp line",
-      "Free Hazmieh pickup",
-    ],
-  },
-  {
-    id: "co-growth",
-    name: "Growth",
-    tagline: "For growing companies with regular needs",
-    perDayCents: 1950,
-    fleetSize: "3-10 cars / month",
-    inclusions: [
-      "Dedicated account manager",
-      "Volume pricing (up to 18% off)",
-      "Free Greater Beirut delivery",
-      "Driver document storage",
-      "VAT-ready invoicing",
-    ],
-    popular: true,
-  },
-  {
-    id: "co-enterprise",
-    name: "Enterprise",
-    tagline: "For enterprise fleets and corporate travel",
-    perDayCents: null,
-    fleetSize: "10+ cars / month",
-    inclusions: [
-      "Custom pricing & terms",
-      "Reserved fleet allocation",
-      "Onsite delivery & swap",
-      "API integration with your travel system",
-      "24/7 dedicated dispatch",
-      "Quarterly business reviews",
-    ],
-    ctaLabel: "Contact sales",
   },
 ];
 

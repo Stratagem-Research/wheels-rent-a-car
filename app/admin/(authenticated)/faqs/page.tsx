@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
 import { useFaqs } from "@/lib/admin/useAdminStore";
-import { readFaqs, resetFaqs, writeFaqs } from "@/lib/admin/store";
+import { writeFaqs } from "@/lib/admin/store";
 import type { FaqEntry, FaqGroup } from "@/types/domain";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
  *   left  → list of FAQ sections (FaqGroup[]). Add / rename / delete.
  *   right → questions inside the active section. Add / edit / delete.
  *
- * Mutations write to localStorage via `writeFaqs()` and reflect on
+ * Mutations persist via `writeFaqs()` (Supabase) and reflect on
  * /help and the page-local accordions where the central store is read.
  */
 export default function AdminFaqsPage() {
@@ -37,12 +37,20 @@ export default function AdminFaqsPage() {
   const activeGroup = faqs.find((g) => g.id === activeId) ?? null;
 
   // ── Group mutations ──────────────────────────────────────────────
+  const persistFaqs = async (next: FaqGroup[]) => {
+    try {
+      await writeFaqs(next);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Could not save FAQs.");
+    }
+  };
+
   const addGroup = () => {
     const title = prompt("Section title (e.g. 'Insurance', 'Pickup & return')")?.trim();
     if (!title) return;
     const id = `g-${slugify(title)}-${Date.now().toString(36).slice(-4)}`;
     const next: FaqGroup[] = [...faqs, { id, title, entries: [] }];
-    writeFaqs(next);
+    void persistFaqs(next);
     setActiveId(id);
   };
 
@@ -51,44 +59,40 @@ export default function AdminFaqsPage() {
     if (!current) return;
     const title = prompt("Rename section", current.title)?.trim();
     if (!title) return;
-    writeFaqs(faqs.map((g) => (g.id === id ? { ...g, title } : g)));
+    void persistFaqs(faqs.map((g) => (g.id === id ? { ...g, title } : g)));
   };
 
   const deleteGroup = (id: string) => {
     if (!confirm("Delete this section and all its questions?")) return;
     const next = faqs.filter((g) => g.id !== id);
-    writeFaqs(next);
+    void persistFaqs(next);
     if (activeId === id) setActiveId(next[0]?.id ?? null);
   };
 
   // ── Entry mutations ──────────────────────────────────────────────
   const saveEntry = (entry: FaqEntry) => {
     if (!activeGroup) return;
-    const groups = readFaqs();
-    const group = groups.find((g) => g.id === activeGroup.id);
-    if (!group) return;
-    const exists = group.entries.findIndex((e) => e.id === entry.id);
+    const exists = activeGroup.entries.findIndex((e) => e.id === entry.id);
     const nextEntries =
       exists >= 0
-        ? group.entries.map((e, idx) => (idx === exists ? entry : e))
-        : [...group.entries, entry];
-    const next = groups.map((g) =>
+        ? activeGroup.entries.map((e, idx) => (idx === exists ? entry : e))
+        : [...activeGroup.entries, entry];
+    const next = faqs.map((g) =>
       g.id === activeGroup.id ? { ...g, entries: nextEntries } : g,
     );
-    writeFaqs(next);
+    void persistFaqs(next);
     setEditingEntry(null);
   };
 
   const deleteEntry = (entryId: string) => {
     if (!activeGroup) return;
     if (!confirm("Delete this question?")) return;
-    const groups = readFaqs();
-    const next = groups.map((g) =>
+    const next = faqs.map((g) =>
       g.id === activeGroup.id
         ? { ...g, entries: g.entries.filter((e) => e.id !== entryId) }
         : g,
     );
-    writeFaqs(next);
+    void persistFaqs(next);
   };
 
   const newEntry = () => {
@@ -101,21 +105,11 @@ export default function AdminFaqsPage() {
     });
   };
 
-  const onReset = () => {
-    if (!confirm("Reset every FAQ section and question back to defaults?")) return;
-    resetFaqs();
-  };
-
   return (
     <AdminPageShell
       eyebrow="Help centre"
       title="FAQs"
       description="Manage the central FAQ used on /help and around the site. Sections show as topic tiles; questions render as accordion entries."
-      actions={
-        <Button variant="tertiary" onClick={onReset}>
-          Reset to defaults
-        </Button>
-      }
     >
       <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
         {/* Sections panel. */}

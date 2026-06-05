@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
 import { useCorporateTiers } from "@/lib/admin/useAdminStore";
-import { readCorporateTiers, resetCorporateTiers, writeCorporateTiers } from "@/lib/admin/store";
+import { writeCorporateTiers } from "@/lib/admin/store";
 import type { CorporateTier } from "@/types/domain";
 
 /**
@@ -17,8 +17,7 @@ import type { CorporateTier } from "@/types/domain";
  *
  * Manages the three (or more) tiers displayed on /corporate. Each tier
  * is editable in-place: name, tagline, indicative price, fleet size,
- * inclusions, popular flag, CTA label. Writes to localStorage via
- * `writeCorporateTiers()`.
+ * inclusions, popular flag, CTA label. Persists via `writeCorporateTiers()` (Supabase).
  */
 export default function AdminCorporatePage() {
   const tiers = useCorporateTiers();
@@ -79,23 +78,22 @@ export default function AdminCorporatePage() {
     setDirty(true);
   };
 
-  const onSave = () => {
+  const onSave = async () => {
     const cleaned = working.map((t) => ({
       ...t,
       inclusions: t.inclusions.map((i) => i.trim()).filter(Boolean),
     }));
-    writeCorporateTiers(cleaned);
-    setDirty(false);
+    try {
+      await writeCorporateTiers(cleaned);
+      setDirty(false);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Could not save corporate tiers.");
+    }
   };
 
   const onDiscard = () => {
-    setWorking(readCorporateTiers());
+    setWorking(tiers);
     setDirty(false);
-  };
-
-  const onReset = () => {
-    if (!confirm("Reset corporate tiers back to the default seed?")) return;
-    resetCorporateTiers();
   };
 
   return (
@@ -105,9 +103,6 @@ export default function AdminCorporatePage() {
       description="Tier comparison, taglines, and inclusions shown on the /corporate page."
       actions={
         <>
-          <Button variant="tertiary" onClick={onReset}>
-            Reset to defaults
-          </Button>
           {dirty ? (
             <Button variant="secondary" onClick={onDiscard}>
               Discard

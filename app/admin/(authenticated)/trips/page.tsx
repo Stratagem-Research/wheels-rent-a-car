@@ -7,21 +7,20 @@ import { Button } from "@/components/ui/Button";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { useTrips } from "@/lib/admin/useAdminStore";
-import { readTrips, resetTrips, writeTrips } from "@/lib/admin/store";
+import { writeTrips } from "@/lib/admin/store";
 
 /** /admin/trips — trips list view. */
 export default function AdminTripsPage() {
   const trips = useTrips();
   const router = useRouter();
 
-  const onDelete = (slug: string) => {
+  const onDelete = async (slug: string) => {
     if (!confirm("Delete this trip? This cannot be undone.")) return;
-    writeTrips(readTrips().filter((t) => t.slug !== slug));
-  };
-
-  const onReset = () => {
-    if (!confirm("Reset all trips back to the default seed?")) return;
-    resetTrips();
+    try {
+      await writeTrips(trips.filter((t) => t.slug !== slug));
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Could not delete trip.");
+    }
   };
 
   return (
@@ -31,9 +30,6 @@ export default function AdminTripsPage() {
       description="Trip articles that appear in Explore Lebanon on the homepage and on /trips."
       actions={
         <>
-          <Button variant="tertiary" onClick={onReset}>
-            Reset to defaults
-          </Button>
           <Button onClick={() => router.push("/admin/trips/new")}>
             <Plus className="size-4" aria-hidden="true" />
             New trip

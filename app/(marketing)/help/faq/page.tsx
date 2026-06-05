@@ -10,10 +10,8 @@ import { whatsAppHref } from "@/lib/whatsapp";
 /**
  * /help/faq — central FAQ surface.
  *
- * Reads from the admin store (`useFaqs`) so admin edits reflect immediately
- * on the public help page. The seeded `FAQS` fixture is the fallback when
- * localStorage is empty. JSON-LD is rendered from the same hook so the
- * structured data matches the visible content.
+ * Reads FAQs from Supabase via `useFaqs()` → `/api/cms/faqs`.
+ * JSON-LD is rendered from the same hook so structured data matches visible content.
  */
 export default function FaqPage() {
   const faqs = useFaqs();

@@ -18,9 +18,7 @@ import { CATEGORY_LABELS } from "@/lib/vehicles/labels";
  * suggested-vehicle card (lone red CTA on the page), related trips at
  * the bottom.
  *
- * Sourced from `useTrips()` (lib/admin/store.ts → localStorage with
- * fixture fallback). When the real backend lands, swap the hook for
- * an authenticated fetch().
+ * Sourced from `useTrips()` → `/api/cms/trips` (Supabase).
  */
 
 interface PageProps {

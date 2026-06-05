@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { useItineraries } from "@/lib/admin/useAdminStore";
-import { readItineraries, resetItineraries, writeItineraries } from "@/lib/admin/store";
+import { writeItineraries } from "@/lib/admin/store";
 import { formatUsd } from "@/lib/booking/pricing";
 
 /** /admin/itineraries — chauffeur itineraries list view. */
@@ -15,14 +15,13 @@ export default function AdminItinerariesPage() {
   const itineraries = useItineraries();
   const router = useRouter();
 
-  const onDelete = (slug: string) => {
+  const onDelete = async (slug: string) => {
     if (!confirm("Delete this itinerary? This cannot be undone.")) return;
-    writeItineraries(readItineraries().filter((i) => i.slug !== slug));
-  };
-
-  const onReset = () => {
-    if (!confirm("Reset all itineraries back to the default seed?")) return;
-    resetItineraries();
+    try {
+      await writeItineraries(itineraries.filter((i) => i.slug !== slug));
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "Could not delete itinerary.");
+    }
   };
 
   return (
@@ -32,9 +31,6 @@ export default function AdminItinerariesPage() {
       description="Sample itineraries shown on /chauffeur and the dedicated /itineraries listing."
       actions={
         <>
-          <Button variant="tertiary" onClick={onReset}>
-            Reset to defaults
-          </Button>
           <Button onClick={() => router.push("/admin/itineraries/new")}>
             <Plus className="size-4" aria-hidden="true" />
             New itinerary
