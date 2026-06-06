@@ -6,12 +6,10 @@ import { LockKeyhole } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { ErrorText, Field } from "@/components/ui/FormAtoms";
 import { Input } from "@/components/ui/Input";
-import { isSignedIn, signIn } from "@/lib/admin/auth";
+import { getAdminSession, signIn } from "@/lib/admin/auth";
 
 /*
- * /admin/login — staging-only credential form.
- *
- * Hardcoded `admin / admin123` per the Phase 12 brief (see `lib/admin/auth.ts`).
+ * /admin/login — server-session credential form.
  * Already-signed-in visitors redirect straight to /admin.
  */
 export default function AdminLoginPage() {
@@ -22,17 +20,21 @@ export default function AdminLoginPage() {
   const [submitting, setSubmitting] = React.useState(false);
 
   React.useEffect(() => {
-    if (isSignedIn()) router.replace("/admin");
+    getAdminSession()
+      .then((session) => {
+        if (session) router.replace("/admin");
+      })
+      .catch(() => undefined);
   }, [router]);
 
-  const onSubmit = (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
-    const ok = signIn(username, password);
-    if (!ok) {
+    const result = await signIn(username, password);
+    if (!result.ok) {
       setSubmitting(false);
-      setError("Invalid username or password.");
+      setError(result.message);
       return;
     }
     router.replace("/admin");
@@ -83,8 +85,7 @@ export default function AdminLoginPage() {
             Sign in
           </Button>
           <p className="label-sm text-ink-50 mt-2 text-center">
-            Hint for the demo: <code className="mono-md">admin</code> /{" "}
-            <code className="mono-md">admin123</code>
+            Use a configured admin username and password.
           </p>
         </form>
       </div>

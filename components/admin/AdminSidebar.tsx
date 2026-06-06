@@ -3,7 +3,18 @@
 import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Building2, HelpCircle, LayoutDashboard, LogOut, MapPinned } from "lucide-react";
+import {
+  Building2,
+  HelpCircle,
+  Info,
+  LayoutDashboard,
+  LogOut,
+  MapPinned,
+  Megaphone,
+  Route,
+  Settings2,
+  Users,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "@/lib/admin/auth";
 
@@ -21,14 +32,20 @@ const NAV_ITEMS: Array<{ href: string; label: string; icon: React.ComponentType<
   { href: "/admin/itineraries", label: "Itineraries", icon: MapPinned },
   { href: "/admin/faqs", label: "FAQs", icon: HelpCircle },
   { href: "/admin/corporate", label: "Corporate", icon: Building2 },
+  { href: "/admin/about", label: "About", icon: Info },
+  { href: "/admin/leads", label: "Leads", icon: Users },
+  { href: "/admin/fleet", label: "Fleet", icon: Route },
+  { href: "/admin/locations", label: "Locations", icon: MapPinned },
+  { href: "/admin/promotions", label: "Promotions", icon: Megaphone },
+  { href: "/admin/ops", label: "Ops", icon: Settings2 },
 ];
 
 export function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
 
-  const onSignOut = () => {
-    signOut();
+  const onSignOut = async () => {
+    await signOut();
     router.push("/admin/login");
   };
 
@@ -65,9 +82,9 @@ export function AdminSidebar() {
       </nav>
       <div className="border-t border-white/10 p-4">
         <p className="label-sm text-paper/50 px-4 pb-3 leading-snug">
-          Staging credentials only.
+          Server-session protected.
           <br />
-          Swap for real auth before launch.
+          Ops tools require ops-admin role.
         </p>
         <button
           type="button"
@@ -89,8 +106,8 @@ export function AdminMobileBar() {
   const item = NAV_ITEMS.find(
     (i) => pathname === i.href || (i.href !== "/admin" && pathname?.startsWith(i.href)),
   );
-  const onSignOut = () => {
-    signOut();
+  const onSignOut = async () => {
+    await signOut();
     router.push("/admin/login");
   };
   return (

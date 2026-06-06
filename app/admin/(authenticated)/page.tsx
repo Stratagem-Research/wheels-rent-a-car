@@ -2,8 +2,18 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Building2, HelpCircle, MapPinned } from "lucide-react";
+import {
+  Building2,
+  HelpCircle,
+  Info,
+  MapPinned,
+  Megaphone,
+  Route,
+  Settings2,
+  Users,
+} from "lucide-react";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
+import { fetchAdminLeads } from "@/lib/admin/store";
 import { useCorporateTiers, useFaqs, useItineraries, useTrips } from "@/lib/admin/useAdminStore";
 
 /** /admin — dashboard with live counts from Supabase CMS API. */
@@ -12,6 +22,19 @@ export default function AdminDashboardPage() {
   const itineraries = useItineraries();
   const faqs = useFaqs();
   const corporate = useCorporateTiers();
+  const [leadCounts, setLeadCounts] = React.useState({ total: 0, new: 0 });
+
+  React.useEffect(() => {
+    let cancelled = false;
+    fetchAdminLeads()
+      .then((result) => {
+        if (!cancelled) setLeadCounts({ total: result.counters.total, new: result.counters.new });
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const totalFaqQuestions = faqs.reduce((sum, g) => sum + g.entries.length, 0);
 
@@ -47,6 +70,54 @@ export default function AdminDashboardPage() {
       title: "Corporate",
       count: `${corporate.length} ${corporate.length === 1 ? "tier" : "tiers"}`,
       body: "Tier comparison and inclusions on /corporate.",
+    },
+    {
+      href: "/admin/about",
+      icon: <Info className="size-5" aria-hidden="true" />,
+      eyebrow: "Brand",
+      title: "About",
+      count: "Story + team",
+      body: "About story, team cards, and fleet philosophy copy.",
+    },
+    {
+      href: "/admin/leads",
+      icon: <Users className="size-5" aria-hidden="true" />,
+      eyebrow: "Pipeline",
+      title: "Leads",
+      count: `${leadCounts.total} total · ${leadCounts.new} new`,
+      body: "Long-term, corporate, and chauffeur enquiries.",
+    },
+    {
+      href: "/admin/fleet",
+      icon: <Route className="size-5" aria-hidden="true" />,
+      eyebrow: "Catalog",
+      title: "Fleet",
+      count: "Metadata + map",
+      body: "Vehicle metadata and frontend-to-Wizard ID mapping.",
+    },
+    {
+      href: "/admin/locations",
+      icon: <MapPinned className="size-5" aria-hidden="true" />,
+      eyebrow: "Content",
+      title: "Locations",
+      count: "Branch records",
+      body: "Branch profile data used by /locations and search.",
+    },
+    {
+      href: "/admin/promotions",
+      icon: <Megaphone className="size-5" aria-hidden="true" />,
+      eyebrow: "Marketing",
+      title: "Promotions",
+      count: "Campaigns",
+      body: "Promo strip copy, links, active windows, and toggles.",
+    },
+    {
+      href: "/admin/ops",
+      icon: <Settings2 className="size-5" aria-hidden="true" />,
+      eyebrow: "Operations",
+      title: "Ops",
+      count: "Read-only monitors",
+      body: "Payments, booking timeline, notifications, and retry tooling.",
     },
   ];
 

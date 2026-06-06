@@ -30,6 +30,8 @@ const WHEELS_LINKS = [
 ] as const;
 
 const HELP_LINKS = [
+  { href: "/manage-booking", label: "Manage booking" },
+  { href: "/help", label: "Help centre" },
   { href: "/help/faq", label: "FAQ" },
   { href: "/help/rental-terms", label: "Rental terms" },
   { href: "/help/insurance-and-coverage", label: "Insurance & coverage" },

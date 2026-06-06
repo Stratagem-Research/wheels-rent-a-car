@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" role="img" aria-labelledby="title desc">
+  <title id="title">Wheels team member placeholder portrait</title>
+  <desc id="desc">Monochrome placeholder portrait for team member cards.</desc>
+  <rect width="640" height="640" fill="#e6e7eb" />
+  <circle cx="320" cy="244" r="112" fill="#9da0a8" />
+  <path
+    d="M144 560c22-86 94-146 176-146s154 60 176 146"
+    fill="#9da0a8"
+  />
+  <rect x="48" y="48" width="544" height="544" rx="28" ry="28" fill="none" stroke="#111111" stroke-width="10" />
+</svg>

@@ -6,9 +6,8 @@ import { ExploreLebanon } from "./_components/ExploreLebanon";
 import { ServicePromos } from "./_components/ServicePromos";
 import { Reviews } from "./_components/Reviews";
 import { NewsletterPopup } from "@/components/consent/NewsletterPopup";
-import { BRANCHES } from "@/lib/api/mocks/fixtures/branches";
-import { VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
 import { REVIEWS } from "@/lib/api/mocks/fixtures/content";
+import { getPublicBranches, getPublicVehicles } from "@/lib/server/public-content";
 
 /**
  * Home page — INK & SIGNAL rebuild per /docs/Implementation/landingpage.md.
@@ -67,9 +66,10 @@ const jsonLd = {
   ],
 };
 
-export default function Home() {
-  const branches = BRANCHES;
-  const featuredVehicles = VEHICLES.slice(0, 4);
+export default async function Home() {
+  const branches = await getPublicBranches();
+  const vehicles = await getPublicVehicles();
+  const featuredVehicles = vehicles.slice(0, 4);
   // Reviews now marquees infinitely — pass the full list so the loop has
   // enough content to look continuous rather than three cards on repeat.
   const reviews = REVIEWS;

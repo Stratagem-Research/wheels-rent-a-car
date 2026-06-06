@@ -129,15 +129,6 @@ function SignedOut({ transparent }: { transparent: boolean }) {
   return (
     <>
       <Link
-        href="/manage-booking"
-        className={cn(
-          "label-lg rounded-md px-2 py-1 whitespace-nowrap",
-          transparent ? "text-paper hover:bg-white/10" : "text-ink-80 hover:bg-ink-10",
-        )}
-      >
-        Manage booking
-      </Link>
-      <Link
         href="/login"
         className={cn(
           "label-lg rounded-md px-2 py-1 whitespace-nowrap",

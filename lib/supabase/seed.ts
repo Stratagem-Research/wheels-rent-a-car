@@ -1,11 +1,19 @@
 import {
+  ABOUT_CONTENT_SEED,
   CORPORATE_TIERS,
   FAQS,
   ITINERARIES,
+  LOCATIONS_SEED,
+  PROMOTIONS_SEED,
   TRIPS,
 } from "@/lib/supabase/seed-data";
 import { VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
+import {
+  replaceAboutContent,
+  replaceLocations,
+  replacePromotions,
+} from "@/lib/supabase/admin-repository";
 import {
   replaceCorporateTiersInDb,
   replaceFaqsInDb,
@@ -25,6 +33,9 @@ export type SeedResource =
   | "corporate"
   | "vehicle_metadata"
   | "vehicle_wizard_map"
+  | "locations"
+  | "promotions"
+  | "about"
   | "all";
 
 export type SeedResult = {
@@ -43,6 +54,9 @@ export async function seedWebsiteData(
         "corporate",
         "vehicle_metadata",
         "vehicle_wizard_map",
+        "locations",
+        "promotions",
+        "about",
       ] as SeedResource[])
     : resources;
 
@@ -106,6 +120,21 @@ export async function seedWebsiteData(
       if (error) throw new Error(error.message);
     }
     results.push({ resource: "vehicle_wizard_map", count: rows.length });
+  }
+
+  if (targets.includes("locations")) {
+    await replaceLocations(LOCATIONS_SEED);
+    results.push({ resource: "locations", count: LOCATIONS_SEED.length });
+  }
+
+  if (targets.includes("promotions")) {
+    await replacePromotions(PROMOTIONS_SEED);
+    results.push({ resource: "promotions", count: PROMOTIONS_SEED.length });
+  }
+
+  if (targets.includes("about")) {
+    await replaceAboutContent(ABOUT_CONTENT_SEED);
+    results.push({ resource: "about", count: ABOUT_CONTENT_SEED.team.length });
   }
 
   return results;

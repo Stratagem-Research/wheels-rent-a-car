@@ -3,6 +3,17 @@
  * Not used at runtime — public/admin pages read from Supabase via /api/cms/*.
  */
 import type { CorporateTier, FaqGroup, Itinerary, Trip } from "@/types/domain";
+import { BRANCHES } from "@/lib/api/mocks/fixtures/branches";
+import { SITE_CONFIG } from "@/lib/api/mocks/fixtures/content";
+import {
+  ABOUT_PULL_QUOTE,
+  ABOUT_STATS,
+  ABOUT_STORY_PARAGRAPHS,
+  ABOUT_TEAM_DEDICATION,
+  ABOUT_TEAM_INTRO,
+  ABOUT_TEAM,
+  FLEET_PHILOSOPHY,
+} from "@/lib/content/about";
 /** Default FAQ content per 10_help_faq.md. ~30 entries across 8 topic groups. */
 export const FAQS: FaqGroup[] = [
   {
@@ -592,3 +603,28 @@ export const CORPORATE_TIERS: CorporateTier[] = [
     ctaLabel: "Contact sales",
   },
 ];
+
+export const LOCATIONS_SEED = BRANCHES;
+
+export const PROMOTIONS_SEED = SITE_CONFIG.promo
+  ? [
+      {
+        id: "default-promo",
+        message: SITE_CONFIG.promo.message,
+        href: SITE_CONFIG.promo.href ?? null,
+        active: true,
+        starts_at: null,
+        ends_at: null,
+      },
+    ]
+  : [];
+
+export const ABOUT_CONTENT_SEED = {
+  storyParagraphs: ABOUT_STORY_PARAGRAPHS,
+  pullQuote: ABOUT_PULL_QUOTE,
+  fleetPhilosophy: FLEET_PHILOSOPHY,
+  stats: ABOUT_STATS,
+  teamIntro: ABOUT_TEAM_INTRO,
+  teamDedication: ABOUT_TEAM_DEDICATION,
+  team: ABOUT_TEAM,
+};

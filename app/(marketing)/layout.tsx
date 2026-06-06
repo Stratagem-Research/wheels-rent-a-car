@@ -1,4 +1,5 @@
 import { Footer, Header, PromoStrip, WhatsAppFab } from "@/components/shell";
+import { getPublicSiteConfig } from "@/lib/server/public-content";
 
 /**
  * Default marketing/customer-facing shell.
@@ -7,14 +8,17 @@ import { Footer, Header, PromoStrip, WhatsAppFab } from "@/components/shell";
  * The PromoStrip is server-driven via /api/site-config in Sprint 3+;
  * for Sprint 2 we just stub a placeholder campaign string.
  */
-export default function MarketingLayout({ children }: { children: React.ReactNode }) {
+export default async function MarketingLayout({ children }: { children: React.ReactNode }) {
+  const siteConfig = await getPublicSiteConfig();
   return (
     <>
-      <PromoStrip
-        message="Summer in Lebanon — 15% off on weekly rentals. Code SUMMER15 →"
-        href="/vehicles?promo=SUMMER15"
-        campaignKey="summer15"
-      />
+      {siteConfig.promo ? (
+        <PromoStrip
+          message={siteConfig.promo.message}
+          href={siteConfig.promo.href}
+          campaignKey={siteConfig.promo.message.slice(0, 24)}
+        />
+      ) : null}
       <Header />
       <main id="content" className="min-h-[calc(100vh-160px)]">
         {children}

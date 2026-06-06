@@ -58,11 +58,18 @@ export function middleware(req: NextRequest) {
     }
   }
 
-  // Admin dashboard (Phase 12) — staging-only client-side gated CMS.
-  // We MUST keep it out of search indexes so the credentials and content
-  // editor are never crawled. Auth itself is enforced client-side by
-  // `app/admin/(authenticated)/layout.tsx` against sessionStorage.
+  // Admin dashboard — keep out of indexes and gate by server session cookie.
   if (pathname.startsWith("/admin")) {
+    const isLoginPath = pathname === "/admin/login";
+    const hasAdminSession = Boolean(req.cookies.get("wheels.admin.session")?.value);
+    if (!isLoginPath && !hasAdminSession) {
+      const loginUrl = new URL("/admin/login", req.url);
+      return NextResponse.redirect(loginUrl);
+    }
+    if (isLoginPath && hasAdminSession) {
+      const adminUrl = new URL("/admin", req.url);
+      return NextResponse.redirect(adminUrl);
+    }
     const res = NextResponse.next();
     res.headers.set("X-Robots-Tag", "noindex, nofollow");
     return res;

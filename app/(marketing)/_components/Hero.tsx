@@ -23,7 +23,7 @@ import type { Branch } from "@/types/domain";
  */
 export function Hero({ branches }: { branches: Branch[] }) {
   return (
-    <section className="relative isolate overflow-hidden">
+    <section id="home-hero" className="relative isolate -mt-16 overflow-hidden lg:-mt-18">
       {/* Full-bleed cinematic Lebanon photograph. `priority` so it counts as
        * the LCP candidate; `object-position` centres on the horizon. */}
       <Image

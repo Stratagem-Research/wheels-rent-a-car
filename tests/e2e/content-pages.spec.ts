@@ -1,11 +1,19 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("content pages @smoke", () => {
-  test("/about renders story + stats", async ({ page }) => {
+  test("/about renders story + stats + interactive team", async ({ page }) => {
     await page.goto("/about");
     await expect(page.getByRole("heading", { name: /We pick you up/i })).toBeVisible();
     await expect(page.getByText(/Our story/i)).toBeVisible();
     await expect(page.getByText(/rentals last year/i)).toBeVisible();
+    await expect(page.getByText(/Wheels is a family-built car rental company/i)).toBeVisible();
+
+    const saidProfile = page.getByRole("button", { name: /Show profile details for Said Krayem/i });
+    await expect(saidProfile).toBeVisible();
+    await saidProfile.click();
+    await expect(
+      page.getByText(/he built the company from the ground up and continues to guide key decisions/i),
+    ).toBeVisible();
   });
 
   test("/help hub renders category cards + search bar", async ({ page }) => {

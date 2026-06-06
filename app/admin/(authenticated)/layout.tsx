@@ -3,15 +3,11 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { AdminMobileBar, AdminSidebar } from "@/components/admin/AdminSidebar";
-import { isSignedIn } from "@/lib/admin/auth";
+import { getAdminSession } from "@/lib/admin/auth";
 
 /**
- * Authenticated admin layout — gates every CRUD page client-side against
- * sessionStorage. Unauthenticated visitors redirect to /admin/login.
- *
- * The gate is deliberately demo-grade (sessionStorage, no server token).
- * `middleware.ts` adds `X-Robots-Tag: noindex` so crawlers ignore the
- * entire /admin tree.
+ * Authenticated admin layout — verifies server session via /api/admin/sessions.
+ * Unauthenticated visitors redirect to /admin/login.
  */
 export default function AdminAuthenticatedLayout({
   children,
@@ -21,19 +17,20 @@ export default function AdminAuthenticatedLayout({
   const router = useRouter();
   const [ready, setReady] = React.useState(false);
 
-  // The gate must check sessionStorage post-mount (server can't see it),
-  // then either redirect or mark the page ready to render. Calling setReady
-  // inside the effect IS the synchronization point with the browser-only
-  // session — the lint exception is intentional.
-  /* eslint-disable react-hooks/set-state-in-effect */
+  // Browser-only gate: check session endpoint post-mount.
   React.useEffect(() => {
-    if (!isSignedIn()) {
-      router.replace("/admin/login");
-      return;
-    }
-    setReady(true);
+    getAdminSession()
+      .then((session) => {
+        if (!session) {
+          router.replace("/admin/login");
+          return;
+        }
+        setReady(true);
+      })
+      .catch(() => {
+        router.replace("/admin/login");
+      });
   }, [router]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!ready) {
     return (

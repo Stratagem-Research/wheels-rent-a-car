@@ -4,11 +4,10 @@ import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { Menu, Phone, User } from "lucide-react";
+import { Menu, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/Sheet";
 import { AuthCluster } from "./AuthCluster";
-import { whatsAppHref } from "@/lib/whatsapp";
 
 /*
  * Global header per 00_global.md §3 + DESIGN.md §components.header.
@@ -23,13 +22,18 @@ import { whatsAppHref } from "@/lib/whatsapp";
  * Mobile: hamburger opens a full-screen drawer (Sheet from S1).
  */
 
+/** Primary nav — core routes + service pages. Help/contact live in the footer. */
 const NAV_LINKS = [
+  { href: "/vehicles", label: "Vehicles" },
+  { href: "/locations", label: "Locations" },
   { href: "/long-term", label: "Long-term" },
   { href: "/chauffeur", label: "Chauffeur" },
   { href: "/corporate", label: "Corporate" },
-  { href: "/locations", label: "Locations" },
   { href: "/about", label: "About" },
 ] as const;
+
+/** Mobile drawer — same primary nav as desktop; guest booking lookup lives in footer. */
+const MOBILE_DRAWER_LINKS = NAV_LINKS;
 
 type HeaderVariant = "default" | "overlay" | "inverse" | "flush" | "flush-tint";
 
@@ -39,7 +43,10 @@ export interface HeaderProps {
 
 export function Header({ variant = "default" }: HeaderProps) {
   const pathname = usePathname();
-  const [scrolled, setScrolled] = React.useState(false);
+  const [heroInView, setHeroInView] = React.useState(true);
+  const [stuck, setStuck] = React.useState(false);
+  const [mobileHidden, setMobileHidden] = React.useState(false);
+  const lastScrollYRef = React.useRef(0);
 
   // On the home page the hero is a full-bleed cinematic photo with a dark
   // overlay (Revision 2). The header rides on top of that photo as
@@ -50,16 +57,59 @@ export function Header({ variant = "default" }: HeaderProps) {
 
   React.useEffect(() => {
     if (resolvedVariant !== "overlay") return;
-    const onScroll = () => setScrolled(window.scrollY > 60);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+
+    const hero = document.getElementById("home-hero");
+    if (!hero) {
+      // Safety fallback: if home hero context is missing, force a readable bar.
+      requestAnimationFrame(() => setHeroInView(false));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setHeroInView(entry.isIntersecting);
+      },
+      {
+        rootMargin: "-60px 0px 0px 0px",
+        threshold: 0,
+      },
+    );
+
+    observer.observe(hero);
+    return () => observer.disconnect();
   }, [resolvedVariant]);
 
-  const transparent = resolvedVariant === "overlay" && !scrolled;
+  React.useEffect(() => {
+    const onScrollOrResize = () => {
+      const y = window.scrollY;
+      setStuck(y > 0);
+
+      const isMobile = window.innerWidth < 1024;
+      if (!isMobile) {
+        setMobileHidden(false);
+        lastScrollYRef.current = y;
+        return;
+      }
+
+      const scrollingDown = y > lastScrollYRef.current;
+      setMobileHidden(scrollingDown && y > 80);
+      lastScrollYRef.current = y;
+    };
+
+    onScrollOrResize();
+    window.addEventListener("scroll", onScrollOrResize, { passive: true });
+    window.addEventListener("resize", onScrollOrResize);
+    return () => {
+      window.removeEventListener("scroll", onScrollOrResize);
+      window.removeEventListener("resize", onScrollOrResize);
+    };
+  }, []);
+
+  const transparent = resolvedVariant === "overlay" && heroInView;
   const inverse = resolvedVariant === "inverse";
   const flush = resolvedVariant === "flush";
   const flushTint = resolvedVariant === "flush-tint";
+  const elevated = stuck && !transparent;
   // Header treats `overlay-before-scroll` and `inverse` the same visually
   // (paper text on a dark/transparent background).
   const onDark = transparent || inverse;
@@ -67,7 +117,8 @@ export function Header({ variant = "default" }: HeaderProps) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 w-full transition-colors duration-200",
+        "sticky top-0 z-30 w-full transition-transform transition-colors duration-200",
+        mobileHidden ? "-translate-y-full lg:translate-y-0" : "translate-y-0",
         transparent
           ? "bg-transparent"
           : inverse
@@ -77,6 +128,7 @@ export function Header({ variant = "default" }: HeaderProps) {
               : flush
                 ? "bg-paper"
                 : "bg-paper border-border border-b",
+        elevated && "shadow-[var(--shadow-elevation-1)]",
       )}
     >
       <div
@@ -116,7 +168,7 @@ export function Header({ variant = "default" }: HeaderProps) {
         {/* Spacer pushes nav + actions cluster to the right. */}
         <div className="hidden flex-1 lg:block" aria-hidden="true" />
 
-        {/* RIGHT cluster on lg: primary nav, then phone/WhatsApp, then auth. */}
+        {/* RIGHT cluster on lg: primary nav + auth. Contact channels live in footer/FAB. */}
         <nav aria-label="Primary" className="hidden items-center gap-5 lg:flex">
           {NAV_LINKS.map((link) => {
             const active = pathname === link.href || pathname?.startsWith(link.href + "/");
@@ -142,41 +194,11 @@ export function Header({ variant = "default" }: HeaderProps) {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <span
-            aria-hidden="true"
-            className={cn("h-5 w-px", onDark ? "bg-white/15" : "bg-ink-20")}
-          />
-          {/* WhatsApp pill — branded green stays locked, but the affordance
-           * now reads as a button (icon + "WhatsApp" label) instead of a
-           * floating green disc. Collapses to icon-only on narrow lg. */}
-          <a
-            href={whatsAppHref("default")}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Chat with us on WhatsApp"
-            className={cn(
-              "label-md text-paper rounded-pill inline-flex h-9 items-center gap-2 bg-[#25D366] px-3 hover:bg-[#1eb256] active:bg-[#1ca94f]",
-              "transition-colors duration-150",
-              "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#1eb256]",
-            )}
-          >
-            <WhatsAppIcon className="size-4" />
-            <span className="hidden xl:inline">WhatsApp</span>
-          </a>
           <AuthCluster transparent={onDark} />
         </div>
 
-        {/* Mobile cluster — far right. */}
-        <div className="flex flex-1 items-center justify-end gap-2 lg:hidden">
-          <a
-            href={whatsAppHref("default")}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="WhatsApp"
-            className="text-paper inline-flex size-9 items-center justify-center rounded-full bg-[#25D366] active:bg-[#1ca94f]"
-          >
-            <WhatsAppIcon className="size-4" />
-          </a>
+        {/* Mobile cluster — far right. WhatsApp is on the global FAB. */}
+        <div className="flex flex-1 items-center justify-end lg:hidden">
           <Link
             href="/login"
             aria-label="Sign in"
@@ -229,7 +251,7 @@ function MobileMenu({ onDark }: { onDark: boolean }) {
           </Link>
           <div className="bg-divider my-2 h-px" />
           <nav aria-label="Primary mobile" className="flex flex-col">
-            {NAV_LINKS.map((link) => (
+            {MOBILE_DRAWER_LINKS.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
@@ -239,46 +261,9 @@ function MobileMenu({ onDark }: { onDark: boolean }) {
                 {link.label}
               </Link>
             ))}
-            <Link
-              href="/manage-booking"
-              onClick={() => setOpen(false)}
-              className="headline-xs text-ink-95 py-3.5"
-            >
-              Manage booking
-            </Link>
-            <Link
-              href="/contact"
-              onClick={() => setOpen(false)}
-              className="headline-xs text-ink-95 py-3.5"
-            >
-              Contact
-            </Link>
           </nav>
-          <div className="bg-divider my-2 h-px" />
-          <a
-            href="tel:+9611629100"
-            className="bg-ink-10 headline-xs text-ink-95 rounded-pill inline-flex items-center gap-2 px-4 py-3"
-          >
-            <Phone className="size-4" aria-hidden="true" /> Call +961 1 629 100
-          </a>
-          <a
-            href={whatsAppHref("default")}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="headline-xs text-paper rounded-pill inline-flex items-center gap-2 bg-[#25D366] px-4 py-3"
-          >
-            <WhatsAppIcon className="size-4" /> WhatsApp
-          </a>
         </div>
       </SheetContent>
     </Sheet>
-  );
-}
-
-function WhatsAppIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
-      <path d="M19.07 4.93A10.05 10.05 0 0 0 12 2a10 10 0 0 0-8.59 15.07L2 22l5.07-1.33A10 10 0 1 0 19.07 4.93Zm-7.06 15.4a8.31 8.31 0 0 1-4.24-1.16l-.3-.18-3 .8.8-2.93-.2-.31a8.34 8.34 0 1 1 6.95 3.78Zm4.57-6.24c-.25-.13-1.47-.73-1.7-.81s-.4-.13-.56.13-.65.81-.79.97-.29.2-.54.07a6.81 6.81 0 0 1-2-1.24 7.57 7.57 0 0 1-1.4-1.74c-.14-.25 0-.38.11-.51s.25-.29.37-.43a1.66 1.66 0 0 0 .25-.42.46.46 0 0 0 0-.44c-.06-.13-.56-1.35-.76-1.85s-.4-.42-.56-.43h-.48a.92.92 0 0 0-.67.31 2.78 2.78 0 0 0-.87 2.08c0 1.23.9 2.41 1 2.58s1.74 2.65 4.21 3.72a13.42 13.42 0 0 0 1.4.52 3.36 3.36 0 0 0 1.55.1 2.55 2.55 0 0 0 1.67-1.18 2.07 2.07 0 0 0 .14-1.18c-.06-.1-.23-.16-.48-.29Z" />
-    </svg>
   );
 }

@@ -3,15 +3,8 @@ import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { StatStrip } from "@/components/about/StatStrip";
-import { TeamCard } from "@/components/about/TeamCard";
-import {
-  ABOUT_STORY_PARAGRAPHS,
-  ABOUT_PULL_QUOTE,
-  ABOUT_STATS,
-  ABOUT_TEAM,
-  FLEET_PHILOSOPHY,
-} from "@/lib/content/about";
-import { BRANCHES } from "@/lib/api/mocks/fixtures/branches";
+import { TeamGrid } from "@/components/about/TeamGrid";
+import { getPublicAboutContent, getPublicBranches } from "@/lib/server/public-content";
 
 export const metadata = {
   title: "About Wheels Rent A Car · Premium Car Rental in Lebanon",
@@ -19,7 +12,9 @@ export const metadata = {
     "Wheels is a premium car rental brand built in Beirut. Meet the team and learn how we run our fleet across Lebanon.",
 };
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const branches = await getPublicBranches();
+  const about = await getPublicAboutContent();
   return (
     <>
       {/* Editorial inverse hero — display-2xl headline, no decoration. */}
@@ -53,15 +48,15 @@ export default function AboutPage() {
             <div>
               <h2 className="headline-lg text-ink-100">Our story</h2>
               <div className="body-lg text-ink-80 mt-6 flex flex-col gap-5 leading-relaxed">
-                {ABOUT_STORY_PARAGRAPHS.slice(0, 2).map((p, i) => (
+                {about.storyParagraphs.slice(0, 2).map((p, i) => (
                   <p key={i}>{p}</p>
                 ))}
               </div>
               <blockquote className="border-ink-100 my-10 border-l-2 pl-6">
-                <p className="headline-md text-ink-100 italic">“{ABOUT_PULL_QUOTE}”</p>
+                <p className="headline-md text-ink-100 italic">“{about.pullQuote}”</p>
               </blockquote>
               <div className="body-lg text-ink-80 flex flex-col gap-5 leading-relaxed">
-                {ABOUT_STORY_PARAGRAPHS.slice(2).map((p, i) => (
+                {about.storyParagraphs.slice(2).map((p, i) => (
                   <p key={i}>{p}</p>
                 ))}
               </div>
@@ -70,15 +65,15 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <StatStrip stats={ABOUT_STATS} />
+      <StatStrip stats={about.stats} />
 
       <section className="bg-paper">
         <div className="mx-auto max-w-[var(--container-default)] px-5 py-16 sm:px-10 lg:py-24">
           <div className="grid gap-10 lg:grid-cols-[2fr_1fr] lg:items-center">
             <div>
-              <h2 className="headline-lg text-ink-100">{FLEET_PHILOSOPHY.heading}</h2>
+              <h2 className="headline-lg text-ink-100">{about.fleetPhilosophy.heading}</h2>
               <div className="body-lg text-ink-80 mt-5 flex flex-col gap-4 leading-relaxed">
-                {FLEET_PHILOSOPHY.paragraphs.map((p, i) => (
+                {about.fleetPhilosophy.paragraphs.map((p, i) => (
                   <p key={i}>{p}</p>
                 ))}
               </div>
@@ -99,13 +94,11 @@ export default function AboutPage() {
       <section className="bg-ink-10">
         <div className="mx-auto max-w-[var(--container-default)] px-5 py-16 sm:px-10 lg:py-24">
           <h2 className="headline-lg text-ink-100">The team</h2>
-          <ul className="mt-10 grid gap-10 sm:grid-cols-2 sm:gap-12 lg:grid-cols-3">
-            {ABOUT_TEAM.map((m) => (
-              <li key={m.name}>
-                <TeamCard name={m.name} role={m.role} photo={m.photo} quote={m.quote} />
-              </li>
-            ))}
-          </ul>
+          <p className="body-lg text-ink-80 mt-6 max-w-4xl leading-relaxed">{about.teamIntro}</p>
+          <p className="body-md text-ink-80 mt-4 max-w-4xl leading-relaxed italic">
+            {about.teamDedication}
+          </p>
+          <TeamGrid members={about.team} />
         </div>
       </section>
 
@@ -121,7 +114,7 @@ export default function AboutPage() {
             </Link>
           </div>
           <ul className="mt-6 grid gap-3 sm:gap-4">
-            {BRANCHES.map((b) => (
+            {branches.map((b) => (
               <li key={b.id}>
                 <Link href="/locations">
                   <Card variant="default" hoverable className="flex h-full flex-col gap-1">

@@ -10,8 +10,8 @@ import {
 import { Button } from "@/components/ui/Button";
 import { VehicleCard } from "@/components/vehicle/VehicleCard";
 import { SearchBar } from "@/components/search/SearchBar";
-import { BRANCHES } from "@/lib/api/mocks/fixtures/branches";
-import { VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
+import type { Branch } from "@/types/domain";
+import { getPublicBranches, getPublicVehicles } from "@/lib/server/public-content";
 import { whatsAppHref } from "@/lib/whatsapp";
 
 export const metadata = {
@@ -40,7 +40,7 @@ const BRANCH_FAQS = [
 
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 
-function localBusinessJsonLd(branch: (typeof BRANCHES)[number]) {
+function localBusinessJsonLd(branch: Branch) {
   return {
     "@context": "https://schema.org",
     "@type": "CarRental",
@@ -60,9 +60,11 @@ function localBusinessJsonLd(branch: (typeof BRANCHES)[number]) {
   };
 }
 
-export default function LocationsPage() {
-  const branch = BRANCHES[0]!;
-  const localFleet = VEHICLES.slice(0, 6);
+export default async function LocationsPage() {
+  const branches = await getPublicBranches();
+  const vehicles = await getPublicVehicles();
+  const branch = branches[0]!;
+  const localFleet = vehicles.slice(0, 6);
   const directionsHref = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${branch.lat},${branch.lng}`)}`;
 
   return (
@@ -81,7 +83,7 @@ export default function LocationsPage() {
       {/* Search bar sits on a paper canvas below the hero. */}
       <section className="bg-paper">
         <div className="mx-auto max-w-[var(--container-default)] px-5 py-10 sm:px-10 lg:py-14">
-          <SearchBar branches={BRANCHES} variant="expanded" />
+          <SearchBar branches={branches} variant="expanded" />
         </div>
       </section>
 
