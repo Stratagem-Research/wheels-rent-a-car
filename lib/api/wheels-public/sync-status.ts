@@ -20,7 +20,10 @@ export interface WebsiteToWizardSyncInput {
 }
 
 export const REQUEST_STATE_SYNC_TYPE: Record<
-  Extract<WebsiteBookingLifecycleState, "cancel_requested" | "change_requested" | "refund_requested">,
+  Extract<
+    WebsiteBookingLifecycleState,
+    "cancel_requested" | "change_requested" | "refund_requested"
+  >,
   string
 > = {
   cancel_requested: "cancel_request",

@@ -99,8 +99,7 @@ export function BookingLookupForm({
       });
       onSuccess(result);
     } catch (err) {
-      const shouldUseFallback =
-        !(err instanceof ApiError) || err.status <= 0 || err.status >= 500;
+      const shouldUseFallback = !(err instanceof ApiError) || err.status <= 0 || err.status >= 500;
       if (shouldUseFallback) {
         // Temporary resilience path: if lookup endpoint is unavailable,
         // use browser ref-map for same-device recovery.
@@ -114,11 +113,7 @@ export function BookingLookupForm({
       // Generic error regardless of cause — avoids enumeration of valid refs
       // per 13_manage_booking.md security note.
       const isServerError = err instanceof ApiError && err.status >= 500;
-      setError(
-        isServerError
-          ? t("serverError")
-          : t("notFound"),
-      );
+      setError(isServerError ? t("serverError") : t("notFound"));
     } finally {
       setSubmitting(false);
     }
@@ -192,11 +187,7 @@ export function BookingLookupForm({
       <Field
         label={t("referenceLabel")}
         required
-        helper={
-          <HelperText className="text-ink-50">
-            {t("referenceHelper")}
-          </HelperText>
-        }
+        helper={<HelperText className="text-ink-50">{t("referenceHelper")}</HelperText>}
       >
         {({ id, describedBy, invalid }) => (
           <Input

@@ -104,7 +104,7 @@ export default function AdminAboutPage() {
           Edit story paragraphs, pull quote, fleet philosophy, team intro, and full team profiles.
         </p>
         <textarea
-          className="border-border font-mono mt-4 min-h-[620px] w-full rounded-xl border p-3 text-xs"
+          className="border-border mt-4 min-h-[620px] w-full rounded-xl border p-3 font-mono text-xs"
           value={jsonValue}
           onChange={(e) => setJsonValue(e.target.value)}
           spellCheck={false}

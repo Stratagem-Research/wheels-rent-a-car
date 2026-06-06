@@ -1,6 +1,6 @@
 # Wheels API Gap Analysis (Post-Adam Clarifications)
 
-Status: updated after P0 rollout confirmation.
+Status: updated after P0 rollout confirmation; awaiting Wizard clarification responses (tracked in `LaunchGate_External_Signoff.md`).
 
 ## Delivered and verified
 

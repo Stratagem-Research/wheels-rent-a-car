@@ -9,11 +9,7 @@ import { getAdminSession } from "@/lib/admin/auth";
  * Authenticated admin layout — verifies server session via /api/admin/sessions.
  * Unauthenticated visitors redirect to /admin/login.
  */
-export default function AdminAuthenticatedLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminAuthenticatedLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [ready, setReady] = React.useState(false);
 

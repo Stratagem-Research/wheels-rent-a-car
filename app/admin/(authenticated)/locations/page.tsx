@@ -82,7 +82,7 @@ export default function AdminLocationsPage() {
           JSON array for <code>locations</code> table. Keep all required branch fields.
         </p>
         <textarea
-          className="border-border font-mono mt-4 min-h-[520px] w-full rounded-xl border p-3 text-xs"
+          className="border-border mt-4 min-h-[520px] w-full rounded-xl border p-3 font-mono text-xs"
           value={jsonValue}
           onChange={(e) => setJsonValue(e.target.value)}
           spellCheck={false}

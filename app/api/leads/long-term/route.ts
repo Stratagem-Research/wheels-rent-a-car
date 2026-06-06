@@ -14,11 +14,11 @@ const LongTermEnquirySchema = z
     deliveryAddress: z.string().optional(),
     marketing: z.boolean().optional(),
     full_name: z.string().min(1).optional(),
-  email: z.string().email(),
-  phone: z.string().optional(),
-  durationMonths: z.number().int().positive().optional(),
-  vehicleCategory: z.string().optional(),
-  notes: z.string().optional(),
+    email: z.string().email(),
+    phone: z.string().optional(),
+    durationMonths: z.number().int().positive().optional(),
+    vehicleCategory: z.string().optional(),
+    notes: z.string().optional(),
   })
   .transform((value) => {
     const durationFromLegacy = value.duration ? Number.parseInt(value.duration, 10) : null;

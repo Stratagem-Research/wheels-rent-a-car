@@ -56,7 +56,10 @@ const VALUE_PROPS = [
 ];
 
 const HOW_IT_WORKS = [
-  { title: "Tell us your needs", body: "Fleet size, vehicle classes, contract length. 60 seconds." },
+  {
+    title: "Tell us your needs",
+    body: "Fleet size, vehicle classes, contract length. 60 seconds.",
+  },
   { title: "We send a custom quote", body: "Within one business day. Includes terms and an SLA." },
   { title: "Onboard & drive", body: "Account set up in 48h. Book through portal or WhatsApp." },
 ];

@@ -67,9 +67,7 @@ export default function TripsPage() {
                     className={[
                       "rounded-pill label-md h-9 px-4 transition-colors duration-150",
                       "focus-visible:outline-ink-100 focus-visible:outline-2 focus-visible:outline-offset-2",
-                      active
-                        ? "bg-ink-100 text-paper"
-                        : "bg-ink-10 text-ink-80 hover:bg-ink-20",
+                      active ? "bg-ink-100 text-paper" : "bg-ink-10 text-ink-80 hover:bg-ink-20",
                     ].join(" ")}
                     aria-pressed={active}
                   >

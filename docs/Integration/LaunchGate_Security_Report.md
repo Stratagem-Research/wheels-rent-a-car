@@ -2,7 +2,7 @@
 
 Status: Partially complete (staging-dependent checks pending)
 Owner: Website Team
-Last updated: 2026-05-26
+Last updated: 2026-06-06
 
 ## Executed checks
 
@@ -20,7 +20,7 @@ Last updated: 2026-05-26
      - `WHISH_SECRET`
 
 3. **Session hardening baseline**
-   - Middleware updated to require both local session cookie and Supabase auth cookie for `/account/*`.
+   - Proxy updated to gate `/account/*` and `/admin/*` server-side.
    - Auth routes implemented server-side (`app/api/auth/*`) with Supabase session-backed checks.
 
 4. **RLS baseline**
@@ -30,6 +30,15 @@ Last updated: 2026-05-26
      - own profile read/update
      - authenticated insert for long-term enquiries
      - public read for `vehicle_metadata`
+
+5. **RLS negative test harness added**
+   - SQL test script: `scripts/rls-negative-tests.sql`
+   - Runner: `scripts/run-rls-negative-tests.sh`
+   - Includes negative checks for `anon` and `authenticated` access to service-managed tables, plus authenticated insert path for `long_term_enquiries`.
+
+6. **Staging DB connectivity attempt**
+   - Command: `set -a; . ./.env; set +a; psql \"$DATABASE_URL\" -Atc \"select count(*) from auth.users;\"`
+   - Result: blocked in this environment due DNS resolution failure for the Supabase host.
 
 ## Pending checks (must pass in staging)
 
@@ -43,5 +52,6 @@ Last updated: 2026-05-26
 
 - Env validation: `lib/server/env.ts`
 - Supabase admin client: `lib/supabase/admin.ts`
-- Middleware gate: `middleware.ts`
+- Proxy gate: `proxy.ts`
 - Migration + RLS: `supabase/migrations/20260526_000001_website_owned_core.sql`
+- RLS negative tests: `scripts/rls-negative-tests.sql`, `scripts/run-rls-negative-tests.sh`

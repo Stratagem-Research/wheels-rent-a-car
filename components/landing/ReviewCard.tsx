@@ -40,12 +40,7 @@ export function ReviewCard({
 }: ReviewCardProps) {
   return (
     <article
-      className={cn(
-        "bg-ink-10 rounded-xl",
-        "flex h-full flex-col gap-5",
-        "p-8 sm:p-10",
-        className,
-      )}
+      className={cn("bg-ink-10 rounded-xl", "flex h-full flex-col gap-5", "p-8 sm:p-10", className)}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-0.5" aria-label={`Rating: ${rating} of 5`}>

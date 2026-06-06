@@ -226,7 +226,10 @@ export async function replaceFaqsInDb(items: FaqGroup[]): Promise<void> {
     })),
   );
 
-  const { error: clearEntriesError } = await supabase.from("cms_faq_entries").delete().neq("id", "");
+  const { error: clearEntriesError } = await supabase
+    .from("cms_faq_entries")
+    .delete()
+    .neq("id", "");
   if (clearEntriesError) throw new Error(clearEntriesError.message);
   const { error: clearGroupsError } = await supabase.from("cms_faq_groups").delete().neq("id", "");
   if (clearGroupsError) throw new Error(clearGroupsError.message);
@@ -236,7 +239,9 @@ export async function replaceFaqsInDb(items: FaqGroup[]): Promise<void> {
     if (error) throw new Error(error.message);
   }
   if (entryRows.length > 0) {
-    const { error } = await supabase.from("cms_faq_entries").upsert(entryRows, { onConflict: "id" });
+    const { error } = await supabase
+      .from("cms_faq_entries")
+      .upsert(entryRows, { onConflict: "id" });
     if (error) throw new Error(error.message);
   }
 }
@@ -253,10 +258,7 @@ export async function listCorporateTiersFromDb(): Promise<CorporateTier[]> {
 
 export async function replaceCorporateTiersInDb(items: CorporateTier[]): Promise<void> {
   const supabase = getSupabaseAdminClient();
-  const { error: clearError } = await supabase
-    .from("cms_corporate_tiers")
-    .delete()
-    .neq("id", "");
+  const { error: clearError } = await supabase.from("cms_corporate_tiers").delete().neq("id", "");
   if (clearError) throw new Error(clearError.message);
   if (items.length === 0) return;
   const { error } = await supabase

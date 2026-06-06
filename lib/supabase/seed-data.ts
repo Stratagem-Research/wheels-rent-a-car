@@ -45,7 +45,8 @@ export const FAQS: FaqGroup[] = [
         id: "f-b-4",
         group: "g-booking",
         question: "How far in advance can I book?",
-        answer: "Up to 11 months ahead. For same-day pickups, call us â€” we'll confirm by WhatsApp.",
+        answer:
+          "Up to 11 months ahead. For same-day pickups, call us â€” we'll confirm by WhatsApp.",
       },
     ],
   },
@@ -397,8 +398,16 @@ export const ITINERARIES: Itinerary[] = [
       "Gibran museum (optional)",
     ],
     schedule: [
-      { time: "08:30", title: "Pickup from your hotel", body: "Hazmieh, Beirut, or anywhere in Greater Beirut." },
-      { time: "10:30", title: "Bcharre coffee stop", body: "Stretch the legs, take in the valley view." },
+      {
+        time: "08:30",
+        title: "Pickup from your hotel",
+        body: "Hazmieh, Beirut, or anywhere in Greater Beirut.",
+      },
+      {
+        time: "10:30",
+        title: "Bcharre coffee stop",
+        body: "Stretch the legs, take in the valley view.",
+      },
       { time: "12:30", title: "Cedars of God", body: "Guided walk through the grove (1h)." },
       { time: "13:30", title: "Lunch at Hadath El Jebbeh", body: "Traditional mountain mezza." },
       { time: "16:00", title: "Qadisha viewpoint", body: "Photo stop on the rim road." },
@@ -428,7 +437,11 @@ export const ITINERARIES: Itinerary[] = [
     ],
     schedule: [
       { time: "08:30", title: "Pickup from your hotel" },
-      { time: "10:30", title: "Baalbek arrival", body: "Guided tour of Jupiter and Bacchus temples." },
+      {
+        time: "10:30",
+        title: "Baalbek arrival",
+        body: "Guided tour of Jupiter and Bacchus temples.",
+      },
       { time: "13:00", title: "Lunch at Tawlet Ammiq" },
       { time: "15:00", title: "Anjar Umayyad palace city" },
       { time: "16:30", title: "ChÃ¢teau Ksara cellar tour" },

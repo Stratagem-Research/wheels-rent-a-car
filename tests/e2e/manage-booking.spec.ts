@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("manage booking + locations @smoke", () => {
+test.describe("manage booking + locations", () => {
   test("manage-booking shows the lookup form for guests", async ({ page }) => {
     await page.goto("/manage-booking");
     await expect(page.getByRole("heading", { name: /Find my booking/i })).toBeVisible();

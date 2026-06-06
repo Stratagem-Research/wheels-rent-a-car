@@ -2,7 +2,7 @@
 
 Status: In progress (staging operations drills pending)
 Owner: Website Team
-Last updated: 2026-05-26
+Last updated: 2026-06-06
 
 ## Implemented ops surfaces
 
@@ -20,8 +20,23 @@ Last updated: 2026-05-26
   - `pnpm typecheck` passed
   - `pnpm lint` passed
   - `pnpm test` passed
+  - `pnpm test:e2e:smoke --project=chromium` passed (payment-deferred scope)
 - Production build health:
   - `pnpm build` passed
+- API health checks (local runtime):
+  - `/api/health` -> `200`
+  - `/api/site-config` -> `200`
+  - `/api/cms/trips` -> `401` (expected without admin session)
+- Environment readiness checks:
+  - Added `pnpm env:check` and `pnpm env:check:payment-deferred`
+  - Current local `.env` fails payment-deferred check due missing:
+    - `NEXT_PUBLIC_SITE_URL`
+    - `WHEELS_INTERNAL_API_BASE_URL`
+    - `WHEELS_INTERNAL_API_TOKEN`
+    - `ADMIN_PASSWORD`
+    - `ADMIN_SESSION_SECRET`
+- DB connectivity attempt:
+  - `./scripts/run-rls-negative-tests.sh` currently fails in this environment due DNS resolution failure for Supabase host.
 
 ## Pending operations gate checks
 

@@ -15,12 +15,8 @@ function getSupabaseServiceRoleKey(): string {
 export function getSupabaseAdminClient(): SupabaseClient {
   if (adminClient) return adminClient;
   const publicEnv = getPublicEnv();
-  adminClient = createClient(
-    publicEnv.NEXT_PUBLIC_SUPABASE_URL,
-    getSupabaseServiceRoleKey(),
-    {
-      auth: { autoRefreshToken: false, persistSession: false },
-    },
-  );
+  adminClient = createClient(publicEnv.NEXT_PUBLIC_SUPABASE_URL, getSupabaseServiceRoleKey(), {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
   return adminClient;
 }

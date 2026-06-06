@@ -245,7 +245,10 @@ export async function listVehicleMetadata(): Promise<VehicleMetadataRow[]> {
 
 export async function replaceVehicleMetadata(items: VehicleMetadataRow[]): Promise<void> {
   const supabase = getSupabaseAdminClient();
-  const { error: clearError } = await supabase.from("vehicle_metadata").delete().neq("frontend_vehicle_id", "");
+  const { error: clearError } = await supabase
+    .from("vehicle_metadata")
+    .delete()
+    .neq("frontend_vehicle_id", "");
   if (clearError) throw new Error(clearError.message);
   if (items.length === 0) return;
   const { error } = await supabase
@@ -256,14 +259,20 @@ export async function replaceVehicleMetadata(items: VehicleMetadataRow[]): Promi
 
 export async function listVehicleWizardMap(): Promise<VehicleWizardMapRow[]> {
   const supabase = getSupabaseAdminClient();
-  const { data, error } = await supabase.from("vehicle_wizard_map").select("*").order("frontend_vehicle_id");
+  const { data, error } = await supabase
+    .from("vehicle_wizard_map")
+    .select("*")
+    .order("frontend_vehicle_id");
   if (error) throw new Error(error.message);
   return (data ?? []) as VehicleWizardMapRow[];
 }
 
 export async function replaceVehicleWizardMap(items: VehicleWizardMapRow[]): Promise<void> {
   const supabase = getSupabaseAdminClient();
-  const { error: clearError } = await supabase.from("vehicle_wizard_map").delete().neq("frontend_vehicle_id", "");
+  const { error: clearError } = await supabase
+    .from("vehicle_wizard_map")
+    .delete()
+    .neq("frontend_vehicle_id", "");
   if (clearError) throw new Error(clearError.message);
   if (items.length === 0) return;
   const { error } = await supabase.from("vehicle_wizard_map").insert(items);
@@ -348,12 +357,15 @@ export async function replacePromotions(items: PromotionRow[]): Promise<void> {
 
 export async function listAboutContent(): Promise<AboutContentData | null> {
   const supabase = getSupabaseAdminClient();
-  const [{ data: sectionRows, error: sectionError }, { data: statRows, error: statError }, { data: teamRows, error: teamError }] =
-    await Promise.all([
-      supabase.from("cms_about_sections").select("*").eq("id", "about-main").limit(1),
-      supabase.from("cms_about_stats").select("*").order("sort_order"),
-      supabase.from("cms_about_team").select("*").order("sort_order"),
-    ]);
+  const [
+    { data: sectionRows, error: sectionError },
+    { data: statRows, error: statError },
+    { data: teamRows, error: teamError },
+  ] = await Promise.all([
+    supabase.from("cms_about_sections").select("*").eq("id", "about-main").limit(1),
+    supabase.from("cms_about_stats").select("*").order("sort_order"),
+    supabase.from("cms_about_team").select("*").order("sort_order"),
+  ]);
   if (sectionError) throw new Error(sectionError.message);
   if (statError) throw new Error(statError.message);
   if (teamError) throw new Error(teamError.message);
@@ -422,14 +434,19 @@ export async function replaceAboutContent(content: AboutContentData): Promise<vo
     sort_order: index,
   }));
 
-  const { error: sectionDeleteError } = await supabase.from("cms_about_sections").delete().neq("id", "");
+  const { error: sectionDeleteError } = await supabase
+    .from("cms_about_sections")
+    .delete()
+    .neq("id", "");
   if (sectionDeleteError) throw new Error(sectionDeleteError.message);
   const { error: statDeleteError } = await supabase.from("cms_about_stats").delete().neq("id", "");
   if (statDeleteError) throw new Error(statDeleteError.message);
   const { error: teamDeleteError } = await supabase.from("cms_about_team").delete().neq("id", "");
   if (teamDeleteError) throw new Error(teamDeleteError.message);
 
-  const { error: sectionInsertError } = await supabase.from("cms_about_sections").insert(sectionRow);
+  const { error: sectionInsertError } = await supabase
+    .from("cms_about_sections")
+    .insert(sectionRow);
   if (sectionInsertError) throw new Error(sectionInsertError.message);
   if (statRows.length > 0) {
     const { error: statsInsertError } = await supabase.from("cms_about_stats").insert(statRows);
@@ -516,7 +533,10 @@ export async function writeAdminAuditLog(input: {
   if (error) throw new Error(error.message);
 }
 
-export function toVehicleWithMetadata(vehicle: Vehicle, metadataRows: VehicleMetadataRow[]): Vehicle {
+export function toVehicleWithMetadata(
+  vehicle: Vehicle,
+  metadataRows: VehicleMetadataRow[],
+): Vehicle {
   const row = metadataRows.find((item) => item.frontend_vehicle_id === vehicle.id);
   if (!row) return vehicle;
   const media =

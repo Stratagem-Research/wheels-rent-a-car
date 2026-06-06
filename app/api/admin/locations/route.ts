@@ -1,7 +1,11 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import type { BranchHours } from "@/types/domain";
-import { listLocations, replaceLocations, writeAdminAuditLog } from "@/lib/supabase/admin-repository";
+import {
+  listLocations,
+  replaceLocations,
+  writeAdminAuditLog,
+} from "@/lib/supabase/admin-repository";
 import { requireAdminCsrf, requireAdminSession } from "@/lib/server/admin-api";
 
 const BranchHoursSchema: z.ZodType<BranchHours> = z.object({

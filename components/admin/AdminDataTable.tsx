@@ -53,13 +53,13 @@ export function AdminDataTable<T>({
               <th
                 key={c.header}
                 style={c.width ? { width: c.width } : undefined}
-                className="label-md text-ink-60 px-4 py-3 text-left font-medium uppercase tracking-wider"
+                className="label-md text-ink-60 px-4 py-3 text-left font-medium tracking-wider uppercase"
               >
                 {c.header}
               </th>
             ))}
             {rowActions ? (
-              <th className="label-md text-ink-60 w-px px-4 py-3 text-right font-medium uppercase tracking-wider">
+              <th className="label-md text-ink-60 w-px px-4 py-3 text-right font-medium tracking-wider uppercase">
                 Actions
               </th>
             ) : null}

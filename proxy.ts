@@ -1,23 +1,14 @@
 import { NextResponse, type NextRequest } from "next/server";
-import createIntlMiddleware from "next-intl/middleware";
-import { routing, isAppLocale } from "@/i18n/routing";
+import { isAppLocale } from "@/i18n/routing";
 
 /**
- * Middleware: two concerns rolled into one matcher.
+ * Proxy: auth + maintenance + locale normalization.
  *
- * 1. Maintenance mode (15_legal_and_utility.md): when
- *    NEXT_PUBLIC_MAINTENANCE_MODE === "true", every request except admins
- *    (cookie `wheels.admin=1`) and a small allow-list is rewritten to
- *    /maintenance with HTTP 503 + Retry-After.
- *
- * 2. Auth gating (12_account.md): /account/* requires a session cookie;
- *    redirect to /login with redirect= param when missing.
+ * Next.js 16 deprecates `middleware.ts` in favor of `proxy.ts`.
  */
 
 const SESSION_COOKIE = "wheels.session";
 const ADMIN_COOKIE = "wheels.admin";
-const LOCALE_COOKIE = "wheels.locale";
-const intlMiddleware = createIntlMiddleware(routing);
 
 const MAINTENANCE_ALLOWLIST = [
   "/maintenance",
@@ -28,10 +19,16 @@ const MAINTENANCE_ALLOWLIST = [
   "/mockServiceWorker.js",
 ];
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname, search } = req.nextUrl;
-  const { locale, strippedPath } = stripLocale(pathname);
-  const localizedPath = withLocale(locale, strippedPath);
+  const { strippedPath, hadLocalePrefix } = stripLocalePrefix(pathname);
+
+  // Normalize legacy locale-prefixed URLs (/en/*, /ar/*, /fr/*) to unprefixed URLs.
+  if (hadLocalePrefix) {
+    const redirectUrl = req.nextUrl.clone();
+    redirectUrl.pathname = strippedPath;
+    return NextResponse.redirect(redirectUrl);
+  }
 
   // Maintenance mode — env-var flip routes everyone except admins to /maintenance.
   if (
@@ -40,7 +37,7 @@ export function middleware(req: NextRequest) {
     !MAINTENANCE_ALLOWLIST.some((p) => strippedPath.startsWith(p))
   ) {
     const rewriteUrl = req.nextUrl.clone();
-    rewriteUrl.pathname = withLocale(locale, "/maintenance");
+    rewriteUrl.pathname = "/maintenance";
     rewriteUrl.search = "";
     const response = NextResponse.rewrite(rewriteUrl);
     response.headers.set("Retry-After", "1800");
@@ -58,8 +55,8 @@ export function middleware(req: NextRequest) {
       .getAll()
       .some((cookie) => cookie.name.startsWith("sb-") && cookie.name.endsWith("-auth-token"));
     if (!session?.value || !hasSupabaseAuthCookie) {
-      const loginUrl = new URL(withLocale(locale, "/login"), req.url);
-      loginUrl.searchParams.set("redirect", localizedPath + search);
+      const loginUrl = new URL("/login", req.url);
+      loginUrl.searchParams.set("redirect", strippedPath + search);
       return NextResponse.redirect(loginUrl);
     }
   }
@@ -69,22 +66,17 @@ export function middleware(req: NextRequest) {
     const isLoginPath = strippedPath === "/admin/login";
     const hasAdminSession = Boolean(req.cookies.get("wheels.admin.session")?.value);
     if (!isLoginPath && !hasAdminSession) {
-      const loginUrl = new URL(withLocale(locale, "/admin/login"), req.url);
-      return NextResponse.redirect(loginUrl);
+      return NextResponse.redirect(new URL("/admin/login", req.url));
     }
     if (isLoginPath && hasAdminSession) {
-      const adminUrl = new URL(withLocale(locale, "/admin"), req.url);
-      return NextResponse.redirect(adminUrl);
+      return NextResponse.redirect(new URL("/admin", req.url));
     }
-    const res = intlMiddleware(req);
-    res.cookies.set(LOCALE_COOKIE, locale, { path: "/" });
+    const res = NextResponse.next();
     res.headers.set("X-Robots-Tag", "noindex, nofollow");
     return res;
   }
 
-  const response = intlMiddleware(req);
-  response.cookies.set(LOCALE_COOKIE, locale, { path: "/" });
-  return response;
+  return NextResponse.next();
 }
 
 export const config = {
@@ -92,19 +84,18 @@ export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico|mockServiceWorker.js).*)"],
 };
 
-function stripLocale(pathname: string): { locale: string; strippedPath: string } {
+function stripLocalePrefix(pathname: string): {
+  strippedPath: string;
+  hadLocalePrefix: boolean;
+} {
   const segments = pathname.split("/");
   const maybeLocale = segments[1] ?? "";
   if (isAppLocale(maybeLocale)) {
     const stripped = pathname.slice(`/${maybeLocale}`.length) || "/";
-    return { locale: maybeLocale, strippedPath: stripped.startsWith("/") ? stripped : `/${stripped}` };
+    return {
+      strippedPath: stripped.startsWith("/") ? stripped : `/${stripped}`,
+      hadLocalePrefix: true,
+    };
   }
-
-  return { locale: routing.defaultLocale, strippedPath: pathname };
-}
-
-function withLocale(locale: string, path: string): string {
-  const normalized = path.startsWith("/") ? path : `/${path}`;
-  if (normalized === "/") return `/${locale}`;
-  return `/${locale}${normalized}`;
+  return { strippedPath: pathname, hadLocalePrefix: false };
 }

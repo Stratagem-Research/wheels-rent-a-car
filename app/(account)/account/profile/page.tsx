@@ -86,9 +86,7 @@ export default function ProfilePage() {
       <header className="flex flex-col gap-2">
         <p className="text-ink-60 overline">{t("profileLabel")}</p>
         <h1 className="headline-xl text-ink-100">{t("title")}</h1>
-        <p className="lead-md text-ink-60">
-          {t("subtitle")}
-        </p>
+        <p className="lead-md text-ink-60">{t("subtitle")}</p>
       </header>
 
       <form onSubmit={onSave} className="flex flex-col gap-5">
@@ -141,12 +139,7 @@ export default function ProfilePage() {
                 />
               )}
             </Field>
-            <Field
-              label={t("dateOfBirth")}
-              helper={
-                dobLocked ? t("dobLockedHelper") : undefined
-              }
-            >
+            <Field label={t("dateOfBirth")} helper={dobLocked ? t("dobLockedHelper") : undefined}>
               {({ id }) => (
                 <Input id={id} type="date" defaultValue={session.user.dob} disabled={dobLocked} />
               )}
@@ -197,9 +190,7 @@ export default function ProfilePage() {
 
       <Card variant="default" className="flex flex-col gap-3">
         <h2 className="headline-md text-signal-red">{t("dangerZone")}</h2>
-        <p className="body-sm text-ink-60">
-          {t("dangerDescription")}
-        </p>
+        <p className="body-sm text-ink-60">{t("dangerDescription")}</p>
         <DeleteAccountModal onConfirm={signOut}>
           <Button
             variant="tertiary"

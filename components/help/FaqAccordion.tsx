@@ -7,11 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/Accordion";
-import {
-  hashFromSet,
-  replaceLocationHash,
-  scrollToHashTarget,
-} from "@/lib/navigation/hashAnchor";
+import { hashFromSet, replaceLocationHash, scrollToHashTarget } from "@/lib/navigation/hashAnchor";
 import type { FaqEntry } from "@/types/domain";
 
 /**

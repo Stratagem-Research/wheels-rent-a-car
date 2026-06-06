@@ -257,7 +257,7 @@ For the booking flow specifically:
 - Don't reintroduce the vehicle detail page (`/vehicles/[slug]`) — it's removed in Phase 7. Clicks expand the card inline.
 - Don't reintroduce multi-branch UI — the brand has one location (Hazmieh).
 - **Don't ship the admin dashboard (`/admin/*`) to production as-is.** The credential check, session, and persistence layer are all staging-only — see `docs/Implementation/18_admin.md` § "Swap-in path" for what must be replaced first (real auth endpoint, HttpOnly cookie, CSRF, audit logging, real backend store).
-- Don't change the hardcoded admin credentials (`admin` / `admin123`) without coordinating with the client — they may be in screenshots / demo decks.
+- Don't weaken admin authentication defaults — `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` must be provided by environment and rotated via secure secret management.
 - **Don't build backend services in this codebase.** Database, business logic, webhooks, transactional dispatchers (email, WhatsApp), and the ops admin are out of scope.
 - Don't hardcode mock data into components — mocks live in `/lib/api/mocks/`, behind the same client interface as the real API. Admin-managed content (trips, itineraries, FAQs, corporate tiers) goes through `lib/admin/store.ts`.
 

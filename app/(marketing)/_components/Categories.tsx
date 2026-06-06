@@ -97,7 +97,7 @@ export function Categories() {
        * title's left edge via ALIGNED_GUTTER; last card's right padding
        * mirrors that so the scroll-end has breathing room from the
        * viewport edge. Section bottom padding lives here too. */}
-      <div className="overflow-x-auto pb-16 lg:pb-32 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="[scrollbar-width:none] overflow-x-auto pb-16 lg:pb-32 [&::-webkit-scrollbar]:hidden">
         <ul
           className="flex w-max snap-x snap-mandatory gap-5 sm:gap-6"
           style={{ paddingLeft: ALIGNED_GUTTER, paddingRight: ALIGNED_GUTTER }}

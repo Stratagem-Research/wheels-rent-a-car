@@ -43,9 +43,7 @@ export type SeedResult = {
   count: number;
 };
 
-export async function seedWebsiteData(
-  resources: SeedResource[] = ["all"],
-): Promise<SeedResult[]> {
+export async function seedWebsiteData(resources: SeedResource[] = ["all"]): Promise<SeedResult[]> {
   const targets = resources.includes("all")
     ? ([
         "trips",

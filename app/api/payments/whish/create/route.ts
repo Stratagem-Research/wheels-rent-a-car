@@ -45,7 +45,10 @@ export async function POST(request: Request) {
 
   if (!result.success) {
     return NextResponse.json(
-      { message: result.dialog?.message ?? "Whish payment initialization failed.", code: result.code },
+      {
+        message: result.dialog?.message ?? "Whish payment initialization failed.",
+        code: result.code,
+      },
       { status: 400 },
     );
   }

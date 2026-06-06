@@ -49,11 +49,7 @@ export function ConfirmationStatusBlock({ state, bookingRef }: ConfirmationStatu
         <span className="label-md text-ink-50 tracking-wider uppercase">{t("reference")}</span>
         <CopyableRef value={bookingRef} />
       </div>
-      {isPending ? (
-        <p className="body-md text-ink-60 max-w-md">
-          {t("pendingBody")}
-        </p>
-      ) : null}
+      {isPending ? <p className="body-md text-ink-60 max-w-md">{t("pendingBody")}</p> : null}
     </section>
   );
 }

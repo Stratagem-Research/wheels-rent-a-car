@@ -124,7 +124,7 @@ export function Header({ variant = "default" }: HeaderProps) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-30 w-full transition-transform transition-colors duration-200",
+        "sticky top-0 z-30 w-full transition-colors transition-transform duration-200",
         mobileHidden ? "-translate-y-full lg:translate-y-0" : "translate-y-0",
         transparent
           ? "bg-transparent"
@@ -315,7 +315,7 @@ function LocaleSwitcher({
   ] as const;
 
   return (
-    <div className="inline-flex items-center gap-1 rounded-pill border border-white/20 px-1 py-1">
+    <div className="rounded-pill inline-flex items-center gap-1 border border-white/20 px-1 py-1">
       {locales.map((l) => (
         <button
           key={l.id}
@@ -326,7 +326,7 @@ function LocaleSwitcher({
             locale === l.id
               ? "bg-paper text-ink-100"
               : onDark
-                ? "text-paper/80 hover:bg-white/20 hover:text-paper"
+                ? "text-paper/80 hover:text-paper hover:bg-white/20"
                 : "text-ink-60 hover:bg-ink-10 hover:text-ink-100",
           )}
           aria-pressed={locale === l.id}

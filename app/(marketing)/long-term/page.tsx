@@ -112,9 +112,7 @@ export default function LongTermPage() {
             <h2 className="display-md text-ink-100 text-[clamp(32px,4.5vw,56px)] leading-[1]">
               Pick your tier.
             </h2>
-            <p className="lead-md text-ink-60 mt-1">
-              Longer commitments unlock lower daily rates.
-            </p>
+            <p className="lead-md text-ink-60 mt-1">Longer commitments unlock lower daily rates.</p>
           </div>
           <ul className="mt-10 grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
             {LONG_TERM_TIERS.map((tier) => (

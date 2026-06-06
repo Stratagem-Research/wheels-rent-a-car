@@ -45,7 +45,10 @@ export default function AdminTripsPage() {
           {
             header: "Title",
             cell: (t) => (
-              <Link href={`/admin/trips/${t.slug}`} className="text-ink-100 underline-offset-4 hover:underline">
+              <Link
+                href={`/admin/trips/${t.slug}`}
+                className="text-ink-100 underline-offset-4 hover:underline"
+              >
                 {t.title}
               </Link>
             ),
@@ -64,9 +67,7 @@ export default function AdminTripsPage() {
           },
           {
             header: "Updated",
-            cell: (t) => (
-              <span className="text-ink-60">{t.updatedAt.slice(0, 10)}</span>
-            ),
+            cell: (t) => <span className="text-ink-60">{t.updatedAt.slice(0, 10)}</span>,
             width: "12%",
           },
         ]}

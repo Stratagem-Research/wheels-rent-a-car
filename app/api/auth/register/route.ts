@@ -37,7 +37,10 @@ export async function POST(request: Request) {
   });
 
   if (error || !data.user) {
-    return NextResponse.json({ message: error?.message ?? "Registration failed." }, { status: 400 });
+    return NextResponse.json(
+      { message: error?.message ?? "Registration failed." },
+      { status: 400 },
+    );
   }
 
   const response = NextResponse.json({ user: toDomainUser(data.user) });

@@ -10,13 +10,16 @@ Validate full website + Wizard integration in staging before production cutover.
 - DB migrations applied.
 - Web and worker processes healthy.
 - Internal sync token provisioned for staging.
+- Payment scope decision recorded (`full` or `payment-deferred`).
 
 ## Validation steps
 
 1. Run quality checks:
+   - `pnpm env:check` (or `pnpm env:check:payment-deferred`)
    - `pnpm typecheck`
    - `pnpm lint`
    - `pnpm test`
+   - `pnpm test:e2e:smoke --project=chromium`
 2. Run contract smoke:
    - `./scripts/wheels-api-smoke.sh --base-url <staging-public-api-url>`
 3. Run live integration suite:
@@ -28,7 +31,7 @@ Validate full website + Wizard integration in staging before production cutover.
    - create payment -> callback success/failure -> authoritative status verification.
 7. Trigger server-side sync-status dispatch and verify Wizard receives mapped payload.
 8. Execute launch gates:
-   - security (RLS negative tests + secret exposure checks)
+   - security (`pnpm security:rls:negative` + secret exposure checks)
    - payment (replay/idempotency + amount mismatch rejection)
    - ops (alerts + backup/restore + rollback drill)
 

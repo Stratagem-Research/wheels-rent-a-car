@@ -57,16 +57,24 @@ export function ItineraryForm({ slug }: ItineraryFormProps) {
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
   React.useEffect(() => {
-    setForm(initial);
-    setPriceUsd(initial.priceFromCents > 0 ? String(initial.priceFromCents / 100) : "0");
+    // Keep local draft synchronized when the backing itinerary loads/changes.
+    // Queue state updates outside the effect body to satisfy the React hooks rule.
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setForm(initial);
+      setPriceUsd(initial.priceFromCents > 0 ? String(initial.priceFromCents / 100) : "0");
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [initial]);
 
   const update = <K extends keyof Itinerary>(key: K, value: Itinerary[K]) =>
     setForm((f) => ({ ...f, [key]: value }));
 
   // ── Highlights repeater ──────────────────────────────────────────
-  const addHighlight = () =>
-    setForm((f) => ({ ...f, highlights: [...f.highlights, ""] }));
+  const addHighlight = () => setForm((f) => ({ ...f, highlights: [...f.highlights, ""] }));
   const updateHighlight = (i: number, value: string) =>
     setForm((f) => ({
       ...f,
@@ -282,7 +290,12 @@ export function ItineraryForm({ slug }: ItineraryFormProps) {
           </Field>
         </div>
 
-        <Field label="Excerpt" required error={errors.excerpt} helper="One-line teaser on listings.">
+        <Field
+          label="Excerpt"
+          required
+          error={errors.excerpt}
+          helper="One-line teaser on listings."
+        >
           {({ id, describedBy, invalid }) => (
             <Textarea
               id={id}
@@ -302,9 +315,7 @@ export function ItineraryForm({ slug }: ItineraryFormProps) {
               aria-describedby={describedBy}
               invalid={invalid}
               value={form.coverImage.src}
-              onChange={(e) =>
-                update("coverImage", { ...form.coverImage, src: e.target.value })
-              }
+              onChange={(e) => update("coverImage", { ...form.coverImage, src: e.target.value })}
             />
           )}
         </Field>
@@ -313,9 +324,7 @@ export function ItineraryForm({ slug }: ItineraryFormProps) {
             <Input
               id={id}
               value={form.coverImage.alt}
-              onChange={(e) =>
-                update("coverImage", { ...form.coverImage, alt: e.target.value })
-              }
+              onChange={(e) => update("coverImage", { ...form.coverImage, alt: e.target.value })}
             />
           )}
         </Field>

@@ -1,8 +1,8 @@
 # Launch Gate — Payment Report
 
-Status: Partially complete (callback end-to-end in staging pending)
+Status: Deferred for current launch scope (tracked separately)
 Owner: Website Team
-Last updated: 2026-05-26
+Last updated: 2026-06-06
 
 ## Implemented controls
 
@@ -49,6 +49,13 @@ Last updated: 2026-05-26
   - create payment -> redirect -> callback -> status verify -> sync dispatch.
 - Manual method validation:
   - `cash`, `transfer`, `omt` pending/verification paths against DB records.
+
+## Deferred execution note
+
+Payment gate items above are intentionally deferred from the current non-payment launch.  
+Execution plan + exit criteria now live in:
+
+- `docs/Integration/Payment_Deferred_Track.md`
 
 ## Evidence references
 

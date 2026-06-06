@@ -170,9 +170,7 @@ export default function AdminCorporatePage() {
                   <Input
                     id={id}
                     value={tier.ctaLabel ?? ""}
-                    onChange={(e) =>
-                      updateTier(tier.id, { ctaLabel: e.target.value || undefined })
-                    }
+                    onChange={(e) => updateTier(tier.id, { ctaLabel: e.target.value || undefined })}
                   />
                 )}
               </Field>
@@ -221,11 +219,7 @@ export default function AdminCorporatePage() {
             </div>
 
             <div className="border-border flex justify-end border-t pt-4">
-              <Button
-                type="button"
-                variant="tertiary"
-                onClick={() => removeTier(tier.id)}
-              >
+              <Button type="button" variant="tertiary" onClick={() => removeTier(tier.id)}>
                 <Trash2 className="size-4" aria-hidden="true" />
                 Remove this tier
               </Button>

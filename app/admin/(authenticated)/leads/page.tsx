@@ -5,11 +5,7 @@ import { RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
-import {
-  fetchAdminLeads,
-  type AdminLeadsResponse,
-  updateAdminLeadStatus,
-} from "@/lib/admin/store";
+import { fetchAdminLeads, type AdminLeadsResponse, updateAdminLeadStatus } from "@/lib/admin/store";
 
 type LeadKind = "long-term" | "corporate" | "chauffeur";
 type LeadStatus = "new" | "in-progress" | "won" | "lost";
@@ -53,7 +49,7 @@ function StatusControls({
         onChange={(e) => setNextOwner(e.target.value)}
       />
       <textarea
-        className="border-border rounded-xl bg-paper w-full border px-3 py-2 text-sm"
+        className="border-border bg-paper w-full rounded-xl border px-3 py-2 text-sm"
         rows={2}
         placeholder="Admin notes"
         value={notes}
@@ -157,7 +153,11 @@ export default function AdminLeadsPage() {
               columns={[
                 { header: "Name", cell: (row) => row.full_name },
                 { header: "Email", cell: (row) => row.email, width: "24%" },
-                { header: "Duration", cell: (row) => `${row.duration_months} months`, width: "12%" },
+                {
+                  header: "Duration",
+                  cell: (row) => `${row.duration_months} months`,
+                  width: "12%",
+                },
                 { header: "Status", cell: (row) => row.status, width: "10%" },
               ]}
               rowActions={(row) => (

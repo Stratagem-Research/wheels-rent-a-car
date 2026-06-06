@@ -62,7 +62,7 @@ export function Reviews({ reviews }: { reviews: Review[] }) {
           style={{ animationDuration: duration }}
           className={cn(
             "flex w-max gap-6 pb-2",
-            "[animation-name:wheels-marquee] [animation-timing-function:linear] [animation-iteration-count:infinite]",
+            "[animation-iteration-count:infinite] [animation-name:wheels-marquee] [animation-timing-function:linear]",
             "group-hover:[animation-play-state:paused]",
           )}
         >

@@ -79,10 +79,7 @@ export interface VehicleCardExpandedProps {
  */
 type PaymentTiming = "pay-now" | "pay-later";
 
-const PAYMENT_TIMING_TO_BOOKING: Record<
-  PaymentTiming,
-  { type: RateType; mileage: MileagePlan }
-> = {
+const PAYMENT_TIMING_TO_BOOKING: Record<PaymentTiming, { type: RateType; mileage: MileagePlan }> = {
   // Mileage defaults to "unlimited" so the "Unlimited kilometers available"
   // promise on the collapsed VehicleCard is honored when the user expands.
   "pay-now": { type: "best-price", mileage: "unlimited" },
@@ -260,10 +257,7 @@ export function VehicleCardExpanded({
               Ask on WhatsApp →
             </a>
           </div>
-          <Button
-            variant="cta"
-            onClick={() => onConfirm(PAYMENT_TIMING_TO_BOOKING[paymentTiming])}
-          >
+          <Button variant="cta" onClick={() => onConfirm(PAYMENT_TIMING_TO_BOOKING[paymentTiming])}>
             Next →
           </Button>
         </footer>

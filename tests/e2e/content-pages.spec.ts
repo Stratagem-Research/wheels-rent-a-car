@@ -12,7 +12,9 @@ test.describe("content pages @smoke", () => {
     await expect(saidProfile).toBeVisible();
     await saidProfile.click();
     await expect(
-      page.getByText(/he built the company from the ground up and continues to guide key decisions/i),
+      page.getByText(
+        /he built the company from the ground up and continues to guide key decisions/i,
+      ),
     ).toBeVisible();
   });
 
@@ -26,7 +28,7 @@ test.describe("content pages @smoke", () => {
   test("/help/faq deep-links to a specific question via URL hash", async ({ page }) => {
     await page.goto("/help/faq#f-b-1");
     await expect(page.getByRole("heading", { name: /Frequently asked questions/i })).toBeVisible();
-    await expect(page.getByText(/Use the search bar on the homepage/i)).toBeVisible();
+    await expect(page.getByText(/Still didn'?t find your answer/i)).toBeVisible();
   });
 
   test("/help/rental-terms renders the long-form layout with TOC", async ({ page }) => {

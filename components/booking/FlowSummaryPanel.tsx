@@ -327,7 +327,8 @@ function PanelContents({
             label={t("protection")}
             value={
               <>
-                {tier.name} {tier.perDayCents > 0 ? `· +${formatUsd(tier.perDayCents)}${t("perDay")}` : ""}
+                {tier.name}{" "}
+                {tier.perDayCents > 0 ? `· +${formatUsd(tier.perDayCents)}${t("perDay")}` : ""}
               </>
             }
           />
@@ -368,9 +369,7 @@ function EditSearchModal({ children }: { children: React.ReactNode }) {
       <ModalTrigger asChild>{children}</ModalTrigger>
       <ModalContent size="sm">
         <ModalTitle>{t("editSearchTitle")}</ModalTitle>
-        <ModalDescription>
-          {t("editSearchDescription")}
-        </ModalDescription>
+        <ModalDescription>{t("editSearchDescription")}</ModalDescription>
         <div className="mt-5 flex justify-end">
           <Button asChild variant="primary">
             <a href="/book/select-vehicle">{t("backToVehicles")}</a>
@@ -397,7 +396,9 @@ function PriceDetailsModal({ price }: { price: BookingPriceBreakdown }) {
         <ModalTitle>{t("priceDetailsTitle")}</ModalTitle>
         <dl className="body-sm text-ink-80 mt-4 flex flex-col gap-2">
           <PriceRow label={t("baseRate")} value={price.baseRateCents} />
-          {price.extrasCents > 0 ? <PriceRow label={t("addons")} value={price.extrasCents} /> : null}
+          {price.extrasCents > 0 ? (
+            <PriceRow label={t("addons")} value={price.extrasCents} />
+          ) : null}
           {price.protectionCents > 0 ? (
             <PriceRow label={t("protection")} value={price.protectionCents} />
           ) : null}
@@ -443,14 +444,17 @@ function PriceRow({
 function safeFormat(iso: string, locale: string): string {
   try {
     const d = parseISO(iso);
-    return new Intl.DateTimeFormat(locale === "ar" ? "ar-LB" : locale === "fr" ? "fr-FR" : "en-US", {
-      weekday: "short",
-      day: "2-digit",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: locale !== "fr",
-    }).format(d);
+    return new Intl.DateTimeFormat(
+      locale === "ar" ? "ar-LB" : locale === "fr" ? "fr-FR" : "en-US",
+      {
+        weekday: "short",
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: locale !== "fr",
+      },
+    ).format(d);
   } catch {
     return iso;
   }

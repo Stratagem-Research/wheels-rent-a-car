@@ -134,7 +134,7 @@ export default function ItineraryDetailPage({ params }: PageProps) {
           <ol className="mt-10 flex flex-col gap-6">
             {itin.schedule.map((step, i) => (
               <li key={`${step.time}-${i}`} className="flex gap-4 sm:gap-6">
-                <span className="price-md text-ink-100 tabular-nums w-16 shrink-0">
+                <span className="price-md text-ink-100 w-16 shrink-0 tabular-nums">
                   {step.time}
                 </span>
                 <div className="flex flex-1 flex-col gap-1">
@@ -145,8 +145,8 @@ export default function ItineraryDetailPage({ params }: PageProps) {
             ))}
           </ol>
           <p className="body-sm text-ink-50 mt-8">
-            Final schedule confirmed with your driver after enquiry — every itinerary is tailored
-            to your group and pace.
+            Final schedule confirmed with your driver after enquiry — every itinerary is tailored to
+            your group and pace.
           </p>
         </div>
       </section>

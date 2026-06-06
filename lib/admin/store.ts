@@ -6,11 +6,7 @@
 
 import type { CorporateTier, FaqGroup, Itinerary, Trip } from "@/types/domain";
 import { notifyCmsUpdated, type CmsResource } from "@/lib/admin/cms-events";
-import type {
-  ChauffeurLead,
-  CorporateLead,
-  LongTermLead,
-} from "@/lib/supabase/admin-repository";
+import type { ChauffeurLead, CorporateLead, LongTermLead } from "@/lib/supabase/admin-repository";
 
 async function cmsGet<T>(path: string): Promise<T> {
   const res = await fetch(path, { cache: "no-store" });

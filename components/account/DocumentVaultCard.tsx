@@ -90,7 +90,9 @@ function formatDate(isoDate: string, locale: string): string {
   const date = new Date(`${isoDate}T00:00:00`);
   if (Number.isNaN(date.getTime())) return isoDate;
   const targetLocale = locale === "ar" ? "ar-LB" : locale === "fr" ? "fr-FR" : "en-US";
-  return new Intl.DateTimeFormat(targetLocale, { day: "2-digit", month: "short", year: "numeric" }).format(
-    date,
-  );
+  return new Intl.DateTimeFormat(targetLocale, {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date);
 }

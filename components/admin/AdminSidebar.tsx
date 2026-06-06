@@ -26,7 +26,11 @@ import { signOut } from "@/lib/admin/auth";
  * pushes back to /admin/login.
  */
 
-const NAV_ITEMS: Array<{ href: string; label: string; icon: React.ComponentType<{ className?: string }> }> = [
+const NAV_ITEMS: Array<{
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}> = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/trips", label: "Trips", icon: MapPinned },
   { href: "/admin/itineraries", label: "Itineraries", icon: MapPinned },
@@ -71,7 +75,7 @@ export function AdminSidebar() {
                 "label-md rounded-pill inline-flex h-10 items-center gap-3 px-4 transition-colors duration-150",
                 active
                   ? "bg-paper text-ink-100"
-                  : "text-paper/70 hover:bg-white/10 hover:text-paper",
+                  : "text-paper/70 hover:text-paper hover:bg-white/10",
               )}
             >
               <Icon className="size-4" aria-hidden="true" />
@@ -89,7 +93,7 @@ export function AdminSidebar() {
         <button
           type="button"
           onClick={onSignOut}
-          className="label-md text-paper/80 hover:text-paper hover:bg-white/10 rounded-pill inline-flex h-10 w-full items-center gap-3 px-4 transition-colors duration-150"
+          className="label-md text-paper/80 hover:text-paper rounded-pill inline-flex h-10 w-full items-center gap-3 px-4 transition-colors duration-150 hover:bg-white/10"
         >
           <LogOut className="size-4" aria-hidden="true" />
           Sign out
@@ -136,7 +140,7 @@ export function AdminMobileBar() {
           type="button"
           onClick={onSignOut}
           aria-label="Sign out"
-          className="text-paper/80 hover:bg-white/10 inline-flex size-9 items-center justify-center rounded-full"
+          className="text-paper/80 inline-flex size-9 items-center justify-center rounded-full hover:bg-white/10"
         >
           <LogOut className="size-4" aria-hidden="true" />
         </button>

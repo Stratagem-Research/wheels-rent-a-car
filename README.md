@@ -81,7 +81,7 @@ app/
   (booking)/      slim funnel shell — /book/* steps + confirmation
   (auth)/         centred-card login/register/forgot/reset
   (account)/      gated dashboard + bookings + profile + documents + saved
-  admin/          staging CMS (trips, itineraries, FAQs, corporate tiers) — not for production as-is
+  admin/          staging CMS (trips, itineraries, FAQs, corporate tiers) — harden before production
   dev/components  internal QA route (every primitive in every state; not linked from the site)
   api/            Route handlers (auth, leads, Whish payments, wizard sync, notifications)
   sitemap.ts      Next metadata sitemap
@@ -113,7 +113,7 @@ lib/
   api/            typed fetch wrapper + endpoint catalog
   api/mocks/      MSW worker + handlers + fixtures
   api/wheels-public/  Laravel public booking client + adapters (when real API is on)
-  admin/          demo CMS auth + Supabase-backed store + useAdminStore hooks
+  admin/          server-session auth helpers + Supabase-backed store + useAdminStore hooks
   auth/           session helpers + Supabase user mapping
   booking/        pricing engine, calendar helpers, .ics generator, ref helpers
   search/         search criteria types + persistence
@@ -128,7 +128,7 @@ lib/
 hooks/            useBookingDraft, useSession, useLastSearch
 types/domain.ts   single source of truth for every API shape
 messages/en.json  i18n catalog (wired; most UI copy still inline until migration)
-middleware.ts     auth gating + maintenance-mode rewrite + admin noindex
+proxy.ts          auth gating + maintenance-mode rewrite + admin noindex
 ```
 
 ## Mock backend
@@ -182,7 +182,7 @@ Built for Vercel. Push to `main` → Vercel deploys. Required environment in Ver
 
 - **One red CTA per screen.** The `cta` Button variant is reserved for the highest-conversion action on the route.
 - **Tokens, not hex.** Every visual decision resolves to `styles/tokens.css`. No `bg-[#…]` arbitrary values.
-- **No backend services in this repo.** All persistence lives in the mock layer or `sessionStorage` until the real backend lands.
+- **No external Wizard backend services in this repo.** Website-owned persistence/auth/services live here; Wizard-owned booking internals stay external.
 - **Definition of done** per `CLAUDE.md §9` applied before every merge.
 
 ## License

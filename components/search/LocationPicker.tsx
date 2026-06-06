@@ -2,14 +2,7 @@
 
 import * as React from "react";
 import * as Popover from "@radix-ui/react-popover";
-import {
-  ChevronDown,
-  MapPin,
-  Building2,
-  History as HistoryIcon,
-  Clock,
-  Plane,
-} from "lucide-react";
+import { ChevronDown, MapPin, Building2, History as HistoryIcon, Clock, Plane } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/Input";
 import { readLastSearch } from "@/lib/search/persistence";
@@ -91,8 +84,7 @@ export function LocationPicker({
   }, [branches]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  const focusedBranch =
-    branches.find((b) => b.id === focusedBranchId) ?? ourBranches[0] ?? null;
+  const focusedBranch = branches.find((b) => b.id === focusedBranchId) ?? ourBranches[0] ?? null;
 
   const summary = formatSummary(value, branches);
   const isPlaceholder = summary === "Choose pickup location";

@@ -40,7 +40,10 @@ export async function PUT(request: Request) {
   const body = await request.json().catch(() => null);
   const parsed = PayloadSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ message: "Expected { items: VehicleMetadata[] }." }, { status: 400 });
+    return NextResponse.json(
+      { message: "Expected { items: VehicleMetadata[] }." },
+      { status: 400 },
+    );
   }
   try {
     await replaceVehicleMetadata(

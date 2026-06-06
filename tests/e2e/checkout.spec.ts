@@ -60,7 +60,7 @@ async function acceptTerms(page: Page): Promise<void> {
   await page.getByLabel(/I agree to the Terms/i).check();
 }
 
-test.describe("checkout — all payment methods @smoke", () => {
+test.describe("checkout — all payment methods", () => {
   test("Card path lands on a Confirmed booking", async ({ page }) => {
     await pickFirstVehicle(page);
     await continueToProtection(page);

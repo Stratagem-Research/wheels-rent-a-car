@@ -123,7 +123,7 @@ export default function AdminFleetPage() {
             JSON array for <code>vehicle_metadata</code>.
           </p>
           <textarea
-            className="border-border font-mono mt-4 min-h-[420px] w-full rounded-xl border p-3 text-xs"
+            className="border-border mt-4 min-h-[420px] w-full rounded-xl border p-3 font-mono text-xs"
             value={metadataJson}
             onChange={(e) => setMetadataJson(e.target.value)}
             spellCheck={false}
@@ -135,7 +135,7 @@ export default function AdminFleetPage() {
             JSON array for <code>vehicle_wizard_map</code>.
           </p>
           <textarea
-            className="border-border font-mono mt-4 min-h-[420px] w-full rounded-xl border p-3 text-xs"
+            className="border-border mt-4 min-h-[420px] w-full rounded-xl border p-3 font-mono text-xs"
             value={mapJson}
             onChange={(e) => setMapJson(e.target.value)}
             spellCheck={false}

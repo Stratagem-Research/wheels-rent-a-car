@@ -3,12 +3,7 @@
 import * as React from "react";
 import type { CorporateTier, FaqGroup, Itinerary, Trip } from "@/types/domain";
 import { CMS_UPDATED_EVENT, type CmsResource } from "@/lib/admin/cms-events";
-import {
-  fetchCorporateTiers,
-  fetchFaqs,
-  fetchItineraries,
-  fetchTrips,
-} from "@/lib/admin/store";
+import { fetchCorporateTiers, fetchFaqs, fetchItineraries, fetchTrips } from "@/lib/admin/store";
 
 function useCmsResource<T>(resource: CmsResource, fetcher: () => Promise<T[]>): T[] {
   const [value, setValue] = React.useState<T[]>([]);
@@ -34,7 +29,7 @@ function useCmsResource<T>(resource: CmsResource, fetcher: () => Promise<T[]>): 
       cancelled = true;
       window.removeEventListener(CMS_UPDATED_EVENT, onUpdated);
     };
-  }, [resource]);
+  }, [fetcher, resource]);
 
   return value;
 }

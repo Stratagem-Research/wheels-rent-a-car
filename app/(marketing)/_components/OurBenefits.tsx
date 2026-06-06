@@ -208,22 +208,10 @@ function BenefitCard({
         <Icon className="size-6" strokeWidth={1.75} aria-hidden="true" />
       </div>
 
-      <h3
-        className={cn(
-          "headline-lg mt-6 leading-tight",
-          dark ? "text-paper" : "text-ink-100",
-        )}
-      >
+      <h3 className={cn("headline-lg mt-6 leading-tight", dark ? "text-paper" : "text-ink-100")}>
         {title}
       </h3>
-      <p
-        className={cn(
-          "body-md mt-3",
-          dark ? "text-paper/70" : "text-ink-60",
-        )}
-      >
-        {body}
-      </p>
+      <p className={cn("body-md mt-3", dark ? "text-paper/70" : "text-ink-60")}>{body}</p>
 
       {/* Learn-more pill anchored to the bottom of the card. The whole-card
        * link sits behind it at z-0, but this pill is the visible affordance. */}

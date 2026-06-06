@@ -110,7 +110,9 @@ export default function AdminPromotionsPage() {
                 <input
                   className="border-border rounded-pill h-10 border px-3"
                   value={item.message}
-                  onChange={(e) => updateItem(setItems, index, { ...item, message: e.target.value })}
+                  onChange={(e) =>
+                    updateItem(setItems, index, { ...item, message: e.target.value })
+                  }
                 />
               </label>
               <label className="body-sm text-ink-60 flex flex-col gap-1.5">
@@ -137,7 +139,9 @@ export default function AdminPromotionsPage() {
                 <input
                   type="checkbox"
                   checked={item.active}
-                  onChange={(e) => updateItem(setItems, index, { ...item, active: e.target.checked })}
+                  onChange={(e) =>
+                    updateItem(setItems, index, { ...item, active: e.target.checked })
+                  }
                 />
                 Active
               </label>

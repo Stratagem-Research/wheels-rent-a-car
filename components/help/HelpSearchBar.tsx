@@ -62,9 +62,7 @@ export function HelpSearchBar({ className }: { className?: string }) {
               🤔
             </span>
             <h3 className="headline-xs text-ink-95">{t("noMatchesTitle")}</h3>
-            <p className="body-sm text-ink-60">
-              {t("noMatchesBody")}
-            </p>
+            <p className="body-sm text-ink-60">{t("noMatchesBody")}</p>
           </div>
         ) : (
           <ul className="flex flex-col gap-2">

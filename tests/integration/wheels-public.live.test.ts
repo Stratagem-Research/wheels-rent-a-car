@@ -134,7 +134,8 @@ live("wheels-public live smoke", () => {
   }, 45_000);
 
   it("GET /bookings/{reference}?email=... resolves created booking", async () => {
-    if (!createdReference) throw new Error("no booking reference captured from createBookingRequest");
+    if (!createdReference)
+      throw new Error("no booking reference captured from createBookingRequest");
     const lookup = await client.getBookingByReferenceEmail(createdReference, SENTINEL_EMAIL);
     expect(lookup.success).toBe(true);
     expect(lookup.data.reference).toBe(createdReference);

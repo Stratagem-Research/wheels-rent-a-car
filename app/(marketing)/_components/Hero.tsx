@@ -55,9 +55,7 @@ export async function Hero({ branches }: { branches: Branch[] }) {
             <br />
             {t("heroHeadlineLine2")}
           </h1>
-          <p className="lead-lg text-paper/85 max-w-[540px]">
-            {t("heroSubline")}
-          </p>
+          <p className="lead-lg text-paper/85 max-w-[540px]">{t("heroSubline")}</p>
         </div>
 
         {/* Search bar — paper card-floating, lifts cleanly off the photo. */}

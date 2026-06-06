@@ -38,7 +38,9 @@ export function TeamCard({
         <div
           className={cn(
             "relative min-h-[460px] rounded-xl transition-transform duration-500 motion-reduce:transition-none",
-            flipped ? "motion-safe:[transform:rotateY(180deg)]" : "motion-safe:[transform:rotateY(0deg)]",
+            flipped
+              ? "motion-safe:[transform:rotateY(180deg)]"
+              : "motion-safe:[transform:rotateY(0deg)]",
           )}
           style={{ transformStyle: "preserve-3d" }}
         >

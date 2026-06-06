@@ -74,9 +74,7 @@ export default function DocumentsPage() {
     <div className="flex flex-col gap-6">
       <header>
         <h1 className="headline-xl text-ink-100">{t("title")}</h1>
-        <p className="body-md text-ink-60 mt-1">
-          {t("subtitle")}
-        </p>
+        <p className="body-md text-ink-60 mt-1">{t("subtitle")}</p>
       </header>
 
       <section aria-labelledby="dv-licence" className="flex flex-col gap-3">

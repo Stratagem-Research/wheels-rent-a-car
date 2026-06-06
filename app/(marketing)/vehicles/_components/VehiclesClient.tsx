@@ -128,9 +128,7 @@ export function VehiclesClient() {
         .split(",")
         .map((s) => s.trim())
         .filter(Boolean);
-      const updated = current.includes(cat)
-        ? current.filter((c) => c !== cat)
-        : [...current, cat];
+      const updated = current.includes(cat) ? current.filter((c) => c !== cat) : [...current, cat];
       if (updated.length) next.set("category", updated.join(","));
       else next.delete("category");
     });

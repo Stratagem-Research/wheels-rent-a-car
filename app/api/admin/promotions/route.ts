@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { listPromotions, replacePromotions, writeAdminAuditLog } from "@/lib/supabase/admin-repository";
+import {
+  listPromotions,
+  replacePromotions,
+  writeAdminAuditLog,
+} from "@/lib/supabase/admin-repository";
 import { requireAdminCsrf, requireAdminSession } from "@/lib/server/admin-api";
 
 const PromotionSchema = z.object({

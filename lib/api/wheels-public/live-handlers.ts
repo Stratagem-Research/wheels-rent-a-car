@@ -208,10 +208,11 @@ export interface LiveLookupBookingArgs {
   email: string;
 }
 
-export async function liveLookupBooking({
-  reference,
-  email,
-}: LiveLookupBookingArgs): Promise<{ reference: string; email: string; data: Awaited<ReturnType<typeof getBookingByReferenceEmail>>["data"] }> {
+export async function liveLookupBooking({ reference, email }: LiveLookupBookingArgs): Promise<{
+  reference: string;
+  email: string;
+  data: Awaited<ReturnType<typeof getBookingByReferenceEmail>>["data"];
+}> {
   const response = await getBookingByReferenceEmail(reference, email);
   return { reference, email, data: response.data };
 }

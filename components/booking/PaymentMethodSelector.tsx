@@ -2,15 +2,7 @@
 
 import * as React from "react";
 import { useTranslations } from "next-intl";
-import {
-  CreditCard,
-  Wallet,
-  Building2,
-  Coins,
-  ShieldCheck,
-  Copy,
-  Smartphone,
-} from "lucide-react";
+import { CreditCard, Wallet, Building2, Coins, ShieldCheck, Copy, Smartphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { ErrorText, Field, HelperText, Label } from "@/components/ui/FormAtoms";
@@ -159,9 +151,7 @@ function WhishOnlinePanel() {
   const t = useTranslations("checkoutPayment");
   return (
     <Card variant="tint" className="p-4">
-      <p className="body-sm text-ink-80">
-        {t("whishOnlineBody")}
-      </p>
+      <p className="body-sm text-ink-80">{t("whishOnlineBody")}</p>
     </Card>
   );
 }
@@ -252,12 +242,11 @@ function TransferPanel({
         <li>· {t("transferBank")}</li>
         <li>· {t("transferIban")}</li>
         <li className="inline-flex items-center gap-2">
-          · {t("transferReference")}: <CopyableRef text={referenceLine}>{referenceLine}</CopyableRef>
+          · {t("transferReference")}:{" "}
+          <CopyableRef text={referenceLine}>{referenceLine}</CopyableRef>
         </li>
       </ul>
-      <HelperText>
-        {t("transferHelper")}
-      </HelperText>
+      <HelperText>{t("transferHelper")}</HelperText>
       <FileUpload
         label={t("transferUploadLabel")}
         accept=".pdf,.jpg,.jpeg,.png"
@@ -279,12 +268,11 @@ function OmtPanel({ omtReceipt, onOmtReceiptChange, pendingRef }: PaymentMethodS
         <li>· {t("omtBranchLine")}</li>
         <li>· {t("omtCodeLine")}</li>
         <li className="inline-flex items-center gap-2">
-          · {t("transferReference")}: <CopyableRef text={referenceLine}>{referenceLine}</CopyableRef>
+          · {t("transferReference")}:{" "}
+          <CopyableRef text={referenceLine}>{referenceLine}</CopyableRef>
         </li>
       </ul>
-      <HelperText>
-        {t("omtHelper")}
-      </HelperText>
+      <HelperText>{t("omtHelper")}</HelperText>
       <FileUpload
         label={t("omtUploadLabel")}
         accept=".pdf,.jpg,.jpeg,.png"

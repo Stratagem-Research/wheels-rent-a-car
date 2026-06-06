@@ -449,7 +449,7 @@ const CompactLayout = React.forwardRef<
       type="button"
       aria-label={t("editYourSearch")}
       className={cn(
-        "bg-paper border-ink-15 hover:border-ink-30 flex w-full items-center gap-3 rounded-pill border px-5 py-2 text-left transition-colors sm:gap-4",
+        "bg-paper border-ink-15 hover:border-ink-30 rounded-pill flex w-full items-center gap-3 border px-5 py-2 text-left transition-colors sm:gap-4",
         "focus-visible:outline-ink-100 focus-visible:outline-2 focus-visible:outline-offset-2",
         className,
       )}

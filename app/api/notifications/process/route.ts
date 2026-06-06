@@ -23,7 +23,11 @@ export async function POST() {
         booking_reference: job.booking_reference,
         channel: job.channel,
         status: "sent",
-        provider_response: { template: job.template, recipient: job.recipient, payload: job.payload },
+        provider_response: {
+          template: job.template,
+          recipient: job.recipient,
+          payload: job.payload,
+        },
       });
       await supabase
         .from("notification_outbox")
@@ -40,7 +44,8 @@ export async function POST() {
         channel: job.channel,
         status: "failed",
         provider_response: {},
-        error_message: sendError instanceof Error ? sendError.message : "Unknown notification error",
+        error_message:
+          sendError instanceof Error ? sendError.message : "Unknown notification error",
       });
       await supabase
         .from("notification_outbox")

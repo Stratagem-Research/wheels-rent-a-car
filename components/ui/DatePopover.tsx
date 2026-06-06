@@ -195,10 +195,7 @@ function RangeView({
     () => rangeValue?.from ?? new Date(),
   );
 
-  const handleSelect = (
-    _selected: { from?: Date; to?: Date } | undefined,
-    triggerDate: Date,
-  ) => {
+  const handleSelect = (_selected: { from?: Date; to?: Date } | undefined, triggerDate: Date) => {
     const hadCompleteRange = !!(rangeValue?.from && rangeValue?.to);
     if (hadCompleteRange && triggerDate) {
       // User clicked while the range was already complete — treat this as

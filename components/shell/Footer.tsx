@@ -50,10 +50,7 @@ export function Footer() {
   const year = new Date().getFullYear();
 
   return (
-    <footer
-      className="text-paper"
-      style={{ backgroundImage: "var(--gradient-card-dark)" }}
-    >
+    <footer className="text-paper" style={{ backgroundImage: "var(--gradient-card-dark)" }}>
       <div
         className={cn(
           "mx-auto px-5 pt-16 pb-12 sm:px-10 sm:pt-20 lg:pt-24",
@@ -209,7 +206,7 @@ function FooterLocaleSwitcher({
   ] as const;
 
   return (
-    <div className="inline-flex items-center gap-1 rounded-pill border border-white/20 px-1 py-1">
+    <div className="rounded-pill inline-flex items-center gap-1 border border-white/20 px-1 py-1">
       {locales.map((l) => (
         <button
           key={l.id}
@@ -305,4 +302,3 @@ function LinkedInGlyph() {
     </svg>
   );
 }
-

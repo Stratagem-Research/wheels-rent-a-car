@@ -40,11 +40,7 @@ export default async function RootLayout({
     : routing.defaultLocale;
 
   return (
-    <html
-      lang={language}
-      dir={direction}
-      className={`${GeistSans.variable} ${GeistMono.variable}`}
-    >
+    <html lang={language} dir={direction} className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body>
         <NextIntlClientProvider messages={messages}>
           <MswProvider>

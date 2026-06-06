@@ -17,6 +17,10 @@
 - `WHEELS_INTERNAL_API_TOKEN`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `DATABASE_URL`
+- `ADMIN_PASSWORD`
+- `ADMIN_SESSION_SECRET`
+- `ADMIN_OPS_ADMIN_USERNAMES`
+- `ADMIN_CONTENT_EDITOR_USERNAMES`
 - `WHISH_CHANNEL`
 - `WHISH_SECRET`
 - `WEBSITE_URL`
@@ -28,6 +32,11 @@
 
 - `RUN_LIVE_API_TESTS=1`
 - optional `WHEELS_API_BASE_URL` (used by smoke script override)
+
+## Validation commands
+
+- Full launch mode (includes payment envs): `pnpm env:check`
+- Payment-deferred mode: `pnpm env:check:payment-deferred`
 
 ## Secret handling
 

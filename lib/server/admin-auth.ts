@@ -20,8 +20,8 @@ function getEnv(name: string, fallback?: string): string {
 }
 
 function getConfig() {
-  const password = getEnv("ADMIN_PASSWORD", "admin123");
-  const secret = getEnv("ADMIN_SESSION_SECRET", "change-me-in-production");
+  const password = getEnv("ADMIN_PASSWORD");
+  const secret = getEnv("ADMIN_SESSION_SECRET");
   const contentEditors = (process.env.ADMIN_CONTENT_EDITOR_USERNAMES ?? "editor")
     .split(",")
     .map((value) => value.trim())
@@ -31,6 +31,14 @@ function getConfig() {
     .map((value) => value.trim())
     .filter(Boolean);
   return { password, secret, contentEditors, opsAdmins };
+}
+
+function getSessionSecret(): string | null {
+  try {
+    return getEnv("ADMIN_SESSION_SECRET");
+  } catch {
+    return null;
+  }
 }
 
 function b64urlEncode(raw: string): string {
@@ -70,24 +78,25 @@ export function authenticateAdminCredentials(
 }
 
 export function createAdminSessionToken(username: string, role: AdminRole): string {
-  const cfg = getConfig();
+  const secret = getEnv("ADMIN_SESSION_SECRET");
   const payloadObj: AdminSession = {
     username,
     role,
     exp: Math.floor(Date.now() / 1000) + ONE_DAY_SECONDS,
   };
   const payload = b64urlEncode(JSON.stringify(payloadObj));
-  const signature = sign(payload, cfg.secret);
+  const signature = sign(payload, secret);
   return `${payload}.${signature}`;
 }
 
 export function readAdminSession(request: Request): AdminSession | null {
-  const cfg = getConfig();
+  const secret = getSessionSecret();
+  if (!secret) return null;
   const token = parseCookie(request.headers.get("cookie"), ADMIN_SESSION_COOKIE);
   if (!token || !token.includes(".")) return null;
   const [payload, signature] = token.split(".", 2);
   if (!payload || !signature) return null;
-  const expected = sign(payload, cfg.secret);
+  const expected = sign(payload, secret);
   const sigBuf = Buffer.from(signature);
   const expectedBuf = Buffer.from(expected);
   if (sigBuf.length !== expectedBuf.length) return null;

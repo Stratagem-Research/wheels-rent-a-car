@@ -76,10 +76,17 @@ export default function AdminOpsPage() {
               rows={data.paymentEvents}
               rowKey={(row) => String(row.id)}
               columns={[
-                { header: "Booking", cell: (row) => String(row.booking_reference ?? "—"), width: "20%" },
+                {
+                  header: "Booking",
+                  cell: (row) => String(row.booking_reference ?? "—"),
+                  width: "20%",
+                },
                 { header: "Provider", cell: (row) => String(row.provider ?? "—"), width: "12%" },
                 { header: "Status", cell: (row) => String(row.status ?? "—"), width: "14%" },
-                { header: "Amount", cell: (row) => `${row.currency ?? "USD"} ${row.amount ?? "—"}` },
+                {
+                  header: "Amount",
+                  cell: (row) => `${row.currency ?? "USD"} ${row.amount ?? "—"}`,
+                },
               ]}
             />
           </section>
@@ -90,12 +97,19 @@ export default function AdminOpsPage() {
               rows={data.bookingTimeline}
               rowKey={(row) => String(row.id)}
               columns={[
-                { header: "Booking", cell: (row) => String(row.booking_reference ?? "—"), width: "20%" },
+                {
+                  header: "Booking",
+                  cell: (row) => String(row.booking_reference ?? "—"),
+                  width: "20%",
+                },
                 { header: "State", cell: (row) => String(row.state ?? "—"), width: "16%" },
                 { header: "Source", cell: (row) => String(row.source ?? "—"), width: "16%" },
                 {
                   header: "Created",
-                  cell: (row) => String(row.created_at ?? "—").slice(0, 19).replace("T", " "),
+                  cell: (row) =>
+                    String(row.created_at ?? "—")
+                      .slice(0, 19)
+                      .replace("T", " "),
                 },
               ]}
             />
@@ -107,7 +121,11 @@ export default function AdminOpsPage() {
               rows={data.notificationOutbox}
               rowKey={(row) => String(row.id)}
               columns={[
-                { header: "Booking", cell: (row) => String(row.booking_reference ?? "—"), width: "20%" },
+                {
+                  header: "Booking",
+                  cell: (row) => String(row.booking_reference ?? "—"),
+                  width: "20%",
+                },
                 { header: "Channel", cell: (row) => String(row.channel ?? "—"), width: "12%" },
                 { header: "Template", cell: (row) => String(row.template ?? "—"), width: "20%" },
                 { header: "Status", cell: (row) => String(row.status ?? "—"), width: "12%" },
@@ -137,7 +155,11 @@ export default function AdminOpsPage() {
               rows={data.notificationLogs}
               rowKey={(row) => String(row.id)}
               columns={[
-                { header: "Booking", cell: (row) => String(row.booking_reference ?? "—"), width: "20%" },
+                {
+                  header: "Booking",
+                  cell: (row) => String(row.booking_reference ?? "—"),
+                  width: "20%",
+                },
                 { header: "Channel", cell: (row) => String(row.channel ?? "—"), width: "12%" },
                 { header: "Status", cell: (row) => String(row.status ?? "—"), width: "12%" },
                 { header: "Error", cell: (row) => String(row.error_message ?? "—") },

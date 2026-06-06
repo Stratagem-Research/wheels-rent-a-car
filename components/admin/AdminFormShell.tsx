@@ -22,7 +22,9 @@ export function AdminFormShell({ title, helper, children, footer }: AdminFormShe
         {helper ? <p className="body-sm text-ink-60">{helper}</p> : null}
       </div>
       <div className="flex flex-col gap-4">{children}</div>
-      {footer ? <div className="border-border mt-2 flex justify-end gap-2 border-t pt-4">{footer}</div> : null}
+      {footer ? (
+        <div className="border-border mt-2 flex justify-end gap-2 border-t pt-4">{footer}</div>
+      ) : null}
     </div>
   );
 }

@@ -120,10 +120,7 @@ export interface WheelsPublicClient {
     query: AvailabilityQuery,
   ) => Promise<VehicleAvailabilityResponse>;
   createBookingRequest: (payload: BookingRequestPayload) => Promise<BookingSuccessResponse>;
-  getBookingByReferenceEmail: (
-    reference: string,
-    email: string,
-  ) => Promise<BookingLookupResponse>;
+  getBookingByReferenceEmail: (reference: string, email: string) => Promise<BookingLookupResponse>;
   getBookingStatusByToken: (publicToken: string) => Promise<BookingStatusResponse>;
 }
 
@@ -214,11 +211,11 @@ export function createWheelsInternalClient(
   if (typeof window !== "undefined" && process.env.NODE_ENV !== "test") {
     throw new Error("createWheelsInternalClient is server-only and must not run in browser code.");
   }
-  const baseUrl =
-    (options.baseUrl ?? process.env.WHEELS_INTERNAL_API_BASE_URL ?? "https://lucid-mclean.217-160-215-26.plesk.page/api/v1").replace(
-      /\/+$/,
-      "",
-    );
+  const baseUrl = (
+    options.baseUrl ??
+    process.env.WHEELS_INTERNAL_API_BASE_URL ??
+    "https://lucid-mclean.217-160-215-26.plesk.page/api/v1"
+  ).replace(/\/+$/, "");
   const timeoutMs = options.timeoutMs ?? 15_000;
   const maxAttempts = Math.max(1, options.maxAttempts ?? 3);
   const fetchImpl = options.fetchImpl ?? fetch;

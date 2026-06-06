@@ -2,19 +2,19 @@
 
 Status: In progress
 Owner: Website Team + Wizard Team (Adam)
-Last updated: 2026-05-26
+Last updated: 2026-06-06
 
 ## Required external confirmations
 
 | Item | Requested from Wizard | Status | Owner | Target date |
 | --- | --- | --- | --- | --- |
-| Rate limits | Final per-endpoint limits for staging/prod | Pending | Adam | TBD |
-| Sanitized errors | Confirm 429/4xx sanitized envelope in all envs | Pending | Adam | TBD |
-| `sync_type` enum | Authoritative allowed values list | Pending | Adam | TBD |
-| Sync idempotency | Replay/idempotency policy for `sync-status` | Pending | Adam | TBD |
-| Internal token lifecycle | Rotation, expiry, staging/prod separation | Pending | Adam | TBD |
-| `public_token` behavior | Rotation/expiry/backward compatibility window | Pending | Adam | TBD |
-| Status enum roadmap | Plan for request-like states in Wizard | Pending | Adam | TBD |
+| Rate limits | Final per-endpoint limits for staging/prod | Pending external response | Adam | 2026-06-10 |
+| Sanitized errors | Confirm 429/4xx sanitized envelope in all envs | Pending external response | Adam | 2026-06-10 |
+| `sync_type` enum | Authoritative allowed values list | Pending external response | Adam | 2026-06-10 |
+| Sync idempotency | Replay/idempotency policy for `sync-status` | Pending external response | Adam | 2026-06-10 |
+| Internal token lifecycle | Rotation, expiry, staging/prod separation | Pending external response | Adam | 2026-06-10 |
+| `public_token` behavior | Rotation/expiry/backward compatibility window | Pending external response | Adam | 2026-06-10 |
+| Status enum roadmap | Plan for request-like states in Wizard | Pending external response | Adam | 2026-06-10 |
 
 ## Evidence package sent
 
@@ -24,6 +24,11 @@ Last updated: 2026-05-26
 - Sync mapping implementation reference:
   - `lib/api/wheels-public/sync-status.ts`
   - `lib/server/wizard-sync.ts`
+
+## Latest outreach
+
+- 2026-06-06: register refreshed, pending items normalized to explicit target date 2026-06-10.
+- Next action: resend consolidated clarification request and attach this register + gap analysis.
 
 ## Exit criteria
 

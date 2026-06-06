@@ -24,7 +24,10 @@ export async function PUT(request: Request) {
   try {
     const body = (await request.json()) as { items?: CorporateTier[] };
     if (!Array.isArray(body.items)) {
-      return NextResponse.json({ message: "Expected { items: CorporateTier[] }." }, { status: 400 });
+      return NextResponse.json(
+        { message: "Expected { items: CorporateTier[] }." },
+        { status: 400 },
+      );
     }
     await replaceCorporateTiersInDb(body.items);
     await writeAdminAuditLog({

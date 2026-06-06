@@ -3,7 +3,7 @@
 > Routes: `/admin/*`
 > Depends on: `16_trips.md`, `17_itineraries.md`, `10_help_faq.md`, `08_corporate.md`
 > Related: PRD §6.15, `lib/admin/auth.ts`, `lib/admin/store.ts`
-> Status: **Staging only.** Replace before production.
+> Status: **Staging-first.** Security hardening required before production.
 
 ## Purpose & success criteria
 
@@ -14,11 +14,12 @@ The admin dashboard added in Revision 2 (Phase 12) gives Wheels a self-serve con
 3. **FAQs** — sections + questions on `/help/faq` (and the central source for any other FAQ touchpoints).
 4. **Corporate** — tier comparison + inclusions on `/corporate`.
 
-This is **demo-grade**:
-- Authentication is a hardcoded `admin / admin123` checked client-side against constants in `lib/admin/auth.ts`. The session lives in `sessionStorage`.
-- Persistence is `localStorage` via `lib/admin/store.ts`. There is no real database.
-- Public pages read from the same store via `useAdminStore` hooks, so admin writes reflect live with no reload.
-- Middleware adds `X-Robots-Tag: noindex, nofollow` on every `/admin/*` route so crawlers never see the editor.
+Current implementation:
+- Authentication is server-session based via `/api/admin/sessions` and signed cookies from `lib/server/admin-auth.ts`.
+- Password and session secret are environment-driven (`ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`) with no fallback defaults.
+- Persistence is Supabase-backed via `lib/admin/store.ts` -> `/api/cms/*` routes.
+- Public pages read from `useAdminStore` hooks and reflect writes after CMS events/refetch.
+- `proxy.ts` adds `X-Robots-Tag: noindex, nofollow` on every `/admin/*` route so crawlers never see the editor.
 
 Before production launch, replace the auth + store layer with the real backend (see "Swap-in path" below).
 
@@ -26,7 +27,7 @@ Before production launch, replace the auth + store layer with the real backend (
 
 | URL | Purpose |
 | --- | --- |
-| `/admin/login` | Sign-in form. Hardcoded `admin / admin123`. Already-signed-in visitors auto-redirect to `/admin`. |
+| `/admin/login` | Sign-in form. Credentials validated server-side via `/api/admin/sessions`. Already-signed-in visitors auto-redirect to `/admin`. |
 | `/admin` | Dashboard home. 4 quick-action tiles + live counts from each resource. |
 | `/admin/trips` | List view with table + actions (Edit / Delete) + "New trip" + "Reset to defaults". |
 | `/admin/trips/new` | Empty `<TripForm />`. |
@@ -70,57 +71,48 @@ Every authenticated admin page is wrapped in `app/admin/(authenticated)/layout.t
 
 | Scenario | Behaviour |
 | --- | --- |
-| Unauthenticated visit to any `/admin/*` (other than `/admin/login`) | Client-side redirect to `/admin/login`. |
-| Wrong credentials | Inline `ErrorText` on the login form: "Invalid username or password." |
+| Unauthenticated visit to any `/admin/*` (other than `/admin/login`) | Proxy redirect to `/admin/login`. |
+| Missing admin env (`ADMIN_PASSWORD` / `ADMIN_SESSION_SECRET`) | Login/session calls fail until env is populated. |
 | Duplicate slug on create | Inline form error: "That slug already exists. Choose another." |
 | Slug edit on existing record | Slug input is `disabled` to prevent breaking inbound links. |
 | Delete confirmation | Native `confirm()` prompt. (Replace with `<Modal />` in production.) |
-| Reset to defaults | `confirm()`-gated; clears the localStorage key so the next read falls back to the seeded fixture. |
-| Local storage full / disabled | Writes silently no-op; demo recommendation is to use a regular browser profile, not in-private. |
-| Cross-tab admin edits | `storage` event fires on the other tab; public pages and admin lists re-render with the new value. |
+| Reset to defaults | `confirm()`-gated; clears CMS table rows and reseeds fixture defaults server-side. |
+| API/store failure | Route handlers return structured 4xx/5xx responses surfaced in form errors. |
+| Cross-tab admin edits | `wheels:cms-updated` + refetch path keeps pages in sync. |
 
 ## Data requirements
 
-All four resources share the same store wrapper in `lib/admin/store.ts`:
+All four resources share the same client wrapper in `lib/admin/store.ts`, backed by API routes:
 ```
-readTrips() / writeTrips() / resetTrips()
-readItineraries() / writeItineraries() / resetItineraries()
-readFaqs() / writeFaqs() / resetFaqs()
-readCorporateTiers() / writeCorporateTiers() / resetCorporateTiers()
-resetAll()
-```
-
-localStorage keys:
-```
-wheels.admin.trips
-wheels.admin.itineraries
-wheels.admin.faqs
-wheels.admin.corporate
+fetchTrips() / writeTrips()
+fetchItineraries() / writeItineraries()
+fetchFaqs() / writeFaqs()
+fetchCorporateTiers() / writeCorporateTiers()
 ```
 
-Each `read*()` falls back to its seeded fixture from `lib/api/mocks/fixtures/{content,catalog}.ts` if the key is empty.
+Data persistence/repository layer:
+- API routes: `app/api/cms/{trips|itineraries|faqs|corporate}/route.ts`
+- Supabase repository: `lib/supabase/cms-repository.ts`
+- Admin audit logging: `lib/supabase/admin-repository.ts`
 
-## Swap-in path (production)
+## Remaining hardening before production
 
-Replace, in order:
-
-1. **`lib/admin/auth.ts`** — `signIn()` calls real `POST /api/admin/sessions`; server issues HttpOnly cookie; `signOut()` calls `DELETE /api/admin/sessions`; `isSignedIn()` becomes server-side via `cookies()` in a server component / middleware.
-2. **`middleware.ts`** — extend the `/admin` block to enforce auth at the edge (redirect to `/admin/login` when the session cookie is missing).
-3. **`lib/admin/store.ts`** — replace each `read*()` with a typed `fetch()` against the backend, `write*()` with POST/PUT, `reset*()` with admin-only DELETE.
-4. **`useAdminStore.ts`** — swap the `storage` event subscription for React Query (or SWR) cache invalidation.
-5. **CSRF protection** on every write.
-6. **Audit logging** on every admin mutation.
-7. **Modal-based confirmation** instead of native `confirm()`.
-8. **Rich-text editor** (TipTap or Lexical) on the Body field in TripForm — Markdown is fine for staging, but a WYSIWYG is friendlier for non-technical authors.
+1. Enforce secure admin env provisioning in deployment (`ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`) and rotate regularly.
+2. Keep CSRF validation mandatory on every mutating admin route.
+3. Add rate limiting and lockout policy on `/api/admin/sessions`.
+4. Replace native `confirm()` with modal confirmations for destructive actions.
+5. Add richer admin audit logs (request IDs, IP/UA attribution, mutation diff payloads).
+6. Execute and archive staging RLS negative tests (`scripts/rls-negative-tests.sql`).
+7. Add content backup/export workflow before bulk replace operations.
 
 ## Acceptance criteria
 
-- [ ] `/admin/login` accepts `admin / admin123`; everything else fails inline.
-- [ ] Sign-out clears sessionStorage and bounces to `/admin/login`.
+- [ ] `/admin/login` validates via `/api/admin/sessions` and sets a signed session cookie.
+- [ ] Sign-out clears server session cookies and bounces to `/admin/login`.
 - [ ] `/admin` dashboard shows live counts (trips, itineraries, FAQ sections + total questions, corporate tiers).
 - [ ] Creating, editing, deleting a Trip from `/admin/trips` reflects on the homepage Explore Lebanon carousel + `/trips` listing + `/trips/[slug]` without a reload.
 - [ ] Creating, editing, deleting an Itinerary reflects on the `/chauffeur` carousel + `/itineraries` listing + `/itineraries/[slug]`.
 - [ ] FAQ section + question CRUD reflects on `/help/faq`.
 - [ ] Corporate tier CRUD reflects on `/corporate`.
-- [ ] `View page source` on `/admin` shows `X-Robots-Tag: noindex, nofollow` in the response headers (test via `curl -I`).
-- [ ] Resetting any resource brings back the seeded fixture.
+- [ ] `curl -I /admin/login` shows `X-Robots-Tag: noindex, nofollow`.
+- [ ] Reset flows restore seeded fixture rows through the CMS repository layer.

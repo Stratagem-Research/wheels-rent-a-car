@@ -77,9 +77,7 @@ export default function AdminFaqsPage() {
       exists >= 0
         ? activeGroup.entries.map((e, idx) => (idx === exists ? entry : e))
         : [...activeGroup.entries, entry];
-    const next = faqs.map((g) =>
-      g.id === activeGroup.id ? { ...g, entries: nextEntries } : g,
-    );
+    const next = faqs.map((g) => (g.id === activeGroup.id ? { ...g, entries: nextEntries } : g));
     void persistFaqs(next);
     setEditingEntry(null);
   };
@@ -88,9 +86,7 @@ export default function AdminFaqsPage() {
     if (!activeGroup) return;
     if (!confirm("Delete this question?")) return;
     const next = faqs.map((g) =>
-      g.id === activeGroup.id
-        ? { ...g, entries: g.entries.filter((e) => e.id !== entryId) }
-        : g,
+      g.id === activeGroup.id ? { ...g, entries: g.entries.filter((e) => e.id !== entryId) } : g,
     );
     void persistFaqs(next);
   };
@@ -116,7 +112,12 @@ export default function AdminFaqsPage() {
         <div className="bg-paper border-border flex flex-col gap-2 rounded-xl border p-4">
           <div className="flex items-center justify-between">
             <h2 className="headline-sm text-ink-100">Sections</h2>
-            <Button className="hover:cursor-pointer" variant="secondary" size="sm" onClick={addGroup}>
+            <Button
+              className="hover:cursor-pointer"
+              variant="secondary"
+              size="sm"
+              onClick={addGroup}
+            >
               <Plus className="size-4" aria-hidden="true" />
               New
             </Button>
@@ -185,7 +186,12 @@ export default function AdminFaqsPage() {
                   <p className="text-ink-60 overline">Section</p>
                   <h2 className="headline-md text-ink-100">{activeGroup.title}</h2>
                 </div>
-                <Button variant="primary" size="sm" className="hover:cursor-pointer" onClick={newEntry}>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="hover:cursor-pointer"
+                  onClick={newEntry}
+                >
                   <Plus className="size-4" aria-hidden="true" />
                   New question
                 </Button>

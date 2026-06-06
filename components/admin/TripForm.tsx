@@ -61,8 +61,17 @@ export function TripForm({ slug }: TripFormProps) {
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
   React.useEffect(() => {
-    setForm(initial);
-    setTagsInput(initial.tags.join(", "));
+    // Keep local draft synchronized when the backing trip record loads/changes.
+    // Queue state updates outside the effect body to satisfy the React hooks rule.
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setForm(initial);
+      setTagsInput(initial.tags.join(", "));
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [initial]);
 
   const update = <K extends keyof Trip>(key: K, value: Trip[K]) => {
@@ -150,11 +159,7 @@ export function TripForm({ slug }: TripFormProps) {
                 Delete
               </Button>
             ) : null}
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => router.push("/admin/trips")}
-            >
+            <Button type="button" variant="secondary" onClick={() => router.push("/admin/trips")}>
               Cancel
             </Button>
             <Button type="submit" variant="primary">
@@ -207,7 +212,9 @@ export function TripForm({ slug }: TripFormProps) {
               <Select
                 id={id}
                 value={form.suggestedVehicleCategory}
-                onChange={(e) => update("suggestedVehicleCategory", e.target.value as VehicleCategory)}
+                onChange={(e) =>
+                  update("suggestedVehicleCategory", e.target.value as VehicleCategory)
+                }
               >
                 {VEHICLE_CATEGORIES.map((c) => (
                   <option key={c} value={c} className="capitalize">
@@ -217,16 +224,9 @@ export function TripForm({ slug }: TripFormProps) {
               </Select>
             )}
           </Field>
-          <Field
-            label="Meta"
-            helper="Short label shown on cards (e.g. '8h · SUV recommended')."
-          >
+          <Field label="Meta" helper="Short label shown on cards (e.g. '8h · SUV recommended').">
             {({ id }) => (
-              <Input
-                id={id}
-                value={form.meta}
-                onChange={(e) => update("meta", e.target.value)}
-              />
+              <Input id={id} value={form.meta} onChange={(e) => update("meta", e.target.value)} />
             )}
           </Field>
           <Field label="Tags" helper="Comma-separated, lowercase.">
@@ -241,7 +241,12 @@ export function TripForm({ slug }: TripFormProps) {
           </Field>
         </div>
 
-        <Field label="Excerpt" required error={errors.excerpt} helper="One-line teaser on listings.">
+        <Field
+          label="Excerpt"
+          required
+          error={errors.excerpt}
+          helper="One-line teaser on listings."
+        >
           {({ id, describedBy, invalid }) => (
             <Textarea
               id={id}
@@ -254,16 +259,19 @@ export function TripForm({ slug }: TripFormProps) {
           )}
         </Field>
 
-        <Field label="Cover image path" required error={errors.coverImage} helper="e.g. /images/Trips Images/cedars.jpg">
+        <Field
+          label="Cover image path"
+          required
+          error={errors.coverImage}
+          helper="e.g. /images/Trips Images/cedars.jpg"
+        >
           {({ id, describedBy, invalid }) => (
             <Input
               id={id}
               aria-describedby={describedBy}
               invalid={invalid}
               value={form.coverImage.src}
-              onChange={(e) =>
-                update("coverImage", { ...form.coverImage, src: e.target.value })
-              }
+              onChange={(e) => update("coverImage", { ...form.coverImage, src: e.target.value })}
             />
           )}
         </Field>
@@ -273,9 +281,7 @@ export function TripForm({ slug }: TripFormProps) {
               <Input
                 id={id}
                 value={form.coverImage.alt}
-                onChange={(e) =>
-                  update("coverImage", { ...form.coverImage, alt: e.target.value })
-                }
+                onChange={(e) => update("coverImage", { ...form.coverImage, alt: e.target.value })}
               />
             )}
           </Field>

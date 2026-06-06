@@ -90,14 +90,7 @@ export function ServicePromos() {
   );
 }
 
-function ServiceCard({
-  href,
-  eyebrow,
-  title,
-  description,
-  cta,
-  image,
-}: (typeof SERVICES)[number]) {
+function ServiceCard({ href, eyebrow, title, description, cta, image }: (typeof SERVICES)[number]) {
   return (
     <article
       className="text-paper relative flex h-full flex-col justify-between overflow-hidden rounded-xl"

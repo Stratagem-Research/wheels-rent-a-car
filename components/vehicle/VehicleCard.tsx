@@ -239,9 +239,7 @@ export function VehicleCard({
               </span>
             </span>
             {totalLabel ? (
-              <span
-                className={cn("body-sm tabular-nums", dark ? "text-paper/55" : "text-ink-50")}
-              >
+              <span className={cn("body-sm tabular-nums", dark ? "text-paper/55" : "text-ink-50")}>
                 {totalLabel} total
               </span>
             ) : null}
@@ -262,7 +260,7 @@ export function VehicleCard({
           className={cn(
             "absolute -bottom-[10px] left-1/2 z-10 -translate-x-1/2",
             "size-0 border-x-8 border-x-transparent",
-            "border-t-[10px] border-t-signal-red",
+            "border-t-signal-red border-t-[10px]",
           )}
         />
       ) : null}
