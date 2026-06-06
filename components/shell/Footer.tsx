@@ -1,11 +1,12 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import Image from "next/image";
 import { Phone, MessageCircle, Mail } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { whatsAppHref } from "@/lib/whatsapp";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { useLocale, useTranslations } from "next-intl";
 
 /**
  * Global footer per 00_global.md §5 + DESIGN.md.
@@ -21,25 +22,31 @@ import { whatsAppHref } from "@/lib/whatsapp";
  */
 
 const WHEELS_LINKS = [
-  { href: "/about", label: "About" },
-  { href: "/locations", label: "Locations" },
-  { href: "/vehicles", label: "Fleet" },
-  { href: "/long-term", label: "Long-term rental" },
-  { href: "/chauffeur", label: "Chauffeur service" },
-  { href: "/corporate", label: "Corporate" },
+  { href: "/about", labelKey: "about", ns: "nav" },
+  { href: "/locations", labelKey: "locations", ns: "nav" },
+  { href: "/vehicles", labelKey: "fleet", ns: "footer" },
+  { href: "/long-term", labelKey: "longTermRental", ns: "footer" },
+  { href: "/chauffeur", labelKey: "chauffeurService", ns: "footer" },
+  { href: "/corporate", labelKey: "corporate", ns: "nav" },
 ] as const;
 
 const HELP_LINKS = [
-  { href: "/manage-booking", label: "Manage booking" },
-  { href: "/help", label: "Help centre" },
-  { href: "/help/faq", label: "FAQ" },
-  { href: "/help/rental-terms", label: "Rental terms" },
-  { href: "/help/insurance-and-coverage", label: "Insurance & coverage" },
-  { href: "/help/payment-and-deposits", label: "Payment & deposits" },
-  { href: "/help/cancellation-policy", label: "Cancellation policy" },
+  { href: "/manage-booking", labelKey: "manageBooking", ns: "footer" },
+  { href: "/help", labelKey: "helpCentre", ns: "footer" },
+  { href: "/help/faq", labelKey: "faq", ns: "hardcoded" },
+  { href: "/help/rental-terms", labelKey: "rentalTerms", ns: "hardcoded" },
+  { href: "/help/insurance-and-coverage", labelKey: "insuranceCoverage", ns: "hardcoded" },
+  { href: "/help/payment-and-deposits", labelKey: "paymentDeposits", ns: "hardcoded" },
+  { href: "/help/cancellation-policy", labelKey: "cancellationPolicy", ns: "hardcoded" },
 ] as const;
 
 export function Footer() {
+  const tFooter = useTranslations("footer");
+  const tNav = useTranslations("nav");
+  const tGlobal = useTranslations("global");
+  const locale = useLocale();
+  const pathname = usePathname();
+  const router = useRouter();
   const year = new Date().getFullYear();
 
   return (
@@ -79,23 +86,23 @@ export function Footer() {
             />
           </Link>
 
-          <FooterColumn title="Wheels">
+          <FooterColumn title={tFooter("wheels")}>
             {WHEELS_LINKS.map((l) => (
               <FooterLink key={l.href} href={l.href}>
-                {l.label}
+                {l.ns === "footer" ? tFooter(l.labelKey as never) : tNav(l.labelKey as never)}
               </FooterLink>
             ))}
           </FooterColumn>
 
-          <FooterColumn title="Help">
+          <FooterColumn title={tFooter("help")}>
             {HELP_LINKS.map((l) => (
               <FooterLink key={l.href} href={l.href}>
-                {l.label}
+                {resolveHelpLabel(l.labelKey, tFooter)}
               </FooterLink>
             ))}
           </FooterColumn>
 
-          <FooterColumn title="Contact">
+          <FooterColumn title={tFooter("contact")}>
             <a
               href="tel:+9611629100"
               className="body-sm text-paper/85 hover:text-paper inline-flex items-center gap-2"
@@ -110,7 +117,7 @@ export function Footer() {
               className="body-sm text-paper/85 hover:text-paper inline-flex items-center gap-2"
             >
               <MessageCircle className="size-4" aria-hidden="true" />
-              WhatsApp
+              {tGlobal("whatsapp")}
             </a>
             <a
               href="mailto:hello@wheelsrentacar.com.lb"
@@ -119,7 +126,7 @@ export function Footer() {
               <Mail className="size-4" aria-hidden="true" />
               hello@wheelsrentacar.com.lb
             </a>
-            <FooterLink href="/contact">All channels</FooterLink>
+            <FooterLink href="/contact">{tFooter("allChannels")}</FooterLink>
           </FooterColumn>
         </div>
       </div>
@@ -132,17 +139,24 @@ export function Footer() {
             "label-md text-paper/60",
           )}
         >
-          <span>© {year} Wheels Rent A Car</span>
+          <span>{tFooter("copyright", { year })}</span>
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
             <Link href="/privacy" className="hover:text-paper">
-              Privacy
+              {tFooter("privacy")}
             </Link>
             <Link href="/terms" className="hover:text-paper">
-              Terms
+              {tFooter("terms")}
             </Link>
             <Link href="/cookies" className="hover:text-paper">
-              Cookies
+              {tFooter("cookies")}
             </Link>
+            <div className="flex items-center gap-1">
+              <span className="label-sm text-paper/70">{tFooter("switchLanguage")}:</span>
+              <FooterLocaleSwitcher
+                locale={locale}
+                onChange={(nextLocale) => router.replace(pathname || "/", { locale: nextLocale })}
+              />
+            </div>
             <div className="flex items-center gap-2">
               <SocialIcon href="https://instagram.com/" label="Instagram">
                 <InstagramGlyph />
@@ -158,6 +172,59 @@ export function Footer() {
         </div>
       </div>
     </footer>
+  );
+}
+
+function resolveHelpLabel(
+  key: string,
+  tFooter: ReturnType<typeof useTranslations<"footer">>,
+): string {
+  switch (key) {
+    case "faq":
+      return "FAQ";
+    case "rentalTerms":
+      return "Rental terms";
+    case "insuranceCoverage":
+      return "Insurance & coverage";
+    case "paymentDeposits":
+      return "Payment & deposits";
+    case "cancellationPolicy":
+      return "Cancellation policy";
+    default:
+      return tFooter(key as never);
+  }
+}
+
+function FooterLocaleSwitcher({
+  locale,
+  onChange,
+}: {
+  locale: string;
+  onChange: (locale: "en" | "ar" | "fr") => void;
+}) {
+  const locales = [
+    { id: "en", label: "EN" },
+    { id: "ar", label: "AR" },
+    { id: "fr", label: "FR" },
+  ] as const;
+
+  return (
+    <div className="inline-flex items-center gap-1 rounded-pill border border-white/20 px-1 py-1">
+      {locales.map((l) => (
+        <button
+          key={l.id}
+          type="button"
+          onClick={() => onChange(l.id)}
+          className={cn(
+            "label-sm rounded-pill px-2 py-1 transition-colors",
+            locale === l.id ? "bg-paper text-ink-100" : "text-paper/80 hover:bg-white/20",
+          )}
+          aria-pressed={locale === l.id}
+        >
+          {l.label}
+        </button>
+      ))}
+    </div>
   );
 }
 

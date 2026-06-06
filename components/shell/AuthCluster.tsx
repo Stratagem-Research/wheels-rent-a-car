@@ -1,13 +1,13 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import * as Popover from "@radix-ui/react-popover";
 import { LogOut, BookOpen, FileText, User as UserIcon, Heart, LayoutDashboard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { useSession } from "@/hooks/useSession";
+import { Link, useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 
 /**
  * Header right-cluster — swaps"Sign in / Register" for an avatar dropdown
@@ -22,6 +22,7 @@ export interface AuthClusterProps {
 }
 
 export function AuthCluster({ transparent }: AuthClusterProps) {
+  const t = useTranslations("account");
   const { session, ready, signOut } = useSession();
   const router = useRouter();
 
@@ -44,7 +45,7 @@ export function AuthCluster({ transparent }: AuthClusterProps) {
       <Popover.Trigger asChild>
         <button
           type="button"
-          aria-label="Account menu"
+          aria-label={t("dashboard")}
           className={cn(
             "text-paper inline-flex size-9 items-center justify-center rounded-full",
             "bg-ink-100 hover:bg-ink-80",
@@ -68,19 +69,19 @@ export function AuthCluster({ transparent }: AuthClusterProps) {
           </div>
           <hr className="border-border my-1" />
           <MenuLink href="/account" icon={<LayoutDashboard className="size-4" />}>
-            Dashboard
+            {t("dashboard")}
           </MenuLink>
           <MenuLink href="/account/bookings" icon={<BookOpen className="size-4" />}>
-            My bookings
+            {t("myBookings")}
           </MenuLink>
           <MenuLink href="/account/documents" icon={<FileText className="size-4" />}>
-            Documents
+            {t("documents")}
           </MenuLink>
           <MenuLink href="/account/saved-vehicles" icon={<Heart className="size-4" />}>
-            Saved cars
+            {t("savedCars")}
           </MenuLink>
           <MenuLink href="/account/profile" icon={<UserIcon className="size-4" />}>
-            Profile
+            {t("profile")}
           </MenuLink>
           <hr className="border-border my-1" />
           <button
@@ -93,7 +94,7 @@ export function AuthCluster({ transparent }: AuthClusterProps) {
             )}
           >
             <LogOut className="text-ink-60 size-4" />
-            Sign out
+            {t("signOut")}
           </button>
         </Popover.Content>
       </Popover.Portal>
@@ -126,6 +127,7 @@ function MenuLink({
 }
 
 function SignedOut({ transparent }: { transparent: boolean }) {
+  const tGlobal = useTranslations("global");
   return (
     <>
       <Link
@@ -135,10 +137,10 @@ function SignedOut({ transparent }: { transparent: boolean }) {
           transparent ? "text-paper hover:bg-white/10" : "text-ink-80 hover:bg-ink-10",
         )}
       >
-        Sign in
+        {tGlobal("signIn")}
       </Link>
       <Button asChild variant="primary" size="sm">
-        <Link href="/register">Register</Link>
+        <Link href="/register">{tGlobal("register")}</Link>
       </Button>
     </>
   );

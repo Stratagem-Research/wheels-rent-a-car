@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Check, Clock, Copy } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/Toast";
 import type { BookingState } from "@/types/domain";
@@ -21,6 +22,7 @@ export interface ConfirmationStatusBlockProps {
 }
 
 export function ConfirmationStatusBlock({ state, bookingRef }: ConfirmationStatusBlockProps) {
+  const t = useTranslations("booking");
   const isPending = state === "pending";
 
   return (
@@ -41,16 +43,15 @@ export function ConfirmationStatusBlock({ state, bookingRef }: ConfirmationStatu
         id="confirmation-headline"
         className={cn("headline-xl", isPending ? "text-warning" : "text-ink-95")}
       >
-        {isPending ? "Your booking is pending" : "Your booking is confirmed"}
+        {isPending ? t("pendingTitle") : t("confirmedTitle")}
       </h1>
       <div className="flex flex-col items-center gap-1">
-        <span className="label-md text-ink-50 tracking-wider uppercase">Reference</span>
+        <span className="label-md text-ink-50 tracking-wider uppercase">{t("reference")}</span>
         <CopyableRef value={bookingRef} />
       </div>
       {isPending ? (
         <p className="body-md text-ink-60 max-w-md">
-          We&apos;ll confirm your booking within 24 hours of receiving payment and let you know on
-          WhatsApp.
+          {t("pendingBody")}
         </p>
       ) : null}
     </section>
@@ -58,16 +59,17 @@ export function ConfirmationStatusBlock({ state, bookingRef }: ConfirmationStatu
 }
 
 function CopyableRef({ value }: { value: string }) {
+  const t = useTranslations("booking");
   const [copied, setCopied] = React.useState(false);
 
   const onCopy = async () => {
     try {
       await navigator.clipboard.writeText(value);
       setCopied(true);
-      toast.success("Reference copied");
+      toast.success(t("referenceCopied"));
       window.setTimeout(() => setCopied(false), 1500);
     } catch {
-      toast.error("Couldn't copy — please copy manually.");
+      toast.error(t("referenceCopyError"));
     }
   };
 
@@ -75,7 +77,7 @@ function CopyableRef({ value }: { value: string }) {
     <button
       type="button"
       onClick={onCopy}
-      aria-label={`Copy booking reference ${value}`}
+      aria-label={t("copyReference", { value })}
       className={cn(
         "mono-lg text-ink-95 inline-flex items-center gap-2 rounded-md px-3 py-1.5",
         "hover:bg-ink-10 transition-colors",

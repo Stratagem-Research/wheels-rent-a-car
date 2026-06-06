@@ -23,14 +23,20 @@
     "wheels": "Wheels",
     "help": "Help",
     "contact": "Contact",
-    "trust": "Trust & social",
+    "fleet": "Fleet",
+    "longTermRental": "Long-term rental",
+    "chauffeurService": "Chauffeur service",
+    "manageBooking": "Manage booking",
+    "helpCentre": "Help centre",
+    "allChannels": "All channels",
     "copyright": "© {year} Wheels Rent A Car",
     "privacy": "Privacy",
     "terms": "Terms",
     "cookies": "Cookies",
     "languageEnglish": "English",
-    "languageArabic": "Arabic — coming soon",
-    "languageFrench": "French — coming soon"
+    "languageArabic": "Arabic",
+    "languageFrench": "French",
+    "switchLanguage": "Switch language"
   },
   "promo": {
     "dismiss": "Dismiss promo banner"
@@ -47,8 +53,59 @@
     }
   },
   "home": {
-    "heroHeadline": "Drive Lebanon, your way.",
-    "heroSubline": "Premium cars from $25/day · Free Beirut Airport pickup · WhatsApp support 24/7"
+    "heroHeadlineLine1": "Drive Lebanon,",
+    "heroHeadlineLine2": "your way.",
+    "heroSubline": "Premium cars from $25 a day. Free pickup at our Hazmieh hub. WhatsApp support, 24/7.",
+    "trustGoogle": "★ 5 on Google",
+    "trustRentals": "1,000+ rentals",
+    "trustHub": "Hazmieh hub",
+    "trustWhatsApp": "24/7 WhatsApp"
+  },
+  "search": {
+    "openSearchAria": "Open search bar",
+    "edit": "Edit",
+    "findYourCar": "Find your car",
+    "editYourSearch": "Edit your search",
+    "pickupLocation": "Pickup location",
+    "differentReturnLocation": "Different return location",
+    "sameAsPickup": "Same as pickup",
+    "returnLocation": "Return location",
+    "pickupDate": "Pickup date",
+    "pickupTime": "Pickup time",
+    "returnDate": "Return date",
+    "returnTime": "Return time",
+    "selectPickupTime": "Select pickup time",
+    "selectReturnTime": "Select return time",
+    "returnAfterPickupError": "Return must be after pickup.",
+    "promoCode": "Promo code",
+    "addPromoCode": "Add promo code",
+    "showCars": "Show cars",
+    "bookingSummary": "Booking summary",
+    "total": "Total",
+    "seeDetails": "See details"
+  },
+  "account": {
+    "dashboard": "Dashboard",
+    "myBookings": "My bookings",
+    "documents": "Documents",
+    "savedCars": "Saved cars",
+    "profile": "Profile",
+    "signOut": "Sign out",
+    "draft": "Draft",
+    "confirmed": "Confirmed",
+    "pending": "Pending",
+    "expired": "Expired",
+    "cancelled": "Cancelled",
+    "completed": "Completed"
+  },
+  "booking": {
+    "pendingTitle": "Your booking is pending",
+    "confirmedTitle": "Your booking is confirmed",
+    "reference": "Reference",
+    "pendingBody": "We'll confirm your booking within 24 hours of receiving payment and let you know on WhatsApp.",
+    "copyReference": "Copy booking reference {value}",
+    "referenceCopied": "Reference copied",
+    "referenceCopyError": "Couldn't copy — please copy manually."
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",

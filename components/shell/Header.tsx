@@ -1,13 +1,13 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
 import { Menu, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/Sheet";
 import { AuthCluster } from "./AuthCluster";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { useLocale, useTranslations } from "next-intl";
 
 /*
  * Global header per 00_global.md §3 + DESIGN.md §components.header.
@@ -24,12 +24,12 @@ import { AuthCluster } from "./AuthCluster";
 
 /** Primary nav — core routes + service pages. Help/contact live in the footer. */
 const NAV_LINKS = [
-  { href: "/vehicles", label: "Vehicles" },
-  { href: "/locations", label: "Locations" },
-  { href: "/long-term", label: "Long-term" },
-  { href: "/chauffeur", label: "Chauffeur" },
-  { href: "/corporate", label: "Corporate" },
-  { href: "/about", label: "About" },
+  { href: "/vehicles", labelKey: "vehicles" },
+  { href: "/locations", labelKey: "locations" },
+  { href: "/long-term", labelKey: "longTerm" },
+  { href: "/chauffeur", labelKey: "chauffeur" },
+  { href: "/corporate", labelKey: "corporate" },
+  { href: "/about", labelKey: "about" },
 ] as const;
 
 /** Mobile drawer — same primary nav as desktop; guest booking lookup lives in footer. */
@@ -42,7 +42,12 @@ export interface HeaderProps {
 }
 
 export function Header({ variant = "default" }: HeaderProps) {
+  const tGlobal = useTranslations("global");
+  const tNav = useTranslations("nav");
   const pathname = usePathname();
+  const locale = useLocale();
+  const isRtl = locale === "ar";
+  const router = useRouter();
   const [heroInView, setHeroInView] = React.useState(true);
   const [stuck, setStuck] = React.useState(false);
   const [mobileHidden, setMobileHidden] = React.useState(false);
@@ -66,7 +71,9 @@ export function Header({ variant = "default" }: HeaderProps) {
     }
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
+      (entries) => {
+        const entry = entries[0];
+        if (!entry) return;
         setHeroInView(entry.isIntersecting);
       },
       {
@@ -143,9 +150,10 @@ export function Header({ variant = "default" }: HeaderProps) {
         {/* Wheels logo — anchored LEFT (TravelPerk pattern). */}
         <Link
           href="/"
-          aria-label="Wheels Rent A Car home"
+          aria-label={tGlobal("brand")}
           className={cn(
-            "absolute left-1/2 -translate-x-1/2 lg:static lg:translate-x-0",
+            "absolute -translate-x-1/2 lg:static lg:translate-x-0",
+            isRtl ? "right-1/2" : "left-1/2",
             "focus-visible:outline-2 focus-visible:outline-offset-4",
             onDark ? "focus-visible:outline-paper" : "focus-visible:outline-ink-100",
           )}
@@ -187,13 +195,18 @@ export function Header({ variant = "default" }: HeaderProps) {
                       : "text-ink-60 hover:text-ink-100",
                 )}
               >
-                {link.label}
+                {tNav(link.labelKey)}
               </Link>
             );
           })}
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
+          <LocaleSwitcher
+            locale={locale}
+            onDark={onDark}
+            onChange={(nextLocale) => router.replace(pathname || "/", { locale: nextLocale })}
+          />
           <AuthCluster transparent={onDark} />
         </div>
 
@@ -201,7 +214,7 @@ export function Header({ variant = "default" }: HeaderProps) {
         <div className="flex flex-1 items-center justify-end lg:hidden">
           <Link
             href="/login"
-            aria-label="Sign in"
+            aria-label={tGlobal("signIn")}
             className={cn(
               "inline-flex size-9 items-center justify-center rounded-full",
               onDark ? "text-paper" : "text-ink-80 hover:bg-ink-10",
@@ -216,6 +229,13 @@ export function Header({ variant = "default" }: HeaderProps) {
 }
 
 function MobileMenu({ onDark }: { onDark: boolean }) {
+  const tGlobal = useTranslations("global");
+  const tNav = useTranslations("nav");
+  const tFooter = useTranslations("footer");
+  const pathname = usePathname();
+  const locale = useLocale();
+  const isRtl = locale === "ar";
+  const router = useRouter();
   const [open, setOpen] = React.useState(false);
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -233,21 +253,21 @@ function MobileMenu({ onDark }: { onDark: boolean }) {
           <Menu className="size-5" aria-hidden="true" />
         </button>
       </SheetTrigger>
-      <SheetContent side="left">
+      <SheetContent side={isRtl ? "right" : "left"}>
         <div className="flex flex-col gap-2 pt-4">
           <Link
             href="/login"
             onClick={() => setOpen(false)}
             className="button-md bg-ink-100 text-paper rounded-pill flex h-12 items-center justify-center px-7"
           >
-            Sign in
+            {tGlobal("signIn")}
           </Link>
           <Link
             href="/register"
             onClick={() => setOpen(false)}
             className="button-md border-ink-100 text-ink-100 rounded-pill flex h-12 items-center justify-center border-[1.5px] px-7"
           >
-            Create account
+            {tGlobal("register")}
           </Link>
           <div className="bg-divider my-2 h-px" />
           <nav aria-label="Primary mobile" className="flex flex-col">
@@ -258,12 +278,62 @@ function MobileMenu({ onDark }: { onDark: boolean }) {
                 onClick={() => setOpen(false)}
                 className="headline-xs text-ink-95 py-3.5"
               >
-                {link.label}
+                {tNav(link.labelKey)}
               </Link>
             ))}
           </nav>
+          <div className="bg-divider my-2 h-px" />
+          <div className="flex items-center gap-2">
+            <span className="label-md text-ink-60">{tFooter("switchLanguage")}:</span>
+            <LocaleSwitcher
+              locale={locale}
+              onChange={(nextLocale) => {
+                setOpen(false);
+                router.replace(pathname || "/", { locale: nextLocale });
+              }}
+            />
+          </div>
         </div>
       </SheetContent>
     </Sheet>
+  );
+}
+
+function LocaleSwitcher({
+  locale,
+  onDark,
+  onChange,
+}: {
+  locale: string;
+  onDark?: boolean;
+  onChange: (locale: "en" | "ar" | "fr") => void;
+}) {
+  const locales = [
+    { id: "en", label: "EN" },
+    { id: "ar", label: "AR" },
+    { id: "fr", label: "FR" },
+  ] as const;
+
+  return (
+    <div className="inline-flex items-center gap-1 rounded-pill border border-white/20 px-1 py-1">
+      {locales.map((l) => (
+        <button
+          key={l.id}
+          type="button"
+          onClick={() => onChange(l.id)}
+          className={cn(
+            "label-sm rounded-pill px-2 py-1 transition-colors",
+            locale === l.id
+              ? "bg-paper text-ink-100"
+              : onDark
+                ? "text-paper/80 hover:bg-white/20 hover:text-paper"
+                : "text-ink-60 hover:bg-ink-10 hover:text-ink-100",
+          )}
+          aria-pressed={locale === l.id}
+        >
+          {l.label}
+        </button>
+      ))}
+    </div>
   );
 }

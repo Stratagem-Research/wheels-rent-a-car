@@ -4,6 +4,7 @@ import * as React from "react";
 import Image from "next/image";
 import { format, parseISO } from "date-fns";
 import { Edit3, ChevronUp, X } from "lucide-react";
+import { useLocale } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import {
@@ -204,6 +205,7 @@ function PanelContents({
   tiers: ProtectionTier[];
   price: BookingPriceBreakdown;
 }) {
+  const locale = useLocale();
   const days = rentalDays(draft.pickup.datetime, draft.return.datetime);
   const pickupBranch = branches.find((b) => b.id === draft.pickup.locationId);
   const returnBranch = branches.find((b) => b.id === draft.return.locationId);
@@ -254,7 +256,7 @@ function PanelContents({
             {pickupBranch?.name ?? draft.pickup.address ?? "—"}
             <br />
             <span className="label-md text-ink-60">
-              {safeFormat(draft.pickup.datetime, "EEE, dd MMM HH:mm")}
+              {safeFormat(draft.pickup.datetime, locale)}
             </span>
           </>
         }
@@ -266,7 +268,7 @@ function PanelContents({
             {returnBranch?.name ?? draft.return.address ?? pickupBranch?.name ?? "—"}
             <br />
             <span className="label-md text-ink-60">
-              {safeFormat(draft.return.datetime, "EEE, dd MMM HH:mm")}
+              {safeFormat(draft.return.datetime, locale)}
             </span>
           </>
         }
@@ -434,9 +436,17 @@ function PriceRow({
   );
 }
 
-function safeFormat(iso: string, pattern: string): string {
+function safeFormat(iso: string, locale: string): string {
   try {
-    return format(parseISO(iso), pattern);
+    const d = parseISO(iso);
+    return new Intl.DateTimeFormat(locale === "ar" ? "ar-LB" : locale === "fr" ? "fr-FR" : "en-US", {
+      weekday: "short",
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: locale !== "fr",
+    }).format(d);
   } catch {
     return iso;
   }

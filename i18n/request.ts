@@ -1,4 +1,5 @@
 import { getRequestConfig } from "next-intl/server";
+import { routing, isAppLocale } from "./routing";
 
 /**
  * next-intl request config. Phase 1 ships English only — no URL prefix,
@@ -9,8 +10,9 @@ import { getRequestConfig } from "next-intl/server";
  * in Phase 2 — use a routing-aware i18n library (next-intl) and put copy in
  * message catalogs from day one."
  */
-export default getRequestConfig(async () => {
-  const locale = "en";
+export default getRequestConfig(async ({ requestLocale }) => {
+  const requested = await requestLocale;
+  const locale = requested && isAppLocale(requested) ? requested : routing.defaultLocale;
   const messages = (await import(`@/messages/${locale}.json`)).default;
   return { locale, messages };
 });

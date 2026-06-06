@@ -1,12 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
-import { format, parseISO } from "date-fns";
+import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { formatUsd } from "@/lib/booking/pricing";
 import type { Booking, BookingState } from "@/types/domain";
+import { Link } from "@/i18n/navigation";
+import { formatDateTimeByLocale } from "@/lib/i18n/format";
 
 const STATE_BADGE: Record<
   BookingState,
@@ -21,8 +22,13 @@ const STATE_BADGE: Record<
 };
 
 export function BookingHistoryRow({ booking }: { booking: Booking }) {
+  const t = useTranslations("account");
+  const locale = useLocale();
   const hero = booking.vehicleSnapshot.images[0];
-  const badge = STATE_BADGE[booking.state];
+  const badge = {
+    ...STATE_BADGE[booking.state],
+    label: t(booking.state),
+  };
 
   return (
     <Link
@@ -47,19 +53,11 @@ export function BookingHistoryRow({ booking }: { booking: Booking }) {
           {booking.vehicleSnapshot.make} {booking.vehicleSnapshot.model}
         </div>
         <div className="label-md text-ink-50">
-          {safeFormat(booking.pickup.datetime, "dd MMM HH:mm")} →{" "}
-          {safeFormat(booking.return.datetime, "dd MMM HH:mm")}
+          {formatDateTimeByLocale(booking.pickup.datetime, locale)} →{" "}
+          {formatDateTimeByLocale(booking.return.datetime, locale)}
         </div>
       </div>
       <div className="price-md text-ink-100">{formatUsd(booking.price.totalCents)}</div>
     </Link>
   );
-}
-
-function safeFormat(iso: string, pattern: string): string {
-  try {
-    return format(parseISO(iso), pattern);
-  } catch {
-    return iso;
-  }
 }

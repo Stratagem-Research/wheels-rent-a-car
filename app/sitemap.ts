@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { HELP_ARTICLES } from "@/lib/content/help";
+import { routing } from "@/i18n/routing";
 
 /**
  * Sitemap per 00_global.md §14. Daily revalidation comes from
@@ -14,6 +15,10 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 function url(path: string): string {
   return `${siteUrl}${path}`;
+}
+
+function localized(path: string): string[] {
+  return routing.locales.map((locale) => `/${locale}${path === "/" ? "" : path}`);
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -45,17 +50,21 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const helpArticleRoutes = Object.keys(HELP_ARTICLES).map((s) => `/help/${s}`);
 
   return [
-    ...staticRoutes.map((path) => ({
-      url: url(path),
-      lastModified: now,
-      changeFrequency: "weekly" as const,
-      priority: path === "/" ? 1 : 0.7,
-    })),
-    ...helpArticleRoutes.map((path) => ({
-      url: url(path),
-      lastModified: now,
-      changeFrequency: "monthly" as const,
-      priority: 0.4,
-    })),
+    ...staticRoutes.flatMap((path) =>
+      localized(path).map((localizedPath) => ({
+        url: url(localizedPath),
+        lastModified: now,
+        changeFrequency: "weekly" as const,
+        priority: path === "/" ? 1 : 0.7,
+      })),
+    ),
+    ...helpArticleRoutes.flatMap((path) =>
+      localized(path).map((localizedPath) => ({
+        url: url(localizedPath),
+        lastModified: now,
+        changeFrequency: "monthly" as const,
+        priority: 0.4,
+      })),
+    ),
   ];
 }

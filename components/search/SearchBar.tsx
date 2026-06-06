@@ -4,6 +4,7 @@ import * as React from "react";
 import { useRouter } from "next/navigation";
 import { format, parseISO } from "date-fns";
 import { Calendar, ChevronDown, Clock, Edit3, MapPin, Plus, X } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { DatePopover } from "@/components/ui/DatePopover";
@@ -17,6 +18,7 @@ import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
 import type { Branch } from "@/types/domain";
 import type { SearchCriteria } from "@/lib/search/types";
+import { formatDateShortByLocale, formatTimeByLocale } from "@/lib/i18n/format";
 
 /**
  * SearchBar — INK & SIGNAL rewrite (Phase 5). TravelPerk pattern: the search
@@ -44,6 +46,8 @@ export interface SearchBarProps {
 }
 
 export function SearchBar({ variant = "expanded", branches, className }: SearchBarProps) {
+  const t = useTranslations("search");
+  const locale = useLocale();
   const router = useRouter();
   const { criteria, setCriteria } = useLastSearch();
   const [promoOpen, setPromoOpen] = React.useState(Boolean(criteria.promoCode));
@@ -59,7 +63,7 @@ export function SearchBar({ variant = "expanded", branches, className }: SearchB
     const pickupAt = parseISO(`${criteria.pickupDate}T${criteria.pickupTime}`);
     const returnAt = parseISO(`${criteria.returnDate}T${criteria.returnTime}`);
     if (returnAt.getTime() <= pickupAt.getTime()) {
-      setError("Return must be after pickup.");
+      setError(t("returnAfterPickupError"));
       return;
     }
     track(EVENTS.SEARCH_SUBMITTED, {
@@ -68,7 +72,7 @@ export function SearchBar({ variant = "expanded", branches, className }: SearchB
     });
     setEditorOpen(false);
     router.push(`/book/select-vehicle?${params.toString()}`);
-  }, [criteria, router]);
+  }, [criteria, router, t]);
 
   return (
     <>
@@ -77,7 +81,7 @@ export function SearchBar({ variant = "expanded", branches, className }: SearchB
           <SheetTrigger asChild>
             <button
               type="button"
-              aria-label="Open search bar"
+              aria-label={t("openSearchAria")}
               className={cn(
                 "bg-paper rounded-pill flex w-full items-center gap-3 px-5 py-4 text-left",
                 "shadow-[var(--shadow-elevation-2)]",
@@ -86,13 +90,13 @@ export function SearchBar({ variant = "expanded", branches, className }: SearchB
             >
               <MapPin className="text-ink-60 size-4 shrink-0" aria-hidden="true" />
               <span className="body-sm text-ink-95 flex-1 truncate font-medium">
-                {summaryOf(criteria, branches)}
+                {summaryOf(criteria, branches, locale)}
               </span>
-              <span className="label-md text-ink-100">Edit</span>
+              <span className="label-md text-ink-100">{t("edit")}</span>
             </button>
           </SheetTrigger>
           <SheetContent side="bottom" className="max-h-[92vh] overflow-y-auto">
-            <SheetTitle>Find your car</SheetTitle>
+            <SheetTitle>{t("findYourCar")}</SheetTitle>
             <div className="mt-6">
               <ExpandedLayout
                 criteria={criteria}
@@ -103,6 +107,8 @@ export function SearchBar({ variant = "expanded", branches, className }: SearchB
                 error={error}
                 onSubmit={submit}
                 framed={false}
+                locale={locale}
+                t={t}
               />
             </div>
           </SheetContent>
@@ -118,6 +124,8 @@ export function SearchBar({ variant = "expanded", branches, className }: SearchB
             setPromoOpen={setPromoOpen}
             error={error}
             onSubmit={submit}
+            locale={locale}
+            t={t}
           />
         ) : (
           /* Desktop-compact: the entire pill is a Sheet trigger. Click
@@ -130,7 +138,7 @@ export function SearchBar({ variant = "expanded", branches, className }: SearchB
               <CompactLayout criteria={criteria} branches={branches} />
             </SheetTrigger>
             <SheetContent side="bottom" className="max-h-[92vh] overflow-y-auto">
-              <SheetTitle>Edit your search</SheetTitle>
+              <SheetTitle>{t("editYourSearch")}</SheetTitle>
               <div className="mt-6">
                 <ExpandedLayout
                   criteria={criteria}
@@ -141,6 +149,8 @@ export function SearchBar({ variant = "expanded", branches, className }: SearchB
                   error={error}
                   onSubmit={submit}
                   framed={false}
+                  locale={locale}
+                  t={t}
                 />
               </div>
             </SheetContent>
@@ -159,6 +169,8 @@ interface SharedProps {
   setPromoOpen: (next: boolean) => void;
   error: string | null;
   onSubmit: () => void;
+  locale: string;
+  t: ReturnType<typeof useTranslations<"search">>;
   /** Wrap the layout in the card-floating shell. Disabled inside the bottom sheet. */
   framed?: boolean;
 }
@@ -171,6 +183,8 @@ function ExpandedLayout({
   setPromoOpen,
   error,
   onSubmit,
+  locale,
+  t,
   framed = true,
 }: SharedProps) {
   // Chain pickup-date → pickup-time so picking both dates closes the calendar
@@ -185,7 +199,7 @@ function ExpandedLayout({
       <div className="flex flex-col gap-5">
         {/* Row 1 — full-width pickup. "+ Different return" toggles a paired return. */}
         <Field
-          label="Pickup location"
+          label={t("pickupLocation")}
           action={
             criteria.return.sameAsPickup ? (
               <button
@@ -202,7 +216,7 @@ function ExpandedLayout({
                   "focus-visible:outline-ink-100 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2",
                 )}
               >
-                <Plus className="size-3.5" aria-hidden="true" /> Different return location
+                <Plus className="size-3.5" aria-hidden="true" /> {t("differentReturnLocation")}
               </button>
             ) : (
               <button
@@ -216,7 +230,7 @@ function ExpandedLayout({
                 aria-label="Clear different return location"
                 className="label-md hover:text-ink-100 text-ink-60 inline-flex items-center gap-1"
               >
-                <X className="size-3.5" aria-hidden="true" /> Same as pickup
+                <X className="size-3.5" aria-hidden="true" /> {t("sameAsPickup")}
               </button>
             )
           }
@@ -238,7 +252,7 @@ function ExpandedLayout({
         </Field>
 
         {!criteria.return.sameAsPickup ? (
-          <Field label="Return location">
+          <Field label={t("returnLocation")}>
             <LocationPicker
               label="Return"
               branches={branches}
@@ -271,7 +285,7 @@ function ExpandedLayout({
 
         {/* Row 2 — date range + time pair. */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Field label="Pickup date">
+          <Field label={t("pickupDate")}>
             <DatePopover
               mode="range"
               open={pickupDateOpen}
@@ -295,20 +309,20 @@ function ExpandedLayout({
               renderTrigger={(_display, _isPlaceholder) => (
                 <FieldTrigger
                   icon={<Calendar className="text-ink-60 size-4 shrink-0" aria-hidden="true" />}
-                  value={format(parseISO(criteria.pickupDate), "d MMM yyyy")}
+                  value={formatDateShortByLocale(criteria.pickupDate, locale)}
                   placeholder={false}
                 />
               )}
             />
           </Field>
 
-          <Field label="Pickup time">
+          <Field label={t("pickupTime")}>
             <TimePicker
               value={criteria.pickupTime}
               onValueChange={(t) => setCriteria((p) => ({ ...p, pickupTime: t }))}
               open={pickupTimeOpen}
               onOpenChange={setPickupTimeOpen}
-              title="Select pickup time"
+              title={t("selectPickupTime")}
               renderTrigger={(display, isPlaceholder) => (
                 <FieldTrigger
                   icon={<Clock className="text-ink-60 size-4 shrink-0" aria-hidden="true" />}
@@ -319,7 +333,7 @@ function ExpandedLayout({
             />
           </Field>
 
-          <Field label="Return date">
+          <Field label={t("returnDate")}>
             <DatePopover
               mode="range"
               open={returnDateOpen}
@@ -342,20 +356,20 @@ function ExpandedLayout({
               renderTrigger={(_display, _isPlaceholder) => (
                 <FieldTrigger
                   icon={<Calendar className="text-ink-60 size-4 shrink-0" aria-hidden="true" />}
-                  value={format(parseISO(criteria.returnDate), "d MMM yyyy")}
+                  value={formatDateShortByLocale(criteria.returnDate, locale)}
                   placeholder={false}
                 />
               )}
             />
           </Field>
 
-          <Field label="Return time">
+          <Field label={t("returnTime")}>
             <TimePicker
               value={criteria.returnTime}
               onValueChange={(t) => setCriteria((p) => ({ ...p, returnTime: t }))}
               open={returnTimeOpen}
               onOpenChange={setReturnTimeOpen}
-              title="Select return time"
+              title={t("selectReturnTime")}
               renderTrigger={(display, isPlaceholder) => (
                 <FieldTrigger
                   icon={<Clock className="text-ink-60 size-4 shrink-0" aria-hidden="true" />}
@@ -378,10 +392,10 @@ function ExpandedLayout({
           <div className="flex-1">
             {promoOpen ? (
               <Input
-                placeholder="Promo code"
+                placeholder={t("promoCode")}
                 value={criteria.promoCode ?? ""}
                 onChange={(e) => setCriteria((p) => ({ ...p, promoCode: e.target.value }))}
-                aria-label="Promo code"
+                aria-label={t("promoCode")}
               />
             ) : (
               <button
@@ -393,12 +407,12 @@ function ExpandedLayout({
                   "focus-visible:outline-ink-100 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2",
                 )}
               >
-                + Add promo code
+                + {t("addPromoCode")}
               </button>
             )}
           </div>
           <Button variant="cta" onClick={onSubmit} fullWidth className="sm:w-auto">
-            Show cars
+            {t("showCars")}
           </Button>
         </div>
       </div>
@@ -426,12 +440,14 @@ const CompactLayout = React.forwardRef<
     branches: Branch[];
   }
 >(function CompactLayout({ criteria, branches, className, ...props }, ref) {
-  const { location, dates } = summaryParts(criteria, branches);
+  const t = useTranslations("search");
+  const locale = useLocale();
+  const { location } = summaryParts(criteria, branches);
   return (
     <button
       ref={ref}
       type="button"
-      aria-label="Edit your search"
+      aria-label={t("editYourSearch")}
       className={cn(
         "bg-paper border-ink-15 hover:border-ink-30 flex w-full items-center gap-3 rounded-pill border px-5 py-2 text-left transition-colors sm:gap-4",
         "focus-visible:outline-ink-100 focus-visible:outline-2 focus-visible:outline-offset-2",
@@ -449,12 +465,14 @@ const CompactLayout = React.forwardRef<
       <div className="body-md flex min-w-0 flex-1 items-center gap-3 truncate sm:gap-4">
         <span className="text-ink-95 truncate font-semibold">{location}</span>
         <span aria-hidden="true" className="bg-ink-20 hidden h-5 w-px shrink-0 sm:block" />
-        <span className="text-ink-60 hidden truncate tabular-nums sm:inline">{dates}</span>
+        <span className="text-ink-60 hidden truncate tabular-nums sm:inline">
+          {datesForLocale(criteria, locale)}
+        </span>
       </div>
 
       <span className="label-md text-ink-80 inline-flex shrink-0 items-center gap-1.5">
         <Edit3 className="size-4" aria-hidden="true" />
-        Edit
+        {t("edit")}
       </span>
     </button>
   );
@@ -533,41 +551,25 @@ function summaryParts(
       : (branch?.name ?? "Choose pickup");
 
   const dates =
-    `${formatDateShort(criteria.pickupDate)} | ${formatTime12(criteria.pickupTime)}` +
+    `${formatDateShortByLocale(criteria.pickupDate, "en")} | ${formatTimeByLocale(criteria.pickupTime, "en")}` +
     ` - ` +
-    `${formatDateShort(criteria.returnDate)} | ${formatTime12(criteria.returnTime)}`;
+    `${formatDateShortByLocale(criteria.returnDate, "en")} | ${formatTimeByLocale(criteria.returnTime, "en")}`;
   return { location, dates };
 }
 
 /** Mobile-trigger single-line summary. Same human-readable date + time
  * format as the desktop split, joined with a centre-dot and arrow so the
  * truncated pill still reads cleanly when it's the only visible part. */
-function summaryOf(criteria: SearchCriteria, branches: Branch[]): string {
-  const { location, dates } = summaryParts(criteria, branches);
+function summaryOf(criteria: SearchCriteria, branches: Branch[], locale: string): string {
+  const { location } = summaryParts(criteria, branches);
+  const dates = datesForLocale(criteria, locale);
   return `${location} · ${dates}`;
 }
 
-/** "2026-05-16" → "May 16". Year is appended only if it isn't the
- * current calendar year, so the common case stays concise. */
-function formatDateShort(iso: string): string {
-  if (!iso) return "—";
-  const d = new Date(`${iso}T00:00:00`);
-  if (Number.isNaN(d.getTime())) return iso;
-  const now = new Date();
-  const opts: Intl.DateTimeFormatOptions =
-    d.getFullYear() === now.getFullYear()
-      ? { month: "short", day: "numeric" }
-      : { month: "short", day: "numeric", year: "numeric" };
-  return d.toLocaleDateString("en-US", opts);
-}
-
-/** "10:00" → "10:00 AM"; "09:30" → "9:30 AM"; "00:00" → "12:00 AM". */
-function formatTime12(time24: string): string {
-  if (!time24) return "—";
-  const [hStr = "0", mStr = "00"] = time24.split(":");
-  const h = parseInt(hStr, 10);
-  if (Number.isNaN(h)) return time24;
-  const period = h >= 12 ? "PM" : "AM";
-  const h12 = h % 12 === 0 ? 12 : h % 12;
-  return `${h12}:${mStr} ${period}`;
+function datesForLocale(criteria: SearchCriteria, locale: string): string {
+  return (
+    `${formatDateShortByLocale(criteria.pickupDate, locale)} | ${formatTimeByLocale(criteria.pickupTime, locale)}` +
+    ` - ` +
+    `${formatDateShortByLocale(criteria.returnDate, locale)} | ${formatTimeByLocale(criteria.returnTime, locale)}`
+  );
 }

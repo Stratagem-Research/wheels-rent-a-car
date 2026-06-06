@@ -1,0 +1,114 @@
+{
+  "global": {
+    "brand": "ويلز لتأجير السيارات",
+    "tagline": "تأجير سيارات فاخر في لبنان",
+    "skipToContent": "تخطي إلى المحتوى",
+    "signIn": "تسجيل الدخول",
+    "register": "إنشاء حساب",
+    "callUs": "اتصل بنا",
+    "whatsapp": "واتساب",
+    "manageBooking": "إدارة الحجز"
+  },
+  "nav": {
+    "vehicles": "السيارات",
+    "locations": "المواقع",
+    "longTerm": "إيجار طويل الأمد",
+    "chauffeur": "سائق خاص",
+    "corporate": "الشركات",
+    "about": "من نحن",
+    "help": "المساعدة",
+    "contact": "اتصل بنا"
+  },
+  "footer": {
+    "wheels": "ويلز",
+    "help": "المساعدة",
+    "contact": "التواصل",
+    "fleet": "الأسطول",
+    "longTermRental": "إيجار طويل الأمد",
+    "chauffeurService": "خدمة السائق",
+    "manageBooking": "إدارة الحجز",
+    "helpCentre": "مركز المساعدة",
+    "allChannels": "كل القنوات",
+    "copyright": "© {year} ويلز لتأجير السيارات",
+    "privacy": "الخصوصية",
+    "terms": "الشروط",
+    "cookies": "ملفات تعريف الارتباط",
+    "languageEnglish": "الإنجليزية",
+    "languageArabic": "العربية",
+    "languageFrench": "الفرنسية",
+    "switchLanguage": "تغيير اللغة"
+  },
+  "promo": {
+    "dismiss": "إغلاق شريط العرض"
+  },
+  "whatsapp": {
+    "fabLabel": "تحدث معنا عبر واتساب",
+    "messages": {
+      "default": "مرحباً ويلز — لدي سؤال حول استئجار سيارة.",
+      "fleet": "مرحباً ويلز — أتصفح الأسطول وأحتاج مساعدة.",
+      "pdp": "مرحباً ويلز — أنا مهتم بـ {model}.",
+      "selectVehicle": "مرحباً ويلز — أحتاج مساعدة لاختيار سيارة.",
+      "checkout": "مرحباً ويلز — أنا أكمل الحجز وأحتاج مساعدة.",
+      "confirmation": "مرحباً ويلز — رقم حجزي {ref}. لدي استفسار."
+    }
+  },
+  "home": {
+    "heroHeadlineLine1": "اكتشف لبنان،",
+    "heroHeadlineLine2": "بطريقتك.",
+    "heroSubline": "سيارات مميزة ابتداءً من 25$ يومياً. استلام مجاني من حازمية. دعم واتساب 24/7.",
+    "trustGoogle": "★ 5 على Google",
+    "trustRentals": "+1000 حجز",
+    "trustHub": "مركز حازمية",
+    "trustWhatsApp": "واتساب 24/7"
+  },
+  "search": {
+    "openSearchAria": "فتح شريط البحث",
+    "edit": "تعديل",
+    "findYourCar": "ابحث عن سيارتك",
+    "editYourSearch": "عدّل بحثك",
+    "pickupLocation": "مكان الاستلام",
+    "differentReturnLocation": "مكان تسليم مختلف",
+    "sameAsPickup": "نفس مكان الاستلام",
+    "returnLocation": "مكان التسليم",
+    "pickupDate": "تاريخ الاستلام",
+    "pickupTime": "وقت الاستلام",
+    "returnDate": "تاريخ التسليم",
+    "returnTime": "وقت التسليم",
+    "selectPickupTime": "اختر وقت الاستلام",
+    "selectReturnTime": "اختر وقت التسليم",
+    "returnAfterPickupError": "يجب أن يكون وقت التسليم بعد الاستلام.",
+    "promoCode": "رمز العرض",
+    "addPromoCode": "إضافة رمز عرض",
+    "showCars": "عرض السيارات",
+    "bookingSummary": "ملخص الحجز",
+    "total": "الإجمالي",
+    "seeDetails": "عرض التفاصيل"
+  },
+  "account": {
+    "dashboard": "لوحة التحكم",
+    "myBookings": "حجوزاتي",
+    "documents": "المستندات",
+    "savedCars": "السيارات المحفوظة",
+    "profile": "الملف الشخصي",
+    "signOut": "تسجيل الخروج",
+    "draft": "مسودة",
+    "confirmed": "مؤكد",
+    "pending": "قيد الانتظار",
+    "expired": "منتهي",
+    "cancelled": "ملغي",
+    "completed": "مكتمل"
+  },
+  "booking": {
+    "pendingTitle": "حجزك قيد الانتظار",
+    "confirmedTitle": "تم تأكيد حجزك",
+    "reference": "المرجع",
+    "pendingBody": "سنؤكد حجزك خلال 24 ساعة من استلام الدفعة وسنبلغك عبر واتساب.",
+    "copyReference": "نسخ رقم الحجز {value}",
+    "referenceCopied": "تم نسخ المرجع",
+    "referenceCopyError": "تعذر النسخ — يرجى النسخ يدوياً."
+  },
+  "errors": {
+    "generic": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+    "offline": "الحجز الإلكتروني غير متاح مؤقتاً. تواصل معنا عبر واتساب."
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "global": {
+    "brand": "Wheels Rent A Car",
+    "tagline": "Location de voiture premium au Liban",
+    "skipToContent": "Aller au contenu",
+    "signIn": "Se connecter",
+    "register": "S'inscrire",
+    "callUs": "Nous appeler",
+    "whatsapp": "WhatsApp",
+    "manageBooking": "Gérer la réservation"
+  },
+  "nav": {
+    "vehicles": "Véhicules",
+    "locations": "Agences",
+    "longTerm": "Longue durée",
+    "chauffeur": "Chauffeur",
+    "corporate": "Entreprise",
+    "about": "À propos",
+    "help": "Aide",
+    "contact": "Contact"
+  },
+  "footer": {
+    "wheels": "Wheels",
+    "help": "Aide",
+    "contact": "Contact",
+    "fleet": "Flotte",
+    "longTermRental": "Location longue durée",
+    "chauffeurService": "Service chauffeur",
+    "manageBooking": "Gérer la réservation",
+    "helpCentre": "Centre d'aide",
+    "allChannels": "Tous les canaux",
+    "copyright": "© {year} Wheels Rent A Car",
+    "privacy": "Confidentialité",
+    "terms": "Conditions",
+    "cookies": "Cookies",
+    "languageEnglish": "Anglais",
+    "languageArabic": "Arabe",
+    "languageFrench": "Français",
+    "switchLanguage": "Changer de langue"
+  },
+  "promo": {
+    "dismiss": "Fermer la bannière promo"
+  },
+  "whatsapp": {
+    "fabLabel": "Discuter avec nous sur WhatsApp",
+    "messages": {
+      "default": "Bonjour Wheels — j'ai une question sur la location de voiture.",
+      "fleet": "Bonjour Wheels — je regarde la flotte et j'ai besoin d'aide.",
+      "pdp": "Bonjour Wheels — je suis intéressé par {model}.",
+      "selectVehicle": "Bonjour Wheels — j'ai besoin d'aide pour choisir une voiture.",
+      "checkout": "Bonjour Wheels — je finalise une réservation et j'ai besoin d'aide.",
+      "confirmation": "Bonjour Wheels — ma référence est {ref}. J'ai une question."
+    }
+  },
+  "home": {
+    "heroHeadlineLine1": "Conduisez le Liban,",
+    "heroHeadlineLine2": "à votre façon.",
+    "heroSubline": "Voitures premium dès 25$ par jour. Retrait gratuit à Hazmieh. Support WhatsApp 24/7.",
+    "trustGoogle": "★ 5 sur Google",
+    "trustRentals": "1 000+ locations",
+    "trustHub": "Hub de Hazmieh",
+    "trustWhatsApp": "WhatsApp 24/7"
+  },
+  "search": {
+    "openSearchAria": "Ouvrir la barre de recherche",
+    "edit": "Modifier",
+    "findYourCar": "Trouvez votre voiture",
+    "editYourSearch": "Modifier votre recherche",
+    "pickupLocation": "Lieu de départ",
+    "differentReturnLocation": "Lieu de retour différent",
+    "sameAsPickup": "Identique au départ",
+    "returnLocation": "Lieu de retour",
+    "pickupDate": "Date de départ",
+    "pickupTime": "Heure de départ",
+    "returnDate": "Date de retour",
+    "returnTime": "Heure de retour",
+    "selectPickupTime": "Sélectionnez l'heure de départ",
+    "selectReturnTime": "Sélectionnez l'heure de retour",
+    "returnAfterPickupError": "Le retour doit être après le départ.",
+    "promoCode": "Code promo",
+    "addPromoCode": "Ajouter un code promo",
+    "showCars": "Voir les voitures",
+    "bookingSummary": "Récapitulatif de réservation",
+    "total": "Total",
+    "seeDetails": "Voir les détails"
+  },
+  "account": {
+    "dashboard": "Tableau de bord",
+    "myBookings": "Mes réservations",
+    "documents": "Documents",
+    "savedCars": "Voitures enregistrées",
+    "profile": "Profil",
+    "signOut": "Se déconnecter",
+    "draft": "Brouillon",
+    "confirmed": "Confirmée",
+    "pending": "En attente",
+    "expired": "Expirée",
+    "cancelled": "Annulée",
+    "completed": "Terminée"
+  },
+  "booking": {
+    "pendingTitle": "Votre réservation est en attente",
+    "confirmedTitle": "Votre réservation est confirmée",
+    "reference": "Référence",
+    "pendingBody": "Nous confirmerons votre réservation dans les 24 heures après réception du paiement et vous informerons sur WhatsApp.",
+    "copyReference": "Copier la référence {value}",
+    "referenceCopied": "Référence copiée",
+    "referenceCopyError": "Impossible de copier — veuillez copier manuellement."
+  },
+  "errors": {
+    "generic": "Une erreur est survenue. Veuillez réessayer.",
+    "offline": "La réservation en ligne est temporairement indisponible. Contactez-nous sur WhatsApp."
+  }
+}

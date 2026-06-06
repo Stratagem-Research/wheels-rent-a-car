@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { SearchBar } from "@/components/search/SearchBar";
 import type { Branch } from "@/types/domain";
 
@@ -21,7 +22,8 @@ import type { Branch } from "@/types/domain";
  * Reduced-motion is respected by the SearchBar and downstream Reveal wrappers;
  * the hero itself uses no animation (background fades through CSS only).
  */
-export function Hero({ branches }: { branches: Branch[] }) {
+export async function Hero({ branches }: { branches: Branch[] }) {
+  const t = await getTranslations("home");
   return (
     <section id="home-hero" className="relative isolate -mt-16 overflow-hidden lg:-mt-18">
       {/* Full-bleed cinematic Lebanon photograph. `priority` so it counts as
@@ -49,12 +51,12 @@ export function Hero({ branches }: { branches: Branch[] }) {
         {/* Centred headline block, paper text over the photo overlay. */}
         <div className="flex max-w-3xl flex-col items-center gap-5 text-center">
           <h1 className="display-2xl text-paper text-[clamp(40px,7vw,88px)] leading-[0.96] tracking-[-0.035em]">
-            Drive Lebanon,
+            {t("heroHeadlineLine1")}
             <br />
-            your way.
+            {t("heroHeadlineLine2")}
           </h1>
           <p className="lead-lg text-paper/85 max-w-[540px]">
-            Premium cars from $25 a day. Free pickup at our Hazmieh hub. WhatsApp support, 24/7.
+            {t("heroSubline")}
           </p>
         </div>
 
@@ -64,13 +66,13 @@ export function Hero({ branches }: { branches: Branch[] }) {
             <SearchBar branches={branches} variant="expanded" />
           </div>
           <ul className="label-md text-paper/85 mt-2 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
-            <li>★ 5 on Google</li>
+            <li>{t("trustGoogle")}</li>
             <li aria-hidden="true">·</li>
-            <li>1,000+ rentals</li>
+            <li>{t("trustRentals")}</li>
             <li aria-hidden="true">·</li>
-            <li>Hazmieh hub</li>
+            <li>{t("trustHub")}</li>
             <li aria-hidden="true">·</li>
-            <li>24/7 WhatsApp</li>
+            <li>{t("trustWhatsApp")}</li>
           </ul>
         </div>
       </div>

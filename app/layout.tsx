@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
+import { getLocale, getMessages } from "next-intl/server";
 import { Suspense } from "react";
 import { RouteProgressBar, SkipToContent, ToastProvider } from "@/components/ui";
 import { MswProvider } from "@/lib/api/mocks/MswProvider";
 import { CookieBanner } from "@/components/consent/CookieBanner";
+import { isRtlLocale, routing } from "@/i18n/routing";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,6 +18,13 @@ export const metadata: Metadata = {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
     shortcut: "/favicon.svg",
   },
+  alternates: {
+    languages: {
+      en: "/en",
+      ar: "/ar",
+      fr: "/fr",
+    },
+  },
 };
 
 export default async function RootLayout({
@@ -24,10 +32,19 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
   const messages = await getMessages();
+  const direction = isRtlLocale(locale) ? "rtl" : "ltr";
+  const language = routing.locales.includes(locale as (typeof routing.locales)[number])
+    ? locale
+    : routing.defaultLocale;
 
   return (
-    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
+    <html
+      lang={language}
+      dir={direction}
+      className={`${GeistSans.variable} ${GeistMono.variable}`}
+    >
       <body>
         <NextIntlClientProvider messages={messages}>
           <MswProvider>
