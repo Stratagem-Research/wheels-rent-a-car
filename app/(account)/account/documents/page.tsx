@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/FormAtoms";
 import { FileUpload } from "@/components/ui/FileUpload";
@@ -30,6 +31,7 @@ const COUNTRIES = [
 ];
 
 export default function DocumentsPage() {
+  const t = useTranslations("accountDocuments");
   const [docs, setDocs] = React.useState<UserDocument[] | null>(null);
 
   React.useEffect(() => {
@@ -65,24 +67,24 @@ export default function DocumentsPage() {
       const others = (curr ?? []).filter((d) => d.type !== saved.type);
       return [...others, saved];
     });
-    toast.success("Document saved.");
+    toast.success(t("documentSaved"));
   };
 
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <h1 className="headline-xl text-ink-100">Documents</h1>
+        <h1 className="headline-xl text-ink-100">{t("title")}</h1>
         <p className="body-md text-ink-60 mt-1">
-          Upload your licence and ID once — every future booking pre-fills from here.
+          {t("subtitle")}
         </p>
       </header>
 
       <section aria-labelledby="dv-licence" className="flex flex-col gap-3">
         <h2 id="dv-licence" className="text-ink-50 overline">
-          Driver&apos;s licence
+          {t("licenceSection")}
         </h2>
         <DocumentVaultCard
-          title="Driver's licence"
+          title={t("licenceCardTitle")}
           document={licence}
           onReplace={() => {
             // Modal is mounted unconditionally below via the trigger.
@@ -90,19 +92,19 @@ export default function DocumentsPage() {
         />
         <UploadDocumentModal docType="licence" existing={licence} onSave={onSaveDoc}>
           <Button variant="secondary" size="sm" className="self-start">
-            {licence ? "Replace licence" : "Upload licence"}
+            {licence ? t("replaceLicence") : t("uploadLicence")}
           </Button>
         </UploadDocumentModal>
       </section>
 
       <section aria-labelledby="dv-id" className="flex flex-col gap-3">
         <h2 id="dv-id" className="text-ink-50 overline">
-          ID / Passport
+          {t("idSection")}
         </h2>
-        <DocumentVaultCard title="ID / Passport" document={id} />
+        <DocumentVaultCard title={t("idCardTitle")} document={id} />
         <UploadDocumentModal docType="id" existing={id} onSave={onSaveDoc}>
           <Button variant="secondary" size="sm" className="self-start">
-            {id ? "Replace ID" : "Upload ID / passport"}
+            {id ? t("replaceId") : t("uploadId")}
           </Button>
         </UploadDocumentModal>
       </section>
@@ -121,6 +123,7 @@ function UploadDocumentModal({
   onSave: (saved: UserDocument) => void;
   children: React.ReactNode;
 }) {
+  const t = useTranslations("accountDocuments");
   const [file, setFile] = React.useState<File | null>(null);
   const [number, setNumber] = React.useState(existing?.number ?? "");
   const [issueDate, setIssueDate] = React.useState(existing?.issueDate ?? "");
@@ -151,13 +154,11 @@ function UploadDocumentModal({
     <Modal>
       <ModalTrigger asChild>{children}</ModalTrigger>
       <ModalContent size="sm">
-        <ModalTitle>{existing ? "Replace document" : "Upload document"}</ModalTitle>
-        <ModalDescription>
-          PDF, JPG, or PNG up to 5 MB. We&apos;ll verify within 24 hours.
-        </ModalDescription>
+        <ModalTitle>{existing ? t("replaceDocument") : t("uploadDocument")}</ModalTitle>
+        <ModalDescription>{t("uploadDescription")}</ModalDescription>
         <div className="mt-4 flex flex-col gap-3">
           <FileUpload
-            label="Drag a file or browse"
+            label={t("dragOrBrowse")}
             accept=".pdf,.jpg,.jpeg,.png"
             maxSizeBytes={5 * 1024 * 1024}
             files={file ? [file] : []}
@@ -165,12 +166,12 @@ function UploadDocumentModal({
             onFileRemove={() => setFile(null)}
           />
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Document number" required>
+            <Field label={t("documentNumber")} required>
               {({ id }) => (
                 <Input id={id} value={number} onChange={(e) => setNumber(e.target.value)} />
               )}
             </Field>
-            <Field label="Issuing country" required>
+            <Field label={t("issuingCountry")} required>
               {({ id }) => (
                 <Select id={id} value={country} onChange={(e) => setCountry(e.target.value)}>
                   {COUNTRIES.map((c) => (
@@ -181,7 +182,7 @@ function UploadDocumentModal({
                 </Select>
               )}
             </Field>
-            <Field label="Issue date" required>
+            <Field label={t("issueDate")} required>
               {({ id }) => (
                 <Input
                   id={id}
@@ -191,7 +192,7 @@ function UploadDocumentModal({
                 />
               )}
             </Field>
-            <Field label="Expiry date" required>
+            <Field label={t("expiryDate")} required>
               {({ id }) => (
                 <Input
                   id={id}
@@ -204,14 +205,14 @@ function UploadDocumentModal({
           </div>
         </div>
         <ModalFooter>
-          <Button variant="secondary">Cancel</Button>
+          <Button variant="secondary">{t("cancel")}</Button>
           <Button
             variant="primary"
             loading={saving}
             disabled={!number || !issueDate || !expiryDate || saving}
             onClick={onSubmit}
           >
-            Save document
+            {t("saveDocument")}
           </Button>
         </ModalFooter>
       </ModalContent>

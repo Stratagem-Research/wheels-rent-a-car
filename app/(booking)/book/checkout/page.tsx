@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { ErrorText, Field } from "@/components/ui/FormAtoms";
@@ -30,6 +30,7 @@ import { ADD_ONS, PROTECTION_TIERS } from "@/lib/api/mocks/fixtures/catalog";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
 import type { PaymentMethod, SubmitBookingResponse } from "@/types/domain";
+import { Link } from "@/i18n/navigation";
 
 const COUNTRIES = [
   { code: "LB", name: "Lebanon" },
@@ -96,6 +97,7 @@ const emptyForm = (): CheckoutFormState => ({
 });
 
 export default function CheckoutPage() {
+  const tPayment = useTranslations("checkoutPayment");
   const router = useRouter();
   const { draft, setDraft, ready } = useBookingDraft();
   const [form, setForm] = React.useState<CheckoutFormState>(emptyForm);
@@ -193,15 +195,15 @@ export default function CheckoutPage() {
     ) {
       e.deliveryAddress = "Delivery address is required.";
     }
-    if (!form.paymentMethod) e.paymentMethod = "Choose a payment method.";
+    if (!form.paymentMethod) e.paymentMethod = tPayment("choosePaymentMethod");
     if (form.paymentMethod === "card") {
-      if (form.card.number.replace(/\s/g, "").length < 12) e.card = "Enter a valid card number.";
-      if (!form.card.expiry.match(/^\d{2}\/?\d{2}$/)) e.card = "Enter expiry as MM/YY.";
-      if (!form.card.cvv.match(/^\d{3,4}$/)) e.card = "Enter the CVV.";
-      if (!form.card.holder.trim()) e.card = "Cardholder name is required.";
+      if (form.card.number.replace(/\s/g, "").length < 12) e.card = tPayment("cardErrorNumber");
+      if (!form.card.expiry.match(/^\d{2}\/?\d{2}$/)) e.card = tPayment("cardErrorExpiry");
+      if (!form.card.cvv.match(/^\d{3,4}$/)) e.card = tPayment("cardErrorCvv");
+      if (!form.card.holder.trim()) e.card = tPayment("cardErrorHolder");
     }
     if (form.paymentMethod === "transfer" && !form.transferProof) {
-      e.transferProof = "Upload proof of transfer to submit.";
+      e.transferProof = tPayment("transferProofRequired");
     }
     if (!form.termsAccepted) e.terms = "Please accept the Terms & Conditions.";
     return e;
@@ -286,9 +288,7 @@ export default function CheckoutPage() {
         toast.warning("That vehicle was just taken — choose another.");
         router.push("/vehicles?step=1");
       } else if (err instanceof ApiError && err.status === 503) {
-        toast.warning(
-          "Whish online payment isn't configured locally. Choose cash, bank transfer, or OMT/Whish branch payment to test checkout.",
-        );
+        toast.warning(tPayment("whishUnavailable"));
       } else {
         toast.error(
           "We couldn't submit your booking. Please try again or chat with us on WhatsApp.",
@@ -302,16 +302,16 @@ export default function CheckoutPage() {
   const ctaLabel = (() => {
     switch (form.paymentMethod) {
       case "card":
-        return `Pay & confirm ${formatUsd(price.totalCents)}`;
+        return `${tPayment("payAndConfirm")} ${formatUsd(price.totalCents)}`;
       case "cash":
-        return "Confirm reservation";
+        return tPayment("confirmReservation");
       case "whish-online":
-        return `Continue to Whish ${formatUsd(price.totalCents)}`;
+        return `${tPayment("continueToWhish")} ${formatUsd(price.totalCents)}`;
       case "transfer":
       case "omt":
-        return "Submit booking — pending verification";
+        return tPayment("submitPendingVerification");
       default:
-        return `Pay & confirm ${formatUsd(price.totalCents)}`;
+        return `${tPayment("payAndConfirm")} ${formatUsd(price.totalCents)}`;
     }
   })();
 
@@ -347,7 +347,7 @@ export default function CheckoutPage() {
 
             <section aria-labelledby="payment-heading" className="flex flex-col gap-3">
               <h2 id="payment-heading" className="headline-md text-ink-95">
-                How would you like to pay?
+                {tPayment("howWouldYouLikeToPay")}
               </h2>
               <PaymentMethodSelector
                 value={form.paymentMethod}

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Checkbox } from "@/components/ui/Checkbox";
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/Modal";
 import { toast } from "@/components/ui/Toast";
 import { useSession } from "@/hooks/useSession";
+import { Link } from "@/i18n/navigation";
 
 const COUNTRIES = [
   { code: "LB", name: "Lebanon" },
@@ -31,6 +32,7 @@ const COUNTRIES = [
 ];
 
 export default function ProfilePage() {
+  const t = useTranslations("accountProfile");
   const { session, ready, signOut } = useSession();
 
   const [firstName, setFirstName] = React.useState("");
@@ -73,7 +75,7 @@ export default function ProfilePage() {
     setSaving(true);
     // Real backend: PATCH /api/account. Phase 1: optimistic local update only.
     await new Promise((r) => setTimeout(r, 400));
-    toast.success("Profile saved.");
+    toast.success(t("profileSaved"));
     setSaving(false);
   };
 
@@ -82,18 +84,18 @@ export default function ProfilePage() {
   return (
     <div className="flex max-w-xl flex-col gap-8">
       <header className="flex flex-col gap-2">
-        <p className="text-ink-60 overline">Profile</p>
-        <h1 className="headline-xl text-ink-100">Your details.</h1>
+        <p className="text-ink-60 overline">{t("profileLabel")}</p>
+        <h1 className="headline-xl text-ink-100">{t("title")}</h1>
         <p className="lead-md text-ink-60">
-          Update your personal information and communication preferences.
+          {t("subtitle")}
         </p>
       </header>
 
       <form onSubmit={onSave} className="flex flex-col gap-5">
         <Card variant="default" className="flex flex-col gap-5">
-          <h2 className="headline-md text-ink-100">Personal info</h2>
+          <h2 className="headline-md text-ink-100">{t("personalInfo")}</h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="First name" required>
+            <Field label={t("firstName")} required>
               {({ id }) => (
                 <Input
                   id={id}
@@ -103,7 +105,7 @@ export default function ProfilePage() {
                 />
               )}
             </Field>
-            <Field label="Last name" required>
+            <Field label={t("lastName")} required>
               {({ id }) => (
                 <Input
                   id={id}
@@ -114,9 +116,9 @@ export default function ProfilePage() {
               )}
             </Field>
             <Field
-              label="Email"
+              label={t("email")}
               required
-              helper={session.user.emailVerified ? "Verified" : "Pending verification"}
+              helper={session.user.emailVerified ? t("verified") : t("pendingVerification")}
             >
               {({ id }) => (
                 <Input
@@ -128,7 +130,7 @@ export default function ProfilePage() {
                 />
               )}
             </Field>
-            <Field label="Mobile" helper="Used for WhatsApp updates.">
+            <Field label={t("mobile")} helper={t("mobileHelper")}>
               {({ id }) => (
                 <Input
                   id={id}
@@ -140,16 +142,16 @@ export default function ProfilePage() {
               )}
             </Field>
             <Field
-              label="Date of birth"
+              label={t("dateOfBirth")}
               helper={
-                dobLocked ? "Locked after first save — used for driver-age validation." : undefined
+                dobLocked ? t("dobLockedHelper") : undefined
               }
             >
               {({ id }) => (
                 <Input id={id} type="date" defaultValue={session.user.dob} disabled={dobLocked} />
               )}
             </Field>
-            <Field label="Country of residence">
+            <Field label={t("countryOfResidence")}>
               {({ id }) => (
                 <Select id={id} value={country} onChange={(e) => setCountry(e.target.value)}>
                   {COUNTRIES.map((c) => (
@@ -164,40 +166,39 @@ export default function ProfilePage() {
         </Card>
 
         <Card variant="default" className="flex flex-col gap-4">
-          <h2 className="headline-md text-ink-100">Preferences</h2>
+          <h2 className="headline-md text-ink-100">{t("preferences")}</h2>
           <Checkbox
             checked={whatsappOptIn}
             onCheckedChange={(c) => setWhatsappOptIn(c === true)}
-            label="Send my booking updates via WhatsApp."
+            label={t("whatsappUpdates")}
           />
           <Checkbox
             checked={marketing}
             onCheckedChange={(c) => setMarketing(c === true)}
-            label="Send me occasional updates from Wheels."
+            label={t("marketingUpdates")}
           />
         </Card>
 
         <Card variant="default" className="flex flex-col gap-3">
-          <h2 className="headline-md text-ink-100">Security</h2>
+          <h2 className="headline-md text-ink-100">{t("security")}</h2>
           <ChangePasswordModal>
             <Button variant="secondary" size="sm" className="self-start">
-              Change password
+              {t("changePassword")}
             </Button>
           </ChangePasswordModal>
         </Card>
 
         <Button type="submit" variant="primary" size="md" className="self-start" loading={saving}>
-          Save changes
+          {t("saveChanges")}
         </Button>
       </form>
 
       <hr className="border-border" />
 
       <Card variant="default" className="flex flex-col gap-3">
-        <h2 className="headline-md text-signal-red">Danger zone</h2>
+        <h2 className="headline-md text-signal-red">{t("dangerZone")}</h2>
         <p className="body-sm text-ink-60">
-          Deleting your account removes your profile and saved cars. Past bookings stay in our
-          records for tax and insurance compliance.
+          {t("dangerDescription")}
         </p>
         <DeleteAccountModal onConfirm={signOut}>
           <Button
@@ -205,19 +206,20 @@ export default function ProfilePage() {
             size="sm"
             className="text-signal-red hover:bg-signal-red-bg self-start"
           >
-            Delete account
+            {t("deleteAccount")}
           </Button>
         </DeleteAccountModal>
       </Card>
 
       <Link href="/help/faq" className="label-md text-ink-60 underline-offset-2 hover:underline">
-        Need help with your account? →
+        {t("needHelp")} →
       </Link>
     </div>
   );
 }
 
 function ChangePasswordModal({ children }: { children: React.ReactNode }) {
+  const t = useTranslations("accountProfile");
   const [current, setCurrent] = React.useState("");
   const [next, setNext] = React.useState("");
   const [saving, setSaving] = React.useState(false);
@@ -225,7 +227,7 @@ function ChangePasswordModal({ children }: { children: React.ReactNode }) {
   const onSubmit = async () => {
     setSaving(true);
     await new Promise((r) => setTimeout(r, 300));
-    toast.success("Password updated.");
+    toast.success(t("passwordUpdated"));
     setCurrent("");
     setNext("");
     setSaving(false);
@@ -235,12 +237,10 @@ function ChangePasswordModal({ children }: { children: React.ReactNode }) {
     <Modal>
       <ModalTrigger asChild>{children}</ModalTrigger>
       <ModalContent size="sm">
-        <ModalTitle>Change password</ModalTitle>
-        <ModalDescription>
-          Pick a new password — at least 8 characters with a mix of letters and numbers.
-        </ModalDescription>
+        <ModalTitle>{t("changePassword")}</ModalTitle>
+        <ModalDescription>{t("changePasswordDescription")}</ModalDescription>
         <div className="mt-4 flex flex-col gap-3">
-          <Field label="Current password" required>
+          <Field label={t("currentPassword")} required>
             {({ id }) => (
               <Input
                 id={id}
@@ -251,7 +251,7 @@ function ChangePasswordModal({ children }: { children: React.ReactNode }) {
               />
             )}
           </Field>
-          <Field label="New password" required>
+          <Field label={t("newPassword")} required>
             {({ id }) => (
               <Input
                 id={id}
@@ -264,9 +264,9 @@ function ChangePasswordModal({ children }: { children: React.ReactNode }) {
           </Field>
         </div>
         <ModalFooter>
-          <Button variant="secondary">Cancel</Button>
+          <Button variant="secondary">{t("cancel")}</Button>
           <Button variant="primary" loading={saving} onClick={onSubmit}>
-            Update password
+            {t("updatePassword")}
           </Button>
         </ModalFooter>
       </ModalContent>
@@ -281,6 +281,7 @@ function DeleteAccountModal({
   onConfirm: () => Promise<void>;
   children: React.ReactNode;
 }) {
+  const t = useTranslations("accountProfile");
   const [emailEcho, setEmailEcho] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
 
@@ -288,7 +289,7 @@ function DeleteAccountModal({
     setSubmitting(true);
     await new Promise((r) => setTimeout(r, 400));
     await onConfirm();
-    toast.info("Your account has been deleted.");
+    toast.info(t("accountDeleted"));
     if (typeof window !== "undefined") window.location.href = "/";
   };
 
@@ -296,26 +297,26 @@ function DeleteAccountModal({
     <Modal>
       <ModalTrigger asChild>{children}</ModalTrigger>
       <ModalContent size="sm">
-        <ModalTitle>Delete your account?</ModalTitle>
-        <ModalDescription>This is permanent. Type your email to confirm.</ModalDescription>
+        <ModalTitle>{t("deleteAccountTitle")}</ModalTitle>
+        <ModalDescription>{t("deleteAccountDescription")}</ModalDescription>
         <div className="mt-4">
           <Input
             type="email"
-            placeholder="you@example.com"
+            placeholder={t("emailPlaceholder")}
             value={emailEcho}
             onChange={(e) => setEmailEcho(e.target.value)}
-            aria-label="Confirm by typing your email"
+            aria-label={t("confirmEmailAria")}
           />
         </div>
         <ModalFooter>
-          <Button variant="secondary">Keep account</Button>
+          <Button variant="secondary">{t("keepAccount")}</Button>
           <Button
             variant="cta"
             onClick={onSubmit}
             loading={submitting}
             disabled={!emailEcho || submitting}
           >
-            Delete account
+            {t("deleteAccount")}
           </Button>
         </ModalFooter>
       </ModalContent>

@@ -1,14 +1,15 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { Search } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
 import type { FaqEntry } from "@/types/domain";
+import { Link } from "@/i18n/navigation";
 
 /**
  * Help-desk centred search bar per 10_help_faq.md §2.
@@ -18,6 +19,7 @@ import type { FaqEntry } from "@/types/domain";
  * surfaces the WhatsApp fallback.
  */
 export function HelpSearchBar({ className }: { className?: string }) {
+  const t = useTranslations("helpUi");
   const [query, setQuery] = React.useState("");
   const [results, setResults] = React.useState<FaqEntry[] | null>(null);
   const [loading, setLoading] = React.useState(false);
@@ -44,12 +46,12 @@ export function HelpSearchBar({ className }: { className?: string }) {
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search for an answer…"
+          placeholder={t("searchPlaceholder")}
           startAdornment={<Search className="size-4" aria-hidden="true" />}
-          aria-label="Search help articles"
+          aria-label={t("searchAria")}
         />
         <Button type="submit" variant="primary" size="md" loading={loading}>
-          Search
+          {t("searchButton")}
         </Button>
       </form>
 
@@ -59,9 +61,9 @@ export function HelpSearchBar({ className }: { className?: string }) {
             <span aria-hidden="true" className="text-3xl">
               🤔
             </span>
-            <h3 className="headline-xs text-ink-95">No matches.</h3>
+            <h3 className="headline-xs text-ink-95">{t("noMatchesTitle")}</h3>
             <p className="body-sm text-ink-60">
-              Try different keywords or chat with us on WhatsApp.
+              {t("noMatchesBody")}
             </p>
           </div>
         ) : (

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import {
   CreditCard,
   Wallet,
@@ -37,29 +38,39 @@ import type { PaymentMethod } from "@/types/domain";
 const OPTIONS: {
   value: PaymentMethod;
   icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  tagline: string;
+  labelKey: string;
+  taglineKey: string;
 }[] = [
   {
     value: "whish-online",
     icon: Smartphone,
-    label: "Whish online checkout",
-    tagline: "Secure redirect to Whish payment page",
+    labelKey: "whishOnlineLabel",
+    taglineKey: "whishOnlineTagline",
   },
   {
     value: "card",
     icon: CreditCard,
-    label: "Credit / Debit card",
-    tagline: "Visa · Mastercard · Amex",
+    labelKey: "cardLabel",
+    taglineKey: "cardTagline",
   },
-  { value: "cash", icon: Wallet, label: "Cash on pickup", tagline: "USD or LBP at the counter" },
+  {
+    value: "cash",
+    icon: Wallet,
+    labelKey: "cashLabel",
+    taglineKey: "cashTagline",
+  },
   {
     value: "transfer",
     icon: Building2,
-    label: "Bank transfer",
-    tagline: "We hold the booking until verified",
+    labelKey: "transferLabel",
+    taglineKey: "transferTagline",
   },
-  { value: "omt", icon: Coins, label: "OMT / Whish / Bob", tagline: "Pay at any branch" },
+  {
+    value: "omt",
+    icon: Coins,
+    labelKey: "omtLabel",
+    taglineKey: "omtTagline",
+  },
 ];
 
 export interface CardFormValue {
@@ -91,13 +102,14 @@ export interface PaymentMethodSelectorProps {
 }
 
 export function PaymentMethodSelector(props: PaymentMethodSelectorProps) {
+  const t = useTranslations("checkoutPayment");
   const { value, onValueChange } = props;
 
   return (
     <RadioGroup
       value={value ?? ""}
       onValueChange={(v) => onValueChange(v as PaymentMethod)}
-      aria-label="Payment method"
+      aria-label={t("paymentMethodAria")}
       className="gap-3"
     >
       {OPTIONS.map((opt) => {
@@ -115,8 +127,8 @@ export function PaymentMethodSelector(props: PaymentMethodSelectorProps) {
               <div className="flex flex-1 items-start gap-3">
                 <opt.icon className="text-ink-100 mt-0.5 size-5" aria-hidden="true" />
                 <div className="min-w-0 flex-1">
-                  <div className="headline-xs text-ink-95">{opt.label}</div>
-                  <div className="body-sm text-ink-60">{opt.tagline}</div>
+                  <div className="headline-xs text-ink-95">{t(opt.labelKey)}</div>
+                  <div className="body-sm text-ink-60">{t(opt.taglineKey)}</div>
                 </div>
               </div>
             </label>
@@ -144,30 +156,31 @@ function MethodPanel(props: PaymentMethodSelectorProps & { method: PaymentMethod
 }
 
 function WhishOnlinePanel() {
+  const t = useTranslations("checkoutPayment");
   return (
     <Card variant="tint" className="p-4">
       <p className="body-sm text-ink-80">
-        You&apos;ll be redirected to Whish to complete payment securely. We only confirm the booking
-        after Whish status verification succeeds.
+        {t("whishOnlineBody")}
       </p>
     </Card>
   );
 }
 
 function CardPanel({ card, onCardChange, cardError }: PaymentMethodSelectorProps) {
+  const t = useTranslations("checkoutPayment");
   return (
     <Card variant="tint" className="flex flex-col gap-3 p-4">
       <div className="label-md text-ink-60 inline-flex items-center gap-1.5">
         <ShieldCheck className="size-3.5" aria-hidden="true" />
-        Hosted by Areeba — we never store your card details.
+        {t("cardHosted")}
       </div>
-      <Field label="Card number" required>
+      <Field label={t("cardNumber")} required>
         {({ id, describedBy, invalid }) => (
           <Input
             id={id}
             aria-describedby={describedBy}
             invalid={invalid}
-            placeholder="4242 4242 4242 4242"
+            placeholder={t("cardNumberPlaceholder")}
             autoComplete="cc-number"
             inputMode="numeric"
             value={card.number}
@@ -176,11 +189,11 @@ function CardPanel({ card, onCardChange, cardError }: PaymentMethodSelectorProps
         )}
       </Field>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Expiry" required>
+        <Field label={t("cardExpiry")} required>
           {({ id }) => (
             <Input
               id={id}
-              placeholder="MM/YY"
+              placeholder={t("cardExpiryPlaceholder")}
               autoComplete="cc-exp"
               inputMode="numeric"
               value={card.expiry}
@@ -188,11 +201,11 @@ function CardPanel({ card, onCardChange, cardError }: PaymentMethodSelectorProps
             />
           )}
         </Field>
-        <Field label="CVV" required>
+        <Field label={t("cardCvv")} required>
           {({ id }) => (
             <Input
               id={id}
-              placeholder="•••"
+              placeholder={t("cardCvvPlaceholder")}
               autoComplete="cc-csc"
               inputMode="numeric"
               value={card.cvv}
@@ -201,11 +214,11 @@ function CardPanel({ card, onCardChange, cardError }: PaymentMethodSelectorProps
           )}
         </Field>
       </div>
-      <Field label="Cardholder name" required>
+      <Field label={t("cardHolder")} required>
         {({ id }) => (
           <Input
             id={id}
-            placeholder="Full name as on card"
+            placeholder={t("cardHolderPlaceholder")}
             autoComplete="cc-name"
             value={card.holder}
             onChange={(e) => onCardChange({ ...card, holder: e.target.value })}
@@ -218,12 +231,10 @@ function CardPanel({ card, onCardChange, cardError }: PaymentMethodSelectorProps
 }
 
 function CashPanel() {
+  const t = useTranslations("checkoutPayment");
   return (
     <Card variant="tint" className="p-4">
-      <p className="body-sm text-ink-80">
-        Bring your payment in USD or LBP at pickup. A refundable security deposit is required at the
-        counter. Booking confirms instantly; we&apos;ll WhatsApp to verify 24 hours before pickup.
-      </p>
+      <p className="body-sm text-ink-80">{t("cashBody")}</p>
     </Card>
   );
 }
@@ -233,22 +244,22 @@ function TransferPanel({
   onTransferProofChange,
   pendingRef,
 }: PaymentMethodSelectorProps) {
-  const referenceLine = pendingRef ?? "(your booking ref appears here on submit)";
+  const t = useTranslations("checkoutPayment");
+  const referenceLine = pendingRef ?? t("pendingReferenceFallback");
   return (
     <Card variant="tint" className="flex flex-col gap-3 p-4">
       <ul className="body-sm text-ink-80 flex flex-col gap-1">
-        <li>· Bank: Bank of Beirut SAL</li>
-        <li>· IBAN: LB00 0000 0000 0000 0000 0000 0000</li>
+        <li>· {t("transferBank")}</li>
+        <li>· {t("transferIban")}</li>
         <li className="inline-flex items-center gap-2">
-          · Reference: <CopyableRef text={referenceLine}>{referenceLine}</CopyableRef>
+          · {t("transferReference")}: <CopyableRef text={referenceLine}>{referenceLine}</CopyableRef>
         </li>
       </ul>
       <HelperText>
-        Upload your proof of transfer. We&apos;ll confirm the booking within 24 hours. Accepted
-        formats: PDF, JPG, PNG, up to 5 MB.
+        {t("transferHelper")}
       </HelperText>
       <FileUpload
-        label="Upload proof of transfer"
+        label={t("transferUploadLabel")}
         accept=".pdf,.jpg,.jpeg,.png"
         maxSizeBytes={5 * 1024 * 1024}
         files={transferProof ? [transferProof] : []}
@@ -260,21 +271,22 @@ function TransferPanel({
 }
 
 function OmtPanel({ omtReceipt, onOmtReceiptChange, pendingRef }: PaymentMethodSelectorProps) {
-  const referenceLine = pendingRef ?? "(your booking ref appears here on submit)";
+  const t = useTranslations("checkoutPayment");
+  const referenceLine = pendingRef ?? t("pendingReferenceFallback");
   return (
     <Card variant="tint" className="flex flex-col gap-3 p-4">
       <ul className="body-sm text-ink-80 flex flex-col gap-1">
-        <li>· Pay in cash at any OMT, Whish, or Bob Finance branch.</li>
-        <li>· Code: ALWHEELS</li>
+        <li>· {t("omtBranchLine")}</li>
+        <li>· {t("omtCodeLine")}</li>
         <li className="inline-flex items-center gap-2">
-          · Reference: <CopyableRef text={referenceLine}>{referenceLine}</CopyableRef>
+          · {t("transferReference")}: <CopyableRef text={referenceLine}>{referenceLine}</CopyableRef>
         </li>
       </ul>
       <HelperText>
-        Optional: upload the receipt to speed up verification (we typically confirm within 4 hours).
+        {t("omtHelper")}
       </HelperText>
       <FileUpload
-        label="Upload OMT receipt (optional)"
+        label={t("omtUploadLabel")}
         accept=".pdf,.jpg,.jpeg,.png"
         maxSizeBytes={5 * 1024 * 1024}
         files={omtReceipt ? [omtReceipt] : []}
@@ -286,12 +298,13 @@ function OmtPanel({ omtReceipt, onOmtReceiptChange, pendingRef }: PaymentMethodS
 }
 
 function CopyableRef({ text, children }: { text: string; children: React.ReactNode }) {
+  const t = useTranslations("checkoutPayment");
   const onCopy = async () => {
     try {
       await navigator.clipboard.writeText(text);
-      toast.success("Copied to clipboard");
+      toast.success(t("copied"));
     } catch {
-      toast.error("Couldn't copy — please copy manually.");
+      toast.error(t("copyError"));
     }
   };
   return (

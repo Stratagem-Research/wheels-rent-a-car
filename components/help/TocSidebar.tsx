@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { HashLink } from "@/components/ui/HashLink";
 import { readLocationHash } from "@/lib/navigation/hashAnchor";
 import { cn } from "@/lib/utils";
@@ -18,6 +19,7 @@ export interface TocEntry {
  * TOC clicks use HashLink to avoid MSW intercepting `path#section` fetches.
  */
 export function TocSidebar({ entries, className }: { entries: TocEntry[]; className?: string }) {
+  const t = useTranslations("helpUi");
   const [activeId, setActiveId] = React.useState<string | null>(entries[0]?.id ?? null);
 
   // Pull the active section from the URL hash on mount. Synchronising
@@ -55,8 +57,8 @@ export function TocSidebar({ entries, className }: { entries: TocEntry[]; classN
   }, [entries]);
 
   return (
-    <nav aria-label="On this page" className={cn("flex flex-col gap-1", className)}>
-      <span className="text-ink-50 mb-3 overline">On this page</span>
+    <nav aria-label={t("onThisPage")} className={cn("flex flex-col gap-1", className)}>
+      <span className="text-ink-50 mb-3 overline">{t("onThisPage")}</span>
       <ol className="flex flex-col gap-1">
         {entries.map((entry) => (
           <li key={entry.id}>

@@ -1,8 +1,11 @@
-import Link from "next/link";
+"use client";
+
+import { useTranslations } from "next-intl";
 import { Phone, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { TocSidebar, type TocEntry } from "./TocSidebar";
 import { whatsAppHref } from "@/lib/whatsapp";
+import { Link } from "@/i18n/navigation";
 
 /**
  * Two-column long-form article layout per 10_help_faq.md + 15_legal_*.
@@ -17,13 +20,16 @@ export interface LegalArticleLayoutProps {
 }
 
 export function LegalArticleLayout({ title, lastUpdated, toc, children }: LegalArticleLayoutProps) {
+  const t = useTranslations("helpUi");
   return (
     <>
       <header className="bg-signal-blue-bg">
         <div className="mx-auto max-w-[var(--container-default)] px-5 py-10 sm:px-10 sm:py-14">
           <h1 className="headline-xl text-ink-95">{title}</h1>
           {lastUpdated ? (
-            <p className="label-md text-ink-60 mt-2">Last updated: {lastUpdated}</p>
+            <p className="label-md text-ink-60 mt-2">
+              {t("lastUpdated")}: {lastUpdated}
+            </p>
           ) : null}
         </div>
       </header>
@@ -51,20 +57,20 @@ export function LegalArticleLayout({ title, lastUpdated, toc, children }: LegalA
 
       <section className="bg-surface-subtle">
         <div className="mx-auto flex max-w-[var(--container-default)] flex-col items-center gap-3 px-5 py-10 text-center sm:px-10 sm:py-14">
-          <h2 className="headline-md text-ink-95">Have a question we didn&apos;t answer?</h2>
+          <h2 className="headline-md text-ink-95">{t("stillNeedHelpQuestion")}</h2>
           <div className="flex flex-wrap items-center justify-center gap-3">
             <Button asChild variant="whatsapp" size="md">
               <a href={whatsAppHref("default")} target="_blank" rel="noopener noreferrer">
-                <MessageCircle className="size-4" aria-hidden="true" /> WhatsApp us
+                <MessageCircle className="size-4" aria-hidden="true" /> {t("whatsappUs")}
               </a>
             </Button>
             <Button asChild variant="secondary" size="md">
               <a href="tel:+9611629100">
-                <Phone className="size-4" aria-hidden="true" /> Call +961 1 629 100
+                <Phone className="size-4" aria-hidden="true" /> {t("call")} +961 1 629 100
               </a>
             </Button>
             <Button asChild variant="tertiary" size="md">
-              <Link href="/contact">All channels →</Link>
+              <Link href="/contact">{t("allChannels")} →</Link>
             </Button>
           </div>
         </div>
