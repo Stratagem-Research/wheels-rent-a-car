@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { ErrorText, Field, HelperText } from "@/components/ui/FormAtoms";
 import { Input } from "@/components/ui/Input";
@@ -64,6 +65,7 @@ export function BookingLookupForm({
   defaultRef = "",
   defaultEmail = "",
 }: BookingLookupFormProps) {
+  const t = useTranslations("bookingLookup");
   const [ref, setRef] = React.useState(defaultRef.toUpperCase());
   const [email, setEmail] = React.useState(defaultEmail);
   const [error, setError] = React.useState<string | null>(null);
@@ -76,16 +78,16 @@ export function BookingLookupForm({
     // Client-side rate limit gate (matches server's 5/15min policy).
     const attempts = readAttempts();
     if (attempts.failures.length >= MAX_ATTEMPTS) {
-      setError("Too many attempts. Try again in a few minutes.");
+      setError(t("tooManyAttempts"));
       return;
     }
 
     if (!BOOKING_REF_PATTERN.test(ref.trim())) {
-      setError("That reference doesn't look right. Format: WRC-YYMMDD-XXXX.");
+      setError(t("invalidReference"));
       return;
     }
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) {
-      setError("Enter the email used at booking.");
+      setError(t("invalidEmail"));
       return;
     }
 
@@ -114,8 +116,8 @@ export function BookingLookupForm({
       const isServerError = err instanceof ApiError && err.status >= 500;
       setError(
         isServerError
-          ? "Something went wrong on our end. Please try again or chat with us on WhatsApp."
-          : "We couldn't find that booking. Check the reference and email.",
+          ? t("serverError")
+          : t("notFound"),
       );
     } finally {
       setSubmitting(false);
@@ -188,18 +190,18 @@ export function BookingLookupForm({
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
       <Field
-        label="Booking reference"
+        label={t("referenceLabel")}
         required
         helper={
           <HelperText className="text-ink-50">
-            Find this in your confirmation email or WhatsApp.
+            {t("referenceHelper")}
           </HelperText>
         }
       >
         {({ id, describedBy, invalid }) => (
           <Input
             id={id}
-            placeholder="WRC-260520-9KQ4"
+            placeholder={t("referencePlaceholder")}
             aria-describedby={describedBy}
             invalid={invalid}
             value={ref}
@@ -211,7 +213,7 @@ export function BookingLookupForm({
           />
         )}
       </Field>
-      <Field label="Email used at booking" required>
+      <Field label={t("emailLabel")} required>
         {({ id, describedBy, invalid }) => (
           <Input
             id={id}
@@ -226,7 +228,7 @@ export function BookingLookupForm({
       </Field>
       {error ? <ErrorText>{error}</ErrorText> : null}
       <Button type="submit" variant="cta" size="lg" fullWidth loading={submitting}>
-        Find my booking
+        {t("submit")}
       </Button>
     </form>
   );

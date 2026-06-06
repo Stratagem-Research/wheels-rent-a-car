@@ -1,15 +1,15 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/account", label: "Dashboard" },
-  { href: "/account/bookings", label: "My bookings" },
-  { href: "/account/profile", label: "Profile" },
-  { href: "/account/documents", label: "Documents" },
-  { href: "/account/saved-vehicles", label: "Saved cars" },
+  { href: "/account", labelKey: "dashboard" },
+  { href: "/account/bookings", labelKey: "myBookings" },
+  { href: "/account/profile", labelKey: "profile" },
+  { href: "/account/documents", labelKey: "documents" },
+  { href: "/account/saved-vehicles", labelKey: "savedCars" },
 ] as const;
 
 /**
@@ -19,6 +19,7 @@ const NAV = [
  * ink-100 chip with paper text. Mobile collapses to a horizontal scroll.
  */
 export function AccountNav() {
+  const t = useTranslations("account");
   const pathname = usePathname() ?? "";
 
   return (
@@ -43,7 +44,7 @@ export function AccountNav() {
               active ? "bg-ink-100 text-paper" : "text-ink-60 hover:bg-ink-10 hover:text-ink-100",
             )}
           >
-            {item.label}
+            {t(item.labelKey)}
           </Link>
         );
       })}

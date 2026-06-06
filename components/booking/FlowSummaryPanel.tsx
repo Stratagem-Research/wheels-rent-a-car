@@ -4,7 +4,7 @@ import * as React from "react";
 import Image from "next/image";
 import { format, parseISO } from "date-fns";
 import { Edit3, ChevronUp, X } from "lucide-react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import {
@@ -89,9 +89,10 @@ function DesktopPanel({
   secondary,
   price,
 }: InnerProps) {
+  const t = useTranslations("bookingSummary");
   return (
     <aside
-      aria-label="Booking summary"
+      aria-label={t("ariaLabel")}
       className={cn(
         "hidden flex-col lg:flex",
         // No shadow — INK & SIGNAL summary surfaces use a quiet 1px ink-15
@@ -134,6 +135,7 @@ function MobilePanel({
   secondary,
   price,
 }: InnerProps) {
+  const t = useTranslations("bookingSummary");
   const [open, setOpen] = React.useState(false);
   return (
     <div className="lg:hidden">
@@ -155,17 +157,17 @@ function MobilePanel({
                 )}
               >
                 <div className="flex flex-col">
-                  <span className="label-sm text-ink-40">Total</span>
+                  <span className="label-sm text-ink-40">{t("total")}</span>
                   <span className="price-md text-paper">{formatUsd(price.totalCents)}</span>
                 </div>
                 <span className="label-lg text-paper ml-auto inline-flex items-center gap-1">
-                  See details
+                  {t("seeDetails")}
                   <ChevronUp className="size-4" aria-hidden="true" />
                 </span>
               </button>
             </SheetTrigger>
             <SheetContent side="bottom" className="max-h-[80vh] overflow-y-auto">
-              <SheetTitle>Booking summary</SheetTitle>
+              <SheetTitle>{t("ariaLabel")}</SheetTitle>
               <div className="mt-4">
                 <PanelContents
                   draft={draft}
@@ -206,6 +208,7 @@ function PanelContents({
   price: BookingPriceBreakdown;
 }) {
   const locale = useLocale();
+  const t = useTranslations("bookingSummary");
   const days = rentalDays(draft.pickup.datetime, draft.return.datetime);
   const pickupBranch = branches.find((b) => b.id === draft.pickup.locationId);
   const returnBranch = branches.find((b) => b.id === draft.return.locationId);
@@ -241,16 +244,16 @@ function PanelContents({
         )}
         <div className="min-w-0">
           <div className="headline-sm text-ink-95 truncate">
-            {vehicle ? `${vehicle.make} ${vehicle.model}` : "No vehicle selected"}
+            {vehicle ? `${vehicle.make} ${vehicle.model}` : t("noVehicleSelected")}
           </div>
-          {vehicle ? <div className="label-sm text-ink-60 italic">or similar</div> : null}
+          {vehicle ? <div className="label-sm text-ink-60 italic">{t("orSimilar")}</div> : null}
         </div>
       </div>
 
       <hr className="border-border" />
 
       <SummaryRow
-        label="Pickup"
+        label={t("pickup")}
         value={
           <>
             {pickupBranch?.name ?? draft.pickup.address ?? "—"}
@@ -262,7 +265,7 @@ function PanelContents({
         }
       />
       <SummaryRow
-        label="Return"
+        label={t("return")}
         value={
           <>
             {returnBranch?.name ?? draft.return.address ?? pickupBranch?.name ?? "—"}
@@ -279,7 +282,7 @@ function PanelContents({
           type="button"
           className="label-lg text-ink-100 hover:text-ink-80 focus-visible:outline-ink-100 inline-flex items-center gap-1 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2"
         >
-          <Edit3 className="size-3.5" aria-hidden="true" /> Edit search
+          <Edit3 className="size-3.5" aria-hidden="true" /> {t("editSearch")}
         </button>
       </EditSearchModal>
 
@@ -287,11 +290,11 @@ function PanelContents({
         <>
           <hr className="border-border" />
           <SummaryRow
-            label="Rate"
+            label={t("rate")}
             value={
               <>
-                {draft.vehicle.rate.type === "best-price" ? "Best Price" : "Flexible"} ·{""}
-                {draft.vehicle.rate.mileage === "unlimited" ? "Unlimited km" : "200 km/day"}
+                {draft.vehicle.rate.type === "best-price" ? t("bestPrice") : t("flexible")} ·{""}
+                {draft.vehicle.rate.mileage === "unlimited" ? t("unlimitedKm") : t("cappedKm")}
               </>
             }
           />
@@ -302,7 +305,7 @@ function PanelContents({
         <>
           <hr className="border-border" />
           <div>
-            <h3 className="text-ink-50 mb-2 overline">Add-ons</h3>
+            <h3 className="text-ink-50 mb-2 overline">{t("addons")}</h3>
             <ul className="flex flex-col gap-1.5">
               {selectedExtras.map(({ extra, addOn }) => (
                 <li key={extra.addOnId} className="body-sm text-ink-80 flex items-center gap-2">
@@ -321,10 +324,10 @@ function PanelContents({
         <>
           <hr className="border-border" />
           <SummaryRow
-            label="Protection"
+            label={t("protection")}
             value={
               <>
-                {tier.name} {tier.perDayCents > 0 ? `· +${formatUsd(tier.perDayCents)}/day` : ""}
+                {tier.name} {tier.perDayCents > 0 ? `· +${formatUsd(tier.perDayCents)}${t("perDay")}` : ""}
               </>
             }
           />
@@ -334,14 +337,14 @@ function PanelContents({
       <hr className="border-border" />
 
       <div className="flex items-baseline justify-between">
-        <span className="headline-xs text-ink-95">Total</span>
+        <span className="headline-xs text-ink-95">{t("total")}</span>
         <span className="price-lg text-ink-95 transition-all duration-200">
           {formatUsd(price.totalCents)}
         </span>
       </div>
       {days ? (
         <div className="body-sm text-ink-60">
-          {days} {days === 1 ? "day" : "days"} · taxes & basic insurance included
+          {days} {days === 1 ? t("day") : t("days")} · {t("taxesIncluded")}
         </div>
       ) : null}
       <PriceDetailsModal price={price} />
@@ -359,18 +362,18 @@ function SummaryRow({ label, value }: { label: string; value: React.ReactNode })
 }
 
 function EditSearchModal({ children }: { children: React.ReactNode }) {
+  const t = useTranslations("bookingSummary");
   return (
     <Modal>
       <ModalTrigger asChild>{children}</ModalTrigger>
       <ModalContent size="sm">
-        <ModalTitle>Edit your search</ModalTitle>
+        <ModalTitle>{t("editSearchTitle")}</ModalTitle>
         <ModalDescription>
-          Use the back arrow above to return to step 1 (Vehicle) and change your pickup or return.
-          We&apos;ll keep your other selections.
+          {t("editSearchDescription")}
         </ModalDescription>
         <div className="mt-5 flex justify-end">
           <Button asChild variant="primary">
-            <a href="/book/select-vehicle">Back to vehicles</a>
+            <a href="/book/select-vehicle">{t("backToVehicles")}</a>
           </Button>
         </div>
       </ModalContent>
@@ -379,6 +382,7 @@ function EditSearchModal({ children }: { children: React.ReactNode }) {
 }
 
 function PriceDetailsModal({ price }: { price: BookingPriceBreakdown }) {
+  const t = useTranslations("bookingSummary");
   return (
     <Modal>
       <ModalTrigger asChild>
@@ -386,25 +390,25 @@ function PriceDetailsModal({ price }: { price: BookingPriceBreakdown }) {
           type="button"
           className="label-lg text-ink-100 hover:text-ink-80 focus-visible:outline-ink-100 self-start rounded-sm underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
         >
-          Price details
+          {t("priceDetails")}
         </button>
       </ModalTrigger>
       <ModalContent size="sm">
-        <ModalTitle>Price details</ModalTitle>
+        <ModalTitle>{t("priceDetailsTitle")}</ModalTitle>
         <dl className="body-sm text-ink-80 mt-4 flex flex-col gap-2">
-          <PriceRow label="Base rate" value={price.baseRateCents} />
-          {price.extrasCents > 0 ? <PriceRow label="Add-ons" value={price.extrasCents} /> : null}
+          <PriceRow label={t("baseRate")} value={price.baseRateCents} />
+          {price.extrasCents > 0 ? <PriceRow label={t("addons")} value={price.extrasCents} /> : null}
           {price.protectionCents > 0 ? (
-            <PriceRow label="Protection" value={price.protectionCents} />
+            <PriceRow label={t("protection")} value={price.protectionCents} />
           ) : null}
-          {price.feesCents > 0 ? <PriceRow label="Fees" value={price.feesCents} /> : null}
-          <PriceRow label="Taxes (11%)" value={price.taxesCents} />
+          {price.feesCents > 0 ? <PriceRow label={t("fees")} value={price.feesCents} /> : null}
+          <PriceRow label={t("taxes11")} value={price.taxesCents} />
           {price.discountCents > 0 ? (
-            <PriceRow label="Promo discount" value={-price.discountCents} />
+            <PriceRow label={t("promoDiscount")} value={-price.discountCents} />
           ) : null}
           <hr className="border-border my-1" />
-          <PriceRow label="Total" value={price.totalCents} bold />
-          <PriceRow label="Refundable deposit at pickup" value={price.depositCents} muted />
+          <PriceRow label={t("total")} value={price.totalCents} bold />
+          <PriceRow label={t("depositAtPickup")} value={price.depositCents} muted />
         </dl>
       </ModalContent>
     </Modal>
