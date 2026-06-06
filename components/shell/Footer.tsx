@@ -5,8 +5,9 @@ import Image from "next/image";
 import { Phone, MessageCircle, Mail } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { whatsAppHref } from "@/lib/whatsapp";
-import { Link, usePathname, useRouter } from "@/i18n/navigation";
-import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
+import { LocaleSwitcher } from "./LocaleSwitcher";
 
 /**
  * Global footer per 00_global.md §5 + DESIGN.md.
@@ -17,8 +18,7 @@ import { useLocale, useTranslations } from "next-intl";
  * social icons right. Dark gradient surface; paper text; logo inverted to
  * render in paper-on-ink.
  *
- * Language switcher (the old EN · AR · FR coming-soon strip) was removed —
- * Phase 1 is English-only and the placeholder labels were just visual noise.
+ * Language switcher lives in the bottom strip as a globe-icon dropdown.
  */
 
 const WHEELS_LINKS = [
@@ -44,9 +44,6 @@ export function Footer() {
   const tFooter = useTranslations("footer");
   const tNav = useTranslations("nav");
   const tGlobal = useTranslations("global");
-  const locale = useLocale();
-  const pathname = usePathname();
-  const router = useRouter();
   const year = new Date().getFullYear();
 
   return (
@@ -147,13 +144,7 @@ export function Footer() {
             <Link href="/cookies" className="hover:text-paper">
               {tFooter("cookies")}
             </Link>
-            <div className="flex items-center gap-1">
-              <span className="label-sm text-paper/70">{tFooter("switchLanguage")}:</span>
-              <FooterLocaleSwitcher
-                locale={locale}
-                onChange={(nextLocale) => router.replace(pathname || "/", { locale: nextLocale })}
-              />
-            </div>
+            <LocaleSwitcher variant="footer" />
             <div className="flex items-center gap-2">
               <SocialIcon href="https://instagram.com/" label="Instagram">
                 <InstagramGlyph />
@@ -190,39 +181,6 @@ function resolveHelpLabel(
     default:
       return tFooter(key as never);
   }
-}
-
-function FooterLocaleSwitcher({
-  locale,
-  onChange,
-}: {
-  locale: string;
-  onChange: (locale: "en" | "ar" | "fr") => void;
-}) {
-  const locales = [
-    { id: "en", label: "EN" },
-    { id: "ar", label: "AR" },
-    { id: "fr", label: "FR" },
-  ] as const;
-
-  return (
-    <div className="rounded-pill inline-flex items-center gap-1 border border-white/20 px-1 py-1">
-      {locales.map((l) => (
-        <button
-          key={l.id}
-          type="button"
-          onClick={() => onChange(l.id)}
-          className={cn(
-            "label-sm rounded-pill px-2 py-1 transition-colors",
-            locale === l.id ? "bg-paper text-ink-100" : "text-paper/80 hover:bg-white/20",
-          )}
-          aria-pressed={locale === l.id}
-        >
-          {l.label}
-        </button>
-      ))}
-    </div>
-  );
 }
 
 function FooterColumn({ title, children }: { title: string; children: React.ReactNode }) {

@@ -6,7 +6,8 @@ import { Menu, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/Sheet";
 import { AuthCluster } from "./AuthCluster";
-import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { LocaleSwitcher } from "./LocaleSwitcher";
+import { Link, usePathname } from "@/i18n/navigation";
 import { useLocale, useTranslations } from "next-intl";
 
 /*
@@ -47,7 +48,6 @@ export function Header({ variant = "default" }: HeaderProps) {
   const pathname = usePathname();
   const locale = useLocale();
   const isRtl = locale === "ar";
-  const router = useRouter();
   const [heroInView, setHeroInView] = React.useState(true);
   const [stuck, setStuck] = React.useState(false);
   const [mobileHidden, setMobileHidden] = React.useState(false);
@@ -202,16 +202,13 @@ export function Header({ variant = "default" }: HeaderProps) {
         </nav>
 
         <div className="hidden items-center gap-3 lg:flex">
-          <LocaleSwitcher
-            locale={locale}
-            onDark={onDark}
-            onChange={(nextLocale) => router.replace(pathname || "/", { locale: nextLocale })}
-          />
+          <LocaleSwitcher onDark={onDark} />
           <AuthCluster transparent={onDark} />
         </div>
 
         {/* Mobile cluster — far right. WhatsApp is on the global FAB. */}
-        <div className="flex flex-1 items-center justify-end lg:hidden">
+        <div className="flex flex-1 items-center justify-end gap-1 lg:hidden">
+          <LocaleSwitcher onDark={onDark} />
           <Link
             href="/login"
             aria-label={tGlobal("signIn")}
@@ -231,11 +228,8 @@ export function Header({ variant = "default" }: HeaderProps) {
 function MobileMenu({ onDark }: { onDark: boolean }) {
   const tGlobal = useTranslations("global");
   const tNav = useTranslations("nav");
-  const tFooter = useTranslations("footer");
-  const pathname = usePathname();
   const locale = useLocale();
   const isRtl = locale === "ar";
-  const router = useRouter();
   const [open, setOpen] = React.useState(false);
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -282,58 +276,8 @@ function MobileMenu({ onDark }: { onDark: boolean }) {
               </Link>
             ))}
           </nav>
-          <div className="bg-divider my-2 h-px" />
-          <div className="flex items-center gap-2">
-            <span className="label-md text-ink-60">{tFooter("switchLanguage")}:</span>
-            <LocaleSwitcher
-              locale={locale}
-              onChange={(nextLocale) => {
-                setOpen(false);
-                router.replace(pathname || "/", { locale: nextLocale });
-              }}
-            />
-          </div>
         </div>
       </SheetContent>
     </Sheet>
-  );
-}
-
-function LocaleSwitcher({
-  locale,
-  onDark,
-  onChange,
-}: {
-  locale: string;
-  onDark?: boolean;
-  onChange: (locale: "en" | "ar" | "fr") => void;
-}) {
-  const locales = [
-    { id: "en", label: "EN" },
-    { id: "ar", label: "AR" },
-    { id: "fr", label: "FR" },
-  ] as const;
-
-  return (
-    <div className="rounded-pill inline-flex items-center gap-1 border border-white/20 px-1 py-1">
-      {locales.map((l) => (
-        <button
-          key={l.id}
-          type="button"
-          onClick={() => onChange(l.id)}
-          className={cn(
-            "label-sm rounded-pill px-2 py-1 transition-colors",
-            locale === l.id
-              ? "bg-paper text-ink-100"
-              : onDark
-                ? "text-paper/80 hover:text-paper hover:bg-white/20"
-                : "text-ink-60 hover:bg-ink-10 hover:text-ink-100",
-          )}
-          aria-pressed={locale === l.id}
-        >
-          {l.label}
-        </button>
-      ))}
-    </div>
   );
 }
