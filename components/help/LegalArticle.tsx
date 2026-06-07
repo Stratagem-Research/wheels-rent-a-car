@@ -1,7 +1,7 @@
 import { getLocale } from "next-intl/server";
 import { LegalArticleLayout } from "./LegalArticleLayout";
 import { LEGAL_ARTICLES, type LegalArticle as LegalArticleType } from "@/lib/content/legal";
-import { DRAFT_NOTE_T, LEGAL_ARTICLE_T, localizeArticle } from "@/lib/content/content-i18n";
+import { LEGAL_ARTICLE_T, localizeArticle } from "@/lib/content/content-i18n";
 
 /**
  * Renderer for the privacy / terms / cookies pages.
@@ -14,20 +14,14 @@ export async function LegalArticle({ slug }: { slug: LegalArticleType["slug"] })
   const source = LEGAL_ARTICLES[slug];
   if (!source) return null;
   const article = localizeArticle(source, LEGAL_ARTICLE_T, locale);
-  const draftNote = article.draftNote
-    ? locale === "ar"
-      ? DRAFT_NOTE_T.ar
-      : locale === "fr"
-        ? DRAFT_NOTE_T.fr
-        : article.draftNote
-    : null;
   return (
     <LegalArticleLayout
       title={article.title}
       lastUpdated={article.lastUpdated}
       toc={article.sections.map((s) => ({ id: s.id, label: s.heading }))}
     >
-      {draftNote ? <p className="label-md text-warning">{draftNote}</p> : null}
+      {/* The "[draft by counsel]" notice is intentionally not rendered — the
+       * legal copy is under review by the client's lawyers. */}
       <p>{article.intro}</p>
       {article.sections.map((section) => (
         <section key={section.id}>

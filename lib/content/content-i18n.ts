@@ -266,12 +266,6 @@ export const HELP_ARTICLE_T: Record<string, ArticleLocales> = {
   },
 };
 
-/** Localized draft-note label shown above legal articles. */
-export const DRAFT_NOTE_T: { ar: string; fr: string } = {
-  ar: "[مسودة من المستشار القانوني]",
-  fr: "[projet par le conseil juridique]",
-};
-
 /** Legal-article translations (lib/content/legal.ts). */
 export const LEGAL_ARTICLE_T: Record<string, ArticleLocales> = {
   privacy: {
