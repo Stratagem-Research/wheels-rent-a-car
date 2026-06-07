@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { getLocale } from "next-intl/server";
 import { LegalArticleLayout } from "@/components/help/LegalArticleLayout";
 import { HELP_ARTICLES } from "@/lib/content/help";
+import { HELP_ARTICLE_T, localizeArticle } from "@/lib/content/content-i18n";
 
 /**
  * Long-form help articles (rental terms, insurance, payment, cancellation).
@@ -30,8 +32,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function HelpArticlePage({ params }: PageProps) {
   const { slug } = await params;
-  const article = HELP_ARTICLES[slug];
-  if (!article) notFound();
+  const source = HELP_ARTICLES[slug];
+  if (!source) notFound();
+  const locale = await getLocale();
+  const article = localizeArticle(source, HELP_ARTICLE_T, locale);
 
   return (
     <LegalArticleLayout

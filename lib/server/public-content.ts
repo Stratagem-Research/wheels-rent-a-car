@@ -2,15 +2,7 @@ import type { Branch, SiteConfig, Vehicle } from "@/types/domain";
 import { BRANCHES as FALLBACK_BRANCHES } from "@/lib/api/mocks/fixtures/branches";
 import { SITE_CONFIG as FALLBACK_SITE_CONFIG } from "@/lib/api/mocks/fixtures/content";
 import { VEHICLES as FALLBACK_VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
-import {
-  ABOUT_PULL_QUOTE,
-  ABOUT_STATS,
-  ABOUT_STORY_PARAGRAPHS,
-  ABOUT_TEAM_DEDICATION,
-  ABOUT_TEAM_INTRO,
-  ABOUT_TEAM,
-  FLEET_PHILOSOPHY,
-} from "@/lib/content/about";
+import { ABOUT_CONTENT_SEED } from "@/lib/supabase/seed-data";
 import {
   listAboutContent,
   listLocations,
@@ -76,23 +68,7 @@ export async function getPublicAboutContent() {
   } catch {
     // Ignore and fallback to static content.
   }
-  return {
-    storyParagraphs: { en: ABOUT_STORY_PARAGRAPHS },
-    pullQuote: { en: ABOUT_PULL_QUOTE },
-    fleetPhilosophy: {
-      heading: { en: FLEET_PHILOSOPHY.heading },
-      paragraphs: { en: FLEET_PHILOSOPHY.paragraphs },
-    },
-    stats: ABOUT_STATS.map((item) => ({ value: item.value, label: { en: item.label } })),
-    teamIntro: { en: ABOUT_TEAM_INTRO },
-    teamDedication: { en: ABOUT_TEAM_DEDICATION },
-    team: ABOUT_TEAM.map((member) => ({
-      name: member.name,
-      role: { en: member.role },
-      photo: member.photo,
-      quote: member.quote ? { en: member.quote } : undefined,
-      bio: { en: member.bio },
-      highlights: { en: member.highlights ?? [] },
-    })),
-  };
+  // Fallback to the localized seed (en/ar/fr) so the About page still
+  // translates even when the CMS about table isn't provisioned.
+  return ABOUT_CONTENT_SEED;
 }
