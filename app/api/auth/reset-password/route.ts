@@ -5,7 +5,6 @@ import { toDomainUser } from "@/lib/auth/map-user";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 
 const ResetSchema = z.object({
-  token: z.string().optional(),
   password: z.string().min(8),
 });
 

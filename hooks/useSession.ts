@@ -16,6 +16,12 @@ import type { User } from "@/types/domain";
  *   components on the same page (header avatar, account guard) stay in sync.
  */
 
+export interface SignUpResult {
+  session: Session | null;
+  /** True when Supabase requires email confirmation before sign-in. */
+  requiresEmailConfirmation: boolean;
+}
+
 export interface UseSessionReturn {
   session: Session | null;
   ready: boolean;
@@ -27,9 +33,9 @@ export interface UseSessionReturn {
     password: string;
     mobile?: string;
     marketing: boolean;
-  }) => Promise<Session>;
+  }) => Promise<SignUpResult>;
   forgotPassword: (email: string) => Promise<void>;
-  resetPassword: (token: string, password: string) => Promise<Session>;
+  resetPassword: (password: string) => Promise<Session>;
   signOut: () => Promise<void>;
 }
 
@@ -79,12 +85,20 @@ export function useSession(): UseSessionReturn {
       password: string;
       mobile?: string;
       marketing: boolean;
-    }) => {
-      const result = await api.post<{ user: User }>(endpoints.authRegister, input);
+    }): Promise<SignUpResult> => {
+      const result = await api.post<{ user: User; requiresEmailConfirmation?: boolean }>(
+        endpoints.authRegister,
+        input,
+      );
+      // If confirmation is required there is no real session yet — don't fake
+      // one, or the proxy will bounce the user straight back to /login.
+      if (result.requiresEmailConfirmation) {
+        return { session: null, requiresEmailConfirmation: true };
+      }
       const next: Session = { user: result.user };
       writeSession(next);
       setSession(next);
-      return next;
+      return { session: next, requiresEmailConfirmation: false };
     },
     [],
   );
@@ -93,8 +107,8 @@ export function useSession(): UseSessionReturn {
     await api.post(endpoints.authForgotPassword, { email });
   }, []);
 
-  const resetPassword = React.useCallback(async (token: string, password: string) => {
-    const result = await api.post<{ user: User }>(endpoints.authResetPassword, { token, password });
+  const resetPassword = React.useCallback(async (password: string) => {
+    const result = await api.post<{ user: User }>(endpoints.authResetPassword, { password });
     const next: Session = { user: result.user };
     writeSession(next);
     setSession(next);

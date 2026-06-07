@@ -18,16 +18,21 @@ import { useSession } from "@/hooks/useSession";
 export default function ResetPasswordPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { resetPassword } = useSession();
+  const { resetPassword, session, ready } = useSession();
 
-  const token = searchParams?.get("token") ?? "";
+  const callbackError = searchParams?.get("error");
   const [password, setPassword] = React.useState("");
   const [confirm, setConfirm] = React.useState("");
   const [show, setShow] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
 
-  if (!token) {
+  // The recovery link routes through /api/auth/callback, which establishes a
+  // session before forwarding here. No valid recovery session (and not still
+  // hydrating) means the link was bad, expired, or already consumed.
+  const invalidLink = Boolean(callbackError) || (ready && !session);
+
+  if (invalidLink) {
     return (
       <AuthCard
         title="Link expired or invalid"
@@ -58,7 +63,7 @@ export default function ResetPasswordPage() {
     }
     setSubmitting(true);
     try {
-      await resetPassword(token, password);
+      await resetPassword(password);
       toast.success("Password updated.");
       router.push("/account");
     } catch {

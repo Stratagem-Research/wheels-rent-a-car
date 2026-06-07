@@ -1,4 +1,12 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+
+/**
+ * Auth pages must never be indexed (per 14_auth.md "SEO & metadata").
+ */
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 /**
  * Slim auth shell per 14_auth.md.

@@ -48,17 +48,26 @@ export function proxy(req: NextRequest) {
     });
   }
 
-  // Auth gating for /account/*.
-  if (strippedPath.startsWith("/account")) {
-    const session = req.cookies.get(SESSION_COOKIE);
-    const hasSupabaseAuthCookie = req.cookies
+  const hasSession =
+    Boolean(req.cookies.get(SESSION_COOKIE)?.value) &&
+    req.cookies
       .getAll()
       .some((cookie) => cookie.name.startsWith("sb-") && cookie.name.endsWith("-auth-token"));
-    if (!session?.value || !hasSupabaseAuthCookie) {
+
+  // Auth gating for /account/*.
+  if (strippedPath.startsWith("/account")) {
+    if (!hasSession) {
       const loginUrl = new URL("/login", req.url);
       loginUrl.searchParams.set("redirect", strippedPath + search);
       return NextResponse.redirect(loginUrl);
     }
+  }
+
+  // Keep already-signed-in users out of the sign-in/sign-up pages. Note:
+  // /reset-password is intentionally excluded — recovery links land there
+  // *with* a session so the user can set a new password.
+  if ((strippedPath === "/login" || strippedPath === "/register") && hasSession) {
+    return NextResponse.redirect(new URL("/account", req.url));
   }
 
   // Admin dashboard — keep out of indexes and gate by server session cookie.

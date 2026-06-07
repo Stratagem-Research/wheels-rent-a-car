@@ -182,10 +182,13 @@ Confirm new password *           👁
 [      Save password      ]
 ```
 
-#### 3. Token states
+#### 3. Recovery-session states
 
-- **Valid token:** show form.
-- **Expired or invalid token:** show error state with `Request a new link →` button.
+The recovery link routes through `/api/auth/callback`, which establishes a
+session before forwarding here. There is no `?token` query param.
+
+- **Valid recovery session** (`useSession` ready with a session): show form.
+- **No session / `?error=…` from the callback:** show error state with `Request a new link →` button.
 
 #### 4. Success state
 
@@ -194,6 +197,9 @@ Confirm new password *           👁
 ---
 
 ## Login modal (mid-checkout)
+
+> **Status: ❌ Not implemented.** Checkout currently uses the guest flow only.
+> The design below is retained as the spec for when it's built.
 
 A modal version of the login form, used when an existing user hits checkout as a guest.
 
@@ -224,43 +230,55 @@ Bar + label under the password field. 4 levels: Weak, Okay, Good, Strong.
 
 ### `<OAuthButton />`
 
+> **Status: ❌ Not implemented.** No OAuth providers are configured in Supabase.
+
 White outline button with provider icon (Google, Apple). Reused across login and register.
 
 ---
 
 ## States & edge cases
 
-| Scenario                                           | Behavior                                                                                          |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Login: wrong password                              | Inline error: "Email or password incorrect." (generic to avoid enumeration).                      |
-| Login: 5 failed attempts                           | Lock account for 15 minutes; show clear message + reset link.                                     |
-| Register: email already in use                     | Inline error: "An account exists for this email — sign in or reset password."                     |
-| Forgot password: email not found                   | Show same success message regardless (no enumeration).                                            |
-| Reset password: token expired                      | Show error state with request-new-link CTA.                                                       |
-| Auth page accessed while signed in                 | Redirect to `/account` with toast: "You're already signed in."                                    |
-| Network failure mid-submit                         | Inline retry banner; preserve form state.                                                         |
-| OAuth provider returns no email                    | Show fallback: "Please complete your profile." → mini form for missing fields.                    |
+| Scenario                                           | Behavior                                                                                          | Status |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ------ |
+| Login: wrong password                              | Inline error: "Email or password incorrect." (generic to avoid enumeration).                      | ✅ Done |
+| Login: 5 failed attempts                           | Lock account for 15 minutes; show clear message + reset link.                                     | ⚠️ Supabase-side rate limiting only; no app-level lockout |
+| Register: email already in use                     | Supabase returns an error → inline form error.                                                    | ✅ Done |
+| Register: email confirmation required              | Show "Confirm your email" state; do not sign the user in.                                          | ✅ Done |
+| Forgot password: email not found                   | Show same success message regardless (no enumeration).                                            | ✅ Done |
+| Reset password: link expired/used                  | Callback redirects with `?error`; page shows request-new-link CTA.                                 | ✅ Done |
+| Auth page accessed while signed in                 | `proxy.ts` redirects `/login` + `/register` to `/account` (toast not implemented).                | ✅ Done (no toast) |
+| Network failure mid-submit                         | Inline error; form state preserved.                                                               | ✅ Done |
+| OAuth provider returns no email                    | Fallback profile-completion form.                                                                 | ❌ Not implemented (OAuth out of scope) |
 
 ---
 
 ## Data requirements
 
-- **Sign in:** `POST /api/auth/login` body `{ email, password }` → session token.
-- **Register:** `POST /api/auth/register` body `{ firstName, lastName, email, password, mobile?, marketing }` → session.
-- **Forgot password:** `POST /api/auth/forgot-password` body `{ email }` → 200 (always).
-- **Reset password:** `POST /api/auth/reset-password` body `{ token, password }` → session on success.
-- **OAuth:** `GET /api/auth/oauth/[provider]` initiates OAuth flow.
+Auth is backed by **Supabase Auth** (`@supabase/ssr`). The session lives in
+Supabase's `sb-*-auth-token` cookies; we additionally set a `wheels.session`
+cookie carrying the user id so `proxy.ts` can gate `/account/*` without calling
+Supabase on every request. Both must be present for a request to count as
+authenticated.
+
+- **Sign in:** `POST /api/auth/login` body `{ email, password }` → `{ user }`; sets `sb-*` + `wheels.session` cookies. 401 on bad credentials.
+- **Register:** `POST /api/auth/register` body `{ firstName, lastName, email, password, mobile?, marketing }` → `{ user, requiresEmailConfirmation }`. When `requiresEmailConfirmation` is `true`, **no session is issued** — the client shows a "Confirm your email" state instead of redirecting.
+- **Forgot password:** `POST /api/auth/forgot-password` body `{ email }` → always `200`. Sends a recovery link pointing at `/api/auth/callback?next=/reset-password`. Errors (incl. Supabase rate limits) are swallowed to prevent enumeration.
+- **Auth callback:** `GET /api/auth/callback?code=…&next=…` exchanges the one-time code (PKCE) for a session, sets cookies, then redirects to `next` (only same-origin relative paths allowed). Used by password recovery and email confirmation. On failure redirects to `next?error=…`.
+- **Reset password:** `POST /api/auth/reset-password` body `{ password }` → `{ user }`. Relies on the recovery session established by the callback (no `token` in the body). 400 if there is no valid recovery session.
+- **Current user:** `GET /api/auth/me` → `{ user }` or 401. Used by `useSession` to hydrate.
+- **Sign out:** `POST /api/auth/logout` → clears Supabase + `wheels.session` cookies.
+- **OAuth:** _Not implemented_ (no providers configured). See "Implementation status" below.
 
 ---
 
 ## Security
 
-- Passwords hashed with bcrypt or argon2 server-side.
-- Reset tokens one-time use, expire in 30 minutes.
-- Session token stored in `httpOnly Secure SameSite=Lax` cookie.
-- CSRF protection on all state-changing endpoints.
-- Rate-limit login (5 per IP per 15 min) and forgot-password (3 per IP per hour).
-- Generic errors on login and forgot-password to prevent email enumeration.
+- Password hashing, one-time reset codes, and email-confirmation are handled by **Supabase Auth**.
+- Recovery uses the PKCE flow: the verifier cookie set during `forgot-password` is consumed by `/api/auth/callback`.
+- `wheels.session` cookie is `httpOnly Secure(prod) SameSite=Lax`; Supabase auth cookies carry the real token.
+- Generic errors on login (401, no enumeration) and forgot-password (always 200).
+- **Rate-limiting:** handled by Supabase (login, signup, email send). No app-level per-IP lockout is implemented — a shared store (e.g. Upstash/Redis) would be required for reliable rate-limiting on serverless. Tracked as a follow-up.
+- Auth pages are `noindex, nofollow` via the `(auth)` layout metadata.
 
 ---
 
@@ -274,12 +292,42 @@ White outline button with provider icon (Google, Apple). Reused across login and
 
 ## Acceptance criteria
 
-- [ ] All auth pages render with the centered card shell, no global header nav, no WhatsApp FAB.
-- [ ] Password show/hide toggle works on every password field.
-- [ ] Login: wrong password and rate-limit messages appear correctly.
-- [ ] Register: T&C checkbox is required; password strength indicator updates as user types.
-- [ ] Forgot-password: success state shows after submission regardless of email validity.
-- [ ] Reset-password: invalid/expired tokens surface a clear error state.
-- [ ] Login modal mid-checkout works without leaving the page.
-- [ ] Auth pages pass axe-core AA.
-- [ ] All forms support browser autofill (correct `autocomplete` attributes).
+- [x] All auth pages render with the centered card shell, no global header nav, no WhatsApp FAB.
+- [x] Password show/hide toggle works on every password field.
+- [x] Login: wrong password message appears correctly. (Rate-limit is Supabase-side.)
+- [x] Register: T&C checkbox is required; password strength indicator updates as user types.
+- [x] Forgot-password: success state shows after submission regardless of email validity.
+- [x] Reset-password: invalid/expired links surface a clear error state.
+- [ ] Login modal mid-checkout works without leaving the page. _(Not implemented — see below.)_
+- [ ] Auth pages pass axe-core AA. _(Not re-verified after changes.)_
+- [x] All forms support browser autofill (correct `autocomplete` attributes).
+
+---
+
+## Implementation status (as of go-live prep)
+
+### Built and verified
+
+- `/login`, `/register`, `/forgot-password`, `/reset-password` pages.
+- API routes: `login`, `register`, `forgot-password`, `reset-password`, `logout`, `me`, and the new `callback`.
+- Supabase-backed sessions with `wheels.session` mirror cookie + `proxy.ts` gating of `/account/*`.
+- Signed-in users are redirected away from `/login` and `/register`.
+- Password recovery end-to-end via `/api/auth/callback` (PKCE code exchange).
+- Email-confirmation handling on register (no fake session).
+- `noindex` on all auth pages.
+- E2E smoke tests provision a confirmed Supabase user via the service-role key.
+
+### Not implemented (deferred — require product/infra decisions)
+
+- **OAuth** (`<OAuthButton />`, `/api/auth/oauth/[provider]`): needs Google/Apple provider credentials configured in Supabase. UI not wired.
+- **Login modal mid-checkout**: not built; checkout currently uses guest flow only.
+- **App-level rate-limiting / 5-attempt lockout**: relies on Supabase limits; a shared store is needed for per-IP enforcement on serverless.
+- **"You're already signed in" toast**: redirect happens, but without the toast.
+
+### Go-live action items (external config — cannot be done in code)
+
+1. **Supabase → Auth → URL Configuration:** add the production origin and `https://<domain>/api/auth/callback` to the allowed redirect URLs. (`supabase/config.toml` currently only lists `https://127.0.0.1:3000` for local.)
+2. **Set `WEBSITE_URL` and `NEXT_PUBLIC_SITE_URL`** to the production domain (currently `http://localhost:3000` in `.env`). These drive every auth redirect/callback URL.
+3. **Configure SMTP** in Supabase (Auth → Emails) so confirmation and password-reset emails actually send. Without it, `enable_confirmations` will block sign-in.
+4. **Decide on email confirmation:** if you want instant sign-in on register, disable confirmations in the hosted project (local `config.toml` already has `enable_confirmations = false`). Otherwise keep the confirm-email UX.
+5. **Replace placeholder secrets** in `.env` (`WHISH_*`, `WHEELS_INTERNAL_API_TOKEN`) before enabling payments/booking sync — unrelated to auth but required for `getServerEnv()` consumers to boot.

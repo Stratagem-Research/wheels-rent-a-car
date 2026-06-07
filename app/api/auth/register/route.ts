@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { toDomainUser } from "@/lib/auth/map-user";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
+import { getSiteUrl } from "@/lib/server/env";
 
 const RegisterSchema = z.object({
   firstName: z.string().min(1),
@@ -33,17 +34,22 @@ export async function POST(request: Request) {
         whatsapp_opt_in: true,
         country: "LB",
       },
+      emailRedirectTo: `${getSiteUrl()}/api/auth/callback?next=${encodeURIComponent("/account")}`,
     },
   });
 
   if (error || !data.user) {
-    return NextResponse.json(
-      { message: error?.message ?? "Registration failed." },
-      { status: 400 },
-    );
+    return NextResponse.json({ message: error?.message ?? "Registration failed." }, { status: 400 });
   }
 
-  const response = NextResponse.json({ user: toDomainUser(data.user) });
+  // When email confirmation is enabled, Supabase returns a user but no session.
+  // The caller must NOT be treated as signed in until they confirm.
+  const requiresEmailConfirmation = !data.session;
+
+  const response = NextResponse.json({
+    user: toDomainUser(data.user),
+    requiresEmailConfirmation,
+  });
   if (data.session) {
     response.cookies.set(SESSION_COOKIE_NAME, data.user.id, {
       httpOnly: true,

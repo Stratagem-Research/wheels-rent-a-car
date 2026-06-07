@@ -38,9 +38,29 @@
 - Full launch mode (includes payment envs): `pnpm env:check`
 - Payment-deferred mode: `pnpm env:check:payment-deferred`
 
+## Auth (Supabase) configuration
+
+`WEBSITE_URL` (or `NEXT_PUBLIC_SITE_URL` as fallback) is the origin used to build
+every auth redirect/callback URL. It **must** be the real production domain
+before go-live — local defaults to `http://localhost:3000`.
+
+In the **Supabase dashboard → Authentication → URL Configuration**, the allowed
+redirect URLs must include:
+
+- `https://<production-domain>/api/auth/callback`
+- (optionally) `http://localhost:3000/api/auth/callback` for local testing
+
+`supabase/config.toml` currently lists only `https://127.0.0.1:3000` for local
+dev; the hosted project's allow-list is configured separately in the dashboard.
+
+Also configure **SMTP** (Auth → Emails) so password-reset and email-confirmation
+messages send, and decide whether `enable_confirmations` should be on for the
+hosted project.
+
 ## Secret handling
 
 - Keep server-only vars out of client bundles.
 - Store secrets in managed secret store (not in git).
 - Rotate internal token and payment secrets on a defined cadence.
 - Immediately rotate any credentials that were previously shared outside secret managers.
+- `.env` currently contains placeholder values (`replace-with-real-*`) for `WHISH_CHANNEL`, `WHISH_SECRET`, and `WHEELS_INTERNAL_API_TOKEN` — replace before enabling payments/booking sync.

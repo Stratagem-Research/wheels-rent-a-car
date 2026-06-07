@@ -38,3 +38,21 @@ export function getServerEnv(): ServerEnv {
     WHEELS_INTERNAL_API_TOKEN: process.env.WHEELS_INTERNAL_API_TOKEN,
   });
 }
+
+/**
+ * Canonical public origin for building absolute redirect URLs (auth callbacks,
+ * password-reset links). Resolves without forcing the full server-env schema —
+ * so auth flows don't depend on unrelated secrets (Whish, internal API) being
+ * present. Order: WEBSITE_URL → NEXT_PUBLIC_SITE_URL → localhost.
+ */
+export function getSiteUrl(): string {
+  const candidate = process.env.WEBSITE_URL || process.env.NEXT_PUBLIC_SITE_URL;
+  if (candidate) {
+    try {
+      return new URL(candidate).origin;
+    } catch {
+      // fall through to default on malformed values
+    }
+  }
+  return "http://localhost:3000";
+}

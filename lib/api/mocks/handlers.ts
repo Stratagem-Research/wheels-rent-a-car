@@ -356,7 +356,9 @@ export const handlers = [
 
   // ── Auth ───────────────────────────────────────────────────────────────
   http.post(endpoints.authLogin, async () => HttpResponse.json({ user: MOCK_USER })),
-  http.post(endpoints.authRegister, async () => HttpResponse.json({ user: MOCK_USER })),
+  http.post(endpoints.authRegister, async () =>
+    HttpResponse.json({ user: MOCK_USER, requiresEmailConfirmation: false }),
+  ),
   http.post(endpoints.authForgotPassword, async () => HttpResponse.json({ ok: true })),
   http.post(endpoints.authResetPassword, async () => HttpResponse.json({ user: MOCK_USER })),
   http.post(endpoints.authLogout, async () => HttpResponse.json({ ok: true })),

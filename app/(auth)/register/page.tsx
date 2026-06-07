@@ -34,6 +34,7 @@ export default function RegisterPage() {
 
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [submitting, setSubmitting] = React.useState(false);
+  const [confirmationSent, setConfirmationSent] = React.useState(false);
 
   const validate = (): Record<string, string> => {
     const e: Record<string, string> = {};
@@ -57,7 +58,7 @@ export default function RegisterPage() {
     }
     setSubmitting(true);
     try {
-      await signUp({
+      const result = await signUp({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         email: email.trim().toLowerCase(),
@@ -68,6 +69,10 @@ export default function RegisterPage() {
         marketing,
       });
       track(EVENTS.ACCOUNT_CREATED);
+      if (result.requiresEmailConfirmation) {
+        setConfirmationSent(true);
+        return;
+      }
       router.push(searchParams?.get("redirect") ?? "/account");
     } catch {
       setErrors({ form: "We couldn't create your account. Please try again." });
@@ -75,6 +80,26 @@ export default function RegisterPage() {
       setSubmitting(false);
     }
   };
+
+  if (confirmationSent) {
+    return (
+      <AuthCard
+        title="Confirm your email."
+        subtitle={`We sent a confirmation link to ${email.trim().toLowerCase()}. Tap it to activate your account, then sign in.`}
+        footer={
+          <Link href="/login" className="text-ink-100 underline-offset-2 hover:underline">
+            Back to sign in →
+          </Link>
+        }
+      >
+        <div className="bg-success-bg text-success rounded-md p-4">
+          <span className="body-md">
+            Didn&apos;t get it? Check your spam folder, or wait a minute and try again.
+          </span>
+        </div>
+      </AuthCard>
+    );
+  }
 
   return (
     <AuthCard
