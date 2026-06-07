@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Eye, EyeOff } from "lucide-react";
 import { AuthCard } from "@/components/account/AuthCard";
 import { Button } from "@/components/ui/Button";
@@ -12,6 +13,7 @@ import { useSession } from "@/hooks/useSession";
 import { ApiError } from "@/lib/api/client";
 
 export default function LoginPage() {
+  const t = useTranslations("auth");
   const router = useRouter();
   const searchParams = useSearchParams();
   const { signIn } = useSession();
@@ -27,7 +29,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError(null);
     if (!email || !password) {
-      setError("Email and password are required.");
+      setError(t("login.emailPasswordRequired"));
       return;
     }
     setSubmitting(true);
@@ -36,9 +38,9 @@ export default function LoginPage() {
       router.push(redirectTo);
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {
-        setError("Email or password incorrect.");
+        setError(t("login.incorrect"));
       } else {
-        setError("Something went wrong. Please try again.");
+        setError(t("genericError"));
       }
     } finally {
       setSubmitting(false);
@@ -47,19 +49,19 @@ export default function LoginPage() {
 
   return (
     <AuthCard
-      title="Sign in."
-      subtitle="Welcome back."
+      title={t("login.title")}
+      subtitle={t("login.subtitle")}
       footer={
         <>
-          New here?{" "}
+          {t("login.newHere")}{" "}
           <Link href="/register" className="text-ink-100 underline-offset-4 hover:underline">
-            Create an account →
+            {t("login.createAccount")} →
           </Link>
         </>
       }
     >
       <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
-        <Field label="Email" required>
+        <Field label={t("email")} required>
           {({ id, describedBy, invalid }) => (
             <Input
               id={id}
@@ -73,7 +75,7 @@ export default function LoginPage() {
             />
           )}
         </Field>
-        <Field label="Password" required>
+        <Field label={t("password")} required>
           {({ id, describedBy, invalid }) => (
             <Input
               id={id}
@@ -87,7 +89,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShow((s) => !s)}
-                  aria-label={show ? "Hide password" : "Show password"}
+                  aria-label={show ? t("hidePassword") : t("showPassword")}
                   className="hover:text-ink-80 text-ink-60"
                 >
                   {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -102,12 +104,12 @@ export default function LoginPage() {
             href="/forgot-password"
             className="label-md text-ink-100 hover:text-ink-80 underline-offset-2 hover:underline"
           >
-            Forgot?
+            {t("login.forgot")}
           </Link>
         </div>
         {error ? <ErrorText>{error}</ErrorText> : null}
         <Button type="submit" variant="cta" size="lg" fullWidth loading={submitting}>
-          Sign in
+          {t("login.submit")}
         </Button>
       </form>
     </AuthCard>

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Mail } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import {
   Modal,
@@ -30,6 +31,7 @@ const SUPPRESS_DAYS = 30;
 const DELAY_MS = 30_000;
 
 export function NewsletterPopup() {
+  const t = useTranslations("consent");
   const [open, setOpen] = React.useState(false);
   const [email, setEmail] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
@@ -73,14 +75,14 @@ export function NewsletterPopup() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      setError("Enter a valid email.");
+      setError(t("emailInvalid"));
       return;
     }
     setSubmitting(true);
     try {
       // Phase 1: no /api/newsletter endpoint yet; fake the call.
       await new Promise((r) => setTimeout(r, 300));
-      toast.success("Thanks — you're on the list.");
+      toast.success(t("newsletterThanks"));
       dismiss();
     } finally {
       setSubmitting(false);
@@ -90,13 +92,10 @@ export function NewsletterPopup() {
   return (
     <Modal open={open} onOpenChange={(next) => (next ? setOpen(true) : dismiss())}>
       <ModalContent size="sm">
-        <ModalTitle>Get weekly deals.</ModalTitle>
-        <ModalDescription>
-          One short email a month: new vehicles, seasonal offers, and the occasional Lebanon-driving
-          guide. No spam.
-        </ModalDescription>
+        <ModalTitle>{t("newsletterTitle")}</ModalTitle>
+        <ModalDescription>{t("newsletterDescription")}</ModalDescription>
         <form onSubmit={onSubmit} noValidate className="mt-6 flex flex-col gap-3">
-          <Field label="Email" required>
+          <Field label={t("email")} required>
             {({ id, describedBy, invalid }) => (
               <Input
                 id={id}
@@ -104,7 +103,7 @@ export function NewsletterPopup() {
                 autoComplete="email"
                 aria-describedby={describedBy}
                 invalid={invalid}
-                placeholder="you@example.com"
+                placeholder={t("emailPlaceholder")}
                 startAdornment={<Mail className="size-4" aria-hidden="true" />}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -115,10 +114,10 @@ export function NewsletterPopup() {
         </form>
         <ModalFooter>
           <Button variant="secondary" onClick={dismiss}>
-            No thanks
+            {t("noThanks")}
           </Button>
           <Button variant="cta" size="lg" loading={submitting} onClick={onSubmit}>
-            Subscribe
+            {t("subscribe")}
           </Button>
         </ModalFooter>
       </ModalContent>

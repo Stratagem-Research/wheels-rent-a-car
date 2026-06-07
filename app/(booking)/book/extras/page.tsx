@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -16,12 +17,12 @@ import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
 import type { AddOnCategory } from "@/types/domain";
 
-const CATEGORY_ORDER: { id: AddOnCategory; title: string }[] = [
-  { id: "driver-access", title: "Driver & access" },
-  { id: "comfort", title: "Comfort" },
-  { id: "connectivity", title: "Connectivity" },
-  { id: "convenience", title: "Convenience" },
-  { id: "sustainability", title: "Sustainability" },
+const CATEGORY_ORDER: { id: AddOnCategory; titleKey: string }[] = [
+  { id: "driver-access", titleKey: "categoryDriverAccess" },
+  { id: "comfort", titleKey: "categoryComfort" },
+  { id: "connectivity", titleKey: "categoryConnectivity" },
+  { id: "convenience", titleKey: "categoryConvenience" },
+  { id: "sustainability", titleKey: "categorySustainability" },
 ];
 
 /**
@@ -33,6 +34,7 @@ const CATEGORY_ORDER: { id: AddOnCategory; title: string }[] = [
  * is missing from the fixture), bounce back to step 1.
  */
 export default function ExtrasPage() {
+  const t = useTranslations("bookingFlow");
   const router = useRouter();
   const { draft, upsertExtra, ready } = useBookingDraft();
   const firedView = React.useRef(false);
@@ -83,11 +85,11 @@ export default function ExtrasPage() {
           <div>
             <Button asChild variant="tertiary" size="sm" className="mb-3">
               <a href="/book/select-vehicle">
-                <ArrowLeft className="size-4" aria-hidden="true" /> Back to vehicles
+                <ArrowLeft className="size-4" aria-hidden="true" /> {t("extras.backToVehicles")}
               </a>
             </Button>
-            <h1 className="headline-xl text-ink-95">Which add-ons do you need?</h1>
-            <p className="body-md text-ink-60 mt-1">All optional. Add as many as you like.</p>
+            <h1 className="headline-xl text-ink-95">{t("extras.heading")}</h1>
+            <p className="body-md text-ink-60 mt-1">{t("extras.subtitle")}</p>
 
             <div className="mt-8 flex flex-col gap-8">
               {CATEGORY_ORDER.map((cat) => {
@@ -96,7 +98,7 @@ export default function ExtrasPage() {
                 return (
                   <section key={cat.id} aria-labelledby={`cat-${cat.id}`}>
                     <h2 id={`cat-${cat.id}`} className="text-ink-100 mb-3 overline">
-                      {cat.title}
+                      {t(`extras.${cat.titleKey}`)}
                     </h2>
                     <div className="flex flex-col gap-3">
                       {items.map((addOn) => (
@@ -122,7 +124,7 @@ export default function ExtrasPage() {
               addOns={ADD_ONS}
               tiers={PROTECTION_TIERS}
               primary={{
-                label: "Continue",
+                label: t("continue"),
                 onClick: () => router.push("/book/protection"),
               }}
             />

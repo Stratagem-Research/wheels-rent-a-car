@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Check } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 /**
@@ -18,11 +19,11 @@ import { cn } from "@/lib/utils";
  */
 
 const STEPS = [
-  { num: 1, label: "Vehicle", href: "/book/select-vehicle" },
-  { num: 2, label: "Extras", href: "/book/extras" },
-  { num: 3, label: "Protection", href: "/book/protection" },
-  { num: 4, label: "Checkout", href: "/book/checkout" },
-  { num: 5, label: "Confirmation", href: null },
+  { num: 1, labelKey: "vehicle", href: "/book/select-vehicle" },
+  { num: 2, labelKey: "extras", href: "/book/extras" },
+  { num: 3, labelKey: "protection", href: "/book/protection" },
+  { num: 4, labelKey: "checkout", href: "/book/checkout" },
+  { num: 5, labelKey: "confirmation", href: null },
 ] as const;
 
 export interface StepperProps {
@@ -31,7 +32,8 @@ export interface StepperProps {
 }
 
 export function Stepper({ current, className }: StepperProps) {
-  const labels = STEPS.map((s) => s.label).join(" → ");
+  const t = useTranslations("bookingFlow.stepper");
+  const labels = STEPS.map((s) => t(s.labelKey)).join(" → ");
 
   return (
     <nav
@@ -39,7 +41,7 @@ export function Stepper({ current, className }: StepperProps) {
       aria-valuenow={current}
       aria-valuemin={1}
       aria-valuemax={5}
-      aria-label={`Booking progress: step ${current} of 5 (${labels})`}
+      aria-label={t("progressAria", { current, labels })}
       className={cn("bg-paper border-border border-b", className)}
     >
       <div className="mx-auto max-w-[var(--container-full)] px-5 py-4 sm:px-5">
@@ -58,7 +60,7 @@ export function Stepper({ current, className }: StepperProps) {
                   >
                     <StepDot status={status} num={step.num} />
                     <span className="label-md text-ink-100 group-hover:underline">
-                      {step.label}
+                      {t(step.labelKey)}
                     </span>
                   </Link>
                 ) : (
@@ -72,7 +74,7 @@ export function Stepper({ current, className }: StepperProps) {
                         status === "future" && "text-ink-50",
                       )}
                     >
-                      {step.label}
+                      {t(step.labelKey)}
                     </span>
                   </div>
                 )}
@@ -89,7 +91,7 @@ export function Stepper({ current, className }: StepperProps) {
 
         {/* Mobile slim indicator */}
         <div className="flex items-center gap-3 sm:hidden">
-          <div className="label-md text-ink-60 shrink-0">Step {current} of 5</div>
+          <div className="label-md text-ink-60 shrink-0">{t("stepOf", { current })}</div>
           <div className="bg-ink-20 relative h-1 flex-1 overflow-hidden rounded-full">
             <div
               className="bg-ink-100 absolute inset-y-0 left-0 transition-[width] duration-300"

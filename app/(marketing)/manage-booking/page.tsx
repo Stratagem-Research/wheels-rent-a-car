@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { BookingLookupForm } from "@/components/account/BookingLookupForm";
@@ -21,6 +22,7 @@ import type { Booking } from "@/types/domain";
  * with the full bookings list + filters).
  */
 export default function ManageBookingPage() {
+  const t = useTranslations("manageBooking");
   const router = useRouter();
   const searchParams = useSearchParams();
   const { session, ready } = useSession();
@@ -40,13 +42,11 @@ export default function ManageBookingPage() {
     <>
       <header className="bg-ink-100 text-paper">
         <div className="mx-auto max-w-[var(--container-default)] px-5 py-16 sm:px-10 lg:py-20">
-          <p className="text-ink-40 overline">Manage booking</p>
+          <p className="text-ink-40 overline">{t("eyebrow")}</p>
           <h1 className="display-xl text-paper mt-3 text-[clamp(40px,6vw,72px)] leading-[0.98]">
-            Find my booking.
+            {t("heroHeading")}
           </h1>
-          <p className="lead-lg text-ink-30 mt-4 max-w-2xl">
-            Look up your reservation with your booking reference and the email you used at checkout.
-          </p>
+          <p className="lead-lg text-ink-30 mt-4 max-w-2xl">{t("heroSubtitle")}</p>
         </div>
       </header>
 
@@ -59,7 +59,7 @@ export default function ManageBookingPage() {
             </div>
           ) : (
             <Card variant="default" className="flex flex-col gap-5 rounded-xl p-8">
-              <h2 className="headline-lg text-ink-100">Look up your booking</h2>
+              <h2 className="headline-lg text-ink-100">{t("lookupHeading")}</h2>
               <BookingLookupForm
                 defaultRef={searchParams?.get("ref") ?? ""}
                 defaultEmail={searchParams?.get("email") ?? ""}
@@ -67,14 +67,14 @@ export default function ManageBookingPage() {
               />
               <hr className="border-border" />
               <div className="flex flex-col items-start gap-1">
-                <span className="label-md text-ink-50">Lost your reference?</span>
+                <span className="label-md text-ink-50">{t("lostReference")}</span>
                 <a
                   href={whatsAppHref("default")}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="label-lg text-ink-100 underline-offset-4 hover:underline"
                 >
-                  Chat with us on WhatsApp →
+                  {t("chatOnWhatsapp")} →
                 </a>
               </div>
             </Card>
@@ -86,19 +86,18 @@ export default function ManageBookingPage() {
 }
 
 function AccountUpsell({ email }: { email: string }) {
+  const t = useTranslations("manageBooking");
   return (
     <Card
       variant="inverse"
       className="flex flex-col gap-4 rounded-xl sm:flex-row sm:items-center sm:justify-between"
     >
       <div>
-        <h2 className="headline-sm">Want easier access?</h2>
-        <p className="body-sm text-ink-30 mt-2">
-          Create an account to manage future bookings without typing your reference each time.
-        </p>
+        <h2 className="headline-sm">{t("upsellHeading")}</h2>
+        <p className="body-sm text-ink-30 mt-2">{t("upsellBody")}</p>
       </div>
       <Button asChild variant="primary-inverse" size="md">
-        <Link href={`/register?email=${encodeURIComponent(email)}`}>Create account</Link>
+        <Link href={`/register?email=${encodeURIComponent(email)}`}>{t("createAccount")}</Link>
       </Button>
     </Card>
   );

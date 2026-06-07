@@ -3,11 +3,11 @@
 import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Briefcase, Check, Cog, Users } from "lucide-react";
+import { Briefcase, Check, Users } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { formatUsd, perDayRate, rentalDays } from "@/lib/booking/pricing";
-import { CATEGORY_LABELS } from "@/lib/vehicles/labels";
 import type { Vehicle, VehicleBadge } from "@/types/domain";
 
 /*
@@ -50,10 +50,10 @@ import type { Vehicle, VehicleBadge } from "@/types/domain";
  * a card to expand it doesn't jump the page to the top.
  */
 
-const BADGE_LABEL: Record<NonNullable<VehicleBadge>, string> = {
-  "best-deal": "Best deal",
-  popular: "Popular",
-  new: "New",
+const BADGE_KEY: Record<NonNullable<VehicleBadge>, string> = {
+  "best-deal": "badgeBestDeal",
+  popular: "badgePopular",
+  new: "badgeNew",
 };
 
 const BADGE_VARIANT: Record<
@@ -99,6 +99,7 @@ export function VehicleCard({
   scrollOnClick = true,
   className,
 }: VehicleCardProps) {
+  const t = useTranslations("fleet");
   const detailHref = href ?? `/vehicles?selected=${vehicle.slug}`;
   const image = vehicle.images[0];
   const dark = variant === "default";
@@ -116,7 +117,7 @@ export function VehicleCard({
   const fromPriceParts = splitPrice(perDay);
   const totalLabel = pickupISO && returnISO ? formatUsd(totalCents) : null;
 
-  const classChip = bodyClassLabel(vehicle);
+  const classChip = t(bodyClassKey(vehicle));
 
   return (
     <article
@@ -131,7 +132,7 @@ export function VehicleCard({
       <Link
         href={detailHref}
         scroll={scrollOnClick}
-        aria-label={`Select ${vehicle.make} ${vehicle.model}`}
+        aria-label={t("selectAria", { vehicle: `${vehicle.make} ${vehicle.model}` })}
         className={cn(
           "flex h-full flex-col gap-4 p-5 sm:p-6",
           "focus-visible:rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px]",
@@ -154,7 +155,7 @@ export function VehicleCard({
               {vehicle.make} {vehicle.model}
             </span>
             <span className={cn("body-sm italic", dark ? "text-paper/55" : "text-ink-50")}>
-              or similar
+              {t("orSimilar")}
             </span>
           </h3>
           <span
@@ -192,7 +193,7 @@ export function VehicleCard({
                 A
               </span>
             }
-            label={capitalize(vehicle.transmission)}
+            label={t(vehicle.transmission === "automatic" ? "transAutomatic" : "transManual")}
           />
         </ul>
 
@@ -221,7 +222,7 @@ export function VehicleCard({
             aria-hidden="true"
           />
           <span className={cn("body-sm", dark ? "text-paper/85" : "text-ink-80")}>
-            Pay later available
+            {t("payLaterAvailable")}
           </span>
         </div>
 
@@ -235,17 +236,17 @@ export function VehicleCard({
               </span>
               <span className="font-extrabold">.{fromPriceParts.cents}</span>{" "}
               <span className={cn("body-sm font-medium", dark ? "text-paper/85" : "text-ink-80")}>
-                /day
+                {t("perDay")}
               </span>
             </span>
             {totalLabel ? (
               <span className={cn("body-sm tabular-nums", dark ? "text-paper/55" : "text-ink-50")}>
-                {totalLabel} total
+                {t("total", { price: totalLabel })}
               </span>
             ) : null}
           </div>
           {vehicle.badge ? (
-            <Badge variant={BADGE_VARIANT[vehicle.badge]}>{BADGE_LABEL[vehicle.badge]}</Badge>
+            <Badge variant={BADGE_VARIANT[vehicle.badge]}>{t(BADGE_KEY[vehicle.badge])}</Badge>
           ) : null}
         </div>
       </Link>
@@ -290,30 +291,27 @@ function splitPrice(cents: number): { dollars: string; cents: string } {
   return { dollars: String(dollars), cents: String(remainder).padStart(2, "0") };
 }
 
-function capitalize(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}
-
-/** Sixt-style class badge: combines size class + body shape. */
-function bodyClassLabel(v: Vehicle): string {
+/** Sixt-style class badge: combines size class + body shape. Returns a key
+ * into the `fleet` message namespace so the label localizes. */
+function bodyClassKey(v: Vehicle): string {
   switch (v.category) {
     case "economy":
-      return v.doors === 5 ? "Standard Hatch" : "Economy Sedan";
+      return v.doors === 5 ? "classStandardHatch" : "classEconomySedan";
     case "compact":
-      return v.doors === 5 ? "Compact Hatch" : "Compact Sedan";
+      return v.doors === 5 ? "classCompactHatch" : "classCompactSedan";
     case "sedan":
-      return "Standard Sedan";
+      return "classStandardSedan";
     case "suv":
-      return "Compact SUV";
+      return "classCompactSuv";
     case "4x4":
-      return "Off-road 4×4";
+      return "classOffroad4x4";
     case "luxury":
-      return "Luxury SUV";
+      return "classLuxurySuv";
     case "7-seater":
-      return "7-Seater";
+      return "classSevenSeater";
     case "convertible":
-      return "Convertible";
+      return "classConvertible";
     default:
-      return CATEGORY_LABELS[v.category];
+      return "classStandardSedan";
   }
 }

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 import { Reveal } from "@/components/motion/Reveal";
 import { Button } from "@/components/ui/Button";
 
@@ -28,48 +29,54 @@ import { Button } from "@/components/ui/Button";
  * promos (long-term + chauffeur).
  */
 
-const SERVICES = [
-  {
-    href: "/long-term",
-    eyebrow: "One month +",
-    title: "Drive longer. Save more.",
-    description:
-      "Monthly and multi-month plans from $15 a day. Insurance, maintenance, and door delivery included.",
-    cta: "Get a quote",
-    image: {
-      // Drop your final PNG at /public/images/services/long-term.png to swap.
-      // The width/height here = the source PNG's intrinsic pixel dimensions
-      // so next/image renders at the correct aspect ratio with no crop.
-      src: "/images/services/long-term.png",
-      alt: "Long-term rental",
-      width: 550,
-      height: 549,
-    },
-  },
-  {
-    href: "/chauffeur",
-    eyebrow: "Driven for you",
-    title: "Sit back. We drive.",
-    description:
-      "Airport transfers, day trips, and hourly hire — with vetted, English-speaking drivers and premium vehicles.",
-    cta: "Request a driver",
-    image: {
-      src: "/images/services/chauffeur.png",
-      alt: "Chauffeur service",
-      width: 584,
-      height: 549,
-    },
-  },
-] as const;
+type ServiceItem = {
+  href: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  cta: string;
+  image: { src: string; alt: string; width: number; height: number };
+};
 
-export function ServicePromos() {
+export async function ServicePromos() {
+  const t = await getTranslations("landing.servicePromos");
+  const services: ServiceItem[] = [
+    {
+      href: "/long-term",
+      eyebrow: t("longTermEyebrow"),
+      title: t("longTermTitle"),
+      description: t("longTermDescription"),
+      cta: t("longTermCta"),
+      image: {
+        // Drop your final PNG at /public/images/services/long-term.png to swap.
+        src: "/images/services/long-term.png",
+        alt: t("longTermImageAlt"),
+        width: 550,
+        height: 549,
+      },
+    },
+    {
+      href: "/chauffeur",
+      eyebrow: t("chauffeurEyebrow"),
+      title: t("chauffeurTitle"),
+      description: t("chauffeurDescription"),
+      cta: t("chauffeurCta"),
+      image: {
+        src: "/images/services/chauffeur.png",
+        alt: t("chauffeurImageAlt"),
+        width: 584,
+        height: 549,
+      },
+    },
+  ];
+
   return (
     <Reveal as="section" className="bg-ink-10">
       <div className="mx-auto max-w-[var(--container-default)] px-5 py-16 sm:px-10 lg:py-32">
         <div className="mb-10 flex max-w-2xl flex-col gap-3 lg:mb-14">
-          <p className="text-ink-60 overline">More from Wheels</p>
+          <p className="text-ink-60 overline">{t("eyebrow")}</p>
           <h2 className="display-md text-ink-100 text-[clamp(32px,4.5vw,56px)] leading-[1]">
-            More than just daily rentals.
+            {t("heading")}
           </h2>
         </div>
 
@@ -79,7 +86,7 @@ export function ServicePromos() {
          * (rather than below the image), so the photo stays glued to the
          * bottom edge regardless of which card is taller. */}
         <ul className="grid gap-6 md:grid-cols-2 lg:gap-8">
-          {SERVICES.map((s) => (
+          {services.map((s) => (
             <li key={s.href} className="h-full">
               <ServiceCard {...s} />
             </li>
@@ -90,7 +97,7 @@ export function ServicePromos() {
   );
 }
 
-function ServiceCard({ href, eyebrow, title, description, cta, image }: (typeof SERVICES)[number]) {
+function ServiceCard({ href, eyebrow, title, description, cta, image }: ServiceItem) {
   return (
     <article
       className="text-paper relative flex h-full flex-col justify-between overflow-hidden rounded-xl"

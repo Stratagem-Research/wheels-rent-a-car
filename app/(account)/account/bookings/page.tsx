@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Chip } from "@/components/ui/Chip";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { BookingHistoryRow } from "@/components/account/BookingHistoryRow";
@@ -11,17 +12,19 @@ import type { Booking, BookingState } from "@/types/domain";
 
 type Filter = "all" | "upcoming" | "pending" | "completed" | "cancelled";
 
-const FILTERS: { id: Filter; label: string }[] = [
-  { id: "all", label: "All" },
-  { id: "upcoming", label: "Upcoming" },
-  { id: "pending", label: "Pending" },
-  { id: "completed", label: "Completed" },
-  { id: "cancelled", label: "Cancelled" },
-];
+const FILTER_IDS: Filter[] = ["all", "upcoming", "pending", "completed", "cancelled"];
+const FILTER_KEY: Record<Filter, string> = {
+  all: "filterAll",
+  upcoming: "filterUpcoming",
+  pending: "filterPending",
+  completed: "filterCompleted",
+  cancelled: "filterCancelled",
+};
 
 const PER_PAGE = 10;
 
 export default function BookingsPage() {
+  const t = useTranslations("accountPages.bookings");
   const [bookings, setBookings] = React.useState<Booking[] | null>(null);
   const [filter, setFilter] = React.useState<Filter>("all");
   const [page, setPage] = React.useState(1);
@@ -71,22 +74,23 @@ export default function BookingsPage() {
   return (
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-2">
-        <p className="text-ink-60 overline">Bookings</p>
-        <h1 className="headline-xl text-ink-100">My bookings</h1>
-        <p className="lead-md text-ink-60">Filter by status to focus the list.</p>
+        <p className="text-ink-60 overline">{t("eyebrow")}</p>
+        <h1 className="headline-xl text-ink-100">{t("heading")}</h1>
+        <p className="lead-md text-ink-60">{t("subtitle")}</p>
       </header>
 
       <ul className="flex flex-wrap gap-2">
-        {FILTERS.map((f) => (
-          <li key={f.id}>
+        {FILTER_IDS.map((id) => (
+          <li key={id}>
             <Chip
-              variant={filter === f.id ? "selected" : "default"}
+              variant={filter === id ? "selected" : "default"}
               onClick={() => {
-                setFilter(f.id);
+                setFilter(id);
                 setPage(1);
               }}
             >
-              {f.label} {filter === f.id ? null : <CountFor bookings={bookings} filter={f.id} />}
+              {t(FILTER_KEY[id])}{" "}
+              {filter === id ? null : <CountFor bookings={bookings} filter={id} />}
             </Chip>
           </li>
         ))}
@@ -99,7 +103,7 @@ export default function BookingsPage() {
           <Skeleton className="h-24 rounded-lg" />
         </div>
       ) : filtered.length === 0 ? (
-        <Empty filter={filter} />
+        <Empty filter={filter} filterLabel={t(FILTER_KEY[filter])} />
       ) : (
         <>
           <ul className="flex flex-col gap-3">
@@ -142,20 +146,21 @@ function CountFor({ bookings, filter }: { bookings: Booking[] | null; filter: Fi
   return <span className="label-sm text-ink-50 ml-1">({count})</span>;
 }
 
-function Empty({ filter }: { filter: Filter }) {
+function Empty({ filter, filterLabel }: { filter: Filter; filterLabel: string }) {
+  const t = useTranslations("accountPages.bookings");
   return (
     <div className="bg-ink-10 flex flex-col items-center gap-4 rounded-xl p-14 text-center">
       <span aria-hidden="true" className="text-5xl">
         📭
       </span>
       <h2 className="headline-md text-ink-100">
-        {filter === "all" ? "No bookings yet." : `No ${filter} bookings.`}
+        {filter === "all" ? t("emptyAll") : t("emptyFiltered", { filter: filterLabel.toLowerCase() })}
       </h2>
       <Link
         href="/vehicles"
         className="label-lg text-ink-100 hover:text-ink-80 mt-2 underline-offset-4 hover:underline"
       >
-        Browse cars →
+        {t("browseCars")} →
       </Link>
     </div>
   );
@@ -170,6 +175,7 @@ function Pagination({
   total: number;
   onChange: (page: number) => void;
 }) {
+  const t = useTranslations("accountPages.bookings");
   return (
     <nav aria-label="Pagination" className="mt-2 flex items-center justify-center gap-2">
       <button
@@ -178,18 +184,16 @@ function Pagination({
         onClick={() => onChange(current - 1)}
         className="label-md text-ink-80 hover:bg-ink-10 rounded-pill px-4 py-2 disabled:opacity-40"
       >
-        Prev
+        {t("prev")}
       </button>
-      <span className="label-md text-ink-50">
-        Page {current} of {total}
-      </span>
+      <span className="label-md text-ink-50">{t("pageOf", { current, total })}</span>
       <button
         type="button"
         disabled={current >= total}
         onClick={() => onChange(current + 1)}
         className="label-md text-ink-80 hover:bg-ink-10 rounded-pill px-4 py-2 disabled:opacity-40"
       >
-        Next
+        {t("next")}
       </button>
     </nav>
   );

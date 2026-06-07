@@ -8,7 +8,14 @@ import {
   AccordionTrigger,
 } from "@/components/ui/Accordion";
 import { hashFromSet, replaceLocationHash, scrollToHashTarget } from "@/lib/navigation/hashAnchor";
-import type { FaqEntry } from "@/types/domain";
+import { getLocalizedString } from "@/lib/i18n/localized";
+import type { LocalizedStringValue } from "@/types/domain";
+
+type FaqAccordionEntry = {
+  id: string;
+  question: LocalizedStringValue;
+  answer: LocalizedStringValue;
+};
 
 /**
  * Topic-grouped FAQ accordion per 10_help_faq.md §3.
@@ -18,7 +25,13 @@ import type { FaqEntry } from "@/types/domain";
  * instead of document navigation to stay compatible with the MSW worker in dev.
  */
 
-export function FaqAccordion({ entries }: { entries: FaqEntry[] }) {
+export function FaqAccordion({
+  entries,
+  locale = "en",
+}: {
+  entries: FaqAccordionEntry[];
+  locale?: string;
+}) {
   const entryIds = React.useMemo(() => new Set(entries.map((e) => e.id)), [entries]);
   const [open, setOpen] = React.useState("");
 
@@ -44,8 +57,8 @@ export function FaqAccordion({ entries }: { entries: FaqEntry[] }) {
       {entries.map((entry) => (
         <div key={entry.id} id={`acc-${entry.id}`} className="scroll-mt-24">
           <AccordionItem value={entry.id}>
-            <AccordionTrigger>{entry.question}</AccordionTrigger>
-            <AccordionContent>{entry.answer}</AccordionContent>
+            <AccordionTrigger>{getLocalizedString(entry.question, locale)}</AccordionTrigger>
+            <AccordionContent>{getLocalizedString(entry.answer, locale)}</AccordionContent>
           </AccordionItem>
         </div>
       ))}

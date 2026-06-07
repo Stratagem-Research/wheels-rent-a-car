@@ -14,6 +14,17 @@ import {
   ABOUT_TEAM,
   FLEET_PHILOSOPHY,
 } from "@/lib/content/about";
+import { toLocalizedString, toLocalizedStringArray } from "@/lib/i18n/localized";
+import {
+  ABOUT_T,
+  CORPORATE_T,
+  FAQ_GROUP_T,
+  FAQ_T,
+  ITINERARY_T,
+  TRIP_T,
+  type LocaleList,
+  type LocaleText,
+} from "@/lib/supabase/seed-i18n";
 /** Default FAQ content per 10_help_faq.md. ~30 entries across 8 topic groups. */
 export const FAQS: FaqGroup[] = [
   {
@@ -311,8 +322,8 @@ A sedan handles the route easily. If you have an extra day, add MaghdouchÃ© (t
     excerpt:
       "The world's oldest continuously inhabited city and a seaside town with a thriving old souk.",
     coverImage: {
-      src: "/images/Trips Images/cedars.jpg",
-      alt: "Byblos harbour at golden hour (placeholder)",
+      src: "/images/Trips Images/byblos.jpg",
+      alt: "Byblos harbour at golden hour",
       width: 1200,
       height: 1500,
     },
@@ -332,8 +343,8 @@ Add Batroun on the way back: the seafront, the Phoenician wall, and a Hilmi's le
     excerpt:
       "The Chouf Cedar Reserve, Beiteddine Palace, and the Druze villages of Lebanon's heartland.",
     coverImage: {
-      src: "/images/Trips Images/baalbek.jpg",
-      alt: "Chouf mountains landscape (placeholder)",
+      src: "/images/Trips Images/chouf.jpg",
+      alt: "Chouf mountains landscape",
       width: 1200,
       height: 1500,
     },
@@ -353,8 +364,8 @@ The route is full of switchbacks; an SUV is more comfortable, though a sedan han
     excerpt:
       "Maronite monasteries carved into a sandstone gorge â€” one of Lebanon's most cinematic drives.",
     coverImage: {
-      src: "/images/Trips Images/south lebanon.jpg",
-      alt: "Qadisha valley monasteries (placeholder)",
+      src: "/images/Trips Images/qadisha.jpg",
+      alt: "Qadisha valley monasteries",
       width: 1200,
       height: 1500,
     },
@@ -455,8 +466,8 @@ export const ITINERARIES: Itinerary[] = [
     title: "Byblos & Batroun",
     excerpt: "Phoenician harbour at Byblos, seaside Batroun, lemonade at Hilmi's, souk wandering.",
     coverImage: {
-      src: "/images/Trips Images/south lebanon.jpg",
-      alt: "Byblos harbour (placeholder)",
+      src: "/images/Trips Images/byblos.jpg",
+      alt: "Byblos harbour",
       width: 1200,
       height: 1500,
     },
@@ -514,8 +525,8 @@ export const ITINERARIES: Itinerary[] = [
     title: "Chouf Cedars & Beiteddine",
     excerpt: "Lebanon's largest cedar reserve, Beiteddine Palace, and a Deir el Qamar lunch.",
     coverImage: {
-      src: "/images/Trips Images/cedars.jpg",
-      alt: "Chouf cedars (placeholder)",
+      src: "/images/Trips Images/chouf.jpg",
+      alt: "Chouf cedars",
       width: 1200,
       height: 1500,
     },
@@ -543,8 +554,8 @@ export const ITINERARIES: Itinerary[] = [
     title: "Tripoli & North Lebanon",
     excerpt: "Mamluk souks of Tripoli, the citadel, and on to Bsharre and the Qadisha viewpoints.",
     coverImage: {
-      src: "/images/Trips Images/baalbek.jpg",
-      alt: "Tripoli (placeholder)",
+      src: "/images/Trips Images/tripoli-north.jpg",
+      alt: "Tripoli old city and citadel",
       width: 1200,
       height: 1500,
     },
@@ -633,11 +644,83 @@ export const PROMOTIONS_SEED = SITE_CONFIG.promo
   : [];
 
 export const ABOUT_CONTENT_SEED = {
-  storyParagraphs: ABOUT_STORY_PARAGRAPHS,
-  pullQuote: ABOUT_PULL_QUOTE,
-  fleetPhilosophy: FLEET_PHILOSOPHY,
-  stats: ABOUT_STATS,
-  teamIntro: ABOUT_TEAM_INTRO,
-  teamDedication: ABOUT_TEAM_DEDICATION,
-  team: ABOUT_TEAM,
+  storyParagraphs: localizeList(ABOUT_STORY_PARAGRAPHS, ABOUT_T.storyParagraphs),
+  pullQuote: localize(ABOUT_PULL_QUOTE, ABOUT_T.pullQuote),
+  fleetPhilosophy: {
+    heading: localize(FLEET_PHILOSOPHY.heading, ABOUT_T.fleetHeading),
+    paragraphs: localizeList(FLEET_PHILOSOPHY.paragraphs, ABOUT_T.fleetParagraphs),
+  },
+  stats: ABOUT_STATS.map((stat) => ({
+    ...stat,
+    label: localize(stat.label, ABOUT_T.statLabels[stat.label]),
+  })),
+  teamIntro: localize(ABOUT_TEAM_INTRO, ABOUT_T.teamIntro),
+  teamDedication: localize(ABOUT_TEAM_DEDICATION, ABOUT_T.teamDedication),
+  team: ABOUT_TEAM.map((member) => ({
+    ...member,
+    role: localize(member.role, ABOUT_T.roles[member.name]),
+    quote: member.quote ? { en: member.quote, ar: member.quote, fr: member.quote } : undefined,
+    bio: { en: member.bio, ar: member.bio, fr: member.bio },
+    highlights: {
+      en: member.highlights ?? [],
+      ar: member.highlights ?? [],
+      fr: member.highlights ?? [],
+    },
+  })),
 };
+
+/** Build a localized string from an English base + optional AR/FR overrides. */
+function localize(value: string, t?: LocaleText) {
+  return { en: value, ar: t?.ar ?? value, fr: t?.fr ?? value };
+}
+
+/** Build a localized string array from an English base + optional AR/FR overrides. */
+function localizeList(value: string[], t?: LocaleList) {
+  return { en: value, ar: t?.ar ?? value, fr: t?.fr ?? value };
+}
+
+for (const trip of TRIPS) {
+  const tr = TRIP_T[trip.slug];
+  trip.title = localize(toLocalizedString(trip.title).en, tr?.title);
+  trip.excerpt = localize(toLocalizedString(trip.excerpt).en, tr?.excerpt);
+  trip.meta = localize(toLocalizedString(trip.meta).en, tr?.meta);
+  trip.body = localize(toLocalizedString(trip.body).en, tr?.body);
+  trip.coverImage.alt = localize(toLocalizedString(trip.coverImage.alt).en, tr?.alt);
+  trip.tags = localizeList(toLocalizedStringArray(trip.tags).en, tr?.tags);
+}
+
+for (const itinerary of ITINERARIES) {
+  const it = ITINERARY_T[itinerary.slug];
+  itinerary.title = localize(toLocalizedString(itinerary.title).en, it?.title);
+  itinerary.excerpt = localize(toLocalizedString(itinerary.excerpt).en, it?.excerpt);
+  itinerary.duration = localize(toLocalizedString(itinerary.duration).en, it?.duration);
+  itinerary.coverImage.alt = localize(toLocalizedString(itinerary.coverImage.alt).en, it?.alt);
+  itinerary.highlights = localizeList(toLocalizedStringArray(itinerary.highlights).en, it?.highlights);
+  itinerary.schedule = itinerary.schedule.map((step, i) => ({
+    ...step,
+    title: localize(toLocalizedString(step.title).en, it?.schedule[i]?.title),
+    body: step.body
+      ? localize(toLocalizedString(step.body).en, it?.schedule[i]?.body)
+      : undefined,
+  }));
+}
+
+for (const group of FAQS) {
+  group.title = localize(toLocalizedString(group.title).en, FAQ_GROUP_T[group.id]);
+  group.entries = group.entries.map((entry) => ({
+    ...entry,
+    question: localize(toLocalizedString(entry.question).en, FAQ_T[entry.id]?.question),
+    answer: localize(toLocalizedString(entry.answer).en, FAQ_T[entry.id]?.answer),
+  }));
+}
+
+for (const tier of CORPORATE_TIERS) {
+  const ct = CORPORATE_T[tier.id];
+  tier.name = localize(toLocalizedString(tier.name).en, ct?.name);
+  tier.tagline = localize(toLocalizedString(tier.tagline).en, ct?.tagline);
+  tier.fleetSize = localize(toLocalizedString(tier.fleetSize).en, ct?.fleetSize);
+  tier.inclusions = localizeList(toLocalizedStringArray(tier.inclusions).en, ct?.inclusions);
+  if (tier.ctaLabel) {
+    tier.ctaLabel = localize(toLocalizedString(tier.ctaLabel).en, ct?.ctaLabel);
+  }
+}

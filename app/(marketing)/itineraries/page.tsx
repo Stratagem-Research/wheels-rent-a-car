@@ -2,8 +2,11 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { ItineraryCard } from "@/components/landing/ItineraryCard";
+import { PageHero } from "@/components/marketing/PageHero";
+import { PAGE_HERO_IMAGES } from "@/lib/marketing/hero-images";
 import { useItineraries } from "@/lib/admin/useAdminStore";
 import type { ItineraryCategory } from "@/types/domain";
 
@@ -20,18 +23,20 @@ import type { ItineraryCategory } from "@/types/domain";
 
 type CategoryFilter = "all" | ItineraryCategory;
 
-const CATEGORY_OPTIONS: Array<{ id: CategoryFilter; label: string }> = [
-  { id: "all", label: "All" },
-  { id: "day-trip", label: "Day trips" },
-  { id: "multi-day", label: "Multi-day" },
-  { id: "cultural", label: "Cultural" },
-  { id: "wine", label: "Wine" },
-  { id: "north", label: "North" },
-  { id: "south", label: "South" },
+const CATEGORY_IDS: CategoryFilter[] = [
+  "all",
+  "day-trip",
+  "multi-day",
+  "cultural",
+  "wine",
+  "north",
+  "south",
 ];
 
 export default function ItinerariesPage() {
   const itineraries = useItineraries();
+  const locale = useLocale();
+  const t = useTranslations("itineraries");
   const [category, setCategory] = React.useState<CategoryFilter>("all");
 
   const filtered = React.useMemo(
@@ -41,41 +46,42 @@ export default function ItinerariesPage() {
 
   return (
     <>
-      {/* Inverse hero band — matches /long-term + /chauffeur + /corporate. */}
-      <header className="bg-ink-100 text-paper">
-        <div className="mx-auto max-w-[var(--container-default)] px-5 py-16 sm:px-10 lg:py-24">
-          <p className="text-ink-40 overline">Chauffeur-led</p>
-          <h1 className="display-xl text-paper mt-3 text-[clamp(48px,7vw,88px)] leading-[0.96]">
-            Chauffeur-led
+      {/* Cinematic photo-backed hero — see lib/marketing/hero-images.ts.
+       * The lone red CTA ("Request a driver") stays as the page's singular red. */}
+      <PageHero
+        overline={t("eyebrow")}
+        headline={
+          <>
+            {t("heroLine1")}
             <br />
-            itineraries.
-          </h1>
-          <p className="lead-lg text-ink-30 mt-5 max-w-2xl">
-            Curated day trips and multi-day tours, driven by our team. Tell us the one you want,
-            we&apos;ll handle everything else.
-          </p>
-          <div className="mt-7 flex flex-wrap gap-3">
+            {t("heroLine2")}
+          </>
+        }
+        lead={t("heroSubtitle")}
+        image={PAGE_HERO_IMAGES.itineraries}
+        actions={
+          <>
             <Button asChild variant="cta" size="lg">
-              <Link href="/chauffeur#enquiry">Request a driver</Link>
+              <Link href="/chauffeur#enquiry">{t("requestDriver")}</Link>
             </Button>
             <Button asChild variant="tertiary-inverse" size="lg">
-              <Link href="/chauffeur">About our chauffeurs</Link>
+              <Link href="/chauffeur">{t("aboutChauffeurs")}</Link>
             </Button>
-          </div>
-        </div>
-      </header>
+          </>
+        }
+      />
 
       {/* Filter chips. */}
       <section className="bg-paper border-border border-b">
         <div className="mx-auto max-w-[var(--container-default)] px-5 py-6 sm:px-10">
           <ul className="flex flex-wrap items-center gap-2">
-            {CATEGORY_OPTIONS.map((opt) => {
-              const active = category === opt.id;
+            {CATEGORY_IDS.map((id) => {
+              const active = category === id;
               return (
-                <li key={opt.id}>
+                <li key={id}>
                   <button
                     type="button"
-                    onClick={() => setCategory(opt.id)}
+                    onClick={() => setCategory(id)}
                     className={[
                       "rounded-pill label-md h-9 px-4 transition-colors duration-150",
                       "focus-visible:outline-ink-100 focus-visible:outline-2 focus-visible:outline-offset-2",
@@ -83,7 +89,7 @@ export default function ItinerariesPage() {
                     ].join(" ")}
                     aria-pressed={active}
                   >
-                    {opt.label}
+                    {t(`categories.${id}`)}
                   </button>
                 </li>
               );
@@ -97,16 +103,14 @@ export default function ItinerariesPage() {
         <div className="mx-auto max-w-[var(--container-default)] px-5 py-12 sm:px-10 lg:py-20">
           {filtered.length === 0 ? (
             <div className="bg-ink-10 flex flex-col items-center gap-3 rounded-xl p-12 text-center">
-              <h2 className="headline-md text-ink-100">No itineraries in this category yet.</h2>
-              <p className="body-md text-ink-60 max-w-md">
-                Tell us what you have in mind on WhatsApp and we&apos;ll build something custom.
-              </p>
+              <h2 className="headline-md text-ink-100">{t("emptyHeading")}</h2>
+              <p className="body-md text-ink-60 max-w-md">{t("emptyBody")}</p>
             </div>
           ) : (
             <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
               {filtered.map((itin) => (
                 <li key={itin.slug}>
-                  <ItineraryCard itinerary={itin} />
+                  <ItineraryCard itinerary={itin} locale={locale} />
                 </li>
               ))}
             </ul>

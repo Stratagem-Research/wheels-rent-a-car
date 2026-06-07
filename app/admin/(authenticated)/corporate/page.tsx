@@ -11,6 +11,13 @@ import { AdminFormShell } from "@/components/admin/AdminFormShell";
 import { useCorporateTiers } from "@/lib/admin/useAdminStore";
 import { writeCorporateTiers } from "@/lib/admin/store";
 import type { CorporateTier } from "@/types/domain";
+import type { CmsLocale } from "@/lib/i18n/localized";
+import {
+  getLocalizedString,
+  getLocalizedStringArray,
+  updateLocalizedString,
+  updateLocalizedStringArray,
+} from "@/lib/i18n/localized";
 
 /**
  * /admin/corporate — corporate tier editor.
@@ -23,6 +30,7 @@ export default function AdminCorporatePage() {
   const tiers = useCorporateTiers();
   const [working, setWorking] = React.useState<CorporateTier[]>(tiers);
   const [dirty, setDirty] = React.useState(false);
+  const [activeLocale, setActiveLocale] = React.useState<CmsLocale>("en");
 
   // Reset working copy whenever the persisted store changes from elsewhere.
   /* eslint-disable react-hooks/set-state-in-effect */
@@ -38,22 +46,37 @@ export default function AdminCorporatePage() {
   };
 
   const addInclusion = (id: string) => {
+    const tier = working.find((t) => t.id === id);
+    if (!tier) return;
     updateTier(id, {
-      inclusions: [...(working.find((t) => t.id === id)?.inclusions ?? []), ""],
+      inclusions: updateLocalizedStringArray(tier.inclusions, activeLocale, [
+        ...getLocalizedStringArray(tier.inclusions, activeLocale),
+        "",
+      ]),
     });
   };
 
   const updateInclusion = (tierId: string, idx: number, value: string) => {
     const tier = working.find((t) => t.id === tierId);
     if (!tier) return;
-    const next = tier.inclusions.map((inc, i) => (i === idx ? value : inc));
-    updateTier(tierId, { inclusions: next });
+    const next = getLocalizedStringArray(tier.inclusions, activeLocale).map((inc, i) =>
+      i === idx ? value : inc,
+    );
+    updateTier(tierId, {
+      inclusions: updateLocalizedStringArray(tier.inclusions, activeLocale, next),
+    });
   };
 
   const removeInclusion = (tierId: string, idx: number) => {
     const tier = working.find((t) => t.id === tierId);
     if (!tier) return;
-    updateTier(tierId, { inclusions: tier.inclusions.filter((_, i) => i !== idx) });
+    updateTier(tierId, {
+      inclusions: updateLocalizedStringArray(
+        tier.inclusions,
+        activeLocale,
+        getLocalizedStringArray(tier.inclusions, activeLocale).filter((_, i) => i !== idx),
+      ),
+    });
   };
 
   const addTier = () => {
@@ -62,11 +85,11 @@ export default function AdminCorporatePage() {
       ...w,
       {
         id,
-        name: "New tier",
-        tagline: "Describe who this tier suits",
+        name: { en: "New tier", ar: "", fr: "" },
+        tagline: { en: "Describe who this tier suits", ar: "", fr: "" },
         perDayCents: null,
-        fleetSize: "1-2 cars / month",
-        inclusions: ["First inclusion"],
+        fleetSize: { en: "1-2 cars / month", ar: "", fr: "" },
+        inclusions: { en: ["First inclusion"], ar: [], fr: [] },
       },
     ]);
     setDirty(true);
@@ -81,7 +104,17 @@ export default function AdminCorporatePage() {
   const onSave = async () => {
     const cleaned = working.map((t) => ({
       ...t,
-      inclusions: t.inclusions.map((i) => i.trim()).filter(Boolean),
+      inclusions: {
+        en: getLocalizedStringArray(t.inclusions, "en")
+          .map((i) => i.trim())
+          .filter(Boolean),
+        ar: getLocalizedStringArray(t.inclusions, "ar")
+          .map((i) => i.trim())
+          .filter(Boolean),
+        fr: getLocalizedStringArray(t.inclusions, "fr")
+          .map((i) => i.trim())
+          .filter(Boolean),
+      },
     }));
     try {
       await writeCorporateTiers(cleaned);
@@ -102,7 +135,17 @@ export default function AdminCorporatePage() {
       title="Corporate"
       description="Tier comparison, taglines, and inclusions shown on the /corporate page."
       actions={
-        <>
+        <div className="flex items-center gap-2">
+          <label className="label-md text-ink-60">Locale</label>
+          <select
+            value={activeLocale}
+            onChange={(event) => setActiveLocale(event.target.value as CmsLocale)}
+            className="bg-paper border-border rounded-md border px-2 py-1 text-sm"
+          >
+            <option value="en">EN</option>
+            <option value="ar">AR</option>
+            <option value="fr">FR</option>
+          </select>
           {dirty ? (
             <Button variant="secondary" onClick={onDiscard}>
               Discard
@@ -111,19 +154,26 @@ export default function AdminCorporatePage() {
           <Button variant="primary" onClick={onSave} disabled={!dirty}>
             {dirty ? "Save changes" : "Saved"}
           </Button>
-        </>
+        </div>
       }
     >
       <div className="flex flex-col gap-6">
         {working.map((tier) => (
-          <AdminFormShell key={tier.id} title={tier.name || "Untitled tier"}>
+          <AdminFormShell
+            key={tier.id}
+            title={getLocalizedString(tier.name, activeLocale) || "Untitled tier"}
+          >
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Name">
                 {({ id }) => (
                   <Input
                     id={id}
-                    value={tier.name}
-                    onChange={(e) => updateTier(tier.id, { name: e.target.value })}
+                    value={getLocalizedString(tier.name, activeLocale)}
+                    onChange={(e) =>
+                      updateTier(tier.id, {
+                        name: updateLocalizedString(tier.name, activeLocale, e.target.value),
+                      })
+                    }
                   />
                 )}
               </Field>
@@ -131,8 +181,16 @@ export default function AdminCorporatePage() {
                 {({ id }) => (
                   <Input
                     id={id}
-                    value={tier.fleetSize}
-                    onChange={(e) => updateTier(tier.id, { fleetSize: e.target.value })}
+                    value={getLocalizedString(tier.fleetSize, activeLocale)}
+                    onChange={(e) =>
+                      updateTier(tier.id, {
+                        fleetSize: updateLocalizedString(
+                          tier.fleetSize,
+                          activeLocale,
+                          e.target.value,
+                        ),
+                      })
+                    }
                   />
                 )}
               </Field>
@@ -140,8 +198,12 @@ export default function AdminCorporatePage() {
                 {({ id }) => (
                   <Input
                     id={id}
-                    value={tier.tagline}
-                    onChange={(e) => updateTier(tier.id, { tagline: e.target.value })}
+                    value={getLocalizedString(tier.tagline, activeLocale)}
+                    onChange={(e) =>
+                      updateTier(tier.id, {
+                        tagline: updateLocalizedString(tier.tagline, activeLocale, e.target.value),
+                      })
+                    }
                   />
                 )}
               </Field>
@@ -169,8 +231,19 @@ export default function AdminCorporatePage() {
                 {({ id }) => (
                   <Input
                     id={id}
-                    value={tier.ctaLabel ?? ""}
-                    onChange={(e) => updateTier(tier.id, { ctaLabel: e.target.value || undefined })}
+                    value={tier.ctaLabel ? getLocalizedString(tier.ctaLabel, activeLocale) : ""}
+                    onChange={(e) =>
+                      updateTier(tier.id, {
+                        ctaLabel:
+                          e.target.value.length > 0
+                            ? updateLocalizedString(
+                                tier.ctaLabel ?? { en: "", ar: "", fr: "" },
+                                activeLocale,
+                                e.target.value,
+                              )
+                            : undefined,
+                      })
+                    }
                   />
                 )}
               </Field>
@@ -185,7 +258,7 @@ export default function AdminCorporatePage() {
             <div>
               <p className="label-md text-ink-70 mb-2 block">Inclusions</p>
               <div className="flex flex-col gap-2">
-                {tier.inclusions.map((inc, i) => (
+                {getLocalizedStringArray(tier.inclusions, activeLocale).map((inc, i) => (
                   <div key={i} className="flex items-center gap-2">
                     <div className="flex-1">
                       <Input

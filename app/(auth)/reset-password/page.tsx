@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Eye, EyeOff } from "lucide-react";
 import { AuthCard } from "@/components/account/AuthCard";
 import {
@@ -16,6 +17,7 @@ import { toast } from "@/components/ui/Toast";
 import { useSession } from "@/hooks/useSession";
 
 export default function ResetPasswordPage() {
+  const t = useTranslations("auth");
   const router = useRouter();
   const searchParams = useSearchParams();
   const { resetPassword, session, ready } = useSession();
@@ -35,16 +37,16 @@ export default function ResetPasswordPage() {
   if (invalidLink) {
     return (
       <AuthCard
-        title="Link expired or invalid"
-        subtitle="Request a new reset link to set a fresh password."
+        title={t("reset.invalidTitle")}
+        subtitle={t("reset.invalidSubtitle")}
         footer={
           <Link href="/forgot-password" className="text-ink-100 underline-offset-2 hover:underline">
-            Request a new link →
+            {t("reset.requestNewLink")} →
           </Link>
         }
       >
         <Button asChild variant="primary" size="md" fullWidth>
-          <Link href="/forgot-password">Request a new link</Link>
+          <Link href="/forgot-password">{t("reset.requestNewLink")}</Link>
         </Button>
       </AuthCard>
     );
@@ -54,20 +56,20 @@ export default function ResetPasswordPage() {
     e.preventDefault();
     setError(null);
     if (password.length < 8 || scorePassword(password) < 1) {
-      setError("Choose a stronger password (8+ chars, mix of letters & numbers).");
+      setError(t("reset.passwordWeak"));
       return;
     }
     if (password !== confirm) {
-      setError("Passwords don't match.");
+      setError(t("reset.passwordsMismatch"));
       return;
     }
     setSubmitting(true);
     try {
       await resetPassword(password);
-      toast.success("Password updated.");
+      toast.success(t("reset.updated"));
       router.push("/account");
     } catch {
-      setError("That link is no longer valid. Request a new one.");
+      setError(t("reset.linkInvalid"));
     } finally {
       setSubmitting(false);
     }
@@ -75,15 +77,15 @@ export default function ResetPasswordPage() {
 
   return (
     <AuthCard
-      title="Set a new password."
+      title={t("reset.title")}
       footer={
         <Link href="/login" className="text-ink-100 underline-offset-2 hover:underline">
-          Back to sign in →
+          {t("reset.backToSignIn")} →
         </Link>
       }
     >
       <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
-        <Field label="New password" required>
+        <Field label={t("reset.newPassword")} required>
           {({ id }) => (
             <>
               <Input
@@ -96,7 +98,7 @@ export default function ResetPasswordPage() {
                   <button
                     type="button"
                     onClick={() => setShow((s) => !s)}
-                    aria-label={show ? "Hide password" : "Show password"}
+                    aria-label={show ? t("hidePassword") : t("showPassword")}
                     className="hover:text-ink-80 text-ink-60"
                   >
                     {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -107,7 +109,7 @@ export default function ResetPasswordPage() {
             </>
           )}
         </Field>
-        <Field label="Confirm new password" required>
+        <Field label={t("reset.confirmNewPassword")} required>
           {({ id }) => (
             <Input
               id={id}
@@ -120,7 +122,7 @@ export default function ResetPasswordPage() {
         </Field>
         {error ? <ErrorText>{error}</ErrorText> : null}
         <Button type="submit" variant="cta" size="lg" fullWidth loading={submitting}>
-          Save password
+          {t("reset.submit")}
         </Button>
       </form>
     </AuthCard>

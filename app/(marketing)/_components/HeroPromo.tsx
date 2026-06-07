@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { Reveal } from "@/components/motion/Reveal";
 import { InversePromoBlock } from "@/components/landing/InversePromoBlock";
 
@@ -7,25 +8,26 @@ import { InversePromoBlock } from "@/components/landing/InversePromoBlock";
  * Sits directly below the search card. The Phase-1 copy markets the
  * Hazmieh hub as the trustworthy pickup point.
  */
-export function HeroPromo() {
+export async function HeroPromo() {
+  const t = await getTranslations("landing.heroPromo");
   return (
     <Reveal as="section" className="bg-paper">
       <div className="mx-auto max-w-[var(--container-default)] px-5 pb-12 sm:px-10 lg:pb-16">
         <InversePromoBlock
-          eyebrow="Travelers' choice"
+          eyebrow={t("eyebrow")}
           headline={
             <>
-              The cars you
+              {t("headlineLine1")}
               <br />
-              trust at Hazmieh.
+              {t("headlineLine2")}
             </>
           }
-          body="Free pickup. Brand-new fleet. WhatsApp support. Drive in under 15 minutes from the moment you arrive."
-          ctaLabel="Browse fleet"
+          body={t("body")}
+          ctaLabel={t("cta")}
           ctaHref="/vehicles"
           image={{
             src: "/images/Hero Images/ramy-kabalan-mF4_MHgp4ps-unsplash.jpg",
-            alt: "A premium Wheels rental car parked along the Lebanese coast",
+            alt: t("imageAlt"),
             width: 1280,
             height: 960,
           }}

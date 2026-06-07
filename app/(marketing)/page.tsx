@@ -5,6 +5,7 @@ import { Featured4 } from "./_components/Featured4";
 import { ExploreLebanon } from "./_components/ExploreLebanon";
 import { ServicePromos } from "./_components/ServicePromos";
 import { Reviews } from "./_components/Reviews";
+import { getTranslations } from "next-intl/server";
 import { NewsletterPopup } from "@/components/consent/NewsletterPopup";
 import { REVIEWS } from "@/lib/api/mocks/fixtures/content";
 import { getPublicBranches, getPublicVehicles } from "@/lib/server/public-content";
@@ -25,11 +26,10 @@ import { getPublicBranches, getPublicVehicles } from "@/lib/server/public-conten
  * the real backend lands, these imports become typed fetch() calls.
  */
 
-export const metadata = {
-  title: "Wheels Rent A Car — Premium Car Rental in Lebanon · Free Hazmieh Pickup",
-  description:
-    "Premium car rental in Lebanon. Free Hazmieh pickup. WhatsApp support 24/7. Free cancellation up to 24 hours. Book in under 90 seconds.",
-};
+export async function generateMetadata() {
+  const t = await getTranslations("meta");
+  return { title: t("homeTitle"), description: t("homeDescription") };
+}
 
 const jsonLd = {
   "@context": "https://schema.org",

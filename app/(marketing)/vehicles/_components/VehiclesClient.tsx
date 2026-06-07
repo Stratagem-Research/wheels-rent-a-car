@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { staggerContainer, staggerItem } from "@/lib/motion/variants";
 import { useMotionGate } from "@/lib/motion/useMotionGate";
@@ -19,7 +20,6 @@ import {
   parseFiltersFromSearch,
   sortFiltered,
 } from "@/lib/vehicles/filter";
-import { CATEGORY_LABELS } from "@/lib/vehicles/labels";
 import { useBookingDraft } from "@/hooks/useBookingDraft";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
@@ -49,6 +49,8 @@ import type { MileagePlan, RateType, Vehicle, VehicleCategory } from "@/types/do
  */
 
 export function VehiclesClient() {
+  const t = useTranslations("vehicles");
+  const tCat = useTranslations("vehicleCategories");
   const router = useRouter();
   const searchParamsHook = useSearchParams();
   const searchParams = React.useMemo(
@@ -162,7 +164,7 @@ export function VehiclesClient() {
 
       <section className="mx-auto max-w-[var(--container-full)] px-5 py-8 sm:px-5 sm:py-12">
         <h1 className="display-md text-ink-100 text-[clamp(24px,2.5vw,36px)] leading-[1.05] whitespace-nowrap">
-          Which car do you want to drive?
+          {t("title")}
         </h1>
 
         {/* Toolbar — every filter is a visible chip. No hidden "Filter" sheet,
@@ -174,14 +176,14 @@ export function VehiclesClient() {
             onClick={toggleLowestPrice}
             aria-pressed={lowestPriceActive}
           >
-            Lowest price
+            {t("lowestPrice")}
           </Chip>
           <Chip
             variant={autoOnlyActive ? "selected" : "default"}
             onClick={toggleAutoOnly}
             aria-pressed={autoOnlyActive}
           >
-            Auto only
+            {t("autoOnly")}
           </Chip>
           {categoryChips.map((cat) => (
             <Chip
@@ -190,12 +192,10 @@ export function VehiclesClient() {
               onClick={() => toggleCategory(cat)}
               aria-pressed={isCategoryActive(cat)}
             >
-              {CATEGORY_LABELS[cat]}
+              {tCat(cat)}
             </Chip>
           ))}
-          <span className="label-md text-ink-50 ml-auto">
-            {filtered.length} {filtered.length === 1 ? "car" : "cars"}
-          </span>
+          <span className="label-md text-ink-50 ml-auto">{t("carsCount", { count: filtered.length })}</span>
         </div>
 
         {/* Grid — dark VehicleCards rendered in logical rows of 3. When a card
@@ -203,7 +203,11 @@ export function VehiclesClient() {
          * instead of widening the card inline. This keeps every adjacent
          * card in its original position — clicking never reflows the grid. */}
         {filtered.length === 0 ? (
-          <EmptyState />
+          <EmptyState
+            heading={t("emptyHeading")}
+            body={t("emptyBody")}
+            reset={t("resetFilters")}
+          />
         ) : (
           <LayoutGroup>
             <motion.div
@@ -211,7 +215,7 @@ export function VehiclesClient() {
               initial={reduce ? false : "hidden"}
               animate="visible"
               className="mt-6 flex flex-col gap-4 sm:gap-6 lg:mt-8"
-              aria-label="Vehicle results"
+              aria-label={t("resultsAria")}
               role="list"
             >
               {chunkRows(filtered, ROW_SIZE).map((rowVehicles, rowIdx) => {
@@ -298,19 +302,17 @@ function withSelected(params: URLSearchParams, slug: string): string {
   return next.toString();
 }
 
-function EmptyState() {
+function EmptyState({ heading, body, reset }: { heading: string; body: string; reset: string }) {
   return (
     <div className="bg-paper border-border mt-8 flex flex-col items-center gap-3 rounded-xl border p-12 text-center">
       <span aria-hidden="true" className="text-5xl">
         🛣️
       </span>
-      <h2 className="headline-md text-ink-95">No cars match these filters.</h2>
-      <p className="body-md text-ink-60 max-w-md">
-        Try clearing a filter or expanding the price range.
-      </p>
+      <h2 className="headline-md text-ink-95">{heading}</h2>
+      <p className="body-md text-ink-60 max-w-md">{body}</p>
       <div className="mt-2 flex gap-3">
         <Button asChild variant="primary" size="sm">
-          <a href="/vehicles">Reset filters</a>
+          <a href="/vehicles">{reset}</a>
         </Button>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { Reveal } from "@/components/motion/Reveal";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -13,16 +14,17 @@ import type { Vehicle } from "@/types/domain";
  * breathe and the photo sits at a more legible size. Mobile keeps the
  * horizontal snap-scroll affordance.
  */
-export function Featured4({ vehicles }: { vehicles: Vehicle[] }) {
+export async function Featured4({ vehicles }: { vehicles: Vehicle[] }) {
+  const t = await getTranslations("landing.featured");
   const four = vehicles.slice(0, 4);
 
   return (
     <Reveal as="section" className="bg-ink-100 text-paper">
       <div className="mx-auto max-w-[var(--container-default)] px-5 py-16 sm:px-10 lg:py-32">
         <div className="mb-10 flex max-w-3xl flex-col gap-3 lg:mb-14">
-          <p className="text-ink-40 overline">Popular this week</p>
+          <p className="text-ink-40 overline">{t("eyebrow")}</p>
           <h2 className="display-lg text-paper text-[clamp(40px,6vw,72px)] leading-[0.98]">
-            Driver favourites.
+            {t("heading")}
           </h2>
         </div>
 
@@ -45,7 +47,7 @@ export function Featured4({ vehicles }: { vehicles: Vehicle[] }) {
         <div className="mt-10 flex justify-center lg:mt-14">
           <Button asChild variant="secondary-inverse" size="lg">
             <Link href="/vehicles">
-              View the full fleet <ArrowRight className="size-4" aria-hidden="true" />
+              {t("viewFullFleet")} <ArrowRight className="size-4" aria-hidden="true" />
             </Link>
           </Button>
         </div>

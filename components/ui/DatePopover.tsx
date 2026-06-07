@@ -5,6 +5,7 @@ import * as Popover from "@radix-ui/react-popover";
 import { DayPicker } from "react-day-picker";
 import { addMonths, format, isAfter, isBefore } from "date-fns";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 import "react-day-picker/dist/style.css";
@@ -67,7 +68,7 @@ export function DatePopover({
   onRangeChange,
   min = defaultMin(),
   max = defaultMax(),
-  placeholder = "Select a date",
+  placeholder,
   disabled,
   invalid,
   id,
@@ -78,18 +79,20 @@ export function DatePopover({
   onOpenChange,
   ...aria
 }: DatePopoverProps) {
+  const t = useTranslations("searchUi");
   const monthCount = numberOfMonths ?? (mode === "range" ? 3 : 1);
+  const ph = placeholder ?? t("dateSelect");
 
   const display =
     mode === "single"
       ? value
         ? format(value, "dd MMM yyyy")
-        : placeholder
+        : ph
       : rangeValue?.from
         ? rangeValue.to
           ? `${format(rangeValue.from, "dd MMM")} – ${format(rangeValue.to, "dd MMM yyyy")}`
           : format(rangeValue.from, "dd MMM yyyy")
-        : placeholder;
+        : ph;
 
   const isPlaceholder = (mode === "single" && !value) || (mode === "range" && !rangeValue?.from);
 
@@ -254,14 +257,19 @@ function RangeHeader({
   onPrevMonth: () => void;
   onNextMonth: () => void;
 }) {
+  const t = useTranslations("searchUi");
   const step = !from ? 1 : !to ? 2 : 3;
   const heading =
-    step === 1 ? "Pick your pickup date" : step === 2 ? "Now pick your return date" : "Dates set";
+    step === 1
+      ? t("dateHeadingPickup")
+      : step === 2
+        ? t("dateHeadingReturn")
+        : t("dateHeadingSet");
   const meta =
     step === 1
-      ? "Step 1 of 2"
+      ? t("dateStep1")
       : step === 2 && from
-        ? `Pickup: ${format(from, "d MMM yyyy")}`
+        ? t("datePickupMeta", { date: format(from, "d MMM yyyy") })
         : from && to
           ? `${format(from, "d MMM")} → ${format(to, "d MMM yyyy")}`
           : null;
@@ -279,13 +287,13 @@ function RangeHeader({
             onClick={onReset}
             className="label-md text-ink-60 hover:text-ink-100 mr-2 underline-offset-4 hover:underline"
           >
-            Reset
+            {t("dateReset")}
           </button>
         ) : null}
         <button
           type="button"
           onClick={onPrevMonth}
-          aria-label="Previous month"
+          aria-label={t("datePrevMonth")}
           className="border-ink-20 text-ink-80 hover:bg-ink-10 hover:text-ink-100 focus-visible:outline-ink-100 inline-flex size-8 items-center justify-center rounded-full border focus-visible:outline-2"
         >
           <ChevronLeft className="size-4" aria-hidden="true" />
@@ -293,7 +301,7 @@ function RangeHeader({
         <button
           type="button"
           onClick={onNextMonth}
-          aria-label="Next month"
+          aria-label={t("dateNextMonth")}
           className="border-ink-20 text-ink-80 hover:bg-ink-10 hover:text-ink-100 focus-visible:outline-ink-100 inline-flex size-8 items-center justify-center rounded-full border focus-visible:outline-2"
         >
           <ChevronRight className="size-4" aria-hidden="true" />

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Clock } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 /**
@@ -24,6 +25,7 @@ export interface HoldTimerProps {
 }
 
 export function HoldTimer({ holdSeconds = 24 * 60, onExpire, className }: HoldTimerProps) {
+  const t = useTranslations("bookingFlow.hold");
   const [remaining, setRemaining] = React.useState<number | null>(null);
   const firedExpire = React.useRef(false);
 
@@ -72,11 +74,9 @@ export function HoldTimer({ holdSeconds = 24 * 60, onExpire, className }: HoldTi
     >
       <Clock className="size-4" aria-hidden="true" />
       {expired ? (
-        <span>Your booking hold has expired — prices may have changed.</span>
+        <span>{t("expired")}</span>
       ) : (
-        <span className="tabular-nums">
-          Your booking is held for {mm}:{ss}
-        </span>
+        <span className="tabular-nums">{t("active", { time: `${mm}:${ss}` })}</span>
       )}
     </div>
   );

@@ -3,6 +3,7 @@
 import * as React from "react";
 import * as Popover from "@radix-ui/react-popover";
 import { ChevronDown, MapPin, Building2, History as HistoryIcon, Clock, Plane } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/Input";
 import { readLastSearch } from "@/lib/search/persistence";
@@ -51,6 +52,7 @@ export function LocationPicker({
   open: controlledOpen,
   onOpenChange,
 }: LocationPickerProps) {
+  const t = useTranslations("searchUi");
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
   const open = controlledOpen ?? uncontrolledOpen;
   const setOpen = (next: boolean) => {
@@ -86,8 +88,9 @@ export function LocationPicker({
 
   const focusedBranch = branches.find((b) => b.id === focusedBranchId) ?? ourBranches[0] ?? null;
 
-  const summary = formatSummary(value, branches);
-  const isPlaceholder = summary === "Choose pickup location";
+  const resolved = formatSummary(value, branches);
+  const isPlaceholder = resolved === null;
+  const summary = resolved ?? t("locChoose");
 
   const choose = (next: LocationValue) => {
     onValueChange(next);
@@ -103,7 +106,7 @@ export function LocationPicker({
           <button
             id={id}
             type="button"
-            aria-label={`${label} location: ${summary}`}
+            aria-label={t("locAria", { label, summary })}
             className={cn(
               "bg-surface flex h-13 w-full items-center gap-3 rounded-md px-4 text-left",
               "border-ink-20 hover:border-ink-80 border transition-colors duration-150",
@@ -133,7 +136,7 @@ export function LocationPicker({
             {/* Left: history + our-branch list */}
             <div>
               {history ? (
-                <Section title="History">
+                <Section title={t("locHistory")}>
                   <Option
                     icon={<HistoryIcon className="size-4 shrink-0" aria-hidden="true" />}
                     onClick={() => choose({ type: "branch", locationId: history.id })}
@@ -145,7 +148,7 @@ export function LocationPicker({
                 </Section>
               ) : null}
 
-              <Section title="Our branch">
+              <Section title={t("locOurBranch")}>
                 {ourBranches.map((branch) => (
                   <Option
                     key={branch.id}
@@ -161,7 +164,7 @@ export function LocationPicker({
               </Section>
 
               {airportBranches.length ? (
-                <Section title="Airport pickup">
+                <Section title={t("locAirport")}>
                   {airportBranches.map((branch) => (
                     <Option
                       key={branch.id}
@@ -184,10 +187,10 @@ export function LocationPicker({
 
           <div className="bg-border my-3 h-px" />
 
-          <Section title="Or deliver to me">
+          <Section title={t("locDeliver")}>
             <div className="px-1 pb-1">
               <Input
-                placeholder="Hotel address, neighbourhood — anywhere in Greater Beirut"
+                placeholder={t("locDeliverPlaceholder")}
                 value={addressDraft}
                 onChange={(e) => setAddressDraft(e.target.value)}
                 onKeyDown={(e) => {
@@ -197,7 +200,7 @@ export function LocationPicker({
                   }
                 }}
                 startAdornment={<MapPin className="size-4" aria-hidden="true" />}
-                aria-label="Delivery address"
+                aria-label={t("locDeliverAria")}
               />
             </div>
           </Section>
@@ -251,6 +254,7 @@ function Option({
 }
 
 function StationDetails({ branch }: { branch: Branch }) {
+  const t = useTranslations("searchUi");
   return (
     <aside className="bg-ink-10 flex flex-col gap-2 rounded-md p-4">
       <header className="flex items-center gap-2">
@@ -263,8 +267,11 @@ function StationDetails({ branch }: { branch: Branch }) {
           <Clock className="text-ink-60 mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
           <div className="label-md text-ink-60">
             {branch.hours[0]?.open24h
-              ? "Open 24/7"
-              : `${branch.hours[0]?.open ?? "—"}–${branch.hours[0]?.close ?? "—"} most days`}
+              ? t("locOpen247")
+              : t("locHours", {
+                  open: branch.hours[0]?.open ?? "—",
+                  close: branch.hours[0]?.close ?? "—",
+                })}
           </div>
         </div>
       ) : null}
@@ -284,9 +291,11 @@ function LocationIcon({ type, className }: { type: PickupType; className?: strin
   }
 }
 
-function formatSummary(value: LocationValue, branches: Branch[]): string {
+/** Returns the display summary, or null when nothing is selected yet (the
+ * caller substitutes a localized "Choose pickup location" placeholder). */
+function formatSummary(value: LocationValue, branches: Branch[]): string | null {
   if (value.type === "address-delivery" && value.address) return value.address;
   const branch = branches.find((b) => b.id === value.locationId);
   if (branch) return branch.name;
-  return "Choose pickup location";
+  return null;
 }

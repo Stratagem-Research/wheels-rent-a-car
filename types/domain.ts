@@ -34,6 +34,23 @@ export type CountryCode = string;
 export type BookingRef = string;
 export const BOOKING_REF_PATTERN = /^WRC-\d{6}-[A-Z0-9]{4}$/;
 
+export type CmsLocale = "en" | "ar" | "fr";
+
+export interface LocalizedString {
+  en: string;
+  ar?: string;
+  fr?: string;
+}
+
+export interface LocalizedStringArray {
+  en: string[];
+  ar?: string[];
+  fr?: string[];
+}
+
+export type LocalizedStringValue = LocalizedString | string;
+export type LocalizedStringArrayValue = LocalizedStringArray | string[];
+
 // ── Vehicles ──────────────────────────────────────────────────────────────
 
 export type VehicleCategory =
@@ -342,13 +359,13 @@ export interface FaqEntry {
   id: string;
   /** Topic group key for the FAQ page nav. */
   group: string;
-  question: string;
-  answer: string;
+  question: LocalizedStringValue;
+  answer: LocalizedStringValue;
 }
 
 export interface FaqGroup {
   id: string;
-  title: string;
+  title: LocalizedStringValue;
   entries: FaqEntry[];
 }
 
@@ -376,20 +393,20 @@ export interface ChauffeurItinerary {
 
 export interface CorporateTier {
   id: string;
-  name: string;
+  name: LocalizedStringValue;
   /** Short label shown under the tier name. */
-  tagline: string;
+  tagline: LocalizedStringValue;
   /**
    * Indicative starting per-day rate in cents. `null` means "quote only" —
    * no public price; CTA opens the enquiry form pre-selected to this tier.
    */
   perDayCents: Cents | null;
   /** Indicative monthly fleet size this tier suits ("3-10 cars", etc.). */
-  fleetSize: string;
-  inclusions: string[];
+  fleetSize: LocalizedStringValue;
+  inclusions: LocalizedStringArrayValue;
   popular?: boolean;
   /** Override the CTA label per tier (defaults to "Get a quote"). */
-  ctaLabel?: string;
+  ctaLabel?: LocalizedStringValue;
 }
 
 // ── Trips (self-drive blog content) ──────────────────────────────────────
@@ -398,25 +415,25 @@ export type TripRegion = "mountains" | "coast" | "bekaa" | "cultural" | "north" 
 
 export interface TripImage {
   src: string;
-  alt: string;
+  alt: LocalizedStringValue;
   width: number;
   height: number;
 }
 
 export interface Trip {
   slug: string;
-  title: string;
+  title: LocalizedStringValue;
   /** One-line teaser on listings. */
-  excerpt: string;
+  excerpt: LocalizedStringValue;
   coverImage: TripImage;
   /** Compact card meta — "8h · SUV recommended", etc. */
-  meta: string;
+  meta: LocalizedStringValue;
   region: TripRegion;
   /** Article body (Markdown allowed). */
-  body: string;
+  body: LocalizedStringValue;
   /** Vehicle category we recommend for this trip. */
   suggestedVehicleCategory: VehicleCategory;
-  tags: string[];
+  tags: LocalizedStringArrayValue;
   publishedAt: ISODate;
   updatedAt: ISODateTime;
 }
@@ -428,20 +445,20 @@ export type ItineraryCategory = "day-trip" | "multi-day" | "cultural" | "wine" |
 export interface ItineraryScheduleItem {
   /** "09:00" — 24h clock. */
   time: string;
-  title: string;
-  body?: string;
+  title: LocalizedStringValue;
+  body?: LocalizedStringValue;
 }
 
 export interface Itinerary {
   slug: string;
-  title: string;
-  excerpt: string;
+  title: LocalizedStringValue;
+  excerpt: LocalizedStringValue;
   coverImage: TripImage;
   category: ItineraryCategory;
   /** Display string — "Full day · 9-10 hours". */
-  duration: string;
+  duration: LocalizedStringValue;
   priceFromCents: Cents;
-  highlights: string[];
+  highlights: LocalizedStringArrayValue;
   schedule: ItineraryScheduleItem[];
   vehicleClass: "sedan" | "suv" | "van";
   updatedAt: ISODateTime;

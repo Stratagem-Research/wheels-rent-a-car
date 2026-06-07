@@ -9,6 +9,7 @@ import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { useItineraries } from "@/lib/admin/useAdminStore";
 import { writeItineraries } from "@/lib/admin/store";
 import { formatUsd } from "@/lib/booking/pricing";
+import { getLocalizedString } from "@/lib/i18n/localized";
 
 /** /admin/itineraries — chauffeur itineraries list view. */
 export default function AdminItinerariesPage() {
@@ -50,7 +51,7 @@ export default function AdminItinerariesPage() {
                 href={`/admin/itineraries/${i.slug}`}
                 className="text-ink-100 underline-offset-4 hover:underline"
               >
-                {i.title}
+                {getLocalizedString(i.title, "en")}
               </Link>
             ),
           },
@@ -61,7 +62,9 @@ export default function AdminItinerariesPage() {
           },
           {
             header: "Duration",
-            cell: (i) => <span className="text-ink-60">{i.duration}</span>,
+            cell: (i) => (
+              <span className="text-ink-60">{getLocalizedString(i.duration, "en")}</span>
+            ),
             width: "18%",
           },
           {
@@ -75,7 +78,10 @@ export default function AdminItinerariesPage() {
         rowActions={(i) => (
           <>
             <Button asChild variant="tertiary" size="sm">
-              <Link href={`/admin/itineraries/${i.slug}`} aria-label={`Edit ${i.title}`}>
+              <Link
+                href={`/admin/itineraries/${i.slug}`}
+                aria-label={`Edit ${getLocalizedString(i.title, "en")}`}
+              >
                 <Pencil className="size-4" aria-hidden="true" />
               </Link>
             </Button>
@@ -83,7 +89,7 @@ export default function AdminItinerariesPage() {
               variant="tertiary"
               size="sm"
               onClick={() => onDelete(i.slug)}
-              aria-label={`Delete ${i.title}`}
+              aria-label={`Delete ${getLocalizedString(i.title, "en")}`}
             >
               <Trash2 className="size-4" aria-hidden="true" />
             </Button>

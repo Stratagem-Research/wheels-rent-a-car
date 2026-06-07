@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import Image from "next/image";
 import { format, parseISO } from "date-fns";
@@ -37,6 +38,7 @@ import { VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
  * placeholder toasts so the buttons are visible end-to-end.
  */
 export default function ConfirmationPage() {
+  const t = useTranslations("bookingFlow.confirmation");
   const params = useParams<{ ref: string }>();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -48,7 +50,7 @@ export default function ConfirmationPage() {
   const [lookupError, setLookupError] = React.useState<string | null>(null);
   const refValid = isValidBookingRef(ref);
   // Derive the invalid-ref error synchronously — keeps it out of useEffect.
-  const error = !refValid ? "That booking reference doesn't look valid." : lookupError;
+  const error = !refValid ? t("invalidRef") : lookupError;
 
   React.useEffect(() => {
     if (!refValid) return;
@@ -73,23 +75,23 @@ export default function ConfirmationPage() {
           }
         }
         console.error(err);
-        setLookupError("We couldn't find that booking. Check your email for the reference.");
+        setLookupError(t("lookupError"));
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [refValid, ref, email, draft]);
+  }, [refValid, ref, email, draft, t]);
 
   if (error) {
     return (
       <>
         <Stepper current={5} />
         <div className="mx-auto max-w-3xl px-5 py-16 text-center sm:px-5">
-          <h1 className="headline-lg text-ink-95">Booking not found</h1>
+          <h1 className="headline-lg text-ink-95">{t("notFoundHeading")}</h1>
           <p className="body-md text-ink-60 mt-3">{error}</p>
           <Button asChild variant="primary" className="mt-6">
-            <Link href="/manage-booking">Look up another booking</Link>
+            <Link href="/manage-booking">{t("lookupAnother")}</Link>
           </Button>
         </div>
       </>
@@ -131,7 +133,7 @@ export default function ConfirmationPage() {
       <section className="mx-auto max-w-[var(--container-full)] px-5 py-12 sm:px-5 sm:py-16">
         <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
           <Card variant="elevated" className="flex flex-col gap-5">
-            <h2 className="headline-md text-ink-95">Your car</h2>
+            <h2 className="headline-md text-ink-95">{t("yourCar")}</h2>
             <div className="flex items-center gap-4">
               {heroImage ? (
                 <div className="bg-ink-10 relative size-20 shrink-0 overflow-hidden rounded-md">
@@ -147,7 +149,7 @@ export default function ConfirmationPage() {
               <div>
                 <div className="headline-sm text-ink-95">
                   {booking.vehicleSnapshot.make} {booking.vehicleSnapshot.model}{" "}
-                  <span className="body-sm text-ink-60 italic">or similar</span>
+                  <span className="body-sm text-ink-60 italic">{t("orSimilar")}</span>
                 </div>
                 <div className="label-md text-ink-60 capitalize">
                   {booking.vehicleSnapshot.category.replace("-", " ")}
@@ -158,12 +160,12 @@ export default function ConfirmationPage() {
             <hr className="border-border" />
 
             <SummaryBlock
-              title="Pickup"
+              title={t("pickup")}
               location={pickupBranch?.name ?? booking.pickup.address ?? "—"}
               datetime={booking.pickup.datetime}
             />
             <SummaryBlock
-              title="Return"
+              title={t("return")}
               location={returnBranch?.name ?? booking.return.address ?? pickupBranch?.name ?? "—"}
               datetime={booking.return.datetime}
             />
@@ -171,7 +173,7 @@ export default function ConfirmationPage() {
             <hr className="border-border" />
 
             <div>
-              <h3 className="text-ink-50 mb-2 overline">Driver</h3>
+              <h3 className="text-ink-50 mb-2 overline">{t("driver")}</h3>
               <p className="body-md text-ink-95">
                 {booking.driver.firstName} {booking.driver.lastName}
               </p>
@@ -182,7 +184,7 @@ export default function ConfirmationPage() {
 
             {booking.extras.length > 0 ? (
               <div>
-                <h3 className="text-ink-50 mb-2 overline">Add-ons</h3>
+                <h3 className="text-ink-50 mb-2 overline">{t("addons")}</h3>
                 <ul className="body-sm text-ink-80 flex flex-col gap-1">
                   {booking.extras.map((extra) => {
                     const addOn = ADD_ONS.find((a) => a.id === extra.addOnId);
@@ -200,7 +202,7 @@ export default function ConfirmationPage() {
 
             {tier ? (
               <div>
-                <h3 className="text-ink-50 mb-2 overline">Protection</h3>
+                <h3 className="text-ink-50 mb-2 overline">{t("protection")}</h3>
                 <p className="body-md text-ink-95">{tier.name}</p>
               </div>
             ) : null}
@@ -209,68 +211,64 @@ export default function ConfirmationPage() {
           <aside className="flex flex-col gap-5">
             <Card variant="elevated" className="flex flex-col gap-3">
               <div>
-                <span className="text-ink-50 overline">Total</span>
+                <span className="text-ink-50 overline">{t("total")}</span>
                 <div className="price-lg text-ink-95">{formatUsd(booking.price.totalCents)}</div>
                 <div className="body-sm text-ink-60">
                   {booking.state === "pending"
-                    ? "Awaiting payment verification"
-                    : `Paid via ${labelForMethod(booking.paymentMethod)}`}
+                    ? t("awaitingPayment")
+                    : t("paidVia", { method: labelForMethod(booking.paymentMethod, t) })}
                 </div>
               </div>
               {booking.price.depositCents > 0 ? (
                 <div>
-                  <span className="label-md text-ink-60">Deposit held at pickup</span>
+                  <span className="label-md text-ink-60">{t("depositHeld")}</span>
                   <div className="price-md text-ink-95">
                     {formatUsd(booking.price.depositCents)}
                   </div>
-                  <div className="label-sm text-ink-50">Refundable on return</div>
+                  <div className="label-sm text-ink-50">{t("refundableOnReturn")}</div>
                 </div>
               ) : null}
               <div className="mt-2 flex flex-col gap-2">
                 <Button variant="primary" size="md" onClick={onAddToCalendar}>
-                  <CalendarIcon className="size-4" aria-hidden="true" /> Add to calendar
+                  <CalendarIcon className="size-4" aria-hidden="true" /> {t("addToCalendar")}
                 </Button>
                 <Button asChild variant="secondary" size="md">
                   <a href={`/manage-booking?ref=${booking.ref}`}>
-                    <FileText className="size-4" aria-hidden="true" /> View invoice
+                    <FileText className="size-4" aria-hidden="true" /> {t("viewInvoice")}
                   </a>
                 </Button>
               </div>
               <hr className="border-border" />
               <div className="flex flex-col gap-2">
-                <span className="label-md text-ink-60">Need to change?</span>
+                <span className="label-md text-ink-60">{t("needChange")}</span>
                 <div className="flex flex-col gap-2 sm:flex-row">
                   <Button
                     variant="tertiary"
                     size="sm"
-                    onClick={() =>
-                      toast.info("Modify lands in Sprint 7 — chat with us on WhatsApp for now.")
-                    }
+                    onClick={() => toast.info(t("modifyToast"))}
                   >
-                    <Edit3 className="size-4" aria-hidden="true" /> Modify
+                    <Edit3 className="size-4" aria-hidden="true" /> {t("modify")}
                   </Button>
                   <Button
                     variant="tertiary"
                     size="sm"
-                    onClick={() =>
-                      toast.info("Cancel lands in Sprint 7 — chat with us on WhatsApp for now.")
-                    }
+                    onClick={() => toast.info(t("cancelToast"))}
                   >
-                    <X className="size-4" aria-hidden="true" /> Cancel
+                    <X className="size-4" aria-hidden="true" /> {t("cancel")}
                   </Button>
                 </div>
               </div>
             </Card>
 
             <Card variant="outline" className="flex flex-col gap-2 p-5">
-              <span className="label-md text-ink-60">Prefer to chat?</span>
+              <span className="label-md text-ink-60">{t("preferChat")}</span>
               <Button asChild variant="whatsapp" size="md">
                 <a
                   href={whatsAppHref("confirmation", { ref: booking.ref })}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <Phone className="size-4" aria-hidden="true" /> WhatsApp us
+                  <Phone className="size-4" aria-hidden="true" /> {t("whatsappUs")}
                 </a>
               </Button>
             </Card>
@@ -317,29 +315,30 @@ function NextSteps({
   booking: Booking;
   pickupBranch: string | undefined;
 }) {
+  const t = useTranslations("bookingFlow.confirmation");
   const items: string[] = [];
-  items.push("Bring your driver's licence and the credit card used.");
-  items.push("Have your booking reference ready.");
-  items.push("We'll WhatsApp you 24 hours before pickup with the meeting point.");
+  items.push(t("stepBringLicence"));
+  items.push(t("stepHaveRef"));
+  items.push(t("stepWhatsapp24h"));
   if (booking.pickup.type === "branch" && pickupBranch) {
-    items.push(`Pick up at ${pickupBranch} — our team will WhatsApp you the parking details.`);
+    items.push(t("stepPickupAt", { branch: pickupBranch }));
   }
   if (booking.pickup.type === "address-delivery" && booking.pickup.address) {
-    items.push(`We'll deliver to: ${booking.pickup.address}`);
+    items.push(t("stepDeliverTo", { address: booking.pickup.address }));
   }
   if (booking.paymentMethod === "cash") {
-    items.push("Bring USD or LBP for payment at the counter.");
+    items.push(t("stepBringCash"));
   }
   if (booking.state === "pending" && booking.paymentMethod === "transfer") {
-    items.push("Send your transfer if you haven't yet. We confirm within 24h of receipt.");
+    items.push(t("stepSendTransfer"));
   }
   if (booking.state === "pending" && booking.paymentMethod === "omt") {
-    items.push("Pay at any OMT, Whish, or Bob Finance branch using the reference above.");
+    items.push(t("stepPayOmt"));
   }
 
   return (
     <section className="mt-10">
-      <h2 className="headline-md text-ink-95">Next steps</h2>
+      <h2 className="headline-md text-ink-95">{t("nextSteps")}</h2>
       <ul className="mt-4 flex flex-col gap-2">
         {items.map((line) => (
           <li key={line} className="body-md text-ink-80 flex items-start gap-2">
@@ -353,6 +352,7 @@ function NextSteps({
 }
 
 function AccountUpsell({ email }: { email: string }) {
+  const t = useTranslations("bookingFlow.confirmation");
   return (
     <section className="mt-10">
       <Card
@@ -360,14 +360,12 @@ function AccountUpsell({ email }: { email: string }) {
         className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
       >
         <div>
-          <h2 className="headline-sm">Create an account in one click</h2>
-          <p className="body-sm text-paper/85">
-            Use {email} — we&apos;ll save your booking and licence for next time.
-          </p>
+          <h2 className="headline-sm">{t("upsellHeading")}</h2>
+          <p className="body-sm text-paper/85">{t("upsellBody", { email })}</p>
         </div>
         <div className="flex gap-3">
           <Button asChild variant="cta" size="md">
-            <Link href={`/register?email=${encodeURIComponent(email)}`}>Create account</Link>
+            <Link href={`/register?email=${encodeURIComponent(email)}`}>{t("createAccount")}</Link>
           </Button>
           <Button
             asChild
@@ -375,7 +373,7 @@ function AccountUpsell({ email }: { email: string }) {
             size="md"
             className="text-paper hover:text-paper hover:bg-white/10"
           >
-            <Link href="/">No thanks</Link>
+            <Link href="/">{t("noThanks")}</Link>
           </Button>
         </div>
       </Card>
@@ -384,6 +382,7 @@ function AccountUpsell({ email }: { email: string }) {
 }
 
 function CrossSell() {
+  const t = useTranslations("bookingFlow.confirmation");
   return (
     <section className="mt-10">
       <Card
@@ -391,13 +390,11 @@ function CrossSell() {
         className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
       >
         <div>
-          <h2 className="headline-sm text-ink-95">Staying a month or more?</h2>
-          <p className="body-sm text-ink-60">
-            Long-term rentals come with lower daily rates and free vehicle swaps for service.
-          </p>
+          <h2 className="headline-sm text-ink-95">{t("crossSellHeading")}</h2>
+          <p className="body-sm text-ink-60">{t("crossSellBody")}</p>
         </div>
         <Button asChild variant="secondary" size="md">
-          <Link href="/long-term">Get a long-term quote →</Link>
+          <Link href="/long-term">{t("crossSellCta")} →</Link>
         </Button>
       </Card>
     </section>
@@ -467,18 +464,21 @@ function buildLocalFallbackBooking(
   } satisfies Booking;
 }
 
-function labelForMethod(method: Booking["paymentMethod"]): string {
+function labelForMethod(
+  method: Booking["paymentMethod"],
+  t: ReturnType<typeof useTranslations<"bookingFlow.confirmation">>,
+): string {
   switch (method) {
     case "card":
-      return "card";
+      return t("methodCard");
     case "cash":
-      return "cash on pickup";
+      return t("methodCash");
     case "transfer":
-      return "bank transfer";
+      return t("methodTransfer");
     case "omt":
-      return "OMT";
+      return t("methodOmt");
     case "whish-online":
-      return "Whish";
+      return t("methodWhish");
   }
 }
 

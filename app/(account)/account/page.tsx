@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { differenceInCalendarDays, format, parseISO } from "date-fns";
 import { Car, FileText, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -15,6 +16,7 @@ import { formatUsd } from "@/lib/booking/pricing";
 import type { Booking } from "@/types/domain";
 
 export default function AccountDashboard() {
+  const t = useTranslations("accountPages.dashboard");
   const { session, ready } = useSession();
   const [bookings, setBookings] = React.useState<Booking[] | null>(null);
   // Snapshot mount time so the"upcoming" filter is stable across renders.
@@ -60,37 +62,40 @@ export default function AccountDashboard() {
     .slice(0, 3);
 
   const hour = new Date(now).getHours();
-  const greet = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  const greet =
+    hour < 12 ? t("greetMorning") : hour < 18 ? t("greetAfternoon") : t("greetEvening");
 
   return (
     <div className="flex flex-col gap-10">
       <header className="flex flex-col gap-2">
-        <p className="text-ink-60 overline">Your account</p>
+        <p className="text-ink-60 overline">{t("eyebrow")}</p>
         <h1 className="headline-xl text-ink-100">
-          {greet}, {session.user.firstName}.
+          {t("greeting", { greet, name: session.user.firstName })}
         </h1>
-        <p className="lead-md text-ink-60">
-          {upcoming ? "Here's what's coming up." : "No upcoming trips yet."}
-        </p>
+        <p className="lead-md text-ink-60">{upcoming ? t("comingUp") : t("noUpcoming")}</p>
       </header>
 
       {upcoming ? <UpcomingCard booking={upcoming} /> : <EmptyState />}
 
       <section aria-labelledby="quick-actions">
         <h2 id="quick-actions" className="text-ink-60 mb-4 overline">
-          Quick actions
+          {t("quickActions")}
         </h2>
         <div className="grid gap-3 sm:grid-cols-3">
-          <QuickActionCard href="/vehicles" icon={<Car className="size-5" />} label="Browse cars" />
+          <QuickActionCard
+            href="/vehicles"
+            icon={<Car className="size-5" />}
+            label={t("browseCars")}
+          />
           <QuickActionCard
             href="/account/documents"
             icon={<FileText className="size-5" />}
-            label="Manage documents"
+            label={t("manageDocuments")}
           />
           <QuickActionCard
             href="/account/profile"
             icon={<UserCircle className="size-5" />}
-            label="Update profile"
+            label={t("updateProfile")}
           />
         </div>
       </section>
@@ -99,13 +104,13 @@ export default function AccountDashboard() {
         <section aria-labelledby="recent">
           <div className="flex items-baseline justify-between">
             <h2 id="recent" className="text-ink-60 mb-4 overline">
-              Recent bookings
+              {t("recentBookings")}
             </h2>
             <Link
               href="/account/bookings"
               className="label-lg text-ink-100 hover:text-ink-80 underline-offset-4 hover:underline"
             >
-              View all →
+              {t("viewAll")} →
             </Link>
           </div>
           <ul className="flex flex-col gap-3">
@@ -122,6 +127,7 @@ export default function AccountDashboard() {
 }
 
 function UpcomingCard({ booking }: { booking: Booking }) {
+  const t = useTranslations("accountPages.dashboard");
   const days = Math.max(0, differenceInCalendarDays(parseISO(booking.pickup.datetime), new Date()));
   const hero = booking.vehicleSnapshot.images[0];
 
@@ -134,28 +140,28 @@ function UpcomingCard({ booking }: { booking: Booking }) {
       ) : null}
       <div className="flex flex-1 flex-col gap-2">
         <span className="text-ink-100 overline">
-          {days === 0 ? "Pickup today" : `Pickup in ${days} day${days === 1 ? "" : "s"}`}
+          {days === 0 ? t("pickupToday") : t("pickupInDays", { days })}
         </span>
         <h2 className="headline-md text-ink-100">
           {booking.vehicleSnapshot.make} {booking.vehicleSnapshot.model}
         </h2>
         <p className="body-sm text-ink-60">
-          {booking.pickup.locationId
-            ? `Pickup · ${safeFormat(booking.pickup.datetime, "EEE, dd MMM · HH:mm")}`
-            : safeFormat(booking.pickup.datetime, "EEE, dd MMM · HH:mm")}
+          {safeFormat(booking.pickup.datetime, "EEE, dd MMM · HH:mm")}
         </p>
-        <p className="label-md text-ink-50">Ref · {booking.ref}</p>
+        <p className="label-md text-ink-50">
+          {t("ref")} · {booking.ref}
+        </p>
         <div className="mt-2 flex flex-wrap gap-2">
           <Button asChild variant="primary" size="sm">
-            <Link href={`/account/bookings/${booking.ref}`}>View details</Link>
+            <Link href={`/account/bookings/${booking.ref}`}>{t("viewDetails")}</Link>
           </Button>
           <Button asChild variant="secondary" size="sm">
-            <Link href={`/account/bookings/${booking.ref}#modify`}>Modify</Link>
+            <Link href={`/account/bookings/${booking.ref}#modify`}>{t("modify")}</Link>
           </Button>
         </div>
       </div>
       <div className="sm:text-right">
-        <span className="label-md text-ink-50">Total</span>
+        <span className="label-md text-ink-50">{t("total")}</span>
         <div className="price-md text-ink-100 mt-1">{formatUsd(booking.price.totalCents)}</div>
       </div>
     </Card>
@@ -205,15 +211,16 @@ function QuickActionCard({
 }
 
 function EmptyState() {
+  const t = useTranslations("accountPages.dashboard");
   return (
     <Card variant="tint" className="flex flex-col items-center gap-4 py-14 text-center">
       <span aria-hidden="true" className="text-5xl">
         🛣️
       </span>
-      <h2 className="headline-md text-ink-100">No upcoming trips.</h2>
-      <p className="body-md text-ink-60 max-w-md">Ready for your next drive?</p>
+      <h2 className="headline-md text-ink-100">{t("emptyHeading")}</h2>
+      <p className="body-md text-ink-60 max-w-md">{t("emptyBody")}</p>
       <Button asChild variant="primary" size="md">
-        <Link href="/vehicles">Browse cars</Link>
+        <Link href="/vehicles">{t("browseCars")}</Link>
       </Button>
     </Card>
   );

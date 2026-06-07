@@ -1,9 +1,10 @@
+import { getTranslations } from "next-intl/server";
 import { LegalArticle } from "@/components/help/LegalArticle";
 
-export const metadata = {
-  title: "Cookie Policy · Wheels Rent A Car",
-  description: "What cookies we use and how you can manage your preferences.",
-};
+export async function generateMetadata() {
+  const t = await getTranslations("meta");
+  return { title: t("cookiesTitle"), description: t("cookiesDescription") };
+}
 
 export default function CookiesPage() {
   return <LegalArticle slug="cookies" />;

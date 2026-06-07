@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { ErrorText, Field } from "@/components/ui/FormAtoms";
@@ -23,13 +24,18 @@ import { endpoints } from "@/lib/api/endpoints";
 
 const SERVICE_TYPES = ["airport", "day-trip", "by-the-hour"] as const;
 type ServiceType = (typeof SERVICE_TYPES)[number];
-const SERVICE_LABELS: Record<ServiceType, string> = {
-  airport: "Airport transfer",
-  "day-trip": "Day trip",
-  "by-the-hour": "By the hour",
+const SERVICE_LABEL_KEYS: Record<ServiceType, string> = {
+  airport: "serviceAirport",
+  "day-trip": "serviceDayTrip",
+  "by-the-hour": "serviceHour",
 };
 
 const VEHICLE_CLASSES = ["sedan", "suv", "van"] as const;
+const VEHICLE_CLASS_KEYS: Record<(typeof VEHICLE_CLASSES)[number], string> = {
+  sedan: "classSedan",
+  suv: "classSuv",
+  van: "classVan",
+};
 
 interface FormState {
   fullName: string;
@@ -54,6 +60,7 @@ export function EnquiryFormChauffeur({
   initialServiceType = "airport",
   formId = "enquiry",
 }: EnquiryFormChauffeurProps) {
+  const t = useTranslations("leads");
   const [form, setForm] = React.useState<FormState>({
     fullName: "",
     email: "",
@@ -78,10 +85,10 @@ export function EnquiryFormChauffeur({
 
   const validate = (): Record<string, string> => {
     const e: Record<string, string> = {};
-    if (!form.fullName.trim()) e.fullName = "Full name is required.";
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) e.email = "Enter a valid email.";
-    if (!form.phone.national.trim()) e.phone = "Mobile number is required.";
-    if (!form.tripDate) e.tripDate = "Tell us when the trip is.";
+    if (!form.fullName.trim()) e.fullName = t("fullNameRequired");
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) e.email = t("emailInvalid");
+    if (!form.phone.national.trim()) e.phone = t("mobileRequired");
+    if (!form.tripDate) e.tripDate = t("chauffeur.tripDateRequired");
     return e;
   };
 
@@ -111,9 +118,7 @@ export function EnquiryFormChauffeur({
       });
       setSubmitted(true);
     } catch {
-      setErrors({
-        form: "We couldn't submit your enquiry. Please try again or chat with us on WhatsApp.",
-      });
+      setErrors({ form: t("submitError") });
     } finally {
       setSubmitting(false);
     }
@@ -124,7 +129,7 @@ export function EnquiryFormChauffeur({
   return (
     <form id={formId} onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Full name" required error={errors.fullName}>
+        <Field label={t("fullName")} required error={errors.fullName}>
           {({ id, describedBy, invalid }) => (
             <Input
               id={id}
@@ -136,7 +141,7 @@ export function EnquiryFormChauffeur({
             />
           )}
         </Field>
-        <Field label="Email" required error={errors.email}>
+        <Field label={t("email")} required error={errors.email}>
           {({ id, describedBy, invalid }) => (
             <Input
               id={id}
@@ -149,7 +154,7 @@ export function EnquiryFormChauffeur({
             />
           )}
         </Field>
-        <Field label="Mobile" required error={errors.phone}>
+        <Field label={t("mobile")} required error={errors.phone}>
           {({ id, describedBy, invalid }) => (
             <PhoneInput
               id={id}
@@ -160,7 +165,7 @@ export function EnquiryFormChauffeur({
             />
           )}
         </Field>
-        <Field label="Service type" required>
+        <Field label={t("chauffeur.serviceType")} required>
           {({ id }) => (
             <Select
               id={id}
@@ -171,13 +176,13 @@ export function EnquiryFormChauffeur({
             >
               {SERVICE_TYPES.map((s) => (
                 <option key={s} value={s}>
-                  {SERVICE_LABELS[s]}
+                  {t(`chauffeur.${SERVICE_LABEL_KEYS[s]}`)}
                 </option>
               ))}
             </Select>
           )}
         </Field>
-        <Field label="Vehicle class" required>
+        <Field label={t("chauffeur.vehicleClass")} required>
           {({ id }) => (
             <Select
               id={id}
@@ -185,14 +190,14 @@ export function EnquiryFormChauffeur({
               onChange={(e) => setForm((f) => ({ ...f, vehicleClass: e.target.value }))}
             >
               {VEHICLE_CLASSES.map((c) => (
-                <option key={c} value={c} className="capitalize">
-                  {c}
+                <option key={c} value={c}>
+                  {t(VEHICLE_CLASS_KEYS[c])}
                 </option>
               ))}
             </Select>
           )}
         </Field>
-        <Field label="Trip date" required error={errors.tripDate}>
+        <Field label={t("chauffeur.tripDate")} required error={errors.tripDate}>
           {({ id, describedBy, invalid }) => (
             <Input
               id={id}
@@ -204,31 +209,31 @@ export function EnquiryFormChauffeur({
             />
           )}
         </Field>
-        <Field label="Passengers (optional)">
+        <Field label={t("chauffeur.passengersOptional")}>
           {({ id }) => (
             <Input
               id={id}
               type="number"
               min={1}
               max={20}
-              placeholder="e.g. 3"
+              placeholder={t("chauffeur.passengersPlaceholder")}
               value={form.passengers}
               onChange={(e) => setForm((f) => ({ ...f, passengers: e.target.value }))}
             />
           )}
         </Field>
-        <Field label="Pickup location (optional)">
+        <Field label={t("chauffeur.pickupLocationOptional")}>
           {({ id }) => (
             <Input
               id={id}
-              placeholder="Hotel name or address"
+              placeholder={t("chauffeur.pickupLocationPlaceholder")}
               value={form.pickupLocation}
               onChange={(e) => setForm((f) => ({ ...f, pickupLocation: e.target.value }))}
             />
           )}
         </Field>
       </div>
-      <Field label="Anything else we should know?">
+      <Field label={t("notes")}>
         {({ id }) => (
           <Textarea
             id={id}
@@ -241,11 +246,11 @@ export function EnquiryFormChauffeur({
       <Checkbox
         checked={form.marketing}
         onCheckedChange={(c) => setForm((f) => ({ ...f, marketing: c === true }))}
-        label="I want occasional updates from Wheels."
+        label={t("marketing")}
       />
       {errors.form ? <ErrorText>{errors.form}</ErrorText> : null}
       <Button type="submit" variant="cta" size="lg" loading={submitting}>
-        Send my enquiry →
+        {t("sendEnquiry")} →
       </Button>
     </form>
   );

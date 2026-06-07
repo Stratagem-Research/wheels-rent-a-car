@@ -1,6 +1,10 @@
-import { Building2, Phone, MessageCircle, MapPin, ParkingCircle } from "lucide-react";
+import { Phone, MessageCircle, MapPin, ParkingCircle } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
+import { getTranslations } from "next-intl/server";
 import { Card } from "@/components/ui/Card";
+import { PageHero } from "@/components/marketing/PageHero";
+import { PAGE_HERO_IMAGES, HAZMIEH_BRANCH_IMAGE } from "@/lib/marketing/hero-images";
 import {
   Accordion,
   AccordionContent,
@@ -14,31 +18,10 @@ import type { Branch } from "@/types/domain";
 import { getPublicBranches, getPublicVehicles } from "@/lib/server/public-content";
 import { whatsAppHref } from "@/lib/whatsapp";
 
-export const metadata = {
-  title: "Visit Us in Hazmieh · Wheels Rent A Car",
-  description:
-    "Wheels Hazmieh — Gallery Semaan, facing Sea Sweet, next to Lancaster Tamar Hotel, Beirut, Lebanon. Pick up your car at our branch or message us on WhatsApp.",
-};
-
-const BRANCH_FAQS = [
-  {
-    id: "after-hours",
-    q: "Can I pick up after hours?",
-    a: "We're open Monday–Saturday 08:00–20:00 and Sunday 10:00–16:00. For pickups outside those hours, message us on WhatsApp and we'll arrange.",
-  },
-  {
-    id: "delivery",
-    q: "Can you deliver the car to my hotel or the airport?",
-    a: "Yes — we can drop off and collect anywhere in Greater Beirut. WhatsApp us to arrange and we'll confirm any small distance fee before pickup.",
-  },
-  {
-    id: "parking",
-    q: "Where do I park to pick up?",
-    a: "There's short-term parking right outside Gallery Semaan. Look for the Wheels signage and our agent will help.",
-  },
-];
-
-const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
+export async function generateMetadata() {
+  const t = await getTranslations("meta");
+  return { title: t("locationsTitle"), description: t("locationsDescription") };
+}
 
 function localBusinessJsonLd(branch: Branch) {
   return {
@@ -61,6 +44,10 @@ function localBusinessJsonLd(branch: Branch) {
 }
 
 export default async function LocationsPage() {
+  const t = await getTranslations("locations");
+  const dayNames = t.raw("days") as string[];
+  const parkingItems = t.raw("parkingItems") as string[];
+  const faqs = t.raw("faqs") as { q: string; a: string }[];
   const branches = await getPublicBranches();
   const vehicles = await getPublicVehicles();
   const branch = branches[0]!;
@@ -69,16 +56,14 @@ export default async function LocationsPage() {
 
   return (
     <>
-      {/* Inverse hero — display-xl, single Hazmieh branch. */}
-      <header className="bg-ink-100 text-paper">
-        <div className="mx-auto max-w-[var(--container-default)] px-5 py-16 sm:px-10 lg:py-24">
-          <p className="text-ink-40 overline">Our hub</p>
-          <h1 className="display-xl text-paper mt-3 text-[clamp(48px,7vw,88px)] leading-[0.98]">
-            Visit us in Hazmieh.
-          </h1>
-          <p className="lead-lg text-ink-30 mt-4 max-w-2xl">{branch.address}</p>
-        </div>
-      </header>
+      {/* Cinematic photo-backed hero — see lib/marketing/hero-images.ts. */}
+      <PageHero
+        overline={t("eyebrow")}
+        headline={t("heroHeading")}
+        headlineClassName="display-xl text-[clamp(48px,7vw,88px)] leading-[0.98]"
+        lead={branch.address}
+        image={PAGE_HERO_IMAGES.locations}
+      />
 
       {/* Search bar sits on a paper canvas below the hero. */}
       <section className="bg-paper">
@@ -92,18 +77,20 @@ export default async function LocationsPage() {
         <div className="mx-auto max-w-[var(--container-default)] px-5 pb-16 sm:px-10 lg:pb-24">
           <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
             <div className="flex flex-col gap-6">
-              <div
-                aria-hidden="true"
-                className="bg-ink-10 flex aspect-[16/9] items-center justify-center rounded-xl"
-              >
-                <Building2 className="text-ink-60 size-16 opacity-60" />
+              <div className="bg-ink-10 relative aspect-[16/9] overflow-hidden rounded-xl">
+                <Image
+                  src={HAZMIEH_BRANCH_IMAGE.src}
+                  alt={HAZMIEH_BRANCH_IMAGE.alt}
+                  fill
+                  sizes="(min-width: 1024px) 760px, 100vw"
+                  className="object-cover"
+                  style={{ objectPosition: HAZMIEH_BRANCH_IMAGE.position }}
+                />
               </div>
               <div>
-                <h2 className="headline-lg text-ink-100">About this branch</h2>
+                <h2 className="headline-lg text-ink-100">{t("aboutHeading")}</h2>
                 <p className="body-lg text-ink-80 mt-4 max-w-[640px] leading-relaxed">
-                  Wheels Hazmieh is our home branch. Drop in to pick up your car, or message us on
-                  WhatsApp and we&apos;ll arrange delivery anywhere in Greater Beirut — including
-                  Beirut Airport.
+                  {t("aboutBody")}
                 </p>
               </div>
 
@@ -111,11 +98,11 @@ export default async function LocationsPage() {
                 <span className="bg-ink-100 text-paper inline-flex size-10 items-center justify-center rounded-lg">
                   <ParkingCircle className="size-5" aria-hidden="true" />
                 </span>
-                <h3 className="headline-sm text-ink-100">Parking & access</h3>
+                <h3 className="headline-sm text-ink-100">{t("parkingHeading")}</h3>
                 <ul className="body-md text-ink-80 mt-2 flex flex-col gap-1.5">
-                  <li>· Short-term parking right outside Gallery Semaan.</li>
-                  <li>· Look for the Wheels signage at the entrance.</li>
-                  <li>· Step-free access from the street; ground-floor counter.</li>
+                  {parkingItems.map((item) => (
+                    <li key={item}>· {item}</li>
+                  ))}
                 </ul>
               </Card>
             </div>
@@ -123,7 +110,7 @@ export default async function LocationsPage() {
             <aside className="lg:sticky lg:top-24 lg:self-start">
               <div className="bg-ink-10 flex flex-col gap-5 rounded-xl p-6">
                 <div>
-                  <h3 className="text-ink-60 mb-2 overline">Address</h3>
+                  <h3 className="text-ink-60 mb-2 overline">{t("addressLabel")}</h3>
                   <p className="body-md text-ink-95">{branch.address}</p>
                   <a
                     href={directionsHref}
@@ -131,25 +118,25 @@ export default async function LocationsPage() {
                     rel="noopener noreferrer"
                     className="label-md text-ink-100 mt-2 inline-flex items-center gap-1.5 underline-offset-4 hover:underline"
                   >
-                    <MapPin className="size-3.5" aria-hidden="true" /> Get directions
+                    <MapPin className="size-3.5" aria-hidden="true" /> {t("getDirections")}
                   </a>
                 </div>
 
                 <hr className="border-border-strong" />
 
                 <div>
-                  <h3 className="text-ink-60 mb-2 overline">Hours</h3>
+                  <h3 className="text-ink-60 mb-2 overline">{t("hoursLabel")}</h3>
                   <ul className="body-sm text-ink-80 flex flex-col gap-1">
-                    {DAY_NAMES.map((name, dayIndex) => {
+                    {dayNames.map((name, dayIndex) => {
                       const slot = branch.hours.find((h) => h.day === dayIndex);
                       return (
                         <li key={name} className="flex items-baseline justify-between gap-3">
                           <span>{name}</span>
                           <span className="mono-md text-ink-60 tabular-nums">
                             {!slot
-                              ? "Closed"
+                              ? t("closed")
                               : slot.open24h
-                                ? "24h"
+                                ? t("open24h")
                                 : `${slot.open} – ${slot.close}`}
                           </span>
                         </li>
@@ -176,13 +163,13 @@ export default async function LocationsPage() {
                       className="body-md text-ink-95 hover:text-ink-100 inline-flex items-center gap-2"
                     >
                       <MessageCircle className="size-4 text-[#25D366]" aria-hidden="true" />
-                      WhatsApp
+                      {t("whatsapp")}
                     </a>
                   ) : null}
                 </div>
 
                 <Button asChild variant="primary" size="md" fullWidth>
-                  <Link href={`/vehicles?pickupLoc=${branch.id}`}>Browse cars</Link>
+                  <Link href={`/vehicles?pickupLoc=${branch.id}`}>{t("browseCars")}</Link>
                 </Button>
               </div>
             </aside>
@@ -192,7 +179,7 @@ export default async function LocationsPage() {
 
       <section className="bg-ink-10">
         <div className="mx-auto max-w-[var(--container-default)] px-5 py-16 sm:px-10 lg:py-24">
-          <h2 className="headline-lg text-ink-100">Cars usually at our branch</h2>
+          <h2 className="headline-lg text-ink-100">{t("fleetHeading")}</h2>
           <ul className="mt-8 grid auto-cols-[minmax(260px,1fr)] grid-flow-col gap-4 overflow-x-auto pb-2 sm:gap-6 lg:auto-cols-[minmax(0,1fr)] lg:grid-flow-row lg:grid-cols-3">
             {localFleet.map((v) => (
               <li key={v.id}>
@@ -205,10 +192,10 @@ export default async function LocationsPage() {
 
       <section className="bg-paper">
         <div className="mx-auto max-w-3xl px-5 py-16 sm:px-10 lg:py-24">
-          <h2 className="headline-lg text-ink-100">Common questions</h2>
+          <h2 className="headline-lg text-ink-100">{t("faqHeading")}</h2>
           <Accordion type="single" collapsible className="mt-6">
-            {BRANCH_FAQS.map((f) => (
-              <AccordionItem key={f.id} value={f.id}>
+            {faqs.map((f, i) => (
+              <AccordionItem key={i} value={`faq-${i}`}>
                 <AccordionTrigger>{f.q}</AccordionTrigger>
                 <AccordionContent>{f.a}</AccordionContent>
               </AccordionItem>

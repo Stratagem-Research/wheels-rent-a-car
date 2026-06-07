@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { ReviewCard } from "@/components/landing/ReviewCard";
 import { cn } from "@/lib/utils";
 import type { Review } from "@/types/domain";
@@ -24,6 +25,7 @@ import type { Review } from "@/types/domain";
  * loop visibly. Section hides silently if the list is empty.
  */
 export function Reviews({ reviews }: { reviews: Review[] }) {
+  const t = useTranslations("landing.reviews");
   if (!reviews.length) return null;
 
   // Speed: ~30s per full loop for a list of ~6. Scales linearly with count
@@ -38,9 +40,9 @@ export function Reviews({ reviews }: { reviews: Review[] }) {
        * py-32 used to create. */}
       <div className="mx-auto max-w-[var(--container-default)] px-5 pt-16 pb-8 sm:px-10 lg:pt-24 lg:pb-10">
         <div className="flex max-w-2xl flex-col gap-3">
-          <p className="text-ink-60 overline">★ 5 on Google · 1,200+ reviews</p>
+          <p className="text-ink-60 overline">{t("eyebrow")}</p>
           <h2 className="display-md text-ink-100 text-[clamp(32px,4.5vw,56px)] leading-[1]">
-            Trusted by the people we drive.
+            {t("heading")}
           </h2>
         </div>
       </div>
@@ -56,7 +58,7 @@ export function Reviews({ reviews }: { reviews: Review[] }) {
           "group relative overflow-hidden pb-16 lg:pb-24",
           "[mask-image:linear-gradient(to_right,transparent,#000_6%,#000_94%,transparent)]",
         )}
-        aria-label="Customer reviews carousel"
+        aria-label={t("carouselAria")}
       >
         <ul
           style={{ animationDuration: duration }}

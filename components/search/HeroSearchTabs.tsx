@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Chip } from "@/components/ui/Chip";
 
 /**
@@ -18,8 +19,8 @@ import { Chip } from "@/components/ui/Chip";
  */
 
 const TABS = [
-  { id: "cars", label: "Cars" },
-  { id: "long-term", label: "Long-term" },
+  { id: "cars", labelKey: "tabCars" },
+  { id: "long-term", labelKey: "tabLongTerm" },
 ] as const;
 
 export type HeroSearchTabId = (typeof TABS)[number]["id"];
@@ -39,11 +40,12 @@ export function HeroSearchTabs({
   className,
 }: HeroSearchTabsProps) {
   const router = useRouter();
+  const t = useTranslations("searchUi");
 
   return (
     <div
       role="tablist"
-      aria-label="Search options"
+      aria-label={t("tabsAria")}
       className={["flex flex-wrap items-center gap-2", className ?? ""].join(" ")}
     >
       {TABS.map((tab) => {
@@ -72,7 +74,7 @@ export function HeroSearchTabs({
               onChange?.(tab.id);
             }}
           >
-            {tab.label}
+            {t(tab.labelKey)}
           </Chip>
         );
       })}

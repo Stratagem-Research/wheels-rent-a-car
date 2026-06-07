@@ -1,9 +1,10 @@
+import { getTranslations } from "next-intl/server";
 import { LegalArticle } from "@/components/help/LegalArticle";
 
-export const metadata = {
-  title: "Privacy Policy · Wheels Rent A Car",
-  description: "How Wheels Rent A Car collects, uses, and shares your personal information.",
-};
+export async function generateMetadata() {
+  const t = await getTranslations("meta");
+  return { title: t("privacyTitle"), description: t("privacyDescription") };
+}
 
 export default function PrivacyPage() {
   return <LegalArticle slug="privacy" />;

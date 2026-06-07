@@ -105,3 +105,23 @@ body {
     margin: 24mm 18mm;
   }
 }
+
+/*
+ * RTL (Arabic) support.
+ *
+ * The <html dir="rtl"> attribute (set in app/layout.tsx for the `ar` locale)
+ * already mirrors flexbox, grid, and logical spacing. These rules handle the
+ * pieces CSS direction doesn't flip automatically:
+ *   1. Directional Lucide icons (arrows / chevrons) — mirror horizontally so
+ *      "next" still points in the reading-forward direction.
+ *   2. Inline arrow glyphs appended to links/buttons (→) — the bidi algorithm
+ *      keeps them visually sensible at the line edge in RTL.
+ */
+[dir="rtl"] .lucide-arrow-right,
+[dir="rtl"] .lucide-arrow-left,
+[dir="rtl"] .lucide-chevron-right,
+[dir="rtl"] .lucide-chevron-left,
+[dir="rtl"] .lucide-move-right,
+[dir="rtl"] .lucide-arrow-up-right {
+  transform: scaleX(-1);
+}

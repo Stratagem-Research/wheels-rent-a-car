@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { getTranslations } from "next-intl/server";
 import { VehiclesClient } from "./_components/VehiclesClient";
 
 /**
@@ -7,11 +8,10 @@ import { VehiclesClient } from "./_components/VehiclesClient";
  * <VehiclesClient />.
  */
 
-export const metadata = {
-  title: "Our Fleet — Premium Cars in Lebanon · Wheels Rent A Car",
-  description:
-    "Browse the Wheels fleet — sedan, SUV, luxury, and 7-seater categories. Filter by price, transmission, and features. Select inline and book in seconds.",
-};
+export async function generateMetadata() {
+  const t = await getTranslations("meta");
+  return { title: t("vehiclesTitle"), description: t("vehiclesDescription") };
+}
 
 export default function VehiclesPage() {
   return (

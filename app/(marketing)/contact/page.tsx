@@ -2,10 +2,13 @@
 
 import * as React from "react";
 import { Phone, Mail, MessageCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { Card } from "@/components/ui/Card";
 import { ChannelCard } from "@/components/contact/ChannelCard";
 import { ContactForm } from "@/components/contact/ContactForm";
 import { LocationsMap } from "@/components/locations/LocationsMap";
+import { PageHero } from "@/components/marketing/PageHero";
+import { PAGE_HERO_IMAGES } from "@/lib/marketing/hero-images";
 import { BRANCHES } from "@/lib/api/mocks/fixtures/branches";
 import { whatsAppHref } from "@/lib/whatsapp";
 
@@ -29,6 +32,7 @@ function isPhoneOpen(now: Date) {
 }
 
 export default function ContactPage() {
+  const t = useTranslations("contact");
   // Stable snapshot of "now" to drive the phone Open/Closed state without
   // shifting during the render lifecycle.
   const [now] = React.useState(() => new Date());
@@ -38,17 +42,14 @@ export default function ContactPage() {
 
   return (
     <>
-      <header className="bg-ink-100 text-paper">
-        <div className="mx-auto max-w-[var(--container-default)] px-5 py-16 sm:px-10 lg:py-24">
-          <p className="text-ink-40 overline">Contact</p>
-          <h1 className="display-xl text-paper mt-3 text-[clamp(48px,6vw,72px)] leading-[0.98]">
-            Get in touch.
-          </h1>
-          <p className="lead-lg text-ink-30 mt-4 max-w-2xl">
-            We&apos;re available 24/7 on WhatsApp. Or pick the channel you prefer.
-          </p>
-        </div>
-      </header>
+      {/* Cinematic photo-backed hero — see lib/marketing/hero-images.ts. */}
+      <PageHero
+        overline={t("eyebrow")}
+        headline={t("heroHeading")}
+        headlineClassName="display-xl text-[clamp(48px,6vw,72px)] leading-[0.98]"
+        lead={t("heroSubtitle")}
+        image={PAGE_HERO_IMAGES.contact}
+      />
 
       <section className="bg-paper">
         <div className="mx-auto max-w-[var(--container-default)] px-5 py-16 sm:px-10 lg:py-24">
@@ -56,12 +57,12 @@ export default function ContactPage() {
             <li>
               <ChannelCard
                 icon={<MessageCircle className="size-6" aria-hidden="true" />}
-                title="WhatsApp"
-                description="Fastest reply, 24/7."
+                title={t("whatsappTitle")}
+                description={t("whatsappDescription")}
                 contact="+961 3 100 200"
-                hours="24/7"
+                hours={t("whatsappHours")}
                 cta={{
-                  label: "Chat now",
+                  label: t("chatNow"),
                   href: whatsAppHref("default"),
                   variant: "whatsapp",
                 }}
@@ -71,23 +72,23 @@ export default function ContactPage() {
             <li>
               <ChannelCard
                 icon={<Phone className="size-6" aria-hidden="true" />}
-                title="Phone"
-                description="Talk to us during business hours."
+                title={t("phoneTitle")}
+                description={t("phoneDescription")}
                 contact="+961 1 629 100"
-                hours="Mon–Sat · 8:00 – 20:00"
-                cta={{ label: "Call", href: "tel:+9611629100" }}
+                hours={t("phoneHours")}
+                cta={{ label: t("call"), href: "tel:+9611629100" }}
                 closed={!phoneOpen}
-                closedMessage="Closed — message us on WhatsApp."
+                closedMessage={t("closedMessage")}
               />
             </li>
             <li>
               <ChannelCard
                 icon={<Mail className="size-6" aria-hidden="true" />}
-                title="Email"
-                description="For longer enquiries."
+                title={t("emailTitle")}
+                description={t("emailDescription")}
                 contact="hello@wheelsrentacar.com.lb"
-                hours="Reply within 4h"
-                cta={{ label: "Email", href: "mailto:hello@wheelsrentacar.com.lb" }}
+                hours={t("emailHours")}
+                cta={{ label: t("email"), href: "mailto:hello@wheelsrentacar.com.lb" }}
               />
             </li>
           </ul>
@@ -97,8 +98,8 @@ export default function ContactPage() {
       <section className="bg-ink-10">
         <div className="mx-auto max-w-3xl px-5 py-16 sm:px-10 lg:py-24">
           <Card variant="default" className="flex flex-col gap-3 rounded-xl p-8">
-            <h2 className="headline-lg text-ink-100">Send us a message</h2>
-            <p className="body-md text-ink-60">We respond within 4 business hours.</p>
+            <h2 className="headline-lg text-ink-100">{t("sendHeading")}</h2>
+            <p className="body-md text-ink-60">{t("sendSubtitle")}</p>
             <div className="mt-4">
               <ContactForm />
             </div>
@@ -108,10 +109,8 @@ export default function ContactPage() {
 
       <section className="bg-paper">
         <div className="mx-auto max-w-[var(--container-default)] px-5 py-16 sm:px-10 lg:py-24">
-          <h2 className="headline-lg text-ink-100">Find a branch</h2>
-          <p className="lead-md text-ink-60 mt-2">
-            Click a pin to highlight the matching branch below.
-          </p>
+          <h2 className="headline-lg text-ink-100">{t("findBranchHeading")}</h2>
+          <p className="lead-md text-ink-60 mt-2">{t("findBranchSubtitle")}</p>
           <div className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
             <LocationsMap
               branches={BRANCHES}
@@ -149,7 +148,7 @@ export default function ContactPage() {
 
       <section className="bg-ink-10">
         <div className="mx-auto flex max-w-3xl flex-col items-center gap-4 px-5 py-12 text-center sm:px-10 lg:py-16">
-          <h2 className="headline-lg text-ink-100">Follow us</h2>
+          <h2 className="headline-lg text-ink-100">{t("followHeading")}</h2>
           <ul className="flex items-center gap-6">
             {SOCIALS.map((s) => (
               <li key={s.label}>

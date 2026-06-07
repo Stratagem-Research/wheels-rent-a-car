@@ -2,11 +2,9 @@ import { NextResponse } from "next/server";
 import { listCorporateTiersFromDb, replaceCorporateTiersInDb } from "@/lib/supabase/cms-repository";
 import { requireAdminCsrf, requireAdminSession } from "@/lib/server/admin-api";
 import { writeAdminAuditLog } from "@/lib/supabase/admin-repository";
-import type { CorporateTier } from "@/types/domain";
+import { corporatePayloadSchema } from "@/lib/cms/schemas";
 
-export async function GET(request: Request) {
-  const auth = requireAdminSession(request, ["content-editor", "ops-admin"]);
-  if (!auth.ok) return auth.response;
+export async function GET() {
   try {
     const items = await listCorporateTiersFromDb();
     return NextResponse.json({ items });
@@ -22,22 +20,23 @@ export async function PUT(request: Request) {
   const csrfResponse = requireAdminCsrf(request);
   if (csrfResponse) return csrfResponse;
   try {
-    const body = (await request.json()) as { items?: CorporateTier[] };
-    if (!Array.isArray(body.items)) {
+    const body = await request.json().catch(() => null);
+    const parsed = corporatePayloadSchema.safeParse(body);
+    if (!parsed.success) {
       return NextResponse.json(
         { message: "Expected { items: CorporateTier[] }." },
         { status: 400 },
       );
     }
-    await replaceCorporateTiersInDb(body.items);
+    await replaceCorporateTiersInDb(parsed.data.items);
     await writeAdminAuditLog({
       actor: auth.session.username,
       role: auth.session.role,
       resource: "cms_corporate",
       action: "replace",
-      details: { count: body.items.length },
+      details: { count: parsed.data.items.length },
     }).catch(() => undefined);
-    return NextResponse.json({ ok: true, count: body.items.length });
+    return NextResponse.json({ ok: true, count: parsed.data.items.length });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to save corporate tiers.";
     return NextResponse.json({ message }, { status: 500 });

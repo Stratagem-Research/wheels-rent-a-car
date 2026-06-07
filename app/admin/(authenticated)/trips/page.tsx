@@ -8,6 +8,7 @@ import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { useTrips } from "@/lib/admin/useAdminStore";
 import { writeTrips } from "@/lib/admin/store";
+import { getLocalizedString, getLocalizedStringArray } from "@/lib/i18n/localized";
 
 /** /admin/trips — trips list view. */
 export default function AdminTripsPage() {
@@ -49,7 +50,7 @@ export default function AdminTripsPage() {
                 href={`/admin/trips/${t.slug}`}
                 className="text-ink-100 underline-offset-4 hover:underline"
               >
-                {t.title}
+                {getLocalizedString(t.title, "en")}
               </Link>
             ),
           },
@@ -61,7 +62,11 @@ export default function AdminTripsPage() {
           {
             header: "Tags",
             cell: (t) => (
-              <span className="text-ink-60">{t.tags.length > 0 ? t.tags.join(", ") : "—"}</span>
+              <span className="text-ink-60">
+                {getLocalizedStringArray(t.tags, "en").length > 0
+                  ? getLocalizedStringArray(t.tags, "en").join(", ")
+                  : "—"}
+              </span>
             ),
             width: "20%",
           },
@@ -74,7 +79,10 @@ export default function AdminTripsPage() {
         rowActions={(t) => (
           <>
             <Button asChild variant="tertiary" size="sm">
-              <Link href={`/admin/trips/${t.slug}`} aria-label={`Edit ${t.title}`}>
+              <Link
+                href={`/admin/trips/${t.slug}`}
+                aria-label={`Edit ${getLocalizedString(t.title, "en")}`}
+              >
                 <Pencil className="size-4" aria-hidden="true" />
               </Link>
             </Button>
@@ -82,7 +90,7 @@ export default function AdminTripsPage() {
               variant="tertiary"
               size="sm"
               onClick={() => onDelete(t.slug)}
-              aria-label={`Delete ${t.title}`}
+              aria-label={`Delete ${getLocalizedString(t.title, "en")}`}
             >
               <Trash2 className="size-4" aria-hidden="true" />
             </Button>

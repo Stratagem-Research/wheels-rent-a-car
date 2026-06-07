@@ -6,13 +6,20 @@ import {
   HelpCircle,
   MessageCircle,
 } from "lucide-react";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { HelpSearchBar } from "@/components/help/HelpSearchBar";
 import { HELP_TOPICS, type HelpTopicIconName } from "@/lib/content/help";
+import { HELP_TOPIC_T } from "@/lib/supabase/seed-i18n";
 import { whatsAppHref } from "@/lib/whatsapp";
 import { Link } from "@/i18n/navigation";
+
+function pick(value: string, t: { ar: string; fr: string } | undefined, locale: string): string {
+  if (locale === "ar") return t?.ar ?? value;
+  if (locale === "fr") return t?.fr ?? value;
+  return value;
+}
 
 const ICON_MAP: Record<
   HelpTopicIconName,
@@ -26,14 +33,14 @@ const ICON_MAP: Record<
   "message-circle": MessageCircle,
 };
 
-export const metadata = {
-  title: "Help & Support · Wheels Rent A Car",
-  description:
-    "Find answers about booking, pickup, payment, insurance, and cancellation. Or chat with us on WhatsApp.",
-};
+export async function generateMetadata() {
+  const t = await getTranslations("meta");
+  return { title: t("helpTitle"), description: t("helpDescription") };
+}
 
 export default async function HelpHubPage() {
   const t = await getTranslations("helpUi");
+  const locale = await getLocale();
   return (
     <>
       {/* Inverse hero — keep the search input on a paper card for visibility. */}
@@ -66,8 +73,12 @@ export default async function HelpHubPage() {
                   >
                     <Card variant="tint" hoverable className="flex h-full flex-col gap-3">
                       <Icon className="text-ink-100 size-8" strokeWidth={1.5} aria-hidden={true} />
-                      <h3 className="headline-sm text-ink-100">{topic.title}</h3>
-                      <p className="body-sm text-ink-60 flex-1">{topic.blurb}</p>
+                      <h3 className="headline-sm text-ink-100">
+                        {pick(topic.title, HELP_TOPIC_T[topic.slug]?.title, locale)}
+                      </h3>
+                      <p className="body-sm text-ink-60 flex-1">
+                        {pick(topic.blurb, HELP_TOPIC_T[topic.slug]?.blurb, locale)}
+                      </p>
                       <span className="label-lg text-ink-100">{t("view")} →</span>
                     </Card>
                   </Link>

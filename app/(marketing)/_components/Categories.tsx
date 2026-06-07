@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { Reveal } from "@/components/motion/Reveal";
 import { CategoryWordmarkCard } from "@/components/landing/CategoryWordmarkCard";
 
@@ -22,9 +23,9 @@ import { CategoryWordmarkCard } from "@/components/landing/CategoryWordmarkCard"
 
 const CATEGORIES = [
   {
-    categoryName: "Sedan",
     slug: "sedan",
-    description: "Premium comfort. Built for the everyday and the special.",
+    nameKey: "sedanName",
+    descriptionKey: "sedanDescription",
     priceFromUSD: 32,
     image: {
       src: "/images/Car Images/kia-cerato-2018-.png",
@@ -34,9 +35,9 @@ const CATEGORIES = [
     },
   },
   {
-    categoryName: "SUV",
     slug: "suv",
-    description: "All-rounder. Built for the road, the coast, the mountain.",
+    nameKey: "suvName",
+    descriptionKey: "suvDescription",
     priceFromUSD: 48,
     image: {
       src: "/images/Car Images/kia-sportage-2018-.png",
@@ -46,9 +47,9 @@ const CATEGORIES = [
     },
   },
   {
-    categoryName: "Luxury",
     slug: "luxury",
-    description: "Quiet, polished, fully kitted. The drive you remember.",
+    nameKey: "luxuryName",
+    descriptionKey: "luxuryDescription",
     priceFromUSD: 95,
     image: {
       src: "/images/Car Images/Untitled-design-2025-06-13T023458.246-1.png",
@@ -58,9 +59,9 @@ const CATEGORIES = [
     },
   },
   {
-    categoryName: "7-Seater",
     slug: "7-seater",
-    description: "Room for the whole crew, the luggage, and the long road.",
+    nameKey: "sevenSeaterName",
+    descriptionKey: "sevenSeaterDescription",
     priceFromUSD: 65,
     image: {
       src: "/images/Car Images/MISTUBISHI-OUTLANDER.png",
@@ -80,15 +81,16 @@ const CATEGORIES = [
  */
 const ALIGNED_GUTTER = "max(2.5rem, calc((100vw - 80rem) / 2 + 2.5rem))";
 
-export function Categories() {
+export async function Categories() {
+  const t = await getTranslations("landing.categories");
   return (
     <Reveal as="section" className="bg-paper">
       {/* Title — aligned with the standard section container. */}
       <div className="mx-auto max-w-[var(--container-default)] px-5 pt-16 sm:px-10 lg:pt-32">
         <div className="mb-10 flex max-w-2xl flex-col gap-3 lg:mb-14">
-          <p className="text-ink-60 overline">Pick your category</p>
+          <p className="text-ink-60 overline">{t("eyebrow")}</p>
           <h2 className="display-md text-ink-100 text-[clamp(32px,4.5vw,56px)] leading-[1]">
-            Choose your drive.
+            {t("heading")}
           </h2>
         </div>
       </div>
@@ -107,7 +109,13 @@ export function Categories() {
               key={c.slug}
               className="w-[85vw] shrink-0 snap-start sm:w-[540px] lg:w-[600px] xl:w-[640px]"
             >
-              <CategoryWordmarkCard {...c} />
+              <CategoryWordmarkCard
+                slug={c.slug}
+                priceFromUSD={c.priceFromUSD}
+                image={c.image}
+                categoryName={t(c.nameKey)}
+                description={t(c.descriptionKey)}
+              />
             </li>
           ))}
         </ul>

@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { ArrowLeft, Calendar as CalendarIcon, Edit3, FileText, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -16,6 +17,7 @@ import { bookingToIcs, downloadIcs } from "@/lib/booking/calendar";
 import type { Booking } from "@/types/domain";
 
 export default function AccountBookingDetailPage() {
+  const t = useTranslations("accountPages.detail");
   const params = useParams<{ ref: string }>();
   const ref = params?.ref ?? "";
   const [booking, setBooking] = React.useState<Booking | null>(null);
@@ -28,21 +30,21 @@ export default function AccountBookingDetailPage() {
         const result = await api.get<Booking>(`/api/account/bookings/${ref}`);
         if (!cancelled) setBooking(result);
       } catch {
-        if (!cancelled) setError("That booking isn't tied to your account.");
+        if (!cancelled) setError(t("notFoundBody"));
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [ref]);
+  }, [ref, t]);
 
   if (error) {
     return (
       <div className="flex flex-col gap-4">
-        <h1 className="headline-lg text-ink-100">Booking not found</h1>
+        <h1 className="headline-lg text-ink-100">{t("notFound")}</h1>
         <p className="body-md text-ink-60">{error}</p>
         <Button asChild variant="primary" className="self-start">
-          <Link href="/account/bookings">Back to bookings</Link>
+          <Link href="/account/bookings">{t("backToBookings")}</Link>
         </Button>
       </div>
     );
@@ -75,7 +77,7 @@ export default function AccountBookingDetailPage() {
     <div className="flex flex-col gap-6">
       <Button asChild variant="tertiary" size="sm" className="self-start">
         <Link href="/account/bookings">
-          <ArrowLeft className="size-4" aria-hidden="true" /> Back to bookings
+          <ArrowLeft className="size-4" aria-hidden="true" /> {t("backToBookings")}
         </Link>
       </Button>
 
@@ -84,25 +86,25 @@ export default function AccountBookingDetailPage() {
 
         <aside className="flex flex-col gap-3">
           <Card variant="default" className="flex flex-col gap-3">
-            <h2 className="headline-md text-ink-100">Actions</h2>
+            <h2 className="headline-md text-ink-100">{t("actions")}</h2>
             <Button variant="primary" size="md" onClick={onAddToCalendar}>
-              <CalendarIcon className="size-4" aria-hidden="true" /> Add to calendar
+              <CalendarIcon className="size-4" aria-hidden="true" /> {t("addToCalendar")}
             </Button>
             <Button asChild variant="secondary" size="md">
               <Link href={`/manage-booking?ref=${booking.ref}`}>
-                <FileText className="size-4" aria-hidden="true" /> View invoice
+                <FileText className="size-4" aria-hidden="true" /> {t("viewInvoice")}
               </Link>
             </Button>
             {cancellable ? (
               <>
                 <ModifyBookingModal booking={booking}>
                   <Button variant="tertiary" size="md">
-                    <Edit3 className="size-4" aria-hidden="true" /> Modify booking
+                    <Edit3 className="size-4" aria-hidden="true" /> {t("modifyBooking")}
                   </Button>
                 </ModifyBookingModal>
                 <CancelBookingModal booking={booking}>
                   <Button variant="tertiary" size="md">
-                    <X className="size-4" aria-hidden="true" /> Cancel booking
+                    <X className="size-4" aria-hidden="true" /> {t("cancelBooking")}
                   </Button>
                 </CancelBookingModal>
               </>
@@ -110,14 +112,14 @@ export default function AccountBookingDetailPage() {
           </Card>
 
           <Card variant="default" className="flex flex-col gap-2 p-5">
-            <span className="label-md text-ink-60">Need help?</span>
+            <span className="label-md text-ink-60">{t("needHelp")}</span>
             <Button asChild variant="whatsapp" size="md">
               <a
                 href={whatsAppHref("confirmation", { ref: booking.ref })}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Chat on WhatsApp
+                {t("chatOnWhatsapp")}
               </a>
             </Button>
           </Card>

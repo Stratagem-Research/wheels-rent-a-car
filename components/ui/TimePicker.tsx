@@ -3,6 +3,7 @@
 import * as React from "react";
 import * as Popover from "@radix-ui/react-popover";
 import { Clock } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 /*
@@ -57,19 +58,20 @@ export function TimePicker({
   value,
   onValueChange,
   options = ALL_SLOTS,
-  placeholder = "Time",
+  placeholder,
   disabled,
   invalid,
   id,
   className,
-  title = "Select time",
+  title,
   renderTrigger,
   open,
   onOpenChange,
   ...aria
 }: TimePickerProps) {
+  const t = useTranslations("searchUi");
   const [showOffHours, setShowOffHours] = React.useState(false);
-  const display = value ?? placeholder;
+  const display = value ?? placeholder ?? t("timePlaceholder");
   const isPlaceholder = !value;
 
   // Split into Day / Evening / Off-hours sections.
@@ -130,20 +132,19 @@ export function TimePicker({
             "max-h-[420px] overflow-y-auto",
           )}
         >
-          <header className="headline-xs text-ink-95 mb-3 text-center">{title}</header>
+          <header className="headline-xs text-ink-95 mb-3 text-center">
+            {title ?? t("timeTitle")}
+          </header>
 
-          {day.length > 0 && <Section label="Day" slots={day} value={value} onSelect={select} />}
+          {day.length > 0 && (
+            <Section label={t("timeDay")} slots={day} value={value} onSelect={select} />
+          )}
           {evening.length > 0 && (
-            <Section label="Evening" slots={evening} value={value} onSelect={select} />
+            <Section label={t("timeEvening")} slots={evening} value={value} onSelect={select} />
           )}
 
           {showOffHours && offHours.length > 0 ? (
-            <Section
-              label="Late night / early morning"
-              slots={offHours}
-              value={value}
-              onSelect={select}
-            />
+            <Section label={t("timeOffHours")} slots={offHours} value={value} onSelect={select} />
           ) : offHours.length > 0 ? (
             <button
               type="button"
@@ -151,7 +152,7 @@ export function TimePicker({
               className="label-md hover:text-ink-95 text-ink-60 mt-3 inline-flex items-center gap-1.5 underline-offset-2 hover:underline"
             >
               <Clock aria-hidden="true" className="size-3.5" />
-              24-hour pickup (off-hours fee may apply)
+              {t("time24h")}
             </button>
           ) : null}
         </Popover.Content>

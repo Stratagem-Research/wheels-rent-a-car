@@ -12,6 +12,13 @@ import { AdminFormShell } from "@/components/admin/AdminFormShell";
 import { writeItineraries } from "@/lib/admin/store";
 import { useItineraries } from "@/lib/admin/useAdminStore";
 import type { Itinerary, ItineraryCategory, ItineraryScheduleItem } from "@/types/domain";
+import type { CmsLocale } from "@/lib/i18n/localized";
+import {
+  getLocalizedString,
+  getLocalizedStringArray,
+  updateLocalizedString,
+  updateLocalizedStringArray,
+} from "@/lib/i18n/localized";
 
 /**
  * ItineraryForm — shared create/edit form for /admin/itineraries/{new,[slug]}.
@@ -44,6 +51,7 @@ export function ItineraryForm({ slug }: ItineraryFormProps) {
   const isEdit = Boolean(slug);
   const itineraries = useItineraries();
   const [saving, setSaving] = React.useState(false);
+  const [activeLocale, setActiveLocale] = React.useState<CmsLocale>("en");
 
   const initial = React.useMemo<Itinerary>(() => {
     if (!slug) return emptyItinerary();
@@ -74,20 +82,40 @@ export function ItineraryForm({ slug }: ItineraryFormProps) {
     setForm((f) => ({ ...f, [key]: value }));
 
   // ── Highlights repeater ──────────────────────────────────────────
-  const addHighlight = () => setForm((f) => ({ ...f, highlights: [...f.highlights, ""] }));
+  const addHighlight = () =>
+    setForm((f) => ({
+      ...f,
+      highlights: updateLocalizedStringArray(f.highlights, activeLocale, [
+        ...getLocalizedStringArray(f.highlights, activeLocale),
+        "",
+      ]),
+    }));
   const updateHighlight = (i: number, value: string) =>
     setForm((f) => ({
       ...f,
-      highlights: f.highlights.map((h, idx) => (idx === i ? value : h)),
+      highlights: updateLocalizedStringArray(
+        f.highlights,
+        activeLocale,
+        getLocalizedStringArray(f.highlights, activeLocale).map((h, idx) =>
+          idx === i ? value : h,
+        ),
+      ),
     }));
   const removeHighlight = (i: number) =>
-    setForm((f) => ({ ...f, highlights: f.highlights.filter((_, idx) => idx !== i) }));
+    setForm((f) => ({
+      ...f,
+      highlights: updateLocalizedStringArray(
+        f.highlights,
+        activeLocale,
+        getLocalizedStringArray(f.highlights, activeLocale).filter((_, idx) => idx !== i),
+      ),
+    }));
 
   // ── Schedule repeater ────────────────────────────────────────────
   const addStep = () =>
     setForm((f) => ({
       ...f,
-      schedule: [...f.schedule, { time: "09:00", title: "" }],
+      schedule: [...f.schedule, { time: "09:00", title: { en: "", ar: "", fr: "" } }],
     }));
   const updateStep = (i: number, patch: Partial<ItineraryScheduleItem>) =>
     setForm((f) => ({
@@ -102,14 +130,16 @@ export function ItineraryForm({ slug }: ItineraryFormProps) {
     if (!form.slug.trim()) e.slug = "Slug is required.";
     else if (!/^[a-z0-9-]+$/.test(form.slug))
       e.slug = "Slug must be lowercase letters, numbers, and dashes only.";
-    if (!form.title.trim()) e.title = "Title is required.";
-    if (!form.excerpt.trim()) e.excerpt = "Excerpt is required.";
+    if (!getLocalizedString(form.title, activeLocale).trim()) e.title = "Title is required.";
+    if (!getLocalizedString(form.excerpt, activeLocale).trim()) e.excerpt = "Excerpt is required.";
     if (!form.coverImage.src.trim()) e.coverImage = "Cover image path is required.";
-    if (!form.duration.trim()) e.duration = "Duration is required.";
+    if (!getLocalizedString(form.duration, activeLocale).trim())
+      e.duration = "Duration is required.";
     const priceNum = Number(priceUsd);
     if (!Number.isFinite(priceNum) || priceNum < 0)
       e.price = "Price must be a non-negative number in USD.";
-    if (form.highlights.length === 0) e.highlights = "Add at least one highlight.";
+    if (getLocalizedStringArray(form.highlights, activeLocale).length === 0)
+      e.highlights = "Add at least one highlight.";
     if (form.schedule.length === 0) e.schedule = "Add at least one schedule step.";
     return e;
   };
@@ -122,10 +152,30 @@ export function ItineraryForm({ slug }: ItineraryFormProps) {
 
     const now = new Date().toISOString();
     const priceFromCents = Math.round(Number(priceUsd) * 100);
-    const highlights = form.highlights.map((h) => h.trim()).filter(Boolean);
+    const highlights = updateLocalizedStringArray(
+      form.highlights,
+      activeLocale,
+      getLocalizedStringArray(form.highlights, activeLocale)
+        .map((h) => h.trim())
+        .filter(Boolean),
+    );
     const schedule = form.schedule
-      .map((s) => ({ ...s, title: s.title.trim(), body: s.body?.trim() || undefined }))
-      .filter((s) => s.title);
+      .map((s) => ({
+        ...s,
+        title: updateLocalizedString(
+          s.title,
+          activeLocale,
+          getLocalizedString(s.title, activeLocale).trim(),
+        ),
+        body: s.body
+          ? updateLocalizedString(
+              s.body,
+              activeLocale,
+              getLocalizedString(s.body, activeLocale).trim(),
+            )
+          : undefined,
+      }))
+      .filter((s) => Boolean(getLocalizedString(s.title, activeLocale)));
 
     setSaving(true);
     try {
@@ -204,6 +254,20 @@ export function ItineraryForm({ slug }: ItineraryFormProps) {
         }
       >
         <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Editing locale" helper="Translate fields for EN / AR / FR.">
+            {({ id }) => (
+              <Select
+                id={id}
+                value={activeLocale}
+                onChange={(e) => setActiveLocale(e.target.value as CmsLocale)}
+              >
+                <option value="en">English (EN)</option>
+                <option value="ar">Arabic (AR)</option>
+                <option value="fr">French (FR)</option>
+              </Select>
+            )}
+          </Field>
+          <div />
           <Field label="Slug" required error={errors.slug} helper="Lowercase, dashes, no spaces.">
             {({ id, describedBy, invalid }) => (
               <Input
@@ -222,8 +286,10 @@ export function ItineraryForm({ slug }: ItineraryFormProps) {
                 id={id}
                 aria-describedby={describedBy}
                 invalid={invalid}
-                value={form.title}
-                onChange={(e) => update("title", e.target.value)}
+                value={getLocalizedString(form.title, activeLocale)}
+                onChange={(e) =>
+                  update("title", updateLocalizedString(form.title, activeLocale, e.target.value))
+                }
               />
             )}
           </Field>
@@ -270,8 +336,13 @@ export function ItineraryForm({ slug }: ItineraryFormProps) {
                 id={id}
                 aria-describedby={describedBy}
                 invalid={invalid}
-                value={form.duration}
-                onChange={(e) => update("duration", e.target.value)}
+                value={getLocalizedString(form.duration, activeLocale)}
+                onChange={(e) =>
+                  update(
+                    "duration",
+                    updateLocalizedString(form.duration, activeLocale, e.target.value),
+                  )
+                }
               />
             )}
           </Field>
@@ -302,8 +373,10 @@ export function ItineraryForm({ slug }: ItineraryFormProps) {
               rows={2}
               aria-describedby={describedBy}
               invalid={invalid}
-              value={form.excerpt}
-              onChange={(e) => update("excerpt", e.target.value)}
+              value={getLocalizedString(form.excerpt, activeLocale)}
+              onChange={(e) =>
+                update("excerpt", updateLocalizedString(form.excerpt, activeLocale, e.target.value))
+              }
             />
           )}
         </Field>
@@ -323,8 +396,13 @@ export function ItineraryForm({ slug }: ItineraryFormProps) {
           {({ id }) => (
             <Input
               id={id}
-              value={form.coverImage.alt}
-              onChange={(e) => update("coverImage", { ...form.coverImage, alt: e.target.value })}
+              value={getLocalizedString(form.coverImage.alt, activeLocale)}
+              onChange={(e) =>
+                update("coverImage", {
+                  ...form.coverImage,
+                  alt: updateLocalizedString(form.coverImage.alt, activeLocale, e.target.value),
+                })
+              }
             />
           )}
         </Field>
@@ -335,7 +413,7 @@ export function ItineraryForm({ slug }: ItineraryFormProps) {
         title="Highlights"
         helper="Bullet points shown on the detail page. Keep them short — what the guest will see, do, or eat."
       >
-        {form.highlights.map((h, i) => (
+        {getLocalizedStringArray(form.highlights, activeLocale).map((h, i) => (
           <div key={i} className="flex items-start gap-2">
             <div className="flex-1">
               <Input value={h} onChange={(e) => updateHighlight(i, e.target.value)} />
@@ -379,14 +457,26 @@ export function ItineraryForm({ slug }: ItineraryFormProps) {
             </div>
             <div className="flex flex-1 flex-col gap-2">
               <Input
-                value={step.title}
-                onChange={(e) => updateStep(i, { title: e.target.value })}
+                value={getLocalizedString(step.title, activeLocale)}
+                onChange={(e) =>
+                  updateStep(i, {
+                    title: updateLocalizedString(step.title, activeLocale, e.target.value),
+                  })
+                }
                 placeholder="Step title"
               />
               <Textarea
                 rows={2}
-                value={step.body ?? ""}
-                onChange={(e) => updateStep(i, { body: e.target.value })}
+                value={step.body ? getLocalizedString(step.body, activeLocale) : ""}
+                onChange={(e) =>
+                  updateStep(i, {
+                    body: updateLocalizedString(
+                      step.body ?? { en: "", ar: "", fr: "" },
+                      activeLocale,
+                      e.target.value,
+                    ),
+                  })
+                }
                 placeholder="Optional description"
               />
             </div>
@@ -416,14 +506,20 @@ export function ItineraryForm({ slug }: ItineraryFormProps) {
 function emptyItinerary(): Itinerary {
   return {
     slug: "",
-    title: "",
-    excerpt: "",
-    coverImage: { src: "", alt: "", width: 1200, height: 1500 },
+    title: { en: "", ar: "", fr: "" },
+    excerpt: { en: "", ar: "", fr: "" },
+    coverImage: { src: "", alt: { en: "", ar: "", fr: "" }, width: 1200, height: 1500 },
     category: "day-trip",
-    duration: "Full day · 8 hours",
+    duration: { en: "Full day · 8 hours", ar: "", fr: "" },
     priceFromCents: 0,
-    highlights: ["First highlight"],
-    schedule: [{ time: "09:00", title: "Pickup", body: "From your hotel." }],
+    highlights: { en: ["First highlight"], ar: [], fr: [] },
+    schedule: [
+      {
+        time: "09:00",
+        title: { en: "Pickup", ar: "", fr: "" },
+        body: { en: "From your hotel.", ar: "", fr: "" },
+      },
+    ],
     vehicleClass: "sedan",
     updatedAt: new Date().toISOString(),
   };

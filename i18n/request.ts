@@ -1,4 +1,5 @@
 import { getRequestConfig } from "next-intl/server";
+import { cookies } from "next/headers";
 import { routing, isAppLocale } from "./routing";
 
 /**
@@ -11,8 +12,15 @@ import { routing, isAppLocale } from "./routing";
  * message catalogs from day one."
  */
 export default getRequestConfig(async ({ requestLocale }) => {
+  const fallbackLocale = routing.defaultLocale ?? "en";
   const requested = await requestLocale;
-  const locale = requested && isAppLocale(requested) ? requested : routing.defaultLocale;
+  const cookieLocale = (await cookies()).get("NEXT_LOCALE")?.value;
+  let locale: string = fallbackLocale;
+  if (requested && isAppLocale(requested)) {
+    locale = requested;
+  } else if (cookieLocale && isAppLocale(cookieLocale)) {
+    locale = cookieLocale;
+  }
   const messages = (await import(`@/messages/${locale}.json`)).default;
   return { locale, messages };
 });

@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Stepper } from "@/components/booking/Stepper";
 import { ProtectionTierCard } from "@/components/booking/ProtectionTierCard";
@@ -14,21 +15,6 @@ import { ADD_ONS, PROTECTION_TIERS } from "@/lib/api/mocks/fixtures/catalog";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
 
-const PROTECTION_FAQ = [
-  {
-    q: "What does the deductible cover?",
-    a: "It's the most you'd pay out of pocket for damages. Basic protection has an $800 deductible; Smart drops it to $250; All-inclusive sets it to zero.",
-  },
-  {
-    q: "Can I change this at the counter?",
-    a: "Yes. You can upgrade your protection when you pick up the car — but you can't downgrade once the rental has started.",
-  },
-  {
-    q: "Are tyre and windscreen damage covered?",
-    a: "From the Smart tier and up. Basic doesn't include tyre or windscreen cover, so you'd pay for those repairs yourself.",
-  },
-];
-
 /**
  * Step 3 — /book/protection. 3-up tier comparison. Continue requires a tier.
  *
@@ -37,8 +23,10 @@ const PROTECTION_FAQ = [
  * order utility rather than a separate render path.
  */
 export default function ProtectionPage() {
+  const t = useTranslations("bookingFlow");
   const router = useRouter();
   const { draft, setProtection, ready } = useBookingDraft();
+  const protectionFaqs = t.raw("protection.faqs") as { q: string; a: string }[];
 
   React.useEffect(() => {
     if (!ready || !draft) return;
@@ -72,10 +60,8 @@ export default function ProtectionPage() {
       <section className="mx-auto max-w-[var(--container-full)] px-5 py-8 sm:px-5 sm:py-10">
         <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
           <div>
-            <h1 className="headline-xl text-ink-95">Choose your protection</h1>
-            <p className="body-md text-ink-60 mt-1">
-              Drive with peace of mind. You can upgrade at the counter.
-            </p>
+            <h1 className="headline-xl text-ink-95">{t("protection.heading")}</h1>
+            <p className="body-md text-ink-60 mt-1">{t("protection.subtitle")}</p>
 
             <ul className="mt-8 grid gap-4 lg:grid-cols-3 lg:gap-6">
               {PROTECTION_TIERS.map((tier) => (
@@ -94,10 +80,10 @@ export default function ProtectionPage() {
 
             <section aria-labelledby="protection-faq" className="mt-10">
               <h2 id="protection-faq" className="headline-md text-ink-95">
-                Common questions
+                {t("protection.faqHeading")}
               </h2>
               <dl className="mt-4 grid gap-4 sm:grid-cols-3 sm:gap-6">
-                {PROTECTION_FAQ.map((row) => (
+                {protectionFaqs.map((row) => (
                   <div key={row.q} className="flex flex-col gap-1">
                     <dt className="headline-xs text-ink-95">{row.q}</dt>
                     <dd className="body-sm text-ink-60">{row.a}</dd>
@@ -108,7 +94,7 @@ export default function ProtectionPage() {
                 href="/help/insurance-and-coverage"
                 className="label-lg text-ink-100 hover:text-ink-80 mt-4 inline-block underline-offset-4 hover:underline"
               >
-                Read full insurance terms →
+                {t("protection.readTerms")} →
               </Link>
             </section>
           </div>
@@ -121,7 +107,7 @@ export default function ProtectionPage() {
               addOns={ADD_ONS}
               tiers={PROTECTION_TIERS}
               primary={{
-                label: "Continue",
+                label: t("continue"),
                 onClick: () => router.push("/book/checkout"),
                 disabled: !selectedTierId,
               }}

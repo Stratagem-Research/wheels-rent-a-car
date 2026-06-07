@@ -3,6 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import { X, DoorOpen, Users, Briefcase, Check } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -39,10 +40,10 @@ import type { MileagePlan, RateType, Vehicle, VehicleBadge } from "@/types/domai
  * - × top-right strips `?selected=` from the URL.
  */
 
-const BADGE_LABEL: Record<NonNullable<VehicleBadge>, string> = {
-  "best-deal": "Best deal",
-  popular: "Popular",
-  new: "New",
+const BADGE_KEY: Record<NonNullable<VehicleBadge>, string> = {
+  "best-deal": "badgeBestDeal",
+  popular: "badgePopular",
+  new: "badgeNew",
 };
 
 const BADGE_VARIANT: Record<
@@ -94,6 +95,7 @@ export function VehicleCardExpanded({
   onClose,
   className,
 }: VehicleCardExpandedProps) {
+  const t = useTranslations("fleet");
   const [paymentTiming, setPaymentTiming] = React.useState<PaymentTiming>("pay-now");
 
   const days = rentalDays(pickupISO, returnISO);
@@ -129,7 +131,7 @@ export function VehicleCardExpanded({
       <button
         type="button"
         onClick={onClose}
-        aria-label="Close selected vehicle"
+        aria-label={t("closeAria")}
         className={cn(
           "absolute top-4 right-4 z-10 inline-flex size-9 items-center justify-center rounded-full",
           "text-paper bg-white/10 hover:bg-white/20",
@@ -154,7 +156,7 @@ export function VehicleCardExpanded({
           ) : null}
           {vehicle.badge ? (
             <div className="absolute top-0 left-0">
-              <Badge variant={BADGE_VARIANT[vehicle.badge]}>{BADGE_LABEL[vehicle.badge]}</Badge>
+              <Badge variant={BADGE_VARIANT[vehicle.badge]}>{t(BADGE_KEY[vehicle.badge])}</Badge>
             </div>
           ) : null}
         </div>
@@ -164,29 +166,32 @@ export function VehicleCardExpanded({
             <span className="text-paper">
               {vehicle.make} {vehicle.model}
             </span>
-            <span className="body-sm text-paper/55 italic">or similar</span>
+            <span className="body-sm text-paper/55 italic">{t("orSimilar")}</span>
           </h3>
         </header>
 
         {/* Spec row — same Lucide icons as VehicleCard so the collapsed and
          * expanded states read identically. No emoji. */}
-        <ul className="label-md text-paper/85 flex flex-wrap items-center gap-x-5 gap-y-2 capitalize">
+        <ul className="label-md text-paper/85 flex flex-wrap items-center gap-x-5 gap-y-2">
           <SpecRow
-            label={`${vehicle.seats} Seats`}
+            label={t("seatsLabel", { count: vehicle.seats })}
             icon={<Users className="size-3.5" aria-hidden="true" />}
           />
           <SpecRow
-            label={`${vehicle.bags} Bag${vehicle.bags === 1 ? "" : "(s)"}`}
+            label={t("bagsLabel", { count: vehicle.bags })}
             icon={<Briefcase className="size-3.5" aria-hidden="true" />}
           />
-          <SpecRow label={capitalize(vehicle.transmission)} icon={<AutoBadge />} />
           <SpecRow
-            label={`${vehicle.doors} Doors`}
+            label={t(vehicle.transmission === "automatic" ? "transAutomatic" : "transManual")}
+            icon={<AutoBadge />}
+          />
+          <SpecRow
+            label={t("doorsLabel", { count: vehicle.doors })}
             icon={<DoorOpen className="size-3.5" aria-hidden="true" />}
           />
         </ul>
 
-        <p className="label-sm text-paper/60">Minimum age of the youngest driver: 21</p>
+        <p className="label-sm text-paper/60">{t("minAge")}</p>
       </div>
 
       {/* RIGHT — payment option + total + Next.
@@ -200,26 +205,26 @@ export function VehicleCardExpanded({
           "lg:border-t-0 lg:border-l lg:border-white/10",
         )}
       >
-        <Panel title="Payment option">
+        <Panel title={t("paymentOption")}>
           <RadioGroup
             value={paymentTiming}
             onValueChange={(v) => setPaymentTiming(v as PaymentTiming)}
-            aria-label="Payment option"
+            aria-label={t("paymentOption")}
           >
             <RadioRow
               value="pay-now"
               selected={paymentTiming === "pay-now"}
-              title="Pay now"
-              description="Pay upfront and lock in the lower rate."
-              priceLabel="Best price"
-              badge={<Badge variant="popular">Popular</Badge>}
+              title={t("payNow")}
+              description={t("payNowDesc")}
+              priceLabel={t("bestPrice")}
+              badge={<Badge variant="popular">{t("badgePopular")}</Badge>}
             />
             <RadioRow
               value="pay-later"
               selected={paymentTiming === "pay-later"}
-              title="Pay later"
-              description="Reserve now, settle at pickup with cash or card."
-              priceLabel={`+ ${formatUsd(payLaterSurchargeCents)} / day`}
+              title={t("payLater")}
+              description={t("payLaterDesc")}
+              priceLabel={t("perDaySurcharge", { price: formatUsd(payLaterSurchargeCents) })}
             />
           </RadioGroup>
         </Panel>
@@ -229,9 +234,9 @@ export function VehicleCardExpanded({
          * they expand. The success-green check matches the same affordance
          * on VehicleCard. */}
         <ul className="flex flex-col gap-2">
-          <Benefit text="Unlimited mileage" />
-          <Benefit text="Free cancellation up to 24h before pickup" />
-          <Benefit text="WhatsApp support 24/7" />
+          <Benefit text={t("benefitUnlimited")} />
+          <Benefit text={t("benefitCancellation")} />
+          <Benefit text={t("benefitWhatsapp")} />
         </ul>
 
         {/* mt-auto pushes the price + Next CTA all the way to the bottom of
@@ -244,22 +249,24 @@ export function VehicleCardExpanded({
               <span className="price-md text-paper tabular-nums">
                 <span className="text-[1.25em] font-extrabold">${fromPriceParts.dollars}</span>
                 <span className="font-bold">.{fromPriceParts.cents}</span>{" "}
-                <span className="body-sm text-paper/85 font-medium">/day</span>
-              </span>
-              <span className="body-sm text-paper/55 tabular-nums">{totalLabel} total</span>
-            </div>
-            <a
-              href={waLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="label-md text-paper/70 hover:text-paper inline-flex items-center gap-1 underline-offset-4 hover:underline"
-            >
-              Ask on WhatsApp →
-            </a>
+              <span className="body-sm text-paper/85 font-medium">{t("perDay")}</span>
+            </span>
+            <span className="body-sm text-paper/55 tabular-nums">
+              {t("total", { price: totalLabel })}
+            </span>
           </div>
-          <Button variant="cta" onClick={() => onConfirm(PAYMENT_TIMING_TO_BOOKING[paymentTiming])}>
-            Next →
-          </Button>
+          <a
+            href={waLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="label-md text-paper/70 hover:text-paper inline-flex items-center gap-1 underline-offset-4 hover:underline"
+          >
+            {t("askWhatsapp")} →
+          </a>
+        </div>
+        <Button variant="cta" onClick={() => onConfirm(PAYMENT_TIMING_TO_BOOKING[paymentTiming])}>
+          {t("next")} →
+        </Button>
         </footer>
       </div>
     </article>
@@ -347,8 +354,4 @@ function splitPrice(cents: number): { dollars: string; cents: string } {
   const dollars = Math.floor(cents / 100);
   const remainder = Math.round(cents % 100);
   return { dollars: String(dollars), cents: String(remainder).padStart(2, "0") };
-}
-
-function capitalize(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1);
 }

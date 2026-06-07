@@ -2,14 +2,20 @@
 
 import * as React from "react";
 import { Search } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
-import type { FaqEntry } from "@/types/domain";
 import { Link } from "@/i18n/navigation";
+
+type SearchEntry = {
+  id: string;
+  group: string;
+  question: string;
+  answer: string;
+};
 
 /**
  * Help-desk centred search bar per 10_help_faq.md §2.
@@ -20,8 +26,9 @@ import { Link } from "@/i18n/navigation";
  */
 export function HelpSearchBar({ className }: { className?: string }) {
   const t = useTranslations("helpUi");
+  const locale = useLocale();
   const [query, setQuery] = React.useState("");
-  const [results, setResults] = React.useState<FaqEntry[] | null>(null);
+  const [results, setResults] = React.useState<SearchEntry[] | null>(null);
   const [loading, setLoading] = React.useState(false);
 
   const onSearch = async (e: React.FormEvent) => {
@@ -29,8 +36,8 @@ export function HelpSearchBar({ className }: { className?: string }) {
     if (!query.trim()) return;
     setLoading(true);
     try {
-      const res = await api.get<{ items: FaqEntry[] }>(
-        `${endpoints.helpSearch}?q=${encodeURIComponent(query.trim())}`,
+      const res = await api.get<{ items: SearchEntry[] }>(
+        `${endpoints.helpSearch}?q=${encodeURIComponent(query.trim())}&locale=${encodeURIComponent(locale)}`,
       );
       setResults(res.items);
     } catch {

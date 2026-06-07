@@ -1,9 +1,10 @@
+import { getTranslations } from "next-intl/server";
 import { LegalArticle } from "@/components/help/LegalArticle";
 
-export const metadata = {
-  title: "Terms & Conditions · Wheels Rent A Car",
-  description: "The terms that govern every rental booked through Wheels Rent A Car.",
-};
+export async function generateMetadata() {
+  const t = await getTranslations("meta");
+  return { title: t("termsTitle"), description: t("termsDescription") };
+}
 
 export default function TermsPage() {
   return <LegalArticle slug="terms" />;

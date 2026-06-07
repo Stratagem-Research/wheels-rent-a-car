@@ -3,6 +3,7 @@
 import * as React from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 
@@ -53,6 +54,7 @@ export function CategoryWordmarkCard({
   bookHref,
   className,
 }: CategoryWordmarkCardProps) {
+  const t = useTranslations("landing.categories");
   const exploreTo = exploreHref ?? `/vehicles?category=${slug}`;
   const bookTo = bookHref ?? `/book?category=${slug}`;
 
@@ -75,7 +77,7 @@ export function CategoryWordmarkCard({
       <h3
         aria-hidden="true"
         className={cn(
-          "absolute top-6 left-6 sm:top-8 sm:left-10",
+          "absolute top-6 start-6 sm:top-8 sm:start-10",
           "text-paper/15 font-extrabold uppercase",
           "text-[clamp(64px,10vw,128px)] leading-[0.9] tracking-[-0.04em]",
           "pointer-events-none whitespace-nowrap select-none",
@@ -103,9 +105,9 @@ export function CategoryWordmarkCard({
       <div className="relative z-[1] mt-6 flex flex-col gap-2">
         <p className="body-md text-paper/70 max-w-md">{description}</p>
         <p className="price-md text-paper tabular-nums">
-          <span className="body-sm text-paper/60 font-medium">From</span>{" "}
+          <span className="body-sm text-paper/60 font-medium">{t("from")}</span>{" "}
           <span className="text-[1.4em] font-extrabold">${priceFromUSD}</span>{" "}
-          <span className="body-sm text-paper/80 font-medium">/day</span>
+          <span className="body-sm text-paper/80 font-medium">{t("perDay")}</span>
         </p>
       </div>
 
@@ -115,8 +117,8 @@ export function CategoryWordmarkCard({
        * presence as the only visible action on the card. */}
       <div className="relative z-[1] mt-5 flex flex-wrap items-center gap-2">
         <Button asChild variant="primary-inverse" size="md">
-          <Link href={bookTo} aria-label={`Book ${categoryName.toLowerCase()}`}>
-            Book
+          <Link href={bookTo} aria-label={t("bookAria", { category: categoryName })}>
+            {t("book")}
           </Link>
         </Button>
       </div>
@@ -125,7 +127,7 @@ export function CategoryWordmarkCard({
        * pills are still clickable above it. */}
       <Link
         href={exploreTo}
-        aria-label={`Browse ${categoryName.toLowerCase()} vehicles`}
+        aria-label={t("exploreAria", { category: categoryName })}
         className={cn(
           "absolute inset-0 z-0",
           "focus-visible:outline-paper focus-visible:outline-2 focus-visible:outline-offset-[-2px]",

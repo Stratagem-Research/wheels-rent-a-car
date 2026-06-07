@@ -11,6 +11,13 @@ import { AdminFormShell } from "@/components/admin/AdminFormShell";
 import { useTrips } from "@/lib/admin/useAdminStore";
 import { writeTrips } from "@/lib/admin/store";
 import type { Trip, TripRegion, VehicleCategory } from "@/types/domain";
+import type { CmsLocale } from "@/lib/i18n/localized";
+import {
+  getLocalizedString,
+  getLocalizedStringArray,
+  updateLocalizedString,
+  updateLocalizedStringArray,
+} from "@/lib/i18n/localized";
 
 /**
  * TripForm — shared create/edit form for /admin/trips/{new,[slug]}.
@@ -50,6 +57,7 @@ export function TripForm({ slug }: TripFormProps) {
   const isEdit = Boolean(slug);
   const trips = useTrips();
   const [saving, setSaving] = React.useState(false);
+  const [activeLocale, setActiveLocale] = React.useState<CmsLocale>("en");
 
   const initial = React.useMemo<Trip>(() => {
     if (!slug) return emptyTrip();
@@ -57,7 +65,9 @@ export function TripForm({ slug }: TripFormProps) {
   }, [slug, trips]);
 
   const [form, setForm] = React.useState<Trip>(initial);
-  const [tagsInput, setTagsInput] = React.useState(initial.tags.join(", "));
+  const [tagsInput, setTagsInput] = React.useState(
+    getLocalizedStringArray(initial.tags, "en").join(", "),
+  );
   const [errors, setErrors] = React.useState<Record<string, string>>({});
 
   React.useEffect(() => {
@@ -67,12 +77,12 @@ export function TripForm({ slug }: TripFormProps) {
     queueMicrotask(() => {
       if (cancelled) return;
       setForm(initial);
-      setTagsInput(initial.tags.join(", "));
+      setTagsInput(getLocalizedStringArray(initial.tags, activeLocale).join(", "));
     });
     return () => {
       cancelled = true;
     };
-  }, [initial]);
+  }, [activeLocale, initial]);
 
   const update = <K extends keyof Trip>(key: K, value: Trip[K]) => {
     setForm((f) => ({ ...f, [key]: value }));
@@ -83,10 +93,10 @@ export function TripForm({ slug }: TripFormProps) {
     if (!form.slug.trim()) e.slug = "Slug is required.";
     else if (!/^[a-z0-9-]+$/.test(form.slug))
       e.slug = "Slug must be lowercase letters, numbers, and dashes only.";
-    if (!form.title.trim()) e.title = "Title is required.";
-    if (!form.excerpt.trim()) e.excerpt = "Excerpt is required.";
+    if (!getLocalizedString(form.title, activeLocale).trim()) e.title = "Title is required.";
+    if (!getLocalizedString(form.excerpt, activeLocale).trim()) e.excerpt = "Excerpt is required.";
     if (!form.coverImage.src.trim()) e.coverImage = "Cover image path is required.";
-    if (!form.body.trim()) e.body = "Body is required.";
+    if (!getLocalizedString(form.body, activeLocale).trim()) e.body = "Body is required.";
     return e;
   };
 
@@ -97,10 +107,11 @@ export function TripForm({ slug }: TripFormProps) {
     if (Object.keys(next).length > 0) return;
 
     const now = new Date().toISOString();
-    const tags = tagsInput
+    const tagsForLocale = tagsInput
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
+    const tags = updateLocalizedStringArray(form.tags, activeLocale, tagsForLocale);
 
     setSaving(true);
     try {
@@ -169,6 +180,24 @@ export function TripForm({ slug }: TripFormProps) {
         }
       >
         <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="Editing locale" helper="Translate fields for EN / AR / FR.">
+            {({ id }) => (
+              <Select
+                id={id}
+                value={activeLocale}
+                onChange={(e) => {
+                  const nextLocale = e.target.value as CmsLocale;
+                  setActiveLocale(nextLocale);
+                  setTagsInput(getLocalizedStringArray(form.tags, nextLocale).join(", "));
+                }}
+              >
+                <option value="en">English (EN)</option>
+                <option value="ar">Arabic (AR)</option>
+                <option value="fr">French (FR)</option>
+              </Select>
+            )}
+          </Field>
+          <div />
           <Field label="Slug" required error={errors.slug} helper="Lowercase, dashes, no spaces.">
             {({ id, describedBy, invalid }) => (
               <Input
@@ -187,8 +216,10 @@ export function TripForm({ slug }: TripFormProps) {
                 id={id}
                 aria-describedby={describedBy}
                 invalid={invalid}
-                value={form.title}
-                onChange={(e) => update("title", e.target.value)}
+                value={getLocalizedString(form.title, activeLocale)}
+                onChange={(e) =>
+                  update("title", updateLocalizedString(form.title, activeLocale, e.target.value))
+                }
               />
             )}
           </Field>
@@ -226,7 +257,13 @@ export function TripForm({ slug }: TripFormProps) {
           </Field>
           <Field label="Meta" helper="Short label shown on cards (e.g. '8h · SUV recommended').">
             {({ id }) => (
-              <Input id={id} value={form.meta} onChange={(e) => update("meta", e.target.value)} />
+              <Input
+                id={id}
+                value={getLocalizedString(form.meta, activeLocale)}
+                onChange={(e) =>
+                  update("meta", updateLocalizedString(form.meta, activeLocale, e.target.value))
+                }
+              />
             )}
           </Field>
           <Field label="Tags" helper="Comma-separated, lowercase.">
@@ -253,8 +290,10 @@ export function TripForm({ slug }: TripFormProps) {
               rows={2}
               aria-describedby={describedBy}
               invalid={invalid}
-              value={form.excerpt}
-              onChange={(e) => update("excerpt", e.target.value)}
+              value={getLocalizedString(form.excerpt, activeLocale)}
+              onChange={(e) =>
+                update("excerpt", updateLocalizedString(form.excerpt, activeLocale, e.target.value))
+              }
             />
           )}
         </Field>
@@ -280,8 +319,13 @@ export function TripForm({ slug }: TripFormProps) {
             {({ id }) => (
               <Input
                 id={id}
-                value={form.coverImage.alt}
-                onChange={(e) => update("coverImage", { ...form.coverImage, alt: e.target.value })}
+                value={getLocalizedString(form.coverImage.alt, activeLocale)}
+                onChange={(e) =>
+                  update("coverImage", {
+                    ...form.coverImage,
+                    alt: updateLocalizedString(form.coverImage.alt, activeLocale, e.target.value),
+                  })
+                }
               />
             )}
           </Field>
@@ -309,8 +353,10 @@ export function TripForm({ slug }: TripFormProps) {
               rows={12}
               aria-describedby={describedBy}
               invalid={invalid}
-              value={form.body}
-              onChange={(e) => update("body", e.target.value)}
+              value={getLocalizedString(form.body, activeLocale)}
+              onChange={(e) =>
+                update("body", updateLocalizedString(form.body, activeLocale, e.target.value))
+              }
             />
           )}
         </Field>
@@ -324,14 +370,14 @@ export function TripForm({ slug }: TripFormProps) {
 function emptyTrip(): Trip {
   return {
     slug: "",
-    title: "",
-    excerpt: "",
-    coverImage: { src: "", alt: "", width: 1200, height: 1500 },
-    meta: "Half day · Any car",
+    title: { en: "", ar: "", fr: "" },
+    excerpt: { en: "", ar: "", fr: "" },
+    coverImage: { src: "", alt: { en: "", ar: "", fr: "" }, width: 1200, height: 1500 },
+    meta: { en: "Half day · Any car", ar: "", fr: "" },
     region: "mountains",
-    body: "",
+    body: { en: "", ar: "", fr: "" },
     suggestedVehicleCategory: "sedan",
-    tags: [],
+    tags: { en: [], ar: [], fr: [] },
     publishedAt: new Date().toISOString().slice(0, 10),
     updatedAt: new Date().toISOString(),
   };

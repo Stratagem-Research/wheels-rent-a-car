@@ -77,12 +77,22 @@ export async function getPublicAboutContent() {
     // Ignore and fallback to static content.
   }
   return {
-    storyParagraphs: ABOUT_STORY_PARAGRAPHS,
-    pullQuote: ABOUT_PULL_QUOTE,
-    fleetPhilosophy: FLEET_PHILOSOPHY,
-    stats: ABOUT_STATS,
-    teamIntro: ABOUT_TEAM_INTRO,
-    teamDedication: ABOUT_TEAM_DEDICATION,
-    team: ABOUT_TEAM,
+    storyParagraphs: { en: ABOUT_STORY_PARAGRAPHS },
+    pullQuote: { en: ABOUT_PULL_QUOTE },
+    fleetPhilosophy: {
+      heading: { en: FLEET_PHILOSOPHY.heading },
+      paragraphs: { en: FLEET_PHILOSOPHY.paragraphs },
+    },
+    stats: ABOUT_STATS.map((item) => ({ value: item.value, label: { en: item.label } })),
+    teamIntro: { en: ABOUT_TEAM_INTRO },
+    teamDedication: { en: ABOUT_TEAM_DEDICATION },
+    team: ABOUT_TEAM.map((member) => ({
+      name: member.name,
+      role: { en: member.role },
+      photo: member.photo,
+      quote: member.quote ? { en: member.quote } : undefined,
+      bio: { en: member.bio },
+      highlights: { en: member.highlights ?? [] },
+    })),
   };
 }

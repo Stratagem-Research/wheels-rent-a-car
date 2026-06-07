@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { ErrorText, Field } from "@/components/ui/FormAtoms";
@@ -41,6 +42,8 @@ export function EnquiryFormLongTerm({
   initialDuration = "1",
   formId = "enquiry",
 }: EnquiryFormLongTermProps) {
+  const t = useTranslations("leads");
+  const tCat = useTranslations("vehicleCategories");
   const [form, setForm] = React.useState<FormState>({
     fullName: "",
     email: "",
@@ -66,10 +69,10 @@ export function EnquiryFormLongTerm({
 
   const validate = (): Record<string, string> => {
     const e: Record<string, string> = {};
-    if (!form.fullName.trim()) e.fullName = "Full name is required.";
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) e.email = "Enter a valid email.";
-    if (!form.phone.national.trim()) e.phone = "Mobile number is required.";
-    if (!form.startDate) e.startDate = "Tell us when you'd like to start.";
+    if (!form.fullName.trim()) e.fullName = t("fullNameRequired");
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) e.email = t("emailInvalid");
+    if (!form.phone.national.trim()) e.phone = t("mobileRequired");
+    if (!form.startDate) e.startDate = t("longTerm.startDateRequired");
     return e;
   };
 
@@ -99,9 +102,7 @@ export function EnquiryFormLongTerm({
       });
       setSubmitted(true);
     } catch {
-      setErrors({
-        form: "We couldn't submit your enquiry. Please try again or chat with us on WhatsApp.",
-      });
+      setErrors({ form: t("submitError") });
     } finally {
       setSubmitting(false);
     }
@@ -112,7 +113,7 @@ export function EnquiryFormLongTerm({
   return (
     <form id={formId} onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Full name" required error={errors.fullName}>
+        <Field label={t("fullName")} required error={errors.fullName}>
           {({ id, describedBy, invalid }) => (
             <Input
               id={id}
@@ -124,7 +125,7 @@ export function EnquiryFormLongTerm({
             />
           )}
         </Field>
-        <Field label="Email" required error={errors.email}>
+        <Field label={t("email")} required error={errors.email}>
           {({ id, describedBy, invalid }) => (
             <Input
               id={id}
@@ -137,7 +138,7 @@ export function EnquiryFormLongTerm({
             />
           )}
         </Field>
-        <Field label="Mobile" required error={errors.phone}>
+        <Field label={t("mobile")} required error={errors.phone}>
           {({ id, describedBy, invalid }) => (
             <PhoneInput
               id={id}
@@ -148,7 +149,7 @@ export function EnquiryFormLongTerm({
             />
           )}
         </Field>
-        <Field label="Company (optional)">
+        <Field label={t("companyOptional")}>
           {({ id }) => (
             <Input
               id={id}
@@ -157,7 +158,7 @@ export function EnquiryFormLongTerm({
             />
           )}
         </Field>
-        <Field label="Duration" required>
+        <Field label={t("longTerm.duration")} required>
           {({ id }) => (
             <Select
               id={id}
@@ -166,13 +167,13 @@ export function EnquiryFormLongTerm({
             >
               {DURATIONS.map((d) => (
                 <option key={d} value={d}>
-                  {d} month{d === "1" ? "" : "s"}
+                  {t("longTerm.durationMonths", { count: Number(d) })}
                 </option>
               ))}
             </Select>
           )}
         </Field>
-        <Field label="Vehicle class" required>
+        <Field label={t("longTerm.vehicleClass")} required>
           {({ id }) => (
             <Select
               id={id}
@@ -180,14 +181,14 @@ export function EnquiryFormLongTerm({
               onChange={(e) => setForm((f) => ({ ...f, vehicleClass: e.target.value }))}
             >
               {VEHICLE_CLASSES.map((c) => (
-                <option key={c} value={c} className="capitalize">
-                  {c.replace("-", " ")}
+                <option key={c} value={c}>
+                  {tCat(c)}
                 </option>
               ))}
             </Select>
           )}
         </Field>
-        <Field label="Start date" required error={errors.startDate}>
+        <Field label={t("longTerm.startDate")} required error={errors.startDate}>
           {({ id, describedBy, invalid }) => (
             <Input
               id={id}
@@ -199,7 +200,7 @@ export function EnquiryFormLongTerm({
             />
           )}
         </Field>
-        <Field label="Delivery address (optional)">
+        <Field label={t("longTerm.deliveryAddressOptional")}>
           {({ id }) => (
             <Input
               id={id}
@@ -209,7 +210,7 @@ export function EnquiryFormLongTerm({
           )}
         </Field>
       </div>
-      <Field label="Anything else we should know?">
+      <Field label={t("notes")}>
         {({ id }) => (
           <Textarea
             id={id}
@@ -222,11 +223,11 @@ export function EnquiryFormLongTerm({
       <Checkbox
         checked={form.marketing}
         onCheckedChange={(c) => setForm((f) => ({ ...f, marketing: c === true }))}
-        label="I want occasional updates from Wheels."
+        label={t("marketing")}
       />
       {errors.form ? <ErrorText>{errors.form}</ErrorText> : null}
       <Button type="submit" variant="cta" size="lg" loading={submitting}>
-        Send my enquiry →
+        {t("sendEnquiry")} →
       </Button>
     </form>
   );

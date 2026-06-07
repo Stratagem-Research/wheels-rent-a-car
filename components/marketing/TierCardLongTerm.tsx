@@ -1,6 +1,7 @@
 "use client";
 
 import { Check } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -21,6 +22,7 @@ export interface TierCardLongTermProps {
 }
 
 export function TierCardLongTerm({ tier, onSelect }: TierCardLongTermProps) {
+  const t = useTranslations("tierCards");
   return (
     <article
       className={cn(
@@ -30,21 +32,21 @@ export function TierCardLongTerm({ tier, onSelect }: TierCardLongTermProps) {
     >
       {tier.popular ? (
         <div className="absolute -top-3 right-4">
-          <Badge variant="popular">Popular</Badge>
+          <Badge variant="popular">{t("popular")}</Badge>
         </div>
       ) : null}
       <div>
         <span className="text-ink-60 overline">
-          {tier.durationMonths} {tier.durationMonths === 1 ? "month" : "months"}
+          {t("months", { count: tier.durationMonths })}
         </span>
         <div className="mt-1 flex items-baseline gap-1">
           <span className="price-lg text-ink-95">{formatUsd(tier.perDayCents)}</span>
-          <span className="label-md text-ink-60">/ day</span>
+          <span className="label-md text-ink-60">{t("perDay")}</span>
         </div>
         {tier.savingsPercent > 0 ? (
-          <span className="label-md text-ink-100">Save {tier.savingsPercent}%</span>
+          <span className="label-md text-ink-100">{t("save", { percent: tier.savingsPercent })}</span>
         ) : (
-          <span className="label-md text-ink-50">Standard rate</span>
+          <span className="label-md text-ink-50">{t("standardRate")}</span>
         )}
       </div>
       <ul className="body-sm text-ink-80 flex flex-1 flex-col gap-2">
@@ -56,7 +58,7 @@ export function TierCardLongTerm({ tier, onSelect }: TierCardLongTermProps) {
         ))}
       </ul>
       <Button variant="primary" size="sm" fullWidth onClick={() => onSelect(tier.durationMonths)}>
-        Get a quote
+        {t("getQuote")}
       </Button>
     </article>
   );

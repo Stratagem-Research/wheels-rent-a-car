@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Eye, EyeOff } from "lucide-react";
 import { AuthCard } from "@/components/account/AuthCard";
 import {
@@ -19,6 +20,7 @@ import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
 
 export default function RegisterPage() {
+  const t = useTranslations("auth");
   const router = useRouter();
   const searchParams = useSearchParams();
   const { signUp } = useSession();
@@ -38,12 +40,12 @@ export default function RegisterPage() {
 
   const validate = (): Record<string, string> => {
     const e: Record<string, string> = {};
-    if (!firstName.trim()) e.firstName = "First name is required.";
-    if (!lastName.trim()) e.lastName = "Last name is required.";
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) e.email = "Enter a valid email.";
-    if (password.length < 8) e.password = "Password must be at least 8 characters.";
-    else if (scorePassword(password) < 1) e.password = "Password is too weak.";
-    if (!terms) e.terms = "Please accept the Terms & Conditions.";
+    if (!firstName.trim()) e.firstName = t("register.firstNameRequired");
+    if (!lastName.trim()) e.lastName = t("register.lastNameRequired");
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) e.email = t("emailInvalid");
+    if (password.length < 8) e.password = t("register.passwordMin");
+    else if (scorePassword(password) < 1) e.password = t("register.passwordWeak");
+    if (!terms) e.terms = t("register.acceptTerms");
     return e;
   };
 
@@ -75,7 +77,7 @@ export default function RegisterPage() {
       }
       router.push(searchParams?.get("redirect") ?? "/account");
     } catch {
-      setErrors({ form: "We couldn't create your account. Please try again." });
+      setErrors({ form: t("register.formError") });
     } finally {
       setSubmitting(false);
     }
@@ -84,18 +86,16 @@ export default function RegisterPage() {
   if (confirmationSent) {
     return (
       <AuthCard
-        title="Confirm your email."
-        subtitle={`We sent a confirmation link to ${email.trim().toLowerCase()}. Tap it to activate your account, then sign in.`}
+        title={t("register.confirmTitle")}
+        subtitle={t("register.confirmSubtitle", { email: email.trim().toLowerCase() })}
         footer={
           <Link href="/login" className="text-ink-100 underline-offset-2 hover:underline">
-            Back to sign in →
+            {t("register.backToSignIn")} →
           </Link>
         }
       >
         <div className="bg-success-bg text-success rounded-md p-4">
-          <span className="body-md">
-            Didn&apos;t get it? Check your spam folder, or wait a minute and try again.
-          </span>
+          <span className="body-md">{t("register.confirmBody")}</span>
         </div>
       </AuthCard>
     );
@@ -103,20 +103,20 @@ export default function RegisterPage() {
 
   return (
     <AuthCard
-      title="Create account."
-      subtitle="It takes 30 seconds. We'll save your details for next time."
+      title={t("register.title")}
+      subtitle={t("register.subtitle")}
       footer={
         <>
-          Already have an account?{" "}
+          {t("register.alreadyHave")}{" "}
           <Link href="/login" className="text-ink-100 underline-offset-2 hover:underline">
-            Sign in →
+            {t("register.signIn")} →
           </Link>
         </>
       }
     >
       <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
         <div className="grid grid-cols-2 gap-3">
-          <Field label="First name" required error={errors.firstName}>
+          <Field label={t("register.firstName")} required error={errors.firstName}>
             {({ id, describedBy, invalid }) => (
               <Input
                 id={id}
@@ -128,7 +128,7 @@ export default function RegisterPage() {
               />
             )}
           </Field>
-          <Field label="Last name" required error={errors.lastName}>
+          <Field label={t("register.lastName")} required error={errors.lastName}>
             {({ id, describedBy, invalid }) => (
               <Input
                 id={id}
@@ -141,7 +141,7 @@ export default function RegisterPage() {
             )}
           </Field>
         </div>
-        <Field label="Email" required error={errors.email}>
+        <Field label={t("email")} required error={errors.email}>
           {({ id, describedBy, invalid }) => (
             <Input
               id={id}
@@ -154,7 +154,7 @@ export default function RegisterPage() {
             />
           )}
         </Field>
-        <Field label="Password" required error={errors.password}>
+        <Field label={t("password")} required error={errors.password}>
           {({ id, describedBy, invalid }) => (
             <>
               <Input
@@ -169,7 +169,7 @@ export default function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => setShow((s) => !s)}
-                    aria-label={show ? "Hide password" : "Show password"}
+                    aria-label={show ? t("hidePassword") : t("showPassword")}
                     className="hover:text-ink-80 text-ink-60"
                   >
                     {show ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -180,7 +180,7 @@ export default function RegisterPage() {
             </>
           )}
         </Field>
-        <Field label="Mobile (optional)" helper="We'll use this for WhatsApp updates.">
+        <Field label={t("register.mobileOptional")} helper={t("register.mobileHelper")}>
           {({ id, describedBy }) => (
             <PhoneInput
               id={id}
@@ -193,29 +193,28 @@ export default function RegisterPage() {
         <Checkbox
           checked={terms}
           onCheckedChange={(c) => setTerms(c === true)}
-          label={
-            <>
-              I agree to the{" "}
+          label={t.rich("register.agreeTerms", {
+            terms: (chunks) => (
               <Link href="/terms" className="text-ink-100 underline-offset-2 hover:underline">
-                Terms &amp; Conditions
-              </Link>{" "}
-              and{" "}
-              <Link href="/privacy" className="text-ink-100 underline-offset-2 hover:underline">
-                Privacy Policy
+                {chunks}
               </Link>
-              .
-            </>
-          }
+            ),
+            privacy: (chunks) => (
+              <Link href="/privacy" className="text-ink-100 underline-offset-2 hover:underline">
+                {chunks}
+              </Link>
+            ),
+          })}
         />
         {errors.terms ? <ErrorText>{errors.terms}</ErrorText> : null}
         <Checkbox
           checked={marketing}
           onCheckedChange={(c) => setMarketing(c === true)}
-          label="Send me occasional updates from Wheels."
+          label={t("register.marketing")}
         />
         {errors.form ? <ErrorText>{errors.form}</ErrorText> : null}
         <Button type="submit" variant="cta" size="lg" fullWidth loading={submitting}>
-          Create account
+          {t("register.submit")}
         </Button>
       </form>
     </AuthCard>

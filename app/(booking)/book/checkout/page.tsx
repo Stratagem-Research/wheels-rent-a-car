@@ -32,16 +32,7 @@ import { EVENTS } from "@/lib/analytics/events";
 import type { PaymentMethod, SubmitBookingResponse } from "@/types/domain";
 import { Link } from "@/i18n/navigation";
 
-const COUNTRIES = [
-  { code: "LB", name: "Lebanon" },
-  { code: "US", name: "United States" },
-  { code: "GB", name: "United Kingdom" },
-  { code: "FR", name: "France" },
-  { code: "DE", name: "Germany" },
-  { code: "AE", name: "United Arab Emirates" },
-  { code: "SA", name: "Saudi Arabia" },
-  { code: "OTHER", name: "Other" },
-];
+const COUNTRY_CODES = ["LB", "US", "GB", "FR", "DE", "AE", "SA", "OTHER"] as const;
 
 interface CheckoutFormState {
   firstName: string;
@@ -98,6 +89,7 @@ const emptyForm = (): CheckoutFormState => ({
 
 export default function CheckoutPage() {
   const tPayment = useTranslations("checkoutPayment");
+  const t = useTranslations("bookingFlow.checkout");
   const router = useRouter();
   const { draft, setDraft, ready } = useBookingDraft();
   const [form, setForm] = React.useState<CheckoutFormState>(emptyForm);
@@ -127,14 +119,14 @@ export default function CheckoutPage() {
       id = window.setTimeout(() => {
         toast.info(
           <span>
-            Need help completing your booking?{" "}
+            {t("idlePrompt")}{" "}
             <a
               href={whatsAppHref("checkout")}
               target="_blank"
               rel="noopener noreferrer"
               className="underline underline-offset-2 hover:no-underline"
             >
-              Chat with our team
+              {t("idlePromptLink")}
             </a>
             .
           </span>,
@@ -149,7 +141,7 @@ export default function CheckoutPage() {
       events.forEach((e) => document.removeEventListener(e, arm));
       if (id !== null) window.clearTimeout(id);
     };
-  }, []);
+  }, [t]);
 
   if (!ready || !draft || !draft.vehicle) {
     return (
@@ -177,23 +169,23 @@ export default function CheckoutPage() {
 
   const validate = (): Record<string, string> => {
     const e: Record<string, string> = {};
-    if (!form.firstName.trim()) e.firstName = "First name is required.";
-    if (!form.lastName.trim()) e.lastName = "Last name is required.";
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) e.email = "Enter a valid email.";
-    if (!form.phone.national.trim()) e.phone = "Mobile number is required.";
-    if (!form.dob) e.dob = "Date of birth is required.";
-    if (!form.licenceNumber.trim()) e.licenceNumber = "Licence number is required.";
-    if (!form.licenceIssue) e.licenceIssue = "Issue date is required.";
-    if (!form.licenceExpiry) e.licenceExpiry = "Expiry date is required.";
+    if (!form.firstName.trim()) e.firstName = t("firstNameRequired");
+    if (!form.lastName.trim()) e.lastName = t("lastNameRequired");
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) e.email = t("emailInvalid");
+    if (!form.phone.national.trim()) e.phone = t("mobileRequired");
+    if (!form.dob) e.dob = t("dobRequired");
+    if (!form.licenceNumber.trim()) e.licenceNumber = t("licenceNumberRequired");
+    if (!form.licenceIssue) e.licenceIssue = t("issueDateRequired");
+    if (!form.licenceExpiry) e.licenceExpiry = t("expiryDateRequired");
     if (draft.pickup.type === "airport" && !form.flightNumber.trim()) {
-      e.flightNumber = "Flight number is required for airport pickups.";
+      e.flightNumber = t("flightRequired");
     }
     if (
       draft.pickup.type === "address-delivery" &&
       !form.deliveryAddress.trim() &&
       !draft.pickup.address
     ) {
-      e.deliveryAddress = "Delivery address is required.";
+      e.deliveryAddress = t("deliveryRequired");
     }
     if (!form.paymentMethod) e.paymentMethod = tPayment("choosePaymentMethod");
     if (form.paymentMethod === "card") {
@@ -205,7 +197,7 @@ export default function CheckoutPage() {
     if (form.paymentMethod === "transfer" && !form.transferProof) {
       e.transferProof = tPayment("transferProofRequired");
     }
-    if (!form.termsAccepted) e.terms = "Please accept the Terms & Conditions.";
+    if (!form.termsAccepted) e.terms = t("acceptTerms");
     return e;
   };
 
@@ -285,14 +277,12 @@ export default function CheckoutPage() {
         // Vehicle was booked under us between availability and submit.
         // Per 04_booking_flow.md edge-case "Vehicle becomes unavailable
         // after step 1", redirect back with an explanatory toast.
-        toast.warning("That vehicle was just taken — choose another.");
+        toast.warning(t("vehicleTaken"));
         router.push("/vehicles?step=1");
       } else if (err instanceof ApiError && err.status === 503) {
         toast.warning(tPayment("whishUnavailable"));
       } else {
-        toast.error(
-          "We couldn't submit your booking. Please try again or chat with us on WhatsApp.",
-        );
+        toast.error(t("submitError"));
       }
     } finally {
       setSubmitting(false);
@@ -318,11 +308,7 @@ export default function CheckoutPage() {
   return (
     <>
       <Stepper current={4} />
-      <HoldTimer
-        onExpire={() =>
-          toast.warning("Your booking hold expired. We'll recheck pricing on submit.")
-        }
-      />
+      <HoldTimer onExpire={() => toast.warning(t("holdExpired"))} />
       <section className="mx-auto max-w-[var(--container-full)] px-5 py-8 sm:px-5 sm:py-10">
         <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
           <form
@@ -370,28 +356,27 @@ export default function CheckoutPage() {
               <Checkbox
                 checked={form.termsAccepted}
                 onCheckedChange={(c) => setForm((f) => ({ ...f, termsAccepted: c === true }))}
-                label={
-                  <>
-                    I agree to the{" "}
+                label={t.rich("agreeTerms", {
+                  terms: (chunks) => (
                     <Link href="/terms" className="text-ink-100 underline-offset-2 hover:underline">
-                      Terms &amp; Conditions
-                    </Link>{" "}
-                    and{" "}
+                      {chunks}
+                    </Link>
+                  ),
+                  privacy: (chunks) => (
                     <Link
                       href="/privacy"
                       className="text-ink-100 underline-offset-2 hover:underline"
                     >
-                      Privacy Policy
+                      {chunks}
                     </Link>
-                    .
-                  </>
-                }
+                  ),
+                })}
               />
               {errors.terms ? <ErrorText>{errors.terms}</ErrorText> : null}
               <Checkbox
                 checked={form.marketing}
                 onCheckedChange={(c) => setForm((f) => ({ ...f, marketing: c === true }))}
-                label="Send me promotions and updates from Wheels."
+                label={t("marketing")}
               />
             </section>
 
@@ -436,13 +421,14 @@ function DriverInfoSection({
   setForm: React.Dispatch<React.SetStateAction<CheckoutFormState>>;
   errors: Record<string, string>;
 }) {
+  const t = useTranslations("bookingFlow.checkout");
   return (
     <section aria-labelledby="driver-info" className="flex flex-col gap-5">
       <h2 id="driver-info" className="headline-md text-ink-95">
-        Your information
+        {t("yourInformation")}
       </h2>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="First name" required error={errors.firstName}>
+        <Field label={t("firstName")} required error={errors.firstName}>
           {({ id, describedBy, invalid }) => (
             <Input
               id={id}
@@ -454,7 +440,7 @@ function DriverInfoSection({
             />
           )}
         </Field>
-        <Field label="Last name" required error={errors.lastName}>
+        <Field label={t("lastName")} required error={errors.lastName}>
           {({ id, describedBy, invalid }) => (
             <Input
               id={id}
@@ -466,7 +452,7 @@ function DriverInfoSection({
             />
           )}
         </Field>
-        <Field label="Email" required error={errors.email}>
+        <Field label={t("email")} required error={errors.email}>
           {({ id, describedBy, invalid }) => (
             <Input
               id={id}
@@ -479,7 +465,7 @@ function DriverInfoSection({
             />
           )}
         </Field>
-        <Field label="Mobile" required error={errors.phone}>
+        <Field label={t("mobile")} required error={errors.phone}>
           {({ id, describedBy, invalid }) => (
             <PhoneInput
               id={id}
@@ -490,7 +476,7 @@ function DriverInfoSection({
             />
           )}
         </Field>
-        <Field label="Date of birth" required error={errors.dob}>
+        <Field label={t("dob")} required error={errors.dob}>
           {({ id, describedBy, invalid }) => (
             <Input
               id={id}
@@ -503,16 +489,16 @@ function DriverInfoSection({
             />
           )}
         </Field>
-        <Field label="Country of residence" required>
+        <Field label={t("countryOfResidence")} required>
           {({ id }) => (
             <Select
               id={id}
               value={form.country}
               onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
             >
-              {COUNTRIES.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.name}
+              {COUNTRY_CODES.map((code) => (
+                <option key={code} value={code}>
+                  {t(`countries.${code}`)}
                 </option>
               ))}
             </Select>
@@ -522,7 +508,7 @@ function DriverInfoSection({
       <Checkbox
         checked={form.whatsappOptIn}
         onCheckedChange={(c) => setForm((f) => ({ ...f, whatsappOptIn: c === true }))}
-        label="Send my booking updates via WhatsApp."
+        label={t("whatsappOptIn")}
       />
     </section>
   );
@@ -537,16 +523,15 @@ function DriverLicenceSection({
   setForm: React.Dispatch<React.SetStateAction<CheckoutFormState>>;
   errors: Record<string, string>;
 }) {
+  const t = useTranslations("bookingFlow.checkout");
   return (
     <section aria-labelledby="licence-info" className="flex flex-col gap-5">
       <h2 id="licence-info" className="headline-md text-ink-95">
-        Driver&apos;s licence
+        {t("licenceHeading")}
       </h2>
-      <p className="body-sm text-ink-60 -mt-2">
-        We&apos;ll verify at pickup. Foreign licences must be in Latin script — bring your passport.
-      </p>
+      <p className="body-sm text-ink-60 -mt-2">{t("licenceHelper")}</p>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Licence number" required error={errors.licenceNumber}>
+        <Field label={t("licenceNumber")} required error={errors.licenceNumber}>
           {({ id, describedBy, invalid }) => (
             <Input
               id={id}
@@ -557,22 +542,22 @@ function DriverLicenceSection({
             />
           )}
         </Field>
-        <Field label="Issuing country" required>
+        <Field label={t("issuingCountry")} required>
           {({ id }) => (
             <Select
               id={id}
               value={form.licenceCountry}
               onChange={(e) => setForm((f) => ({ ...f, licenceCountry: e.target.value }))}
             >
-              {COUNTRIES.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.name}
+              {COUNTRY_CODES.map((code) => (
+                <option key={code} value={code}>
+                  {t(`countries.${code}`)}
                 </option>
               ))}
             </Select>
           )}
         </Field>
-        <Field label="Issue date" required error={errors.licenceIssue}>
+        <Field label={t("issueDate")} required error={errors.licenceIssue}>
           {({ id, describedBy, invalid }) => (
             <Input
               id={id}
@@ -584,7 +569,7 @@ function DriverLicenceSection({
             />
           )}
         </Field>
-        <Field label="Expiry date" required error={errors.licenceExpiry}>
+        <Field label={t("expiryDate")} required error={errors.licenceExpiry}>
           {({ id, describedBy, invalid }) => (
             <Input
               id={id}
@@ -614,16 +599,17 @@ function PickupDetailsSection({
   setForm: React.Dispatch<React.SetStateAction<CheckoutFormState>>;
   errors: Record<string, string>;
 }) {
+  const t = useTranslations("bookingFlow.checkout");
   return (
     <section aria-labelledby="pickup-details" className="flex flex-col gap-5">
       <h2 id="pickup-details" className="headline-md text-ink-95">
-        Pickup details
+        {t("pickupDetails")}
       </h2>
       {type === "airport" ? (
         <Field
-          label="Flight number"
+          label={t("flightNumber")}
           required
-          helper="Helps us track your arrival and adjust pickup time."
+          helper={t("flightHelper")}
           error={errors.flightNumber}
         >
           {({ id, describedBy, invalid }) => (
@@ -631,7 +617,7 @@ function PickupDetailsSection({
               id={id}
               aria-describedby={describedBy}
               invalid={invalid}
-              placeholder="e.g. ME203"
+              placeholder={t("flightPlaceholder")}
               value={form.flightNumber}
               onChange={(e) => setForm((f) => ({ ...f, flightNumber: e.target.value }))}
             />
@@ -640,9 +626,9 @@ function PickupDetailsSection({
       ) : null}
       {type === "address-delivery" ? (
         <Field
-          label="Delivery address"
+          label={t("deliveryAddress")}
           required
-          helper="We deliver anywhere in Greater Beirut."
+          helper={t("deliveryHelper")}
           error={errors.deliveryAddress}
         >
           {({ id, describedBy, invalid }) => (
@@ -667,14 +653,15 @@ function PromoSection({
   form: CheckoutFormState;
   setForm: React.Dispatch<React.SetStateAction<CheckoutFormState>>;
 }) {
+  const t = useTranslations("bookingFlow.checkout");
   return (
     <section className="flex flex-col gap-3">
       {form.promoOpen ? (
-        <Field label="Promo code" helper="Applied automatically if valid.">
+        <Field label={t("promoLabel")} helper={t("promoHelper")}>
           {({ id }) => (
             <Input
               id={id}
-              placeholder="SUMMER15"
+              placeholder={t("promoPlaceholder")}
               value={form.promoCode}
               onChange={(e) => setForm((f) => ({ ...f, promoCode: e.target.value }))}
             />
@@ -686,7 +673,7 @@ function PromoSection({
           onClick={() => setForm((f) => ({ ...f, promoOpen: true }))}
           className="label-lg text-ink-100 hover:text-ink-80 focus-visible:outline-ink-100 self-start rounded-sm underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
         >
-          Have a promo code?
+          {t("havePromo")}
         </button>
       )}
     </section>

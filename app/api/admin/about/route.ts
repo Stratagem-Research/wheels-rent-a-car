@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import { requireAdminCsrf, requireAdminSession } from "@/lib/server/admin-api";
 import {
   listAboutContent,
@@ -15,33 +14,8 @@ import {
   ABOUT_TEAM,
   FLEET_PHILOSOPHY,
 } from "@/lib/content/about";
-
-const AboutContentSchema = z.object({
-  storyParagraphs: z.array(z.string()),
-  pullQuote: z.string(),
-  fleetPhilosophy: z.object({
-    heading: z.string(),
-    paragraphs: z.array(z.string()),
-  }),
-  stats: z.array(
-    z.object({
-      value: z.string(),
-      label: z.string(),
-    }),
-  ),
-  teamIntro: z.string().default(""),
-  teamDedication: z.string().default(""),
-  team: z.array(
-    z.object({
-      name: z.string(),
-      role: z.string(),
-      photo: z.string(),
-      quote: z.string().optional(),
-      bio: z.string().default(""),
-      highlights: z.array(z.string()).optional().default([]),
-    }),
-  ),
-});
+import { aboutContentSchema } from "@/lib/cms/schemas";
+import { toLocalizedString } from "@/lib/i18n/localized";
 
 export async function GET(request: Request) {
   const auth = requireAdminSession(request, ["content-editor", "ops-admin"]);
@@ -52,13 +26,26 @@ export async function GET(request: Request) {
       content:
         content ??
         ({
-          storyParagraphs: ABOUT_STORY_PARAGRAPHS,
-          pullQuote: ABOUT_PULL_QUOTE,
-          fleetPhilosophy: FLEET_PHILOSOPHY,
-          stats: ABOUT_STATS,
-          teamIntro: ABOUT_TEAM_INTRO,
-          teamDedication: ABOUT_TEAM_DEDICATION,
-          team: ABOUT_TEAM,
+          storyParagraphs: { en: ABOUT_STORY_PARAGRAPHS },
+          pullQuote: toLocalizedString(ABOUT_PULL_QUOTE),
+          fleetPhilosophy: {
+            heading: toLocalizedString(FLEET_PHILOSOPHY.heading),
+            paragraphs: { en: FLEET_PHILOSOPHY.paragraphs },
+          },
+          stats: ABOUT_STATS.map((item) => ({
+            value: item.value,
+            label: toLocalizedString(item.label),
+          })),
+          teamIntro: toLocalizedString(ABOUT_TEAM_INTRO),
+          teamDedication: toLocalizedString(ABOUT_TEAM_DEDICATION),
+          team: ABOUT_TEAM.map((member) => ({
+            name: member.name,
+            role: toLocalizedString(member.role),
+            photo: member.photo,
+            quote: member.quote ? toLocalizedString(member.quote) : undefined,
+            bio: toLocalizedString(member.bio),
+            highlights: { en: member.highlights ?? [] },
+          })),
         } as const),
     });
   } catch (error) {
@@ -73,7 +60,7 @@ export async function PUT(request: Request) {
   const csrfResponse = requireAdminCsrf(request);
   if (csrfResponse) return csrfResponse;
   const body = await request.json().catch(() => null);
-  const parsed = AboutContentSchema.safeParse((body as { content?: unknown } | null)?.content);
+  const parsed = aboutContentSchema.safeParse((body as { content?: unknown } | null)?.content);
   if (!parsed.success) {
     return NextResponse.json({ message: "Invalid about content payload." }, { status: 400 });
   }
@@ -85,7 +72,7 @@ export async function PUT(request: Request) {
       resource: "cms_about",
       action: "replace",
       details: {
-        storyParagraphs: parsed.data.storyParagraphs.length,
+        storyParagraphs: parsed.data.storyParagraphs.en.length,
         stats: parsed.data.stats.length,
         team: parsed.data.team.length,
       },

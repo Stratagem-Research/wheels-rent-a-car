@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { ErrorText, Field } from "@/components/ui/FormAtoms";
@@ -30,20 +31,20 @@ import { endpoints } from "@/lib/api/endpoints";
  * when the incoming `initialTier` doesn't match a known label, and shows a
  * generic option label inside the select.
  */
-const KNOWN_TIER_LABELS: Record<string, string> = {
-  "co-starter": "Starter (1-2 cars / month)",
-  "co-growth": "Growth (3-10 cars / month)",
-  "co-enterprise": "Enterprise (10+ cars / month)",
+const TIER_LABEL_KEYS: Record<string, string> = {
+  "co-starter": "tierStarter",
+  "co-growth": "tierGrowth",
+  "co-enterprise": "tierEnterprise",
 };
-const DEFAULT_TIER_IDS = Object.keys(KNOWN_TIER_LABELS);
+const DEFAULT_TIER_IDS = Object.keys(TIER_LABEL_KEYS);
 
 const URGENCY_OPTIONS = ["this-week", "this-month", "this-quarter", "exploring"] as const;
 type Urgency = (typeof URGENCY_OPTIONS)[number];
-const URGENCY_LABELS: Record<Urgency, string> = {
-  "this-week": "Need cars this week",
-  "this-month": "Within a month",
-  "this-quarter": "Within a quarter",
-  exploring: "Just exploring",
+const URGENCY_LABEL_KEYS: Record<Urgency, string> = {
+  "this-week": "urgencyWeek",
+  "this-month": "urgencyMonth",
+  "this-quarter": "urgencyQuarter",
+  exploring: "urgencyExploring",
 };
 
 interface FormState {
@@ -68,6 +69,7 @@ export function EnquiryFormCorporate({
   initialTier = "co-growth",
   formId = "enquiry",
 }: EnquiryFormCorporateProps) {
+  const t = useTranslations("leads");
   const [form, setForm] = React.useState<FormState>({
     company: "",
     fullName: "",
@@ -91,10 +93,10 @@ export function EnquiryFormCorporate({
 
   const validate = (): Record<string, string> => {
     const e: Record<string, string> = {};
-    if (!form.company.trim()) e.company = "Company name is required.";
-    if (!form.fullName.trim()) e.fullName = "Full name is required.";
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) e.email = "Enter a valid work email.";
-    if (!form.phone.national.trim()) e.phone = "Mobile number is required.";
+    if (!form.company.trim()) e.company = t("corporate.companyRequired");
+    if (!form.fullName.trim()) e.fullName = t("fullNameRequired");
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) e.email = t("corporate.workEmailInvalid");
+    if (!form.phone.national.trim()) e.phone = t("mobileRequired");
     return e;
   };
 
@@ -123,9 +125,7 @@ export function EnquiryFormCorporate({
       });
       setSubmitted(true);
     } catch {
-      setErrors({
-        form: "We couldn't submit your enquiry. Please try again or chat with us on WhatsApp.",
-      });
+      setErrors({ form: t("submitError") });
     } finally {
       setSubmitting(false);
     }
@@ -136,7 +136,7 @@ export function EnquiryFormCorporate({
   return (
     <form id={formId} onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Company" required error={errors.company}>
+        <Field label={t("corporate.company")} required error={errors.company}>
           {({ id, describedBy, invalid }) => (
             <Input
               id={id}
@@ -148,7 +148,7 @@ export function EnquiryFormCorporate({
             />
           )}
         </Field>
-        <Field label="Full name" required error={errors.fullName}>
+        <Field label={t("fullName")} required error={errors.fullName}>
           {({ id, describedBy, invalid }) => (
             <Input
               id={id}
@@ -160,7 +160,7 @@ export function EnquiryFormCorporate({
             />
           )}
         </Field>
-        <Field label="Job title (optional)">
+        <Field label={t("corporate.jobTitleOptional")}>
           {({ id }) => (
             <Input
               id={id}
@@ -170,7 +170,7 @@ export function EnquiryFormCorporate({
             />
           )}
         </Field>
-        <Field label="Work email" required error={errors.email}>
+        <Field label={t("corporate.workEmail")} required error={errors.email}>
           {({ id, describedBy, invalid }) => (
             <Input
               id={id}
@@ -183,7 +183,7 @@ export function EnquiryFormCorporate({
             />
           )}
         </Field>
-        <Field label="Mobile" required error={errors.phone}>
+        <Field label={t("mobile")} required error={errors.phone}>
           {({ id, describedBy, invalid }) => (
             <PhoneInput
               id={id}
@@ -194,7 +194,7 @@ export function EnquiryFormCorporate({
             />
           )}
         </Field>
-        <Field label="Tier" required>
+        <Field label={t("corporate.tier")} required>
           {({ id }) => (
             <Select
               id={id}
@@ -207,15 +207,15 @@ export function EnquiryFormCorporate({
               {!DEFAULT_TIER_IDS.includes(form.tier) ? (
                 <option value={form.tier}>{form.tier}</option>
               ) : null}
-              {DEFAULT_TIER_IDS.map((t) => (
-                <option key={t} value={t}>
-                  {KNOWN_TIER_LABELS[t]}
+              {DEFAULT_TIER_IDS.map((id) => (
+                <option key={id} value={id}>
+                  {t(`corporate.${TIER_LABEL_KEYS[id]}`)}
                 </option>
               ))}
             </Select>
           )}
         </Field>
-        <Field label="Urgency">
+        <Field label={t("corporate.urgency")}>
           {({ id }) => (
             <Select
               id={id}
@@ -224,19 +224,19 @@ export function EnquiryFormCorporate({
             >
               {URGENCY_OPTIONS.map((u) => (
                 <option key={u} value={u}>
-                  {URGENCY_LABELS[u]}
+                  {t(`corporate.${URGENCY_LABEL_KEYS[u]}`)}
                 </option>
               ))}
             </Select>
           )}
         </Field>
       </div>
-      <Field label="Tell us about your needs">
+      <Field label={t("corporate.notes")}>
         {({ id }) => (
           <Textarea
             id={id}
             rows={4}
-            placeholder="Fleet size, vehicle categories, typical rental duration, contract preferences..."
+            placeholder={t("corporate.notesPlaceholder")}
             value={form.notes}
             onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
           />
@@ -245,11 +245,11 @@ export function EnquiryFormCorporate({
       <Checkbox
         checked={form.marketing}
         onCheckedChange={(c) => setForm((f) => ({ ...f, marketing: c === true }))}
-        label="I want occasional B2B updates from Wheels."
+        label={t("corporate.marketing")}
       />
       {errors.form ? <ErrorText>{errors.form}</ErrorText> : null}
       <Button type="submit" variant="cta" size="lg" loading={submitting}>
-        Send my enquiry →
+        {t("sendEnquiry")} →
       </Button>
     </form>
   );

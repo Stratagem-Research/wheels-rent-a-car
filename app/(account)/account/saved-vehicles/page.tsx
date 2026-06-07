@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -13,6 +14,7 @@ import { VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
 import type { Vehicle } from "@/types/domain";
 
 export default function SavedVehiclesPage() {
+  const t = useTranslations("accountPages.saved");
   const [vehicles, setVehicles] = React.useState<Vehicle[] | null>(null);
 
   React.useEffect(() => {
@@ -41,7 +43,7 @@ export default function SavedVehiclesPage() {
   const onRemove = (id: string) => {
     setVehicles((curr) => (curr ?? []).filter((v) => v.id !== id));
     writeLocalSaves(readLocalSaves().filter((x) => x !== id));
-    toast.success("Removed from saved cars.");
+    toast.success(t("removed"));
   };
 
   if (vehicles === null) {
@@ -60,9 +62,9 @@ export default function SavedVehiclesPage() {
     <div className="flex flex-col gap-6">
       <header className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="headline-xl text-ink-100">Saved cars</h1>
+          <h1 className="headline-xl text-ink-100">{t("heading")}</h1>
           <p className="body-md text-ink-60 mt-1">
-            {vehicles.length === 0 ? "You haven't saved any cars yet." : `${vehicles.length} saved`}
+            {vehicles.length === 0 ? t("countNone") : t("countSaved", { count: vehicles.length })}
           </p>
         </div>
       </header>
@@ -72,12 +74,10 @@ export default function SavedVehiclesPage() {
           <span aria-hidden="true" className="text-5xl">
             ❤️
           </span>
-          <h2 className="headline-md text-ink-100">No saved cars yet.</h2>
-          <p className="body-md text-ink-60 max-w-md">
-            Tap the heart on a vehicle to save it for later.
-          </p>
+          <h2 className="headline-md text-ink-100">{t("emptyHeading")}</h2>
+          <p className="body-md text-ink-60 max-w-md">{t("emptyBody")}</p>
           <Button asChild variant="primary" size="md">
-            <Link href="/vehicles">Browse cars</Link>
+            <Link href="/vehicles">{t("browseCars")}</Link>
           </Button>
         </Card>
       ) : (
@@ -86,7 +86,7 @@ export default function SavedVehiclesPage() {
             <li key={v.id} className="flex flex-col gap-2">
               <VehicleCard vehicle={v} />
               <Button variant="tertiary" size="sm" onClick={() => onRemove(v.id)}>
-                Remove
+                {t("remove")}
               </Button>
             </li>
           ))}

@@ -1,66 +1,89 @@
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { CorporateTier, FaqGroup, Itinerary, Trip } from "@/types/domain";
+import {
+  toLocalizedString,
+  toLocalizedStringArray,
+  isLocalizedString,
+  isLocalizedStringArray,
+} from "@/lib/i18n/localized";
 
 type TripRow = {
   slug: string;
-  title: string;
-  excerpt: string;
+  title: unknown;
+  excerpt: unknown;
   cover_image: Trip["coverImage"];
-  meta: string;
+  meta: unknown;
   region: string;
-  body: string;
+  body: unknown;
   suggested_vehicle_category: string;
-  tags: string[];
+  tags: unknown;
   published_at: string;
   updated_at: string;
 };
 
 type ItineraryRow = {
   slug: string;
-  title: string;
-  excerpt: string;
+  title: unknown;
+  excerpt: unknown;
   cover_image: Itinerary["coverImage"];
   category: string;
-  duration: string;
+  duration: unknown;
   price_from_cents: number;
-  highlights: string[];
+  highlights: unknown;
   schedule: Itinerary["schedule"];
   vehicle_class: string;
   updated_at: string;
 };
 
-type FaqGroupRow = { id: string; title: string; sort_order: number };
+type FaqGroupRow = { id: string; title: unknown; sort_order: number };
 type FaqEntryRow = {
   id: string;
   group_id: string;
-  question: string;
-  answer: string;
+  question: unknown;
+  answer: unknown;
   sort_order: number;
 };
 
 type CorporateRow = {
   id: string;
-  name: string;
-  tagline: string;
+  name: unknown;
+  tagline: unknown;
   per_day_cents: number | null;
-  fleet_size: string;
-  inclusions: string[];
+  fleet_size: unknown;
+  inclusions: unknown;
   popular: boolean;
-  cta_label: string | null;
+  cta_label: unknown;
   sort_order: number;
 };
 
 function tripFromRow(row: TripRow): Trip {
   return {
     slug: row.slug,
-    title: row.title,
-    excerpt: row.excerpt,
-    coverImage: row.cover_image,
-    meta: row.meta,
+    title: toLocalizedString(
+      typeof row.title === "string" || isLocalizedString(row.title) ? row.title : "",
+    ),
+    excerpt: toLocalizedString(
+      typeof row.excerpt === "string" || isLocalizedString(row.excerpt) ? row.excerpt : "",
+    ),
+    coverImage: {
+      ...row.cover_image,
+      alt: toLocalizedString(
+        typeof row.cover_image?.alt === "string" || isLocalizedString(row.cover_image?.alt)
+          ? row.cover_image.alt
+          : "",
+      ),
+    },
+    meta: toLocalizedString(
+      typeof row.meta === "string" || isLocalizedString(row.meta) ? row.meta : "",
+    ),
     region: row.region as Trip["region"],
-    body: row.body,
+    body: toLocalizedString(
+      typeof row.body === "string" || isLocalizedString(row.body) ? row.body : "",
+    ),
     suggestedVehicleCategory: row.suggested_vehicle_category as Trip["suggestedVehicleCategory"],
-    tags: row.tags ?? [],
+    tags: toLocalizedStringArray(
+      Array.isArray(row.tags) || isLocalizedStringArray(row.tags) ? (row.tags as string[]) : [],
+    ),
     publishedAt: row.published_at,
     updatedAt: row.updated_at,
   };
@@ -71,7 +94,7 @@ function tripToRow(trip: Trip): TripRow {
     slug: trip.slug,
     title: trip.title,
     excerpt: trip.excerpt,
-    cover_image: trip.coverImage,
+    cover_image: { ...trip.coverImage, alt: toLocalizedString(trip.coverImage.alt) },
     meta: trip.meta,
     region: trip.region,
     body: trip.body,
@@ -85,14 +108,42 @@ function tripToRow(trip: Trip): TripRow {
 function itineraryFromRow(row: ItineraryRow): Itinerary {
   return {
     slug: row.slug,
-    title: row.title,
-    excerpt: row.excerpt,
-    coverImage: row.cover_image,
+    title: toLocalizedString(
+      typeof row.title === "string" || isLocalizedString(row.title) ? row.title : "",
+    ),
+    excerpt: toLocalizedString(
+      typeof row.excerpt === "string" || isLocalizedString(row.excerpt) ? row.excerpt : "",
+    ),
+    coverImage: {
+      ...row.cover_image,
+      alt: toLocalizedString(
+        typeof row.cover_image?.alt === "string" || isLocalizedString(row.cover_image?.alt)
+          ? row.cover_image.alt
+          : "",
+      ),
+    },
     category: row.category as Itinerary["category"],
-    duration: row.duration,
+    duration: toLocalizedString(
+      typeof row.duration === "string" || isLocalizedString(row.duration) ? row.duration : "",
+    ),
     priceFromCents: row.price_from_cents,
-    highlights: row.highlights ?? [],
-    schedule: row.schedule ?? [],
+    highlights: toLocalizedStringArray(
+      Array.isArray(row.highlights) || isLocalizedStringArray(row.highlights)
+        ? (row.highlights as string[])
+        : [],
+    ),
+    schedule: (row.schedule ?? []).map((step) => ({
+      ...step,
+      title: toLocalizedString(
+        typeof step.title === "string" || isLocalizedString(step.title) ? step.title : "",
+      ),
+      body:
+        step.body === undefined
+          ? undefined
+          : toLocalizedString(
+              typeof step.body === "string" || isLocalizedString(step.body) ? step.body : "",
+            ),
+    })),
     vehicleClass: row.vehicle_class as Itinerary["vehicleClass"],
     updatedAt: row.updated_at,
   };
@@ -108,7 +159,11 @@ function itineraryToRow(itinerary: Itinerary): ItineraryRow {
     duration: itinerary.duration,
     price_from_cents: itinerary.priceFromCents,
     highlights: itinerary.highlights,
-    schedule: itinerary.schedule,
+    schedule: itinerary.schedule.map((step) => ({
+      ...step,
+      title: toLocalizedString(step.title),
+      body: step.body ? toLocalizedString(step.body) : undefined,
+    })),
     vehicle_class: itinerary.vehicleClass,
     updated_at: itinerary.updatedAt,
   };
@@ -117,26 +172,43 @@ function itineraryToRow(itinerary: Itinerary): ItineraryRow {
 function corporateFromRow(row: CorporateRow): CorporateTier {
   return {
     id: row.id,
-    name: row.name,
-    tagline: row.tagline,
+    name: toLocalizedString(
+      typeof row.name === "string" || isLocalizedString(row.name) ? row.name : "",
+    ),
+    tagline: toLocalizedString(
+      typeof row.tagline === "string" || isLocalizedString(row.tagline) ? row.tagline : "",
+    ),
     perDayCents: row.per_day_cents,
-    fleetSize: row.fleet_size,
-    inclusions: row.inclusions ?? [],
+    fleetSize: toLocalizedString(
+      typeof row.fleet_size === "string" || isLocalizedString(row.fleet_size) ? row.fleet_size : "",
+    ),
+    inclusions: toLocalizedStringArray(
+      Array.isArray(row.inclusions) || isLocalizedStringArray(row.inclusions)
+        ? (row.inclusions as string[])
+        : [],
+    ),
     popular: row.popular || undefined,
-    ctaLabel: row.cta_label ?? undefined,
+    ctaLabel:
+      row.cta_label === null || row.cta_label === undefined
+        ? undefined
+        : toLocalizedString(
+            typeof row.cta_label === "string" || isLocalizedString(row.cta_label)
+              ? row.cta_label
+              : "",
+          ),
   };
 }
 
 function corporateToRow(tier: CorporateTier, sortOrder: number): CorporateRow {
   return {
     id: tier.id,
-    name: tier.name,
-    tagline: tier.tagline,
+    name: toLocalizedString(tier.name),
+    tagline: toLocalizedString(tier.tagline),
     per_day_cents: tier.perDayCents,
-    fleet_size: tier.fleetSize,
-    inclusions: tier.inclusions,
+    fleet_size: toLocalizedString(tier.fleetSize),
+    inclusions: toLocalizedStringArray(tier.inclusions),
     popular: tier.popular ?? false,
-    cta_label: tier.ctaLabel ?? null,
+    cta_label: tier.ctaLabel ? toLocalizedString(tier.ctaLabel) : null,
     sort_order: sortOrder,
   };
 }
@@ -196,15 +268,21 @@ export async function listFaqsFromDb(): Promise<FaqGroup[]> {
     list.push({
       id: row.id,
       group: row.group_id,
-      question: row.question,
-      answer: row.answer,
+      question: toLocalizedString(
+        typeof row.question === "string" || isLocalizedString(row.question) ? row.question : "",
+      ),
+      answer: toLocalizedString(
+        typeof row.answer === "string" || isLocalizedString(row.answer) ? row.answer : "",
+      ),
     });
     entriesByGroup.set(row.group_id, list);
   }
 
   return ((groups ?? []) as FaqGroupRow[]).map((group) => ({
     id: group.id,
-    title: group.title,
+    title: toLocalizedString(
+      typeof group.title === "string" || isLocalizedString(group.title) ? group.title : "",
+    ),
     entries: entriesByGroup.get(group.id) ?? [],
   }));
 }
@@ -213,15 +291,15 @@ export async function replaceFaqsInDb(items: FaqGroup[]): Promise<void> {
   const supabase = getSupabaseAdminClient();
   const groupRows: FaqGroupRow[] = items.map((group, index) => ({
     id: group.id,
-    title: group.title,
+    title: toLocalizedString(group.title),
     sort_order: index,
   }));
   const entryRows: FaqEntryRow[] = items.flatMap((group) =>
     group.entries.map((entry, index) => ({
       id: entry.id,
       group_id: group.id,
-      question: entry.question,
-      answer: entry.answer,
+      question: toLocalizedString(entry.question),
+      answer: toLocalizedString(entry.answer),
       sort_order: index,
     })),
   );

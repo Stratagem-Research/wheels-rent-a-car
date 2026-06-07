@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import {
   Modal,
@@ -24,6 +25,7 @@ import { getConsent, setConsent } from "@/lib/analytics/dataLayer";
  */
 
 export function CookieBanner() {
+  const t = useTranslations("consent");
   const [visible, setVisible] = React.useState(false);
 
   // SSR-then-hydrate: server renders empty, client reveals once we've
@@ -45,7 +47,7 @@ export function CookieBanner() {
   return (
     <div
       role="region"
-      aria-label="Cookie consent"
+      aria-label={t("regionAria")}
       className={cn(
         "bg-ink-100 text-paper fixed inset-x-0 bottom-0 z-50",
         "shadow-[var(--shadow-elevation-3)]",
@@ -53,20 +55,21 @@ export function CookieBanner() {
     >
       <div className="mx-auto flex max-w-[var(--container-default)] flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:px-10">
         <div className="body-sm text-paper/85 max-w-3xl">
-          We use cookies to power the booking flow, remember your search, and (with your permission)
-          understand how the site is used. Read our{" "}
-          <Link
-            href="/cookies"
-            className="text-paper underline underline-offset-4 hover:no-underline"
-          >
-            Cookie Policy
-          </Link>
-          .
+          {t.rich("body", {
+            link: (chunks) => (
+              <Link
+                href="/cookies"
+                className="text-paper underline underline-offset-4 hover:no-underline"
+              >
+                {chunks}
+              </Link>
+            ),
+          })}
         </div>
         <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
           <ManagePreferencesModal onSave={() => setVisible(false)} />
           <Button variant="primary-inverse" size="sm" onClick={acceptAll}>
-            Accept all
+            {t("acceptAll")}
           </Button>
         </div>
       </div>
@@ -75,6 +78,7 @@ export function CookieBanner() {
 }
 
 function ManagePreferencesModal({ onSave }: { onSave: () => void }) {
+  const t = useTranslations("consent");
   // Essential is always on; user toggles analytics/marketing as one bucket.
   const [analytics, setAnalytics] = React.useState(false);
 
@@ -87,34 +91,27 @@ function ManagePreferencesModal({ onSave }: { onSave: () => void }) {
     <Modal>
       <ModalTrigger asChild>
         <Button variant="secondary-inverse" size="sm">
-          Manage preferences
+          {t("managePreferences")}
         </Button>
       </ModalTrigger>
       <ModalContent size="sm">
-        <ModalTitle>Cookie preferences</ModalTitle>
-        <ModalDescription>
-          Choose which cookies you allow. Essential cookies are always on.
-        </ModalDescription>
+        <ModalTitle>{t("preferencesTitle")}</ModalTitle>
+        <ModalDescription>{t("preferencesDescription")}</ModalDescription>
         <div className="mt-4 flex flex-col gap-4">
+          <PreferenceRow title={t("essentialTitle")} body={t("essentialBody")} value disabled />
           <PreferenceRow
-            title="Essential"
-            body="Required for the booking flow, sign-in, and search-state persistence."
-            value
-            disabled
-          />
-          <PreferenceRow
-            title="Analytics & marketing"
-            body="Helps us understand how the site is used and personalise the experience. GA4 + Meta Pixel."
+            title={t("analyticsTitle")}
+            body={t("analyticsBody")}
             value={analytics}
             onChange={setAnalytics}
           />
         </div>
         <ModalFooter>
           <Button variant="secondary" onClick={onSave}>
-            Reject all
+            {t("rejectAll")}
           </Button>
           <Button variant="primary" onClick={save}>
-            Save preferences
+            {t("savePreferences")}
           </Button>
         </ModalFooter>
       </ModalContent>

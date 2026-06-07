@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
 import { ErrorText, Field } from "@/components/ui/FormAtoms";
 import { Input } from "@/components/ui/Input";
@@ -11,13 +12,14 @@ import { LeadFormSuccess } from "@/components/leads/SuccessState";
 import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
 
-const SUBJECTS = [
-  "General enquiry",
-  "Booking question",
-  "Damage report",
-  "Corporate",
-  "Other",
-] as const;
+const SUBJECTS = ["general", "booking", "damage", "corporate", "other"] as const;
+const SUBJECT_KEYS: Record<(typeof SUBJECTS)[number], string> = {
+  general: "subjectGeneral",
+  booking: "subjectBooking",
+  damage: "subjectDamage",
+  corporate: "subjectCorporate",
+  other: "subjectOther",
+};
 
 interface FormState {
   fullName: string;
@@ -29,11 +31,13 @@ interface FormState {
 }
 
 export function ContactForm({ formId = "contact-form" }: { formId?: string }) {
+  const t = useTranslations("leads");
+  const tForm = useTranslations("leads.contactForm");
   const [form, setForm] = React.useState<FormState>({
     fullName: "",
     email: "",
     phone: { countryIso: "LB", national: "" },
-    subject: "General enquiry",
+    subject: "general",
     bookingRef: "",
     message: "",
   });
@@ -43,9 +47,9 @@ export function ContactForm({ formId = "contact-form" }: { formId?: string }) {
 
   const validate = (): Record<string, string> => {
     const e: Record<string, string> = {};
-    if (!form.fullName.trim()) e.fullName = "Full name is required.";
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) e.email = "Enter a valid email.";
-    if (!form.message.trim()) e.message = "Tell us how we can help.";
+    if (!form.fullName.trim()) e.fullName = t("fullNameRequired");
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) e.email = t("emailInvalid");
+    if (!form.message.trim()) e.message = tForm("messageRequired");
     return e;
   };
 
@@ -73,18 +77,18 @@ export function ContactForm({ formId = "contact-form" }: { formId?: string }) {
       });
       setSubmitted(true);
     } catch {
-      setErrors({ form: "We couldn't send your message. Try WhatsApp instead." });
+      setErrors({ form: tForm("submitError") });
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (submitted) return <LeadFormSuccess message="Thanks — we'll reply within 4 hours." />;
+  if (submitted) return <LeadFormSuccess message={tForm("success")} />;
 
   return (
     <form id={formId} onSubmit={onSubmit} noValidate className="flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Full name" required error={errors.fullName}>
+        <Field label={t("fullName")} required error={errors.fullName}>
           {({ id, describedBy, invalid }) => (
             <Input
               id={id}
@@ -96,7 +100,7 @@ export function ContactForm({ formId = "contact-form" }: { formId?: string }) {
             />
           )}
         </Field>
-        <Field label="Email" required error={errors.email}>
+        <Field label={t("email")} required error={errors.email}>
           {({ id, describedBy, invalid }) => (
             <Input
               id={id}
@@ -109,7 +113,7 @@ export function ContactForm({ formId = "contact-form" }: { formId?: string }) {
             />
           )}
         </Field>
-        <Field label="Mobile (optional)">
+        <Field label={t("mobileOptional")}>
           {({ id }) => (
             <PhoneInput
               id={id}
@@ -118,7 +122,7 @@ export function ContactForm({ formId = "contact-form" }: { formId?: string }) {
             />
           )}
         </Field>
-        <Field label="Subject" required>
+        <Field label={tForm("subject")} required>
           {({ id }) => (
             <Select
               id={id}
@@ -128,20 +132,22 @@ export function ContactForm({ formId = "contact-form" }: { formId?: string }) {
               }
             >
               {SUBJECTS.map((s) => (
-                <option key={s}>{s}</option>
+                <option key={s} value={s}>
+                  {tForm(SUBJECT_KEYS[s])}
+                </option>
               ))}
             </Select>
           )}
         </Field>
         <Field
-          label="Booking reference (optional)"
-          helper="If your question is about a specific booking."
+          label={tForm("bookingRefOptional")}
+          helper={tForm("bookingRefHelper")}
           className="sm:col-span-2"
         >
           {({ id }) => (
             <Input
               id={id}
-              placeholder="WRC-XXXXXX-XXXX"
+              placeholder={tForm("bookingRefPlaceholder")}
               value={form.bookingRef}
               onChange={(e) => setForm((f) => ({ ...f, bookingRef: e.target.value.toUpperCase() }))}
               className="mono-md uppercase"
@@ -152,7 +158,7 @@ export function ContactForm({ formId = "contact-form" }: { formId?: string }) {
           )}
         </Field>
       </div>
-      <Field label="Your message" required error={errors.message}>
+      <Field label={tForm("yourMessage")} required error={errors.message}>
         {({ id, describedBy, invalid }) => (
           <Textarea
             id={id}
@@ -166,7 +172,7 @@ export function ContactForm({ formId = "contact-form" }: { formId?: string }) {
       </Field>
       {errors.form ? <ErrorText>{errors.form}</ErrorText> : null}
       <Button type="submit" variant="primary" size="md" loading={submitting} className="self-start">
-        Send message →
+        {tForm("sendMessage")} →
       </Button>
     </form>
   );

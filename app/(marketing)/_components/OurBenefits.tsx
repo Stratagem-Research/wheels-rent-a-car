@@ -12,6 +12,7 @@ import {
   Wallet,
   type LucideIcon,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Reveal } from "@/components/motion/Reveal";
 import { whatsAppHref } from "@/lib/whatsapp";
@@ -34,7 +35,7 @@ import { whatsAppHref } from "@/lib/whatsapp";
 
 type Surface = "paper" | "ink";
 
-const BENEFITS: ReadonlyArray<{
+type BenefitItem = {
   icon: LucideIcon;
   title: string;
   body: string;
@@ -42,44 +43,47 @@ const BENEFITS: ReadonlyArray<{
   external?: boolean;
   cta: string;
   surface: Surface;
-}> = [
-  {
-    icon: Plane,
-    title: "Free pickup at Hazmieh",
-    body: "Meet our agent at the Hazmieh hub. Keys in hand, paperwork done, driving in 15 minutes — no airport queues, no surprise transfer fees.",
-    href: "/locations",
-    cta: "Find the hub",
-    surface: "paper",
-  },
-  {
-    icon: CalendarX,
-    title: "Free cancellation up to 24h",
-    body: "Plans change. Cancel free up to 24 hours before pickup and we'll refund what you paid — no fees, no rebooking dance, no fine print.",
-    href: "/help/cancellation-policy",
-    cta: "Read the policy",
-    surface: "paper",
-  },
-  {
-    icon: MessageCircle,
-    title: "WhatsApp 24/7",
-    body: "Real humans on the other end of every message. Local-language support, instant replies in business hours, on-call overnight. No bots, no hold music.",
-    href: whatsAppHref("default"),
-    external: true,
-    cta: "Chat with us",
-    surface: "ink",
-  },
-  {
-    icon: Wallet,
-    title: "Pay how you want",
-    body: "Card, cash, bank transfer, or OMT / Whish — whatever's easiest. Cash and OMT confirm in person; cards confirm instantly.",
-    href: "/help/payment-and-deposits",
-    cta: "See payment options",
-    surface: "paper",
-  },
-];
+};
 
 export function OurBenefits() {
+  const t = useTranslations("landing.benefits");
   const scrollerRef = React.useRef<HTMLUListElement>(null);
+
+  const benefits: BenefitItem[] = [
+    {
+      icon: Plane,
+      title: t("pickupTitle"),
+      body: t("pickupBody"),
+      href: "/locations",
+      cta: t("pickupCta"),
+      surface: "paper",
+    },
+    {
+      icon: CalendarX,
+      title: t("cancellationTitle"),
+      body: t("cancellationBody"),
+      href: "/help/cancellation-policy",
+      cta: t("cancellationCta"),
+      surface: "paper",
+    },
+    {
+      icon: MessageCircle,
+      title: t("whatsappTitle"),
+      body: t("whatsappBody"),
+      href: whatsAppHref("default"),
+      external: true,
+      cta: t("whatsappCta"),
+      surface: "ink",
+    },
+    {
+      icon: Wallet,
+      title: t("paymentTitle"),
+      body: t("paymentBody"),
+      href: "/help/payment-and-deposits",
+      cta: t("paymentCta"),
+      surface: "paper",
+    },
+  ];
 
   const scrollByCard = (direction: 1 | -1) => {
     const el = scrollerRef.current;
@@ -94,14 +98,11 @@ export function OurBenefits() {
     <Reveal as="section" className="bg-ink-10">
       <div className="mx-auto max-w-[var(--container-default)] px-5 py-16 sm:px-10 lg:py-32">
         <div className="mb-10 flex max-w-2xl flex-col gap-4 lg:mb-14">
-          <p className="text-ink-60 overline">Why Wheels</p>
+          <p className="text-ink-60 overline">{t("eyebrow")}</p>
           <h2 className="display-md text-ink-100 text-[clamp(32px,4.5vw,56px)] leading-[1]">
-            The basics, covered.
+            {t("heading")}
           </h2>
-          <p className="lead-lg text-ink-60 mt-1 max-w-xl">
-            No surprises. No fine print. Drive with the operator that picks you up at our hub and
-            stays in WhatsApp range the whole trip.
-          </p>
+          <p className="lead-lg text-ink-60 mt-1 max-w-xl">{t("subtitle")}</p>
         </div>
 
         {/* Horizontal snap-scroll inside the section's 40px gutter — no
@@ -112,9 +113,9 @@ export function OurBenefits() {
             "flex snap-x snap-mandatory gap-5 overflow-x-auto pb-4 sm:gap-6",
             "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
           )}
-          aria-label="Why Wheels benefits"
+          aria-label={t("ariaLabel")}
         >
-          {BENEFITS.map((b) => (
+          {benefits.map((b) => (
             <li
               key={b.title}
               className={cn(
@@ -135,7 +136,7 @@ export function OurBenefits() {
           <button
             type="button"
             onClick={() => scrollByCard(-1)}
-            aria-label="Previous benefit"
+            aria-label={t("previousAria")}
             className={cn(
               "rounded-pill border-ink-100 text-ink-100 inline-flex size-11 items-center justify-center border-[1.5px]",
               "hover:bg-ink-100 hover:text-paper transition-colors duration-150",
@@ -147,7 +148,7 @@ export function OurBenefits() {
           <button
             type="button"
             onClick={() => scrollByCard(1)}
-            aria-label="Next benefit"
+            aria-label={t("nextAria")}
             className={cn(
               "rounded-pill border-ink-100 text-ink-100 inline-flex size-11 items-center justify-center border-[1.5px]",
               "hover:bg-ink-100 hover:text-paper transition-colors duration-150",

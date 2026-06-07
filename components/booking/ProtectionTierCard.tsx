@@ -1,6 +1,7 @@
 "use client";
 
 import { Check } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -24,6 +25,7 @@ export interface ProtectionTierCardProps {
 }
 
 export function ProtectionTierCard({ tier, selected, onSelect }: ProtectionTierCardProps) {
+  const t = useTranslations("bookingFlow.protection");
   return (
     <article
       className={cn(
@@ -34,17 +36,19 @@ export function ProtectionTierCard({ tier, selected, onSelect }: ProtectionTierC
     >
       {tier.popular ? (
         <div className="absolute -top-3 right-4">
-          <Badge variant="popular">Popular</Badge>
+          <Badge variant="popular">{t("popular")}</Badge>
         </div>
       ) : null}
       <div className="flex flex-col gap-1">
         <h3 className="headline-md text-ink-95">{tier.name}</h3>
         <div className="label-lg text-ink-60">
-          {tier.perDayCents === 0 ? "Included" : `+${formatUsd(tier.perDayCents)}/day`}
+          {tier.perDayCents === 0
+            ? t("included")
+            : t("cardPerDay", { price: formatUsd(tier.perDayCents) })}
         </div>
       </div>
       <div className="bg-ink-10 my-5 rounded-xl px-4 py-3">
-        <div className="text-ink-60 overline">Your max liability</div>
+        <div className="text-ink-60 overline">{t("maxLiability")}</div>
         <div className="price-lg text-ink-95 mt-1">
           {tier.deductibleCents === 0 ? "$0" : formatUsd(tier.deductibleCents)}
         </div>
@@ -66,10 +70,10 @@ export function ProtectionTierCard({ tier, selected, onSelect }: ProtectionTierC
       >
         {selected ? (
           <>
-            <Check className="size-4" aria-hidden="true" /> Selected
+            <Check className="size-4" aria-hidden="true" /> {t("selected")}
           </>
         ) : (
-          "Select"
+          t("select")
         )}
       </Button>
     </article>

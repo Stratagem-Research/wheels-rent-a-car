@@ -12,6 +12,8 @@ import { useFaqs } from "@/lib/admin/useAdminStore";
 import { writeFaqs } from "@/lib/admin/store";
 import type { FaqEntry, FaqGroup } from "@/types/domain";
 import { cn } from "@/lib/utils";
+import type { CmsLocale } from "@/lib/i18n/localized";
+import { getLocalizedString, updateLocalizedString } from "@/lib/i18n/localized";
 
 /**
  * /admin/faqs — sections + questions editor.
@@ -25,6 +27,8 @@ import { cn } from "@/lib/utils";
  */
 export default function AdminFaqsPage() {
   const faqs = useFaqs();
+  const [activeLocale, setActiveLocale] = React.useState<CmsLocale>("en");
+  const newEntryCounter = React.useRef(0);
   // `explicitId` is what the user clicked; `activeId` falls back to the
   // first section when nothing is explicitly selected. Computing this
   // during render (instead of via an effect) avoids the lint warning and
@@ -49,7 +53,10 @@ export default function AdminFaqsPage() {
     const title = prompt("Section title (e.g. 'Insurance', 'Pickup & return')")?.trim();
     if (!title) return;
     const id = `g-${slugify(title)}-${Date.now().toString(36).slice(-4)}`;
-    const next: FaqGroup[] = [...faqs, { id, title, entries: [] }];
+    const next: FaqGroup[] = [
+      ...faqs,
+      { id, title: { en: "", ar: "", fr: "", [activeLocale]: title }, entries: [] },
+    ];
     void persistFaqs(next);
     setActiveId(id);
   };
@@ -57,9 +64,13 @@ export default function AdminFaqsPage() {
   const renameGroup = (id: string) => {
     const current = faqs.find((g) => g.id === id);
     if (!current) return;
-    const title = prompt("Rename section", current.title)?.trim();
+    const title = prompt("Rename section", getLocalizedString(current.title, activeLocale))?.trim();
     if (!title) return;
-    void persistFaqs(faqs.map((g) => (g.id === id ? { ...g, title } : g)));
+    void persistFaqs(
+      faqs.map((g) =>
+        g.id === id ? { ...g, title: updateLocalizedString(g.title, activeLocale, title) } : g,
+      ),
+    );
   };
 
   const deleteGroup = (id: string) => {
@@ -93,11 +104,12 @@ export default function AdminFaqsPage() {
 
   const newEntry = () => {
     if (!activeGroup) return;
+    newEntryCounter.current += 1;
     setEditingEntry({
-      id: `f-${activeGroup.id.replace(/^g-/, "")}-${Date.now().toString(36).slice(-4)}`,
+      id: `f-${activeGroup.id.replace(/^g-/, "")}-${newEntryCounter.current.toString(36).padStart(4, "0")}`,
       group: activeGroup.id,
-      question: "",
-      answer: "",
+      question: { en: "", ar: "", fr: "" },
+      answer: { en: "", ar: "", fr: "" },
     });
   };
 
@@ -106,6 +118,20 @@ export default function AdminFaqsPage() {
       eyebrow="Help centre"
       title="FAQs"
       description="Manage the central FAQ used on /help and around the site. Sections show as topic tiles; questions render as accordion entries."
+      actions={
+        <div className="flex items-center gap-2">
+          <span className="label-md text-ink-60">Locale</span>
+          <select
+            value={activeLocale}
+            onChange={(event) => setActiveLocale(event.target.value as CmsLocale)}
+            className="bg-paper border-border rounded-md border px-2 py-1 text-sm"
+          >
+            <option value="en">EN</option>
+            <option value="ar">AR</option>
+            <option value="fr">FR</option>
+          </select>
+        </div>
+      }
     >
       <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
         {/* Sections panel. */}
@@ -138,7 +164,7 @@ export default function AdminFaqsPage() {
                       onClick={() => setActiveId(g.id)}
                       className="label-md flex-1 truncate text-left"
                     >
-                      {g.title}{" "}
+                      {getLocalizedString(g.title, activeLocale)}{" "}
                       <span className={cn("ml-2", active ? "text-paper/60" : "text-ink-50")}>
                         ({g.entries.length})
                       </span>
@@ -146,7 +172,7 @@ export default function AdminFaqsPage() {
                     <button
                       type="button"
                       onClick={() => renameGroup(g.id)}
-                      aria-label={`Rename ${g.title}`}
+                      aria-label={`Rename ${getLocalizedString(g.title, activeLocale)}`}
                       className={cn(
                         "inline-flex size-7 items-center justify-center rounded-full hover:cursor-pointer",
                         active ? "text-paper/80 hover:bg-white/10" : "text-ink-60 hover:bg-ink-20",
@@ -157,7 +183,7 @@ export default function AdminFaqsPage() {
                     <button
                       type="button"
                       onClick={() => deleteGroup(g.id)}
-                      aria-label={`Delete ${g.title}`}
+                      aria-label={`Delete ${getLocalizedString(g.title, activeLocale)}`}
                       className={cn(
                         "inline-flex size-7 items-center justify-center rounded-full hover:cursor-pointer",
                         active ? "text-paper/80 hover:bg-white/10" : "text-ink-60 hover:bg-ink-20",
@@ -184,7 +210,9 @@ export default function AdminFaqsPage() {
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-ink-60 overline">Section</p>
-                  <h2 className="headline-md text-ink-100">{activeGroup.title}</h2>
+                  <h2 className="headline-md text-ink-100">
+                    {getLocalizedString(activeGroup.title, activeLocale)}
+                  </h2>
                 </div>
                 <Button
                   variant="primary"
@@ -199,6 +227,8 @@ export default function AdminFaqsPage() {
 
               {editingEntry ? (
                 <FaqEntryEditor
+                  key={`${editingEntry.id}-${activeLocale}`}
+                  locale={activeLocale}
                   entry={editingEntry}
                   onCancel={() => setEditingEntry(null)}
                   onSave={saveEntry}
@@ -217,7 +247,9 @@ export default function AdminFaqsPage() {
                       className="border-border flex flex-col gap-2 rounded-lg border p-4"
                     >
                       <div className="flex items-start justify-between gap-3">
-                        <h3 className="headline-sm text-ink-100">{entry.question}</h3>
+                        <h3 className="headline-sm text-ink-100">
+                          {getLocalizedString(entry.question, activeLocale)}
+                        </h3>
                         <div className="flex gap-1">
                           <Button
                             variant="tertiary"
@@ -237,7 +269,9 @@ export default function AdminFaqsPage() {
                           </Button>
                         </div>
                       </div>
-                      <p className="body-sm text-ink-70 whitespace-pre-line">{entry.answer}</p>
+                      <p className="body-sm text-ink-70 whitespace-pre-line">
+                        {getLocalizedString(entry.answer, activeLocale)}
+                      </p>
                     </li>
                   ))
                 )}
@@ -256,16 +290,18 @@ export default function AdminFaqsPage() {
 }
 
 function FaqEntryEditor({
+  locale,
   entry,
   onSave,
   onCancel,
 }: {
+  locale: CmsLocale;
   entry: FaqEntry;
   onSave: (e: FaqEntry) => void;
   onCancel: () => void;
 }) {
-  const [question, setQuestion] = React.useState(entry.question);
-  const [answer, setAnswer] = React.useState(entry.answer);
+  const [question, setQuestion] = React.useState(getLocalizedString(entry.question, locale));
+  const [answer, setAnswer] = React.useState(getLocalizedString(entry.answer, locale));
 
   return (
     <AdminFormShell
@@ -280,7 +316,11 @@ function FaqEntryEditor({
             variant="primary"
             onClick={() => {
               if (!question.trim() || !answer.trim()) return;
-              onSave({ ...entry, question: question.trim(), answer: answer.trim() });
+              onSave({
+                ...entry,
+                question: updateLocalizedString(entry.question, locale, question.trim()),
+                answer: updateLocalizedString(entry.answer, locale, answer.trim()),
+              });
             }}
           >
             Save

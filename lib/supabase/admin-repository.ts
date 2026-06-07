@@ -1,6 +1,6 @@
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
-import type { Branch, Vehicle } from "@/types/domain";
-import type { Stat, TeamMember } from "@/lib/content/about";
+import type { Branch, LocalizedString, LocalizedStringArray, Vehicle } from "@/types/domain";
+import { isLocalizedString, isLocalizedStringArray, toLocalizedString } from "@/lib/i18n/localized";
 
 export type AdminLeadStatus = "new" | "in-progress" | "won" | "lost";
 
@@ -84,42 +84,56 @@ type PromotionRow = {
 type AboutSectionRow = {
   id: string;
   story_paragraphs: unknown;
-  pull_quote: string;
-  fleet_heading: string;
+  pull_quote: unknown;
+  fleet_heading: unknown;
   fleet_paragraphs: unknown;
-  team_intro: string;
-  team_dedication: string;
+  team_intro: unknown;
+  team_dedication: unknown;
 };
 
 type AboutStatRow = {
   id: string;
   value: string;
-  label: string;
+  label: unknown;
   sort_order: number;
 };
 
 type AboutTeamRow = {
   id: string;
   name: string;
-  role: string;
+  role: unknown;
   photo: string;
-  quote: string | null;
-  bio: string;
+  quote: unknown;
+  bio: unknown;
   highlights: unknown;
   sort_order: number;
 };
 
+export type AboutStat = {
+  value: string;
+  label: LocalizedString;
+};
+
+export type AboutTeamMember = {
+  name: string;
+  role: LocalizedString;
+  photo: string;
+  quote?: LocalizedString;
+  bio: LocalizedString;
+  highlights?: LocalizedStringArray;
+};
+
 export type AboutContentData = {
-  storyParagraphs: string[];
-  pullQuote: string;
+  storyParagraphs: LocalizedStringArray;
+  pullQuote: LocalizedString;
   fleetPhilosophy: {
-    heading: string;
-    paragraphs: string[];
+    heading: LocalizedString;
+    paragraphs: LocalizedStringArray;
   };
-  stats: Stat[];
-  teamIntro: string;
-  teamDedication: string;
-  team: TeamMember[];
+  stats: AboutStat[];
+  teamIntro: LocalizedString;
+  teamDedication: LocalizedString;
+  team: AboutTeamMember[];
 };
 
 export async function listLongTermLeads(): Promise<LongTermLead[]> {
@@ -371,36 +385,75 @@ export async function listAboutContent(): Promise<AboutContentData | null> {
   if (teamError) throw new Error(teamError.message);
   const section = ((sectionRows ?? []) as AboutSectionRow[])[0];
   if (!section) return null;
-  const storyParagraphs = Array.isArray(section.story_paragraphs)
-    ? (section.story_paragraphs as string[]).filter((item) => typeof item === "string")
-    : [];
-  const fleetParagraphs = Array.isArray(section.fleet_paragraphs)
-    ? (section.fleet_paragraphs as string[]).filter((item) => typeof item === "string")
-    : [];
+  const storyParagraphs = isLocalizedStringArray(section.story_paragraphs)
+    ? section.story_paragraphs
+    : {
+        en: Array.isArray(section.story_paragraphs)
+          ? section.story_paragraphs.filter((item): item is string => typeof item === "string")
+          : [],
+      };
+  const fleetParagraphs = isLocalizedStringArray(section.fleet_paragraphs)
+    ? section.fleet_paragraphs
+    : {
+        en: Array.isArray(section.fleet_paragraphs)
+          ? section.fleet_paragraphs.filter((item): item is string => typeof item === "string")
+          : [],
+      };
   const stats = ((statRows ?? []) as AboutStatRow[]).map((row) => ({
     value: row.value,
-    label: row.label,
+    label: toLocalizedString(
+      typeof row.label === "string" || isLocalizedString(row.label) ? row.label : "",
+    ),
   }));
   const team = ((teamRows ?? []) as AboutTeamRow[]).map((row) => ({
     name: row.name,
-    role: row.role,
+    role: toLocalizedString(
+      typeof row.role === "string" || isLocalizedString(row.role) ? row.role : "",
+    ),
     photo: row.photo,
-    quote: row.quote ?? undefined,
-    bio: row.bio,
-    highlights: Array.isArray(row.highlights)
-      ? row.highlights.filter((item): item is string => typeof item === "string")
-      : [],
+    quote:
+      row.quote === null || row.quote === undefined
+        ? undefined
+        : toLocalizedString(
+            typeof row.quote === "string" || isLocalizedString(row.quote) ? row.quote : "",
+          ),
+    bio: toLocalizedString(
+      typeof row.bio === "string" || isLocalizedString(row.bio) ? row.bio : "",
+    ),
+    highlights: isLocalizedStringArray(row.highlights)
+      ? row.highlights
+      : {
+          en: Array.isArray(row.highlights)
+            ? row.highlights.filter((item): item is string => typeof item === "string")
+            : [],
+        },
   }));
   return {
     storyParagraphs,
-    pullQuote: section.pull_quote,
+    pullQuote: toLocalizedString(
+      typeof section.pull_quote === "string" || isLocalizedString(section.pull_quote)
+        ? section.pull_quote
+        : "",
+    ),
     fleetPhilosophy: {
-      heading: section.fleet_heading,
+      heading: toLocalizedString(
+        typeof section.fleet_heading === "string" || isLocalizedString(section.fleet_heading)
+          ? section.fleet_heading
+          : "",
+      ),
       paragraphs: fleetParagraphs,
     },
     stats,
-    teamIntro: section.team_intro ?? "",
-    teamDedication: section.team_dedication ?? "",
+    teamIntro: toLocalizedString(
+      typeof section.team_intro === "string" || isLocalizedString(section.team_intro)
+        ? section.team_intro
+        : "",
+    ),
+    teamDedication: toLocalizedString(
+      typeof section.team_dedication === "string" || isLocalizedString(section.team_dedication)
+        ? section.team_dedication
+        : "",
+    ),
     team,
   };
 }
@@ -430,7 +483,7 @@ export async function replaceAboutContent(content: AboutContentData): Promise<vo
     photo: item.photo,
     quote: item.quote ?? null,
     bio: item.bio,
-    highlights: item.highlights ?? [],
+    highlights: item.highlights ?? { en: [] },
     sort_order: index,
   }));
 

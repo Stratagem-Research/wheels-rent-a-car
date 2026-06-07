@@ -4,24 +4,25 @@ import * as React from "react";
 import { RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
+import type { LocalizedString, LocalizedStringArray } from "@/types/domain";
 
 type AboutContent = {
-  storyParagraphs: string[];
-  pullQuote: string;
+  storyParagraphs: LocalizedStringArray;
+  pullQuote: LocalizedString;
   fleetPhilosophy: {
-    heading: string;
-    paragraphs: string[];
+    heading: LocalizedString;
+    paragraphs: LocalizedStringArray;
   };
-  stats: Array<{ value: string; label: string }>;
-  teamIntro: string;
-  teamDedication: string;
+  stats: Array<{ value: string; label: LocalizedString }>;
+  teamIntro: LocalizedString;
+  teamDedication: LocalizedString;
   team: Array<{
     name: string;
-    role: string;
+    role: LocalizedString;
     photo: string;
-    quote?: string;
-    bio: string;
-    highlights?: string[];
+    quote?: LocalizedString;
+    bio: LocalizedString;
+    highlights?: LocalizedStringArray;
   }>;
 };
 
@@ -80,6 +81,15 @@ export default function AdminAboutPage() {
     }
   };
 
+  const normalizeForLocales = () => {
+    try {
+      const content = JSON.parse(jsonValue) as unknown;
+      setJsonValue(JSON.stringify(normalizeAboutPayload(content), null, 2));
+    } catch {
+      setError("JSON is invalid. Fix syntax before normalizing.");
+    }
+  };
+
   return (
     <AdminPageShell
       eyebrow="Brand content"
@@ -90,6 +100,9 @@ export default function AdminAboutPage() {
           <Button variant="tertiary" onClick={() => void refresh()}>
             <RefreshCcw className="size-4" aria-hidden="true" />
             Refresh
+          </Button>
+          <Button variant="tertiary" onClick={normalizeForLocales} disabled={loading}>
+            Normalize EN/AR/FR
           </Button>
           <Button onClick={() => void save()} loading={saving} disabled={loading}>
             Save
@@ -112,6 +125,65 @@ export default function AdminAboutPage() {
       </section>
     </AdminPageShell>
   );
+}
+
+function asLocalizedString(value: unknown): LocalizedString {
+  if (typeof value === "string") return { en: value, ar: "", fr: "" };
+  if (!value || typeof value !== "object") return { en: "", ar: "", fr: "" };
+  const obj = value as Record<string, unknown>;
+  return {
+    en: typeof obj.en === "string" ? obj.en : "",
+    ar: typeof obj.ar === "string" ? obj.ar : "",
+    fr: typeof obj.fr === "string" ? obj.fr : "",
+  };
+}
+
+function asLocalizedArray(value: unknown): LocalizedStringArray {
+  const toArray = (input: unknown): string[] =>
+    Array.isArray(input) ? input.filter((item): item is string => typeof item === "string") : [];
+  if (Array.isArray(value)) return { en: toArray(value), ar: [], fr: [] };
+  if (!value || typeof value !== "object") return { en: [], ar: [], fr: [] };
+  const obj = value as Record<string, unknown>;
+  return {
+    en: toArray(obj.en),
+    ar: toArray(obj.ar),
+    fr: toArray(obj.fr),
+  };
+}
+
+function normalizeAboutPayload(input: unknown): AboutContent {
+  const source = (input ?? {}) as Record<string, unknown>;
+  const fleet = (source.fleetPhilosophy ?? {}) as Record<string, unknown>;
+  const stats = Array.isArray(source.stats) ? source.stats : [];
+  const team = Array.isArray(source.team) ? source.team : [];
+  return {
+    storyParagraphs: asLocalizedArray(source.storyParagraphs),
+    pullQuote: asLocalizedString(source.pullQuote),
+    fleetPhilosophy: {
+      heading: asLocalizedString(fleet.heading),
+      paragraphs: asLocalizedArray(fleet.paragraphs),
+    },
+    stats: stats.map((item) => {
+      const row = (item ?? {}) as Record<string, unknown>;
+      return {
+        value: typeof row.value === "string" ? row.value : "",
+        label: asLocalizedString(row.label),
+      };
+    }),
+    teamIntro: asLocalizedString(source.teamIntro),
+    teamDedication: asLocalizedString(source.teamDedication),
+    team: team.map((item) => {
+      const row = (item ?? {}) as Record<string, unknown>;
+      return {
+        name: typeof row.name === "string" ? row.name : "",
+        role: asLocalizedString(row.role),
+        photo: typeof row.photo === "string" ? row.photo : "",
+        quote: row.quote === undefined ? undefined : asLocalizedString(row.quote),
+        bio: asLocalizedString(row.bio),
+        highlights: asLocalizedArray(row.highlights),
+      };
+    }),
+  };
 }
 
 function csrfHeader(): Record<string, string> {
