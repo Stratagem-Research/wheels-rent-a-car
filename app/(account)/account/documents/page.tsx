@@ -18,6 +18,7 @@ import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { toast } from "@/components/ui/Toast";
 import { DocumentVaultCard } from "@/components/account/DocumentVaultCard";
+import { useSession } from "@/hooks/useSession";
 import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
 import type { DocumentType, UserDocument } from "@/types/domain";
@@ -122,6 +123,7 @@ function UploadDocumentModal({
   children: React.ReactNode;
 }) {
   const t = useTranslations("accountDocuments");
+  const { session } = useSession();
   const [file, setFile] = React.useState<File | null>(null);
   const [number, setNumber] = React.useState(existing?.number ?? "");
   const [issueDate, setIssueDate] = React.useState(existing?.issueDate ?? "");
@@ -130,11 +132,12 @@ function UploadDocumentModal({
   const [saving, setSaving] = React.useState(false);
 
   const onSubmit = async () => {
+    if (!session?.user.id) return;
     setSaving(true);
     await new Promise((r) => setTimeout(r, 400));
     const saved: UserDocument = {
       id: existing?.id ?? `doc-${Math.random().toString(36).slice(2, 8)}`,
-      userId: existing?.userId ?? "user-demo",
+      userId: existing?.userId ?? session.user.id,
       type: docType,
       number: number.trim(),
       issueDate,

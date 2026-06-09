@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { createRouteHandlerSupabaseClient } from "@/lib/supabase/route-handler";
 import { getSiteUrl } from "@/lib/server/env";
 
 const ForgotPasswordSchema = z.object({
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Invalid email payload." }, { status: 400 });
   }
 
-  const supabase = await getSupabaseServerClient();
+  const { supabase, applySupabaseCookies } = await createRouteHandlerSupabaseClient();
   // The recovery link lands on /auth/callback, which exchanges the code for a
   // session (using the PKCE verifier cookie set by this very request) and then
   // forwards to /reset-password where the user picks a new password.
@@ -30,5 +30,5 @@ export async function POST(request: Request) {
     console.warn("[forgot-password] resetPasswordForEmail error:", error.message);
   }
 
-  return NextResponse.json({ ok: true });
+  return applySupabaseCookies(NextResponse.json({ ok: true }));
 }

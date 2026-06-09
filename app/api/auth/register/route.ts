@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { createRouteHandlerSupabaseClient } from "@/lib/supabase/route-handler";
 import { toDomainUser } from "@/lib/auth/map-user";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getSiteUrl } from "@/lib/server/env";
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Invalid registration payload." }, { status: 400 });
   }
 
-  const supabase = await getSupabaseServerClient();
+  const { supabase, applySupabaseCookies } = await createRouteHandlerSupabaseClient();
   const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
@@ -58,6 +58,7 @@ export async function POST(request: Request) {
       maxAge: 60 * 60 * 24 * 14,
       path: "/",
     });
+    return applySupabaseCookies(response);
   }
   return response;
 }

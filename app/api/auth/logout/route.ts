@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { createRouteHandlerSupabaseClient } from "@/lib/supabase/route-handler";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 
 export async function POST() {
-  const supabase = await getSupabaseServerClient();
+  const { supabase, applySupabaseCookies } = await createRouteHandlerSupabaseClient();
   await supabase.auth.signOut();
 
   const response = NextResponse.json({ ok: true });
@@ -14,5 +14,5 @@ export async function POST() {
     maxAge: 0,
     path: "/",
   });
-  return response;
+  return applySupabaseCookies(response);
 }

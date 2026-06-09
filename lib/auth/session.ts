@@ -1,15 +1,11 @@
 /**
- * Session model — Phase 1 mock layer.
+ * Client session cache for Supabase auth.
  *
- * In production, the real backend will issue an httpOnly Secure SameSite=Lax
- * cookie that the client never touches directly. Server middleware reads it
- * and gates /account/*; pages call /api/auth/me to hydrate the user object.
- *
- * For Phase 1 mocks (no backend, no httpOnly), we keep TWO copies:
- *   - `wheels.session` in localStorage — rich user object for `useSession`.
- *   - `wheels.session` as a (non-httpOnly) cookie — readable by Next.js
- *     middleware for the /account/* redirect rule.
- * The two are kept in sync via `writeSession` / `clearSession`.
+ * Supabase SSR sets the real JWT in `sb-*-auth-token` (httpOnly). API routes
+ * also set `wheels.session` (httpOnly user id). The client keeps a mirrored copy:
+ *   - localStorage — rich `User` object for `useSession` / header UI.
+ *   - document.cookie — non-httpOnly user id so `proxy.ts` can gate `/account/*`.
+ * Kept in sync via `writeSession` / `clearSession`; validated on mount via `/api/auth/me`.
  */
 
 import type { User } from "@/types/domain";

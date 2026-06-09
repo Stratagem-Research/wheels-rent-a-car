@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { createRouteHandlerSupabaseClient } from "@/lib/supabase/route-handler";
 import { toDomainUser } from "@/lib/auth/map-user";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Invalid reset payload." }, { status: 400 });
   }
 
-  const supabase = await getSupabaseServerClient();
+  const { supabase, applySupabaseCookies } = await createRouteHandlerSupabaseClient();
   const { data, error } = await supabase.auth.updateUser({ password: parsed.data.password });
   if (error || !data.user) {
     return NextResponse.json(
@@ -35,5 +35,5 @@ export async function POST(request: Request) {
     maxAge: 60 * 60 * 24 * 14,
     path: "/",
   });
-  return response;
+  return applySupabaseCookies(response);
 }

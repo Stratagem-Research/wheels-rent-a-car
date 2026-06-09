@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getSupabaseServerClient } from "@/lib/supabase/server";
+import { createRouteHandlerSupabaseClient } from "@/lib/supabase/route-handler";
 import { getSiteUrl } from "@/lib/server/env";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 
@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(dest);
   }
 
-  const supabase = await getSupabaseServerClient();
+  const { supabase, applySupabaseCookies } = await createRouteHandlerSupabaseClient();
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error || !data.session || !data.user) {
@@ -58,5 +58,5 @@ export async function GET(request: NextRequest) {
     maxAge: 60 * 60 * 24 * 14,
     path: "/",
   });
-  return response;
+  return applySupabaseCookies(response);
 }

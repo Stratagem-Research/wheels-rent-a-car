@@ -11,7 +11,7 @@ import type { User } from "@/types/domain";
  *
  * - SSR returns `{ session: null, ready: false }`.
  * - Hydrates from localStorage on first mount.
- * - `signIn(email, password)` posts to /api/auth/login (mocked).
+ * - `signIn(email, password)` posts to /api/auth/login (Supabase-backed).
  * - Listens to `wheels:session` + native `storage` events so multiple
  *   components on the same page (header avatar, account guard) stay in sync.
  */

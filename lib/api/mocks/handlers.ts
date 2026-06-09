@@ -17,7 +17,6 @@ import type {
   Rate,
   SubmitBookingRequest,
   SubmitBookingResponse,
-  User,
 } from "@/types/domain";
 import { endpoints } from "@/lib/api/endpoints";
 import { VEHICLES } from "./fixtures/vehicles";
@@ -38,18 +37,6 @@ import {
   VehicleUnavailableError,
 } from "@/lib/api/wheels-public/live-handlers";
 import { fromBackendDateTime } from "@/lib/api/wheels-public/datetime";
-
-const MOCK_USER: User = {
-  id: "user-demo",
-  firstName: "Demo",
-  lastName: "User",
-  email: "demo@wheels.local",
-  emailVerified: true,
-  phone: "+96170123456",
-  country: "LB",
-  preferences: { marketing: false, whatsappUpdates: true },
-  createdAt: "2026-01-01T00:00:00.000Z",
-};
 
 // In-memory bookings keyed by ref. Resets on each dev-server reload.
 const submittedBookings = new Map<string, Booking>();
@@ -354,18 +341,9 @@ export const handlers = [
     return HttpResponse.json({ refundCents: booking.price.totalCents });
   }),
 
-  // ── Auth ───────────────────────────────────────────────────────────────
-  http.post(endpoints.authLogin, async () => HttpResponse.json({ user: MOCK_USER })),
-  http.post(endpoints.authRegister, async () =>
-    HttpResponse.json({ user: MOCK_USER, requiresEmailConfirmation: false }),
-  ),
-  http.post(endpoints.authForgotPassword, async () => HttpResponse.json({ ok: true })),
-  http.post(endpoints.authResetPassword, async () => HttpResponse.json({ user: MOCK_USER })),
-  http.post(endpoints.authLogout, async () => HttpResponse.json({ ok: true })),
-  http.get(endpoints.authMe, () => HttpResponse.json({ user: MOCK_USER })),
+  // Auth routes (/api/auth/*) are not mocked — MSW bypasses to Supabase-backed handlers.
 
   // ── Account ────────────────────────────────────────────────────────────
-  http.get(endpoints.account, () => HttpResponse.json({ user: MOCK_USER })),
   http.get(endpoints.accountBookings, () =>
     HttpResponse.json({
       items: Array.from(submittedBookings.values()),

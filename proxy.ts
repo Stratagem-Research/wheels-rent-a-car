@@ -10,6 +10,9 @@ import { isAppLocale } from "@/i18n/routing";
 const SESSION_COOKIE = "wheels.session";
 const ADMIN_COOKIE = "wheels.admin";
 
+/** Supabase session cookie, including chunked `sb-*-auth-token.0` variants. */
+const SB_SESSION_COOKIE = /^sb-.+-auth-token(?:\.\d+)?$/;
+
 const MAINTENANCE_ALLOWLIST = [
   "/maintenance",
   "/_next",
@@ -50,9 +53,7 @@ export function proxy(req: NextRequest) {
 
   const hasSession =
     Boolean(req.cookies.get(SESSION_COOKIE)?.value) &&
-    req.cookies
-      .getAll()
-      .some((cookie) => cookie.name.startsWith("sb-") && cookie.name.endsWith("-auth-token"));
+    req.cookies.getAll().some((cookie) => SB_SESSION_COOKIE.test(cookie.name));
 
   // Auth gating for /account/*.
   if (strippedPath.startsWith("/account")) {
