@@ -1,7 +1,7 @@
 "use client";
 
 import { Check } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -27,6 +27,7 @@ export interface TierCardCorporateProps {
 
 export function TierCardCorporate({ tier, onSelect }: TierCardCorporateProps) {
   const t = useTranslations("tierCards");
+  const locale = useLocale();
   return (
     <article
       className={cn(
@@ -40,8 +41,8 @@ export function TierCardCorporate({ tier, onSelect }: TierCardCorporateProps) {
         </div>
       ) : null}
       <div>
-        <span className="text-ink-60 overline">{getLocalizedString(tier.name, "en")}</span>
-        <p className="body-sm text-ink-60 mt-1">{getLocalizedString(tier.tagline, "en")}</p>
+        <span className="text-ink-60 overline">{getLocalizedString(tier.name, locale)}</span>
+        <p className="body-sm text-ink-60 mt-1">{getLocalizedString(tier.tagline, locale)}</p>
         <div className="mt-3 flex items-baseline gap-1">
           {tier.perDayCents !== null ? (
             <>
@@ -52,10 +53,10 @@ export function TierCardCorporate({ tier, onSelect }: TierCardCorporateProps) {
             <span className="price-lg text-ink-95">{t("custom")}</span>
           )}
         </div>
-        <span className="label-md text-ink-50">{getLocalizedString(tier.fleetSize, "en")}</span>
+        <span className="label-md text-ink-50">{getLocalizedString(tier.fleetSize, locale)}</span>
       </div>
       <ul className="body-sm text-ink-80 flex flex-1 flex-col gap-2">
-        {getLocalizedStringArray(tier.inclusions, "en").map((line) => (
+        {getLocalizedStringArray(tier.inclusions, locale).map((line) => (
           <li key={line} className="flex items-start gap-2">
             <Check className="text-ink-100 mt-0.5 size-4 shrink-0" aria-hidden="true" />
             <span>{line}</span>
@@ -63,7 +64,7 @@ export function TierCardCorporate({ tier, onSelect }: TierCardCorporateProps) {
         ))}
       </ul>
       <Button variant="primary" size="sm" fullWidth onClick={() => onSelect(tier.id)}>
-        {tier.ctaLabel ? getLocalizedString(tier.ctaLabel, "en") : t("getQuote")}
+        {tier.ctaLabel ? getLocalizedString(tier.ctaLabel, locale) : t("getQuote")}
       </Button>
     </article>
   );

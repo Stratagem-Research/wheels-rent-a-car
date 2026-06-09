@@ -1,9 +1,23 @@
 "use client";
 
 import * as React from "react";
-import { RefreshCcw } from "lucide-react";
+import { Plus, RefreshCcw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { Field } from "@/components/ui/FormAtoms";
+import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
+import { AdminFormShell } from "@/components/admin/AdminFormShell";
+
+/**
+ * /admin/fleet — structured editor for website-owned vehicle copy/media
+ * plus the frontend-to-Wizard ID mapping.
+ *
+ * Replaces the two raw-JSON textareas with per-vehicle metadata cards and a
+ * two-column map repeater. The freeform `media` array stays as a small JSON
+ * field (arbitrary shapes), validated on save. Load/save still use
+ * GET/PUT /api/admin/fleet/metadata and /api/admin/fleet/map unchanged.
+ */
 
 type MetadataItem = {
   frontend_vehicle_id: string;
@@ -21,6 +35,18 @@ type MapItem = {
   wizard_vehicle_id: number;
 };
 
+/** Editor draft — raw text fields parsed into a MetadataItem on save. */
+type MetaDraft = {
+  frontend_vehicle_id: string;
+  slug: string;
+  tagline: string;
+  description: string;
+  featuresText: string;
+  badgesText: string;
+  mediaText: string;
+  updated_at?: string;
+};
+
 async function readJson<T>(path: string): Promise<T> {
   const res = await fetch(path, { cache: "no-store" });
   if (!res.ok) {
@@ -30,9 +56,22 @@ async function readJson<T>(path: string): Promise<T> {
   return (await res.json()) as T;
 }
 
+function toDraft(item: MetadataItem): MetaDraft {
+  return {
+    frontend_vehicle_id: item.frontend_vehicle_id,
+    slug: item.slug,
+    tagline: item.tagline ?? "",
+    description: item.description ?? "",
+    featuresText: (item.features ?? []).join(", "),
+    badgesText: (item.badges ?? []).join(", "),
+    mediaText: JSON.stringify(item.media ?? [], null, 2),
+    updated_at: item.updated_at,
+  };
+}
+
 export default function AdminFleetPage() {
-  const [metadataJson, setMetadataJson] = React.useState("");
-  const [mapJson, setMapJson] = React.useState("");
+  const [drafts, setDrafts] = React.useState<MetaDraft[]>([]);
+  const [map, setMap] = React.useState<MapItem[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -41,12 +80,13 @@ export default function AdminFleetPage() {
     setLoading(true);
     setError(null);
     try {
-      const [metadata, mapping] = await Promise.all([
+      const [metadataRes, mapping] = await Promise.all([
         readJson<{ items: MetadataItem[] }>("/api/admin/fleet/metadata"),
         readJson<{ items: MapItem[] }>("/api/admin/fleet/map"),
       ]);
-      setMetadataJson(JSON.stringify(metadata.items, null, 2));
-      setMapJson(JSON.stringify(mapping.items, null, 2));
+      const items = Array.isArray(metadataRes.items) ? metadataRes.items : [];
+      setDrafts(items.map(toDraft));
+      setMap(Array.isArray(mapping.items) ? mapping.items : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load fleet admin data.");
     } finally {
@@ -60,28 +100,68 @@ export default function AdminFleetPage() {
   }, [refresh]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
+  const updateDraft = (index: number, patch: Partial<MetaDraft>) =>
+    setDrafts((list) => list.map((m, i) => (i === index ? { ...m, ...patch } : m)));
+
+  const addDraft = () =>
+    setDrafts((list) => [
+      ...list,
+      {
+        frontend_vehicle_id: "",
+        slug: "",
+        tagline: "",
+        description: "",
+        featuresText: "",
+        badgesText: "",
+        mediaText: "[]",
+      },
+    ]);
+
+  const removeDraft = (index: number) => {
+    if (!confirm("Remove this vehicle's metadata?")) return;
+    setDrafts((list) => list.filter((_, i) => i !== index));
+  };
+
+  const updateMapRow = (index: number, patch: Partial<MapItem>) =>
+    setMap((list) => list.map((m, i) => (i === index ? { ...m, ...patch } : m)));
+
   const saveAll = async () => {
     setSaving(true);
     setError(null);
     try {
-      const metadataItems = JSON.parse(metadataJson) as MetadataItem[];
-      const mapItems = JSON.parse(mapJson) as MapItem[];
+      const metadataItems: MetadataItem[] = drafts.map((draft, i) => {
+        let media: Array<Record<string, unknown>>;
+        try {
+          const parsed = JSON.parse(draft.mediaText.trim() || "[]");
+          if (!Array.isArray(parsed)) throw new Error("not array");
+          media = parsed as Array<Record<string, unknown>>;
+        } catch {
+          throw new Error(
+            `Media JSON for "${draft.slug || draft.frontend_vehicle_id || `row ${i + 1}`}" is invalid. Expected a JSON array.`,
+          );
+        }
+        return {
+          frontend_vehicle_id: draft.frontend_vehicle_id.trim(),
+          slug: draft.slug.trim(),
+          tagline: draft.tagline.trim() ? draft.tagline.trim() : null,
+          description: draft.description.trim() ? draft.description.trim() : null,
+          features: splitList(draft.featuresText),
+          badges: splitList(draft.badgesText),
+          media,
+          updated_at: draft.updated_at,
+        };
+      });
+
       const [metadataRes, mapRes] = await Promise.all([
         fetch("/api/admin/fleet/metadata", {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            ...csrfHeader(),
-          },
+          headers: { "Content-Type": "application/json", ...csrfHeader() },
           body: JSON.stringify({ items: metadataItems }),
         }),
         fetch("/api/admin/fleet/map", {
           method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            ...csrfHeader(),
-          },
-          body: JSON.stringify({ items: mapItems }),
+          headers: { "Content-Type": "application/json", ...csrfHeader() },
+          body: JSON.stringify({ items: map }),
         }),
       ]);
       if (!metadataRes.ok || !mapRes.ok) {
@@ -116,34 +196,181 @@ export default function AdminFleetPage() {
       }
     >
       {error ? <p className="body-md text-danger mb-4">{error}</p> : null}
-      <div className="grid gap-6 xl:grid-cols-2">
-        <section className="bg-paper border-border rounded-xl border p-5">
-          <h2 className="headline-sm text-ink-100">Vehicle metadata</h2>
-          <p className="body-sm text-ink-60 mt-2">
-            JSON array for <code>vehicle_metadata</code>.
-          </p>
-          <textarea
-            className="border-border mt-4 min-h-[420px] w-full rounded-xl border p-3 font-mono text-xs"
-            value={metadataJson}
-            onChange={(e) => setMetadataJson(e.target.value)}
-            spellCheck={false}
-          />
+
+      <div className="flex flex-col gap-8">
+        <section className="flex flex-col gap-4">
+          <h2 className="headline-md text-ink-100">Vehicle metadata</h2>
+          {drafts.length === 0 && !loading ? (
+            <p className="body-md text-ink-60">No vehicle metadata yet.</p>
+          ) : null}
+          {drafts.map((draft, i) => (
+            <AdminFormShell
+              key={i}
+              title={draft.slug.trim() || draft.frontend_vehicle_id.trim() || "New vehicle"}
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Frontend vehicle ID" required>
+                  {({ id }) => (
+                    <Input
+                      id={id}
+                      value={draft.frontend_vehicle_id}
+                      onChange={(e) => updateDraft(i, { frontend_vehicle_id: e.target.value })}
+                    />
+                  )}
+                </Field>
+                <Field label="Slug" required>
+                  {({ id }) => (
+                    <Input
+                      id={id}
+                      value={draft.slug}
+                      onChange={(e) => updateDraft(i, { slug: e.target.value })}
+                    />
+                  )}
+                </Field>
+              </div>
+              <Field label="Tagline">
+                {({ id }) => (
+                  <Input
+                    id={id}
+                    value={draft.tagline}
+                    onChange={(e) => updateDraft(i, { tagline: e.target.value })}
+                  />
+                )}
+              </Field>
+              <Field label="Description">
+                {({ id }) => (
+                  <Textarea
+                    id={id}
+                    rows={3}
+                    value={draft.description}
+                    onChange={(e) => updateDraft(i, { description: e.target.value })}
+                  />
+                )}
+              </Field>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label="Features" helper="Comma-separated.">
+                  {({ id }) => (
+                    <Input
+                      id={id}
+                      value={draft.featuresText}
+                      placeholder="Bluetooth, Apple CarPlay, Reverse camera"
+                      onChange={(e) => updateDraft(i, { featuresText: e.target.value })}
+                    />
+                  )}
+                </Field>
+                <Field label="Badges" helper="Comma-separated.">
+                  {({ id }) => (
+                    <Input
+                      id={id}
+                      value={draft.badgesText}
+                      placeholder="Popular, New"
+                      onChange={(e) => updateDraft(i, { badgesText: e.target.value })}
+                    />
+                  )}
+                </Field>
+              </div>
+              <Field
+                label="Media (JSON array)"
+                helper="Freeform array of media objects. Must be valid JSON."
+              >
+                {({ id }) => (
+                  <Textarea
+                    id={id}
+                    rows={5}
+                    className="font-mono text-xs"
+                    spellCheck={false}
+                    value={draft.mediaText}
+                    onChange={(e) => updateDraft(i, { mediaText: e.target.value })}
+                  />
+                )}
+              </Field>
+              <div className="border-border flex justify-end border-t pt-4">
+                <Button type="button" variant="tertiary" onClick={() => removeDraft(i)}>
+                  <Trash2 className="size-4" aria-hidden="true" />
+                  Remove
+                </Button>
+              </div>
+            </AdminFormShell>
+          ))}
+          <div>
+            <Button variant="secondary" size="sm" onClick={addDraft}>
+              <Plus className="size-4" aria-hidden="true" />
+              Add vehicle metadata
+            </Button>
+          </div>
         </section>
-        <section className="bg-paper border-border rounded-xl border p-5">
-          <h2 className="headline-sm text-ink-100">Wizard map</h2>
-          <p className="body-sm text-ink-60 mt-2">
-            JSON array for <code>vehicle_wizard_map</code>.
+
+        <section className="flex flex-col gap-4">
+          <h2 className="headline-md text-ink-100">Wizard map</h2>
+          <p className="body-sm text-ink-60">
+            Links each frontend vehicle ID to its Wizard (internal) vehicle ID.
           </p>
-          <textarea
-            className="border-border mt-4 min-h-[420px] w-full rounded-xl border p-3 font-mono text-xs"
-            value={mapJson}
-            onChange={(e) => setMapJson(e.target.value)}
-            spellCheck={false}
-          />
+          <AdminFormShell title="Frontend → Wizard IDs">
+            <div className="flex flex-col gap-2">
+              {map.map((row, i) => (
+                <div
+                  key={i}
+                  className="border-border grid items-end gap-2 rounded-lg border p-3 sm:grid-cols-[2fr_1fr_auto]"
+                >
+                  <Field label="Frontend vehicle ID">
+                    {({ id }) => (
+                      <Input
+                        id={id}
+                        value={row.frontend_vehicle_id}
+                        onChange={(e) => updateMapRow(i, { frontend_vehicle_id: e.target.value })}
+                      />
+                    )}
+                  </Field>
+                  <Field label="Wizard vehicle ID">
+                    {({ id }) => (
+                      <Input
+                        id={id}
+                        type="number"
+                        min={1}
+                        value={row.wizard_vehicle_id ? String(row.wizard_vehicle_id) : ""}
+                        onChange={(e) =>
+                          updateMapRow(i, { wizard_vehicle_id: Number(e.target.value) })
+                        }
+                      />
+                    )}
+                  </Field>
+                  <div className="flex items-center pb-1">
+                    <Button
+                      type="button"
+                      variant="tertiary"
+                      onClick={() => setMap((list) => list.filter((_, idx) => idx !== i))}
+                      aria-label="Remove map row"
+                    >
+                      <Trash2 className="size-4" aria-hidden="true" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              <div>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() =>
+                    setMap((list) => [...list, { frontend_vehicle_id: "", wizard_vehicle_id: 0 }])
+                  }
+                >
+                  <Plus className="size-4" aria-hidden="true" />
+                  Add mapping
+                </Button>
+              </div>
+            </div>
+          </AdminFormShell>
         </section>
       </div>
     </AdminPageShell>
   );
+}
+
+function splitList(value: string): string[] {
+  return value
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 function csrfHeader(): Record<string, string> {

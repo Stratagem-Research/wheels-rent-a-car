@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useLocale } from "next-intl";
 import {
   Accordion,
   AccordionContent,
@@ -27,11 +28,13 @@ type FaqAccordionEntry = {
 
 export function FaqAccordion({
   entries,
-  locale = "en",
+  locale,
 }: {
   entries: FaqAccordionEntry[];
   locale?: string;
 }) {
+  const activeLocale = useLocale();
+  const resolvedLocale = locale ?? activeLocale;
   const entryIds = React.useMemo(() => new Set(entries.map((e) => e.id)), [entries]);
   const [open, setOpen] = React.useState("");
 
@@ -57,8 +60,8 @@ export function FaqAccordion({
       {entries.map((entry) => (
         <div key={entry.id} id={`acc-${entry.id}`} className="scroll-mt-24">
           <AccordionItem value={entry.id}>
-            <AccordionTrigger>{getLocalizedString(entry.question, locale)}</AccordionTrigger>
-            <AccordionContent>{getLocalizedString(entry.answer, locale)}</AccordionContent>
+            <AccordionTrigger>{getLocalizedString(entry.question, resolvedLocale)}</AccordionTrigger>
+            <AccordionContent>{getLocalizedString(entry.answer, resolvedLocale)}</AccordionContent>
           </AccordionItem>
         </div>
       ))}

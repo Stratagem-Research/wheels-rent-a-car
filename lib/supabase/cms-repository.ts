@@ -5,7 +5,52 @@ import {
   toLocalizedStringArray,
   isLocalizedString,
   isLocalizedStringArray,
+  type LocalizedValue,
+  type LocalizedArrayValue,
 } from "@/lib/i18n/localized";
+
+/**
+ * Coerce a raw jsonb column into a value the localized renderer understands.
+ *
+ * Guards the "raw JSON on screen" failure mode: if a localized object was
+ * accidentally persisted as a JSON *string* (e.g. '{"en":"…","ar":"…"}'), the
+ * renderer would otherwise print it verbatim. We parse such strings back into
+ * an object; anything else falls back to a plain string (wrapped as `en`).
+ */
+function coerceLocalized(value: unknown): LocalizedValue {
+  if (isLocalizedString(value)) return value;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+      try {
+        const parsed: unknown = JSON.parse(trimmed);
+        if (isLocalizedString(parsed)) return parsed;
+      } catch {
+        // Not JSON — treat as a plain English string below.
+      }
+    }
+    return value;
+  }
+  return "";
+}
+
+function coerceLocalizedArray(value: unknown): LocalizedArrayValue {
+  if (isLocalizedStringArray(value)) return value;
+  if (Array.isArray(value)) return value as string[];
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+      try {
+        const parsed: unknown = JSON.parse(trimmed);
+        if (isLocalizedStringArray(parsed)) return parsed;
+        if (Array.isArray(parsed)) return parsed as string[];
+      } catch {
+        // Not JSON — fall through to empty.
+      }
+    }
+  }
+  return [];
+}
 
 type TripRow = {
   slug: string;
@@ -59,31 +104,17 @@ type CorporateRow = {
 function tripFromRow(row: TripRow): Trip {
   return {
     slug: row.slug,
-    title: toLocalizedString(
-      typeof row.title === "string" || isLocalizedString(row.title) ? row.title : "",
-    ),
-    excerpt: toLocalizedString(
-      typeof row.excerpt === "string" || isLocalizedString(row.excerpt) ? row.excerpt : "",
-    ),
+    title: toLocalizedString(coerceLocalized(row.title)),
+    excerpt: toLocalizedString(coerceLocalized(row.excerpt)),
     coverImage: {
       ...row.cover_image,
-      alt: toLocalizedString(
-        typeof row.cover_image?.alt === "string" || isLocalizedString(row.cover_image?.alt)
-          ? row.cover_image.alt
-          : "",
-      ),
+      alt: toLocalizedString(coerceLocalized(row.cover_image?.alt)),
     },
-    meta: toLocalizedString(
-      typeof row.meta === "string" || isLocalizedString(row.meta) ? row.meta : "",
-    ),
+    meta: toLocalizedString(coerceLocalized(row.meta)),
     region: row.region as Trip["region"],
-    body: toLocalizedString(
-      typeof row.body === "string" || isLocalizedString(row.body) ? row.body : "",
-    ),
+    body: toLocalizedString(coerceLocalized(row.body)),
     suggestedVehicleCategory: row.suggested_vehicle_category as Trip["suggestedVehicleCategory"],
-    tags: toLocalizedStringArray(
-      Array.isArray(row.tags) || isLocalizedStringArray(row.tags) ? (row.tags as string[]) : [],
-    ),
+    tags: toLocalizedStringArray(coerceLocalizedArray(row.tags)),
     publishedAt: row.published_at,
     updatedAt: row.updated_at,
   };
@@ -108,41 +139,20 @@ function tripToRow(trip: Trip): TripRow {
 function itineraryFromRow(row: ItineraryRow): Itinerary {
   return {
     slug: row.slug,
-    title: toLocalizedString(
-      typeof row.title === "string" || isLocalizedString(row.title) ? row.title : "",
-    ),
-    excerpt: toLocalizedString(
-      typeof row.excerpt === "string" || isLocalizedString(row.excerpt) ? row.excerpt : "",
-    ),
+    title: toLocalizedString(coerceLocalized(row.title)),
+    excerpt: toLocalizedString(coerceLocalized(row.excerpt)),
     coverImage: {
       ...row.cover_image,
-      alt: toLocalizedString(
-        typeof row.cover_image?.alt === "string" || isLocalizedString(row.cover_image?.alt)
-          ? row.cover_image.alt
-          : "",
-      ),
+      alt: toLocalizedString(coerceLocalized(row.cover_image?.alt)),
     },
     category: row.category as Itinerary["category"],
-    duration: toLocalizedString(
-      typeof row.duration === "string" || isLocalizedString(row.duration) ? row.duration : "",
-    ),
+    duration: toLocalizedString(coerceLocalized(row.duration)),
     priceFromCents: row.price_from_cents,
-    highlights: toLocalizedStringArray(
-      Array.isArray(row.highlights) || isLocalizedStringArray(row.highlights)
-        ? (row.highlights as string[])
-        : [],
-    ),
+    highlights: toLocalizedStringArray(coerceLocalizedArray(row.highlights)),
     schedule: (row.schedule ?? []).map((step) => ({
       ...step,
-      title: toLocalizedString(
-        typeof step.title === "string" || isLocalizedString(step.title) ? step.title : "",
-      ),
-      body:
-        step.body === undefined
-          ? undefined
-          : toLocalizedString(
-              typeof step.body === "string" || isLocalizedString(step.body) ? step.body : "",
-            ),
+      title: toLocalizedString(coerceLocalized(step.title)),
+      body: step.body === undefined ? undefined : toLocalizedString(coerceLocalized(step.body)),
     })),
     vehicleClass: row.vehicle_class as Itinerary["vehicleClass"],
     updatedAt: row.updated_at,
@@ -172,30 +182,16 @@ function itineraryToRow(itinerary: Itinerary): ItineraryRow {
 function corporateFromRow(row: CorporateRow): CorporateTier {
   return {
     id: row.id,
-    name: toLocalizedString(
-      typeof row.name === "string" || isLocalizedString(row.name) ? row.name : "",
-    ),
-    tagline: toLocalizedString(
-      typeof row.tagline === "string" || isLocalizedString(row.tagline) ? row.tagline : "",
-    ),
+    name: toLocalizedString(coerceLocalized(row.name)),
+    tagline: toLocalizedString(coerceLocalized(row.tagline)),
     perDayCents: row.per_day_cents,
-    fleetSize: toLocalizedString(
-      typeof row.fleet_size === "string" || isLocalizedString(row.fleet_size) ? row.fleet_size : "",
-    ),
-    inclusions: toLocalizedStringArray(
-      Array.isArray(row.inclusions) || isLocalizedStringArray(row.inclusions)
-        ? (row.inclusions as string[])
-        : [],
-    ),
+    fleetSize: toLocalizedString(coerceLocalized(row.fleet_size)),
+    inclusions: toLocalizedStringArray(coerceLocalizedArray(row.inclusions)),
     popular: row.popular || undefined,
     ctaLabel:
       row.cta_label === null || row.cta_label === undefined
         ? undefined
-        : toLocalizedString(
-            typeof row.cta_label === "string" || isLocalizedString(row.cta_label)
-              ? row.cta_label
-              : "",
-          ),
+        : toLocalizedString(coerceLocalized(row.cta_label)),
   };
 }
 
@@ -268,21 +264,15 @@ export async function listFaqsFromDb(): Promise<FaqGroup[]> {
     list.push({
       id: row.id,
       group: row.group_id,
-      question: toLocalizedString(
-        typeof row.question === "string" || isLocalizedString(row.question) ? row.question : "",
-      ),
-      answer: toLocalizedString(
-        typeof row.answer === "string" || isLocalizedString(row.answer) ? row.answer : "",
-      ),
+      question: toLocalizedString(coerceLocalized(row.question)),
+      answer: toLocalizedString(coerceLocalized(row.answer)),
     });
     entriesByGroup.set(row.group_id, list);
   }
 
   return ((groups ?? []) as FaqGroupRow[]).map((group) => ({
     id: group.id,
-    title: toLocalizedString(
-      typeof group.title === "string" || isLocalizedString(group.title) ? group.title : "",
-    ),
+    title: toLocalizedString(coerceLocalized(group.title)),
     entries: entriesByGroup.get(group.id) ?? [],
   }));
 }

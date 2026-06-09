@@ -35,6 +35,7 @@ export function LocaleSwitcher({
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
+  const [, startTransition] = React.useTransition();
 
   const switchLocale = (nextLocale: AppLocale) => {
     if (nextLocale === locale) {
@@ -43,7 +44,12 @@ export function LocaleSwitcher({
     }
     setOpen(false);
     onLocaleChange?.();
-    router.replace(pathname || "/", { locale: nextLocale });
+    // Invalidate the Router Cache so RSC payloads, message catalogs, and
+    // html lang/dir re-fetch with the updated NEXT_LOCALE cookie.
+    startTransition(() => {
+      router.replace(pathname || "/", { locale: nextLocale });
+      router.refresh();
+    });
   };
 
   const currentLabel =
