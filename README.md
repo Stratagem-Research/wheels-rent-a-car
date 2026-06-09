@@ -73,6 +73,7 @@ Copy `.env.example` → `.env.local`. None are strictly required for local dev (
 | `NEXT_PUBLIC_GA4_ID`               | GA4 measurement ID. Empty = no analytics. |
 | `NEXT_PUBLIC_META_PIXEL_ID`        | Meta pixel id. |
 
+
 ## Project layout
 
 ```
