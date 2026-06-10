@@ -6,7 +6,18 @@ const baseURL = `http://localhost:${PORT}`;
 // Pre-seed cookie consent + dismiss the newsletter popup so the banner
 // doesn't intercept clicks at the bottom of the viewport during smoke runs.
 const storageState = {
-  cookies: [],
+  cookies: [
+    {
+      name: "wheels.consent",
+      value: "all",
+      domain: "localhost",
+      path: "/",
+      expires: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 365,
+      httpOnly: false,
+      secure: false,
+      sameSite: "Lax" as const,
+    },
+  ],
   origins: [
     {
       origin: baseURL,

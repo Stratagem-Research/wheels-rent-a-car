@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { SaveVehicleButton } from "@/components/vehicle/SaveVehicleButton";
 import { RadioGroup, RadioItem } from "@/components/ui/RadioGroup";
 import { formatUsd, perDayRate, rentalDays } from "@/lib/booking/pricing";
 import { whatsAppHref } from "@/lib/whatsapp";
@@ -127,19 +128,24 @@ export function VehicleCardExpanded({
       )}
       style={{ backgroundImage: CARD_GRADIENT_DARK }}
     >
-      {/* Close × */}
-      <button
-        type="button"
-        onClick={onClose}
-        aria-label={t("closeAria")}
-        className={cn(
-          "absolute top-4 right-4 z-10 inline-flex size-9 items-center justify-center rounded-full",
-          "text-paper bg-white/10 hover:bg-white/20",
-          "focus-visible:outline-paper focus-visible:outline-2 focus-visible:outline-offset-2",
-        )}
-      >
-        <X className="size-4" aria-hidden="true" />
-      </button>
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+        <SaveVehicleButton
+          vehicleId={vehicle.id}
+          vehicleLabel={`${vehicle.make} ${vehicle.model}`}
+        />
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label={t("closeAria")}
+          className={cn(
+            "inline-flex size-9 items-center justify-center rounded-full",
+            "text-paper bg-white/10 hover:bg-white/20",
+            "focus-visible:outline-paper focus-visible:outline-2 focus-visible:outline-offset-2",
+          )}
+        >
+          <X className="size-4" aria-hidden="true" />
+        </button>
+      </div>
 
       {/* LEFT — vehicle hero photo + below-photo specs. */}
       <div className="flex flex-col gap-5 p-5 sm:p-7">

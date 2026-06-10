@@ -7,6 +7,7 @@ import { Briefcase, Check, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
+import { SaveVehicleButton } from "@/components/vehicle/SaveVehicleButton";
 import { formatUsd, perDayRate, rentalDays } from "@/lib/booking/pricing";
 import type { Vehicle, VehicleBadge } from "@/types/domain";
 
@@ -119,6 +120,8 @@ export function VehicleCard({
 
   const classChip = t(bodyClassKey(vehicle));
 
+  const vehicleLabel = `${vehicle.make} ${vehicle.model}`;
+
   return (
     <article
       className={cn(
@@ -129,6 +132,12 @@ export function VehicleCard({
       )}
       style={dark ? { backgroundImage: CARD_GRADIENT_DARK } : undefined}
     >
+      <SaveVehicleButton
+        vehicleId={vehicle.id}
+        vehicleLabel={vehicleLabel}
+        inverse={dark}
+        className="absolute top-4 right-4 z-10"
+      />
       <Link
         href={detailHref}
         scroll={scrollOnClick}

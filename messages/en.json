@@ -471,7 +471,12 @@
     "bagsLabel": "{count, plural, one {# Bag} other {# Bags}}",
     "doorsLabel": "{count} Doors",
     "transAutomatic": "Automatic",
-    "transManual": "Manual"
+    "transManual": "Manual",
+    "saveVehicleAria": "Save {vehicle}",
+    "unsaveVehicleAria": "Remove {vehicle} from saved cars",
+    "savedToast": "Saved to your list.",
+    "unsavedToast": "Removed from saved cars.",
+    "saveError": "Could not update saved cars. Try again."
   },
   "searchUi": {
     "tabCars": "Cars",
@@ -920,7 +925,8 @@
       "emptyHeading": "No saved cars yet.",
       "emptyBody": "Tap the heart on a vehicle to save it for later.",
       "browseCars": "Browse cars",
-      "remove": "Remove"
+      "remove": "Remove",
+      "removeError": "Could not remove this car. Try again."
     }
   },
   "search": {

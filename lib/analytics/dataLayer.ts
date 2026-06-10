@@ -33,12 +33,27 @@ const ANALYTICS_EVENTS = new Set<string>([
   "booking_cancelled",
 ]);
 
+const CONSENT_KEY = "wheels.consent";
+const CONSENT_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
+
+function readConsentCookie(): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(/(?:^|;\s*)wheels\.consent=([^;]*)/);
+  if (!match?.[1]) return null;
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return match[1];
+  }
+}
+
+function writeConsentCookie(consent: "all" | "essential-only"): void {
+  if (typeof document === "undefined") return;
+  document.cookie = `${CONSENT_KEY}=${encodeURIComponent(consent)}; path=/; max-age=${CONSENT_MAX_AGE_SECONDS}; samesite=lax`;
+}
+
 function isAnalyticsAllowed(): boolean {
-  if (typeof window === "undefined") return false;
-  const consent = window.localStorage.getItem("wheels.consent");
-  // No decision yet -> default to disallow until banner is accepted.
-  if (!consent) return false;
-  return consent === "all";
+  return getConsent() === "all";
 }
 
 export function track(event: EventName, payload: EventPayload = {}) {
@@ -49,14 +64,34 @@ export function track(event: EventName, payload: EventPayload = {}) {
   window.dataLayer.push({ event, ...payload, _ts: Date.now() });
 }
 
-/** Update consent and replay buffered events that were blocked previously. */
+/** Persist consent in a cookie (primary) and localStorage (analytics + legacy reads). */
 export function setConsent(consent: "all" | "essential-only") {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem("wheels.consent", consent);
-  // Future: replay buffered events. Sprint 11 wires the cookie banner.
+  writeConsentCookie(consent);
+  try {
+    window.localStorage.setItem(CONSENT_KEY, consent);
+  } catch {
+    // Cookie alone is enough when localStorage is blocked.
+  }
 }
 
 export function getConsent(): "all" | "essential-only" | null {
   if (typeof window === "undefined") return null;
-  return (window.localStorage.getItem("wheels.consent") as "all" | "essential-only" | null) ?? null;
+
+  const fromCookie = readConsentCookie();
+  if (fromCookie === "all" || fromCookie === "essential-only") {
+    return fromCookie;
+  }
+
+  try {
+    const fromStorage = window.localStorage.getItem(CONSENT_KEY);
+    if (fromStorage === "all" || fromStorage === "essential-only") {
+      writeConsentCookie(fromStorage);
+      return fromStorage;
+    }
+  } catch {
+    // ignore
+  }
+
+  return null;
 }

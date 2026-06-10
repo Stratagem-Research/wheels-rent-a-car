@@ -82,6 +82,11 @@ function ManagePreferencesModal({ onSave }: { onSave: () => void }) {
   // Essential is always on; user toggles analytics/marketing as one bucket.
   const [analytics, setAnalytics] = React.useState(false);
 
+  const rejectAll = () => {
+    setConsent("essential-only");
+    onSave();
+  };
+
   const save = () => {
     setConsent(analytics ? "all" : "essential-only");
     onSave();
@@ -107,7 +112,7 @@ function ManagePreferencesModal({ onSave }: { onSave: () => void }) {
           />
         </div>
         <ModalFooter>
-          <Button variant="secondary" onClick={onSave}>
+          <Button variant="secondary" onClick={rejectAll}>
             {t("rejectAll")}
           </Button>
           <Button variant="primary" onClick={save}>

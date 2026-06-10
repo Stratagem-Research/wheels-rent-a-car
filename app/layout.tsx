@@ -7,6 +7,7 @@ import { Suspense } from "react";
 import { RouteProgressBar, SkipToContent, ToastProvider } from "@/components/ui";
 import { MswProvider } from "@/lib/api/mocks/MswProvider";
 import { CookieBanner } from "@/components/consent/CookieBanner";
+import { SavedVehiclesProvider } from "@/components/providers/SavedVehiclesProvider";
 import { isRtlLocale, routing } from "@/i18n/routing";
 import "./globals.css";
 
@@ -49,13 +50,15 @@ export default async function RootLayout({
       <body>
         <NextIntlClientProvider messages={messages}>
           <MswProvider>
-            <SkipToContent />
-            <Suspense fallback={null}>
-              <RouteProgressBar />
-            </Suspense>
-            {children}
-            <ToastProvider />
-            <CookieBanner />
+            <SavedVehiclesProvider>
+              <SkipToContent />
+              <Suspense fallback={null}>
+                <RouteProgressBar />
+              </Suspense>
+              {children}
+              <ToastProvider />
+              <CookieBanner />
+            </SavedVehiclesProvider>
           </MswProvider>
         </NextIntlClientProvider>
       </body>

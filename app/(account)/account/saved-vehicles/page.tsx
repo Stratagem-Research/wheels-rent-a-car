@@ -8,29 +8,22 @@ import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { VehicleCard } from "@/components/vehicle/VehicleCard";
 import { toast } from "@/components/ui/Toast";
-import { api } from "@/lib/api/client";
-import { endpoints } from "@/lib/api/endpoints";
-import { VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
+import { useSavedVehicles } from "@/hooks/useSavedVehicles";
+import { fetchVehiclesByIds } from "@/lib/vehicles/fetch-by-ids";
 import type { Vehicle } from "@/types/domain";
 
 export default function SavedVehiclesPage() {
   const t = useTranslations("accountPages.saved");
+  const { savedIds, unsave, ready } = useSavedVehicles();
   const [vehicles, setVehicles] = React.useState<Vehicle[] | null>(null);
 
   React.useEffect(() => {
+    if (!ready) return;
     let cancelled = false;
     (async () => {
       try {
-        const res = await api.get<{ items: Array<{ vehicleId: string }> }>(
-          endpoints.accountSavedVehicles,
-        );
-        if (cancelled) return;
-        // Mock layer returns empty by default. For the demo, hydrate from
-        // the fixture when localStorage has saves (clients can persist a
-        // wishlist independent of the API while it's stubbed).
-        const stored = readLocalSaves();
-        const ids = res.items.length > 0 ? res.items.map((i) => i.vehicleId) : stored;
-        setVehicles(VEHICLES.filter((v) => ids.includes(v.id)));
+        const items = await fetchVehiclesByIds(savedIds);
+        if (!cancelled) setVehicles(items);
       } catch {
         if (!cancelled) setVehicles([]);
       }
@@ -38,15 +31,18 @@ export default function SavedVehiclesPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [ready, savedIds]);
 
-  const onRemove = (id: string) => {
-    setVehicles((curr) => (curr ?? []).filter((v) => v.id !== id));
-    writeLocalSaves(readLocalSaves().filter((x) => x !== id));
-    toast.success(t("removed"));
+  const onRemove = async (id: string) => {
+    try {
+      await unsave(id);
+      toast.success(t("removed"));
+    } catch {
+      toast.error(t("removeError"));
+    }
   };
 
-  if (vehicles === null) {
+  if (!ready || vehicles === null) {
     return (
       <div className="flex flex-col gap-4">
         <Skeleton className="h-10 w-72" />
@@ -84,7 +80,7 @@ export default function SavedVehiclesPage() {
         <ul className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
           {vehicles.map((v) => (
             <li key={v.id} className="flex flex-col gap-2">
-              <VehicleCard vehicle={v} />
+              <VehicleCard vehicle={v} href={`/vehicles?selected=${v.slug}`} />
               <Button variant="tertiary" size="sm" onClick={() => onRemove(v.id)}>
                 {t("remove")}
               </Button>
@@ -94,23 +90,4 @@ export default function SavedVehiclesPage() {
       )}
     </div>
   );
-}
-
-function readLocalSaves(): string[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem("wheels.savedVehicles");
-    return raw ? (JSON.parse(raw) as string[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeLocalSaves(ids: string[]): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem("wheels.savedVehicles", JSON.stringify(ids));
-  } catch {
-    // ignore
-  }
 }

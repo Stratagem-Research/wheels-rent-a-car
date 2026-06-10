@@ -356,7 +356,8 @@ export const handlers = [
     return HttpResponse.json(booking);
   }),
   http.get(endpoints.accountDocuments, () => HttpResponse.json({ items: [] })),
-  http.get(endpoints.accountSavedVehicles, () => HttpResponse.json({ items: [] })),
+
+  // Saved vehicles: /api/account/saved — Supabase-backed; not mocked.
 
   // ── Leads + contact ────────────────────────────────────────────────────
   http.post(endpoints.leadsLongTerm, async () => HttpResponse.json({ id: "lead-lt-1" })),
