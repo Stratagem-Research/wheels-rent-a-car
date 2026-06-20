@@ -5,7 +5,6 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Suspense } from "react";
 import { RouteProgressBar, SkipToContent, ToastProvider } from "@/components/ui";
-import { MswProvider } from "@/lib/api/mocks/MswProvider";
 import { CookieBanner } from "@/components/consent/CookieBanner";
 import { SavedVehiclesProvider } from "@/components/providers/SavedVehiclesProvider";
 import { isRtlLocale, routing } from "@/i18n/routing";
@@ -49,17 +48,15 @@ export default async function RootLayout({
     <html lang={language} dir={direction} className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body>
         <NextIntlClientProvider messages={messages}>
-          <MswProvider>
-            <SavedVehiclesProvider>
-              <SkipToContent />
-              <Suspense fallback={null}>
-                <RouteProgressBar />
-              </Suspense>
-              {children}
-              <ToastProvider />
-              <CookieBanner />
-            </SavedVehiclesProvider>
-          </MswProvider>
+          <SavedVehiclesProvider>
+            <SkipToContent />
+            <Suspense fallback={null}>
+              <RouteProgressBar />
+            </Suspense>
+            {children}
+            <ToastProvider />
+            <CookieBanner />
+          </SavedVehiclesProvider>
         </NextIntlClientProvider>
       </body>
     </html>

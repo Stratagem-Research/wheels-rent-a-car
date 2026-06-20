@@ -134,21 +134,28 @@ function UploadDocumentModal({
   const onSubmit = async () => {
     if (!session?.user.id) return;
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 400));
-    const saved: UserDocument = {
-      id: existing?.id ?? `doc-${Math.random().toString(36).slice(2, 8)}`,
-      userId: existing?.userId ?? session.user.id,
-      type: docType,
-      number: number.trim(),
-      issueDate,
-      expiryDate,
-      issuingCountry: country,
-      scanUrl: file?.name,
-      status: "pending",
-      uploadedAt: new Date().toISOString(),
-    };
-    onSave(saved);
-    setSaving(false);
+    try {
+      const form = new FormData();
+      form.set("type", docType);
+      form.set("number", number.trim());
+      form.set("issueDate", issueDate);
+      form.set("expiryDate", expiryDate);
+      form.set("issuingCountry", country);
+      if (file) form.set("file", file);
+
+      const res = await fetch(endpoints.accountDocuments, {
+        method: "POST",
+        body: form,
+        credentials: "same-origin",
+      });
+      if (!res.ok) throw new Error("Save failed");
+      const saved = (await res.json()) as UserDocument;
+      onSave(saved);
+    } catch {
+      toast.error(t("saveFailed"));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

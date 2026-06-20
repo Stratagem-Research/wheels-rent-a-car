@@ -19,14 +19,11 @@ import {
   type CardFormValue,
 } from "@/components/booking/PaymentMethodSelector";
 import { useBookingDraft } from "@/hooks/useBookingDraft";
+import { useBookingCatalog } from "@/hooks/useBookingCatalog";
 import { whatsAppHref } from "@/lib/whatsapp";
 import { api, ApiError } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
-import { formatUsd } from "@/lib/booking/pricing";
-import { computePrice } from "@/lib/booking/pricing";
-import { BRANCHES } from "@/lib/api/mocks/fixtures/branches";
-import { VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
-import { ADD_ONS, PROTECTION_TIERS } from "@/lib/api/mocks/fixtures/catalog";
+import { computePrice, formatUsd } from "@/lib/booking/pricing";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
 import type { PaymentMethod, SubmitBookingResponse } from "@/types/domain";
@@ -92,6 +89,12 @@ export default function CheckoutPage() {
   const t = useTranslations("bookingFlow.checkout");
   const router = useRouter();
   const { draft, setDraft, ready } = useBookingDraft();
+  const {
+    addOns: ADD_ONS,
+    protectionTiers: PROTECTION_TIERS,
+    vehicles: VEHICLES,
+    branches: BRANCHES,
+  } = useBookingCatalog();
   const [form, setForm] = React.useState<CheckoutFormState>(emptyForm);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [submitting, setSubmitting] = React.useState(false);

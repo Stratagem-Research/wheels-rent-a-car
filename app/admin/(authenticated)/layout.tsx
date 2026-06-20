@@ -37,9 +37,9 @@ export default function AdminAuthenticatedLayout({ children }: { children: React
   }
 
   return (
-    <div className="bg-ink-05 flex min-h-screen">
+    <div className="bg-ink-05 min-h-screen lg:pl-60">
       <AdminSidebar />
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0">
         <AdminMobileBar />
         <main>{children}</main>
       </div>

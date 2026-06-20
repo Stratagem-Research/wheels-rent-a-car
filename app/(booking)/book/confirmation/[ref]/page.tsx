@@ -18,13 +18,11 @@ import { whatsAppHref } from "@/lib/whatsapp";
 import { api, ApiError } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
 import { formatUsd } from "@/lib/booking/pricing";
-import { BRANCHES } from "@/lib/api/mocks/fixtures/branches";
-import { ADD_ONS, PROTECTION_TIERS } from "@/lib/api/mocks/fixtures/catalog";
 import { readRefMap } from "@/lib/api/wheels-public";
 import { clearBookingDraft, useBookingDraft } from "@/hooks/useBookingDraft";
+import { useBookingCatalog } from "@/hooks/useBookingCatalog";
 import { toast } from "@/components/ui/Toast";
 import type { Booking } from "@/types/domain";
-import { VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
 
 /**
  * /book/confirmation/[ref] — step 5 per 04_booking_flow.md.
@@ -45,6 +43,12 @@ export default function ConfirmationPage() {
   const ref = params?.ref ?? "";
   const email = searchParams?.get("email") ?? "";
   const { draft } = useBookingDraft();
+  const {
+    branches: BRANCHES,
+    vehicles: VEHICLES,
+    addOns: ADD_ONS,
+    protectionTiers: PROTECTION_TIERS,
+  } = useBookingCatalog();
 
   const [booking, setBooking] = React.useState<Booking | null>(null);
   const [lookupError, setLookupError] = React.useState<string | null>(null);
@@ -67,7 +71,7 @@ export default function ConfirmationPage() {
           !(err instanceof ApiError) || err.status <= 0 || err.status >= 500;
         if (shouldUseFallback) {
           // Temporary resilience path while rollout stabilizes.
-          const local = buildLocalFallbackBooking(ref, email, draft);
+          const local = buildLocalFallbackBooking(ref, email, draft, VEHICLES);
           if (local) {
             setBooking(local);
             clearBookingDraft();
@@ -81,7 +85,7 @@ export default function ConfirmationPage() {
     return () => {
       cancelled = true;
     };
-  }, [refValid, ref, email, draft, t]);
+  }, [refValid, ref, email, draft, t, VEHICLES]);
 
   if (error) {
     return (
@@ -415,6 +419,7 @@ function buildLocalFallbackBooking(
   ref: string,
   email: string,
   draft: ReturnType<typeof useBookingDraft>["draft"],
+  vehicles: ReturnType<typeof useBookingCatalog>["vehicles"],
 ): Booking | null {
   if (typeof window === "undefined") return null;
   const entry = readRefMap(window.localStorage)[ref];
@@ -422,7 +427,7 @@ function buildLocalFallbackBooking(
   if (email && entry.email && entry.email.toLowerCase() !== email.toLowerCase()) return null;
   if (!draft || !draft.vehicle || !draft.driver || !draft.paymentMethod) return null;
 
-  const vehicle = VEHICLES.find((v) => v.id === draft.vehicle?.vehicleId);
+  const vehicle = vehicles.find((v) => v.id === draft.vehicle?.vehicleId);
   if (!vehicle) return null;
 
   return {

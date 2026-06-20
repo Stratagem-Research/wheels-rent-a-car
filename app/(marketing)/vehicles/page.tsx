@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
+import { getPublicBranches, getPublicVehicles } from "@/lib/server/public-content";
 import { VehiclesClient } from "./_components/VehiclesClient";
 
 /**
@@ -13,10 +14,11 @@ export async function generateMetadata() {
   return { title: t("vehiclesTitle"), description: t("vehiclesDescription") };
 }
 
-export default function VehiclesPage() {
+export default async function VehiclesPage() {
+  const [vehicles, branches] = await Promise.all([getPublicVehicles(), getPublicBranches()]);
   return (
     <Suspense fallback={null}>
-      <VehiclesClient />
+      <VehiclesClient vehicles={vehicles} branches={branches} />
     </Suspense>
   );
 }

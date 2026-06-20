@@ -8,8 +8,10 @@ import {
   Info,
   MapPinned,
   Megaphone,
+  Package,
   Route,
   Settings2,
+  Star,
   Users,
 } from "lucide-react";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
@@ -110,6 +112,22 @@ export default function AdminDashboardPage() {
       title: "Promotions",
       count: "Campaigns",
       body: "Promo strip copy, links, active windows, and toggles.",
+    },
+    {
+      href: "/admin/catalog",
+      icon: <Package className="size-5" aria-hidden="true" />,
+      eyebrow: "Booking",
+      title: "Catalog",
+      count: "Add-ons · protection · long-term",
+      body: "Extras, protection tiers, and long-term pricing for the booking funnel.",
+    },
+    {
+      href: "/admin/reviews",
+      icon: <Star className="size-5" aria-hidden="true" />,
+      eyebrow: "Marketing",
+      title: "Reviews",
+      count: "Homepage marquee",
+      body: "Google and Trustpilot quotes on the landing page.",
     },
     {
       href: "/admin/ops",

@@ -7,10 +7,11 @@ import {
   updateLeadStatus,
   writeAdminAuditLog,
 } from "@/lib/supabase/admin-repository";
+import { listContactLeads, updateContactLeadStatus } from "@/lib/supabase/contact-repository";
 import { requireAdminCsrf, requireAdminSession } from "@/lib/server/admin-api";
 
 const LeadStatusSchema = z.enum(["new", "in-progress", "won", "lost"]);
-const LeadKindSchema = z.enum(["long-term", "corporate", "chauffeur"]);
+const LeadKindSchema = z.enum(["long-term", "corporate", "chauffeur", "contact"]);
 
 const LeadUpdateSchema = z.object({
   id: z.string().uuid(),
@@ -24,12 +25,13 @@ export async function GET(request: Request) {
   const auth = requireAdminSession(request, ["content-editor", "ops-admin"]);
   if (!auth.ok) return auth.response;
   try {
-    const [longTerm, corporate, chauffeur] = await Promise.all([
+    const [longTerm, corporate, chauffeur, contact] = await Promise.all([
       listLongTermLeads(),
       listCorporateLeads(),
       listChauffeurLeads(),
+      listContactLeads(),
     ]);
-    const all = [...longTerm, ...corporate, ...chauffeur];
+    const all = [...longTerm, ...corporate, ...chauffeur, ...contact];
     const counters = {
       total: all.length,
       new: all.filter((item) => item.status === "new").length,
@@ -42,6 +44,7 @@ export async function GET(request: Request) {
       longTerm,
       corporate,
       chauffeur,
+      contact,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to load leads.";
@@ -60,19 +63,23 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ message: "Invalid lead update payload." }, { status: 400 });
   }
   try {
-    const table =
-      parsed.data.kind === "long-term"
-        ? "long_term_enquiries"
-        : parsed.data.kind === "corporate"
-          ? "corporate_enquiries"
-          : "chauffeur_enquiries";
-    await updateLeadStatus(
-      table,
-      parsed.data.id,
-      parsed.data.status,
-      parsed.data.owner?.trim() || null,
-      parsed.data.adminNotes?.trim() || null,
-    );
+    if (parsed.data.kind === "contact") {
+      await updateContactLeadStatus(parsed.data.id, parsed.data.status);
+    } else {
+      const table =
+        parsed.data.kind === "long-term"
+          ? "long_term_enquiries"
+          : parsed.data.kind === "corporate"
+            ? "corporate_enquiries"
+            : "chauffeur_enquiries";
+      await updateLeadStatus(
+        table,
+        parsed.data.id,
+        parsed.data.status,
+        parsed.data.owner?.trim() || null,
+        parsed.data.adminNotes?.trim() || null,
+      );
+    }
     await writeAdminAuditLog({
       actor: auth.session.username,
       role: auth.session.role,

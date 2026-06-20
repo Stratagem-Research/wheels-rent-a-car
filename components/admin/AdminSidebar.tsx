@@ -11,8 +11,10 @@ import {
   LogOut,
   MapPinned,
   Megaphone,
+  Package,
   Route,
   Settings2,
+  Star,
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -41,6 +43,8 @@ const NAV_ITEMS: Array<{
   { href: "/admin/fleet", label: "Fleet", icon: Route },
   { href: "/admin/locations", label: "Locations", icon: MapPinned },
   { href: "/admin/promotions", label: "Promotions", icon: Megaphone },
+  { href: "/admin/catalog", label: "Catalog", icon: Package },
+  { href: "/admin/reviews", label: "Reviews", icon: Star },
   { href: "/admin/ops", label: "Ops", icon: Settings2 },
 ];
 
@@ -55,16 +59,16 @@ export function AdminSidebar() {
 
   return (
     <aside
-      className="bg-ink-100 text-paper sticky top-0 hidden h-screen w-60 shrink-0 flex-col lg:flex"
+      className="bg-ink-100 text-paper fixed inset-y-0 left-0 z-20 hidden h-dvh w-60 flex-col lg:flex"
       aria-label="Admin navigation"
     >
-      <div className="border-b border-white/10 px-6 py-5">
+      <div className="shrink-0 border-b border-white/10 px-6 py-5">
         <Link href="/admin" className="inline-flex flex-col gap-0.5">
           <span className="label-sm text-paper/60">Wheels</span>
           <span className="headline-sm text-paper">Admin</span>
         </Link>
       </div>
-      <nav className="flex flex-1 flex-col gap-1 p-4">
+      <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-y-contain p-4">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || (href !== "/admin" && pathname?.startsWith(href));
           return (
@@ -84,12 +88,8 @@ export function AdminSidebar() {
           );
         })}
       </nav>
-      <div className="border-t border-white/10 p-4">
-        <p className="label-sm text-paper/50 px-4 pb-3 leading-snug">
-          Server-session protected.
-          <br />
-          Ops tools require ops-admin role.
-        </p>
+      <div className="shrink-0 border-t border-white/10 p-4">
+
         <button
           type="button"
           onClick={onSignOut}

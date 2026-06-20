@@ -18,12 +18,12 @@ import { PageHero } from "@/components/marketing/PageHero";
 import { PAGE_HERO_IMAGES } from "@/lib/marketing/hero-images";
 import { VehicleCard } from "@/components/vehicle/VehicleCard";
 import { EnquiryFormLongTerm } from "@/components/leads/EnquiryFormLongTerm";
-import { LONG_TERM_TIERS } from "@/lib/api/mocks/fixtures/catalog";
-import { VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
+import { useLongTermCatalog } from "@/hooks/useLongTermCatalog";
 import { whatsAppHref } from "@/lib/whatsapp";
 
 export default function LongTermPage() {
   const t = useTranslations("longTerm");
+  const { tiers: LONG_TERM_TIERS, vehicles: popularVehicles } = useLongTermCatalog();
   const howItWorks = t.raw("howSteps") as { title: string; body: string }[];
   const inclusions = t.raw("inclusions") as string[];
   const faqs = t.raw("faqs") as { q: string; a: string }[];
@@ -125,7 +125,7 @@ export default function LongTermPage() {
             </h2>
           </div>
           <ul className="mt-10 grid auto-cols-[minmax(280px,1fr)] grid-flow-col gap-4 overflow-x-auto pb-2 sm:gap-6 lg:auto-cols-[minmax(0,1fr)] lg:grid-flow-row lg:grid-cols-3">
-            {VEHICLES.filter((v) => ["sedan", "suv"].includes(v.category))
+            {popularVehicles
               .slice(0, 6)
               .map((v) => (
                 <li key={v.id}>

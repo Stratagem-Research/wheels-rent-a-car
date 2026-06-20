@@ -9,9 +9,7 @@ import { Stepper } from "@/components/booking/Stepper";
 import { ProtectionTierCard } from "@/components/booking/ProtectionTierCard";
 import { FlowSummaryPanel } from "@/components/booking/FlowSummaryPanel";
 import { useBookingDraft } from "@/hooks/useBookingDraft";
-import { BRANCHES } from "@/lib/api/mocks/fixtures/branches";
-import { VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
-import { ADD_ONS, PROTECTION_TIERS } from "@/lib/api/mocks/fixtures/catalog";
+import { useBookingCatalog } from "@/hooks/useBookingCatalog";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
 
@@ -26,6 +24,8 @@ export default function ProtectionPage() {
   const t = useTranslations("bookingFlow");
   const router = useRouter();
   const { draft, setProtection, ready } = useBookingDraft();
+  const { addOns: ADD_ONS, protectionTiers: PROTECTION_TIERS, vehicles: VEHICLES, branches: BRANCHES } =
+    useBookingCatalog();
   const protectionFaqs = t.raw("protection.faqs") as { q: string; a: string }[];
 
   React.useEffect(() => {

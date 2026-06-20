@@ -1122,6 +1122,7 @@
   },
   "accountDocuments": {
     "documentSaved": "Document saved.",
+    "saveFailed": "Could not save document. Try again.",
     "title": "Documents",
     "subtitle": "Upload your licence and ID once — every future booking pre-fills from here.",
     "licenceSection": "Driver's licence",

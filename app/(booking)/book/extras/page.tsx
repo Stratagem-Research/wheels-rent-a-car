@@ -10,9 +10,7 @@ import { Stepper } from "@/components/booking/Stepper";
 import { AddOnRow } from "@/components/booking/AddOnRow";
 import { FlowSummaryPanel } from "@/components/booking/FlowSummaryPanel";
 import { useBookingDraft } from "@/hooks/useBookingDraft";
-import { BRANCHES } from "@/lib/api/mocks/fixtures/branches";
-import { VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
-import { ADD_ONS, PROTECTION_TIERS } from "@/lib/api/mocks/fixtures/catalog";
+import { useBookingCatalog } from "@/hooks/useBookingCatalog";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
 import type { AddOnCategory } from "@/types/domain";
@@ -37,6 +35,8 @@ export default function ExtrasPage() {
   const t = useTranslations("bookingFlow");
   const router = useRouter();
   const { draft, upsertExtra, ready } = useBookingDraft();
+  const { addOns: ADD_ONS, protectionTiers: PROTECTION_TIERS, vehicles: VEHICLES, branches: BRANCHES } =
+    useBookingCatalog();
   const firedView = React.useRef(false);
 
   // Fire extras_viewed once per mount.

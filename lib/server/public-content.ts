@@ -1,7 +1,8 @@
-import type { Branch, SiteConfig, Vehicle } from "@/types/domain";
+import type { Branch, Review, SiteConfig, Vehicle } from "@/types/domain";
 import { BRANCHES as FALLBACK_BRANCHES } from "@/lib/api/mocks/fixtures/branches";
 import { SITE_CONFIG as FALLBACK_SITE_CONFIG } from "@/lib/api/mocks/fixtures/content";
 import { VEHICLES as FALLBACK_VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
+import { listReviewsFromDb } from "@/lib/supabase/reviews-repository";
 import { ABOUT_CONTENT_SEED } from "@/lib/supabase/seed-data";
 import {
   listAboutContent,
@@ -71,4 +72,13 @@ export async function getPublicAboutContent() {
   // Fallback to the localized seed (en/ar/fr) so the About page still
   // translates even when the CMS about table isn't provisioned.
   return ABOUT_CONTENT_SEED;
+}
+
+export async function getPublicReviews(limit = 10): Promise<Review[]> {
+  try {
+    return await listReviewsFromDb(limit);
+  } catch {
+    const { REVIEWS } = await import("@/lib/api/mocks/fixtures/content");
+    return REVIEWS.slice(0, limit);
+  }
 }

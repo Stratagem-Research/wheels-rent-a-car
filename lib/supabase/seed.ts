@@ -1,4 +1,10 @@
 import {
+  ADD_ONS,
+  LONG_TERM_TIERS,
+  PROTECTION_TIERS,
+} from "@/lib/api/mocks/fixtures/catalog";
+import { REVIEWS } from "@/lib/api/mocks/fixtures/content";
+import {
   ABOUT_CONTENT_SEED,
   CORPORATE_TIERS,
   FAQS,
@@ -8,6 +14,12 @@ import {
   TRIPS,
 } from "@/lib/supabase/seed-data";
 import { VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
+import {
+  replaceAddOnsInDb,
+  replaceLongTermTiersInDb,
+  replaceProtectionTiersInDb,
+} from "@/lib/supabase/catalog-repository";
+import { replaceReviewsInDb } from "@/lib/supabase/reviews-repository";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import {
   replaceAboutContent,
@@ -36,6 +48,8 @@ export type SeedResource =
   | "locations"
   | "promotions"
   | "about"
+  | "catalog"
+  | "reviews"
   | "all";
 
 export type SeedResult = {
@@ -55,6 +69,8 @@ export async function seedWebsiteData(resources: SeedResource[] = ["all"]): Prom
         "locations",
         "promotions",
         "about",
+        "catalog",
+        "reviews",
       ] as SeedResource[])
     : resources;
 
@@ -133,6 +149,21 @@ export async function seedWebsiteData(resources: SeedResource[] = ["all"]): Prom
   if (targets.includes("about")) {
     await replaceAboutContent(ABOUT_CONTENT_SEED);
     results.push({ resource: "about", count: ABOUT_CONTENT_SEED.team.length });
+  }
+
+  if (targets.includes("catalog")) {
+    await replaceAddOnsInDb(ADD_ONS);
+    await replaceProtectionTiersInDb(PROTECTION_TIERS);
+    await replaceLongTermTiersInDb(LONG_TERM_TIERS);
+    results.push({
+      resource: "catalog",
+      count: ADD_ONS.length + PROTECTION_TIERS.length + LONG_TERM_TIERS.length,
+    });
+  }
+
+  if (targets.includes("reviews")) {
+    await replaceReviewsInDb(REVIEWS);
+    results.push({ resource: "reviews", count: REVIEWS.length });
   }
 
   return results;

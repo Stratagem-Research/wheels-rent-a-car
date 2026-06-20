@@ -12,8 +12,6 @@ import { SearchBar } from "@/components/search/SearchBar";
 import { Stepper } from "@/components/booking/Stepper";
 import { VehicleCard } from "@/components/vehicle/VehicleCard";
 import { VehicleCardExpanded } from "@/components/vehicle/VehicleCardExpanded";
-import { BRANCHES } from "@/lib/api/mocks/fixtures/branches";
-import { VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
 import {
   applyFilters,
   computeFacets,
@@ -23,7 +21,7 @@ import {
 import { useBookingDraft } from "@/hooks/useBookingDraft";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
-import type { MileagePlan, RateType, Vehicle, VehicleCategory } from "@/types/domain";
+import type { MileagePlan, RateType, Vehicle, VehicleCategory, Branch } from "@/types/domain";
 
 /**
  * /vehicles — INK & SIGNAL canonical results page (Phase 7).
@@ -48,7 +46,13 @@ import type { MileagePlan, RateType, Vehicle, VehicleCategory } from "@/types/do
  *   ?guaranteed=1           "Guaranteed model" toggle (Phase-1 stub)
  */
 
-export function VehiclesClient() {
+export function VehiclesClient({
+  vehicles,
+  branches,
+}: {
+  vehicles: Vehicle[];
+  branches: Branch[];
+}) {
   const t = useTranslations("vehicles");
   const tCat = useTranslations("vehicleCategories");
   const router = useRouter();
@@ -59,10 +63,10 @@ export function VehiclesClient() {
   );
 
   const filters = parseFiltersFromSearch(searchParams);
-  const facets = React.useMemo(() => computeFacets(VEHICLES), []);
+  const facets = React.useMemo(() => computeFacets(vehicles), [vehicles]);
   const filtered = React.useMemo(
-    () => sortFiltered(applyFilters(VEHICLES, filters), filters.sort),
-    [filters],
+    () => sortFiltered(applyFilters(vehicles, filters), filters.sort),
+    [vehicles, filters],
   );
 
   const isStep1 = searchParams.get("step") === "1";
@@ -158,7 +162,7 @@ export function VehiclesClient() {
       {/* Sticky search summary band */}
       <section className="bg-paper border-border sticky top-0 z-20 border-b">
         <div className="mx-auto max-w-[var(--container-full)] px-5 py-3 sm:px-5">
-          <SearchBar branches={BRANCHES} variant="compact" />
+          <SearchBar branches={branches} variant="compact" />
         </div>
       </section>
 

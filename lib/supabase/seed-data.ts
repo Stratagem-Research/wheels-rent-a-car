@@ -1,5 +1,5 @@
 ﻿/**
- * Server-only CMS seed payloads for /api/admin/seed.
+ * Server-only CMS seed payloads (used by lib/supabase/seed.ts).
  * Not used at runtime — public/admin pages read from Supabase via /api/cms/*.
  */
 import type { CorporateTier, FaqGroup, Itinerary, Trip } from "@/types/domain";
