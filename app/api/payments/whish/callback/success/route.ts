@@ -45,7 +45,7 @@ export async function GET(request: Request) {
     lifecycleState: "confirmed",
     paymentStatus: "paid",
     paidAmount: status.amount,
-    paymentMethod: "whish",
+    paymentMethod: "website_payment",
     paymentReference: status.transactionId,
     paymentDate: new Date().toISOString().slice(0, 10),
     message: "Payment confirmed via Whish callback.",

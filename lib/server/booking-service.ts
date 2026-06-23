@@ -15,6 +15,7 @@ import {
   computePrice,
   generateBookingRef,
   perDayRate,
+  isWithinOnlineBookingWindow,
   rentalDays,
 } from "@/lib/booking/pricing";
 import { getPublicVehicles } from "@/lib/server/public-content";
@@ -29,16 +30,53 @@ import {
   fromBookingDraft,
   getAvailability,
   getBookingByReferenceEmail,
+  getBookingStatusByToken,
   toInternalAvailableVehicles,
   toInternalBooking,
   VehicleUnavailableError,
 } from "@/lib/api/wheels-public";
 import { toBackendDateTime } from "@/lib/api/wheels-public/datetime";
 import { realBookingApiEnabled } from "@/lib/api/wheels-public/live-handlers";
+import { dispatchWizardSync } from "@/lib/server/wizard-sync";
+import { appendBookingState } from "@/lib/server/payment-events";
 
 export { VehicleUnavailableError };
 
 const mockBookings = new Map<string, Booking>();
+
+function assertOnlineBookingWindow(pickupISO: string, returnISO: string) {
+  if (!isWithinOnlineBookingWindow(pickupISO, returnISO)) {
+    throw new Error(
+      "Online booking is limited to 3 months. Please use our long-term enquiry form for longer rentals.",
+    );
+  }
+}
+
+async function syncCashBookingToWizard(
+  booking: Booking,
+  wizardBookingId: number | undefined,
+  paidAmount: number,
+) {
+  if (!realBookingApiEnabled()) return;
+  try {
+    await dispatchWizardSync(booking.ref, {
+      lifecycleState: "confirmed",
+      paymentStatus: "paid",
+      paidAmount,
+      paymentMethod: "website_payment",
+      paymentDate: new Date().toISOString().slice(0, 10),
+      wizardBookingId,
+      message: "Cash booking confirmed at checkout.",
+    });
+    await appendBookingState(booking.ref, "confirmed", {
+      paymentStatus: "paid",
+      source: "cash_submit",
+    });
+  } catch {
+    // Sync failures are logged in wizard-sync; booking still stands locally.
+  }
+}
+
 
 function buildRatesFor(vehicleId: string, vehicles: Awaited<ReturnType<typeof getPublicVehicles>>): Rate[] {
   const vehicle = vehicles.find((v) => v.id === vehicleId);
@@ -67,6 +105,7 @@ async function getCatalog() {
 }
 
 export async function handleBookingAvailability(body: AvailabilityRequest) {
+  assertOnlineBookingWindow(body.pickup.datetime, body.return.datetime);
   if (realBookingApiEnabled()) {
     const response = await getAvailability({
       startDateTime: toBackendDateTime(body.pickup.datetime),
@@ -108,6 +147,7 @@ export async function handleBookingRate(body: {
 }
 
 export async function handleBookingQuote(body: QuoteRequest): Promise<QuoteResponse> {
+  assertOnlineBookingWindow(body.draft.pickup.datetime, body.draft.return.datetime);
   const { addOns, tiers, vehicles } = await getCatalog();
   const vehicle = body.draft.vehicle
     ? vehicles.find((v) => v.id === body.draft.vehicle?.vehicleId)
@@ -131,6 +171,7 @@ export async function handleBookingSubmit(
   if (!draft.vehicle || !draft.driver || !draft.paymentMethod) {
     throw new Error("Incomplete booking");
   }
+  assertOnlineBookingWindow(draft.pickup.datetime, draft.return.datetime);
 
   const { addOns, tiers, vehicles } = await getCatalog();
   const vehicle = vehicles.find((v) => v.id === draft.vehicle?.vehicleId);
@@ -149,14 +190,20 @@ export async function handleBookingSubmit(
       throw new Error(`No wizard mapping for vehicle ${draft.vehicle.vehicleId}`);
     }
 
+    const price = computePrice({ draft, vehicle, addOns, tiers });
     const payload = fromBookingDraft(draft, {
       resolveVehicleId: () => numericId,
       addOns,
       protectionTiers: tiers,
+      rateTotalCents: price.totalCents,
     });
     const response = await createBookingRequest(payload);
-    const price = computePrice({ draft, vehicle, addOns, tiers });
-    const booking = toInternalBooking(response.data, { draft, vehicle, price });
+    const booking = toInternalBooking(response.data, {
+      draft,
+      vehicle,
+      price,
+      publicToken: response.data.public_token,
+    });
 
     mockBookings.set(booking.ref, booking);
     if (options?.userId) {
@@ -164,7 +211,15 @@ export async function handleBookingSubmit(
         userId: options.userId,
         bookingReference: booking.ref,
         publicToken: response.data.public_token,
+        wizardBookingId: response.data.booking_id,
       });
+    }
+    if (draft.paymentMethod === "cash") {
+      await syncCashBookingToWizard(
+        booking,
+        response.data.booking_id,
+        Math.round(booking.price.totalCents / 100),
+      );
     }
     return { booking };
   }
@@ -210,20 +265,28 @@ export async function handleBookingSubmit(
 }
 
 export async function handleBookingLookup(body: LookupBookingRequest): Promise<Booking> {
-  const fromMock = mockBookings.get(body.ref);
-  if (fromMock && fromMock.driver.email.toLowerCase() === body.email.toLowerCase()) {
-    return fromMock;
-  }
-
   if (realBookingApiEnabled()) {
     const response = await getBookingByReferenceEmail(body.ref, body.email);
     return toBookingFromLookup(response.data);
+  }
+
+  const fromMock = mockBookings.get(body.ref);
+  if (fromMock && fromMock.driver.email.toLowerCase() === body.email.toLowerCase()) {
+    return fromMock;
   }
 
   if (!fromMock || fromMock.driver.email.toLowerCase() !== body.email.toLowerCase()) {
     throw new Error("Not found");
   }
   return fromMock;
+}
+
+export async function handleBookingStatusByToken(publicToken: string) {
+  if (!realBookingApiEnabled()) {
+    throw new Error("Status polling requires real booking API.");
+  }
+  const response = await getBookingStatusByToken(publicToken);
+  return response.data;
 }
 
 export async function handleBookingCancelPreview(body: { ref: string }) {

@@ -271,8 +271,11 @@ export default function CheckoutPage() {
       });
 
       clearHold();
+      const tokenQuery = response.booking.publicToken
+        ? `&token=${encodeURIComponent(response.booking.publicToken)}`
+        : "";
       router.push(
-        `/book/confirmation/${response.booking.ref}?email=${encodeURIComponent(completeDraft.driver.email)}`,
+        `/book/confirmation/${response.booking.ref}?email=${encodeURIComponent(completeDraft.driver.email)}${tokenQuery}`,
       );
     } catch (err) {
       console.error(err);

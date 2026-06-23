@@ -23,6 +23,7 @@ export const endpoints = {
   bookingQuote: `${API_BASE}/booking/quote`,
   bookingSubmit: `${API_BASE}/booking/submit`,
   bookingLookup: `${API_BASE}/booking/lookup`,
+  bookingStatus: `${API_BASE}/booking/status`,
   bookingPublicLookup: (reference: string) =>
     `${WHEELS_PUBLIC_BASE}/bookings/${encodeURIComponent(reference)}`,
   bookingPublicStatusByToken: (publicToken: string) =>

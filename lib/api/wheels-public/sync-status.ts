@@ -17,6 +17,8 @@ export interface WebsiteToWizardSyncInput {
   paymentReference?: string;
   paymentDate?: string;
   message?: string;
+  /** Wizard booking_id from create response; sent as parent_id when present. */
+  wizardBookingId?: number;
 }
 
 export const REQUEST_STATE_SYNC_TYPE: Record<
@@ -31,7 +33,7 @@ export const REQUEST_STATE_SYNC_TYPE: Record<
   refund_requested: "refund_request",
 };
 
-const WIZARD_STATUS_FALLBACK = "pending";
+const WIZARD_STATUS_FALLBACK = "pending_approval";
 
 /**
  * Wizard currently cannot store request-like statuses directly.
@@ -50,16 +52,40 @@ export function mapWebsiteSyncToWizardPayload(input: WebsiteToWizardSyncInput): 
       ? WIZARD_STATUS_FALLBACK
       : input.lifecycleState === "confirmed"
         ? "approved"
-        : input.lifecycleState;
+        : input.lifecycleState === "cancelled"
+          ? "canceled"
+          : input.lifecycleState === "pending"
+            ? "pending_approval"
+            : input.lifecycleState;
+
+  const syncType =
+    requestSyncType ??
+    resolveSyncType(input.lifecycleState, input.paymentStatus);
 
   return {
+    ...(input.wizardBookingId != null ? { parent_id: input.wizardBookingId } : {}),
     status,
     payment_status: input.paymentStatus,
     paid_amount: input.paidAmount,
-    payment_method: input.paymentMethod,
+    payment_method: input.paymentMethod ?? "website_payment",
     payment_reference: input.paymentReference,
     payment_date: input.paymentDate,
-    sync_type: requestSyncType ?? "status_update",
+    sync_type: syncType,
     message: input.message,
   };
+}
+
+function resolveSyncType(
+  lifecycleState: WebsiteBookingLifecycleState,
+  paymentStatus?: string,
+): string {
+  if (lifecycleState === "confirmed" && paymentStatus === "paid") {
+    return "payment_confirmed";
+  }
+  if (paymentStatus === "payment_failed") return "payment_failed";
+  if (paymentStatus === "payment_cancelled") return "payment_cancelled";
+  if (paymentStatus === "refund_pending") return "refund_pending";
+  if (paymentStatus === "refunded") return "refund_completed";
+  if (lifecycleState === "cancelled") return "refund_completed";
+  return "status_update";
 }

@@ -2,7 +2,7 @@
   "name": "wheels-rent-a-car",
   "version": "0.1.0",
   "private": true,
-  "description": "Wheels Rent A Car (Lebanon) — premium customer-facing car-rental site. Phase 1, English-only.",
+  "description": "Wheels Rent A Car (Lebanon) \u2014 premium customer-facing car-rental site. Phase 1, English-only.",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
@@ -18,7 +18,9 @@
     "i18n:check": "node --import tsx scripts/check-i18n.ts",
     "env:check": "./scripts/check-env.sh",
     "env:check:payment-deferred": "./scripts/check-env.sh payment-deferred",
-    "security:rls:negative": "./scripts/run-rls-negative-tests.sh"
+    "security:rls:negative": "./scripts/run-rls-negative-tests.sh",
+    "db:seed": "node --import tsx scripts/seed-website.ts all",
+    "db:migrate": "node --import tsx scripts/apply-all-migrations.mjs"
   },
   "engines": {
     "node": ">=20.0.0"

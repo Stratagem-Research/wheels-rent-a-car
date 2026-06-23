@@ -28,6 +28,7 @@ export async function addUserBooking(input: {
   userId: string;
   bookingReference: string;
   publicToken?: string | null;
+  wizardBookingId?: number | null;
 }): Promise<void> {
   const supabase = getSupabaseAdminClient();
   const { error } = await supabase.from("user_bookings").upsert(
@@ -35,6 +36,7 @@ export async function addUserBooking(input: {
       user_id: input.userId,
       booking_reference: input.bookingReference,
       public_token: input.publicToken ?? null,
+      wizard_booking_id: input.wizardBookingId ?? null,
     },
     { onConflict: "user_id,booking_reference", ignoreDuplicates: true },
   );

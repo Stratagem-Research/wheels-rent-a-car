@@ -286,6 +286,8 @@ export interface Booking {
   price: BookingPriceBreakdown;
   /** ISO-4217 currency code. Phase 1 = "USD". */
   currency: "USD";
+  /** Wizard public_token for status polling when booking is pending. */
+  publicToken?: string;
 }
 
 // ── User account ──────────────────────────────────────────────────────────

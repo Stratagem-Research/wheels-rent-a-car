@@ -14,6 +14,9 @@ export async function POST(request: Request) {
     if (err instanceof VehicleUnavailableError) {
       return NextResponse.json({ message: err.message }, { status: 409 });
     }
+    if (err instanceof Error && err.message.includes("3 months")) {
+      return NextResponse.json({ message: err.message }, { status: 400 });
+    }
     const message = err instanceof Error ? err.message : "Availability lookup failed.";
     return NextResponse.json({ message }, { status: 502 });
   }

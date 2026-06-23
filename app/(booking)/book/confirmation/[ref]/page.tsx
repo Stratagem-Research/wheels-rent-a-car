@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Stepper } from "@/components/booking/Stepper";
 import { ConfirmationStatusBlock } from "@/components/booking/ConfirmationStatusBlock";
+import { BookingStatusPoller } from "@/components/booking/BookingStatusPoller";
 import { isValidBookingRef } from "@/lib/booking/ref";
 import { bookingToIcs, downloadIcs } from "@/lib/booking/calendar";
 import { whatsAppHref } from "@/lib/whatsapp";
@@ -22,7 +23,7 @@ import { readRefMap } from "@/lib/api/wheels-public";
 import { clearBookingDraft, useBookingDraft } from "@/hooks/useBookingDraft";
 import { useBookingCatalog } from "@/hooks/useBookingCatalog";
 import { toast } from "@/components/ui/Toast";
-import type { Booking } from "@/types/domain";
+import type { Booking, BookingState } from "@/types/domain";
 
 /**
  * /book/confirmation/[ref] — step 5 per 04_booking_flow.md.
@@ -42,6 +43,7 @@ export default function ConfirmationPage() {
   const router = useRouter();
   const ref = params?.ref ?? "";
   const email = searchParams?.get("email") ?? "";
+  const statusToken = searchParams?.get("token") ?? "";
   const { draft } = useBookingDraft();
   const {
     branches: BRANCHES,
@@ -51,6 +53,9 @@ export default function ConfirmationPage() {
   } = useBookingCatalog();
 
   const [booking, setBooking] = React.useState<Booking | null>(null);
+  const onBookingStateChange = React.useCallback((state: BookingState) => {
+    setBooking((prev) => (prev ? { ...prev, state } : prev));
+  }, []);
   const [lookupError, setLookupError] = React.useState<string | null>(null);
   const refValid = isValidBookingRef(ref);
   // Derive the invalid-ref error synchronously — keeps it out of useEffect.
@@ -132,6 +137,11 @@ export default function ConfirmationPage() {
   return (
     <>
       <Stepper current={5} />
+      <BookingStatusPoller
+        booking={booking}
+        publicToken={statusToken || resolvePublicToken(ref, booking.publicToken)}
+        onStateChange={onBookingStateChange}
+      />
       <ConfirmationStatusBlock state={booking.state} bookingRef={booking.ref} />
 
       <section className="mx-auto max-w-[var(--container-full)] px-5 py-12 sm:px-5 sm:py-16">
@@ -415,6 +425,12 @@ function CrossSell() {
  * Booking the user just created; we just don't have a server round-trip
  * to refetch it.
  */
+function resolvePublicToken(ref: string, fromBooking?: string): string | null {
+  if (fromBooking) return fromBooking;
+  if (typeof window === "undefined") return null;
+  return readRefMap(window.localStorage)[ref]?.publicToken ?? null;
+}
+
 function buildLocalFallbackBooking(
   ref: string,
   email: string,
@@ -466,6 +482,7 @@ function buildLocalFallbackBooking(
       depositCents: 0,
     },
     currency: "USD",
+    publicToken: entry.publicToken,
   } satisfies Booking;
 }
 

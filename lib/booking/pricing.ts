@@ -26,6 +26,8 @@ import type {
  */
 
 const TAX_RATE = 0.11;
+/** Adam Q8: online booking max 3 months (~92 days). */
+export const MAX_ONLINE_RENTAL_DAYS = 92;
 const DELIVERY_FEE_CENTS = 1500;
 const FLEXIBLE_MULTIPLIER = 1.15;
 const UNLIMITED_MULTIPLIER = 1.1;
@@ -39,6 +41,11 @@ const DEPOSIT_BY_CATEGORY: Record<string, Cents> = {
   luxury: 150_000,
   convertible: 100_000,
 };
+
+export function isWithinOnlineBookingWindow(pickupISO: string, returnISO: string): boolean {
+  const days = rentalDays(pickupISO, returnISO);
+  return days >= 1 && days <= MAX_ONLINE_RENTAL_DAYS;
+}
 
 export function rentalDays(pickupISO: string, returnISO: string): number {
   try {

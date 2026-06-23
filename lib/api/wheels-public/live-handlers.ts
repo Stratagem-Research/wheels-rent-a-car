@@ -165,10 +165,12 @@ export async function liveSubmitBooking({
     numericId = resolveBackendVehicleId(draft.vehicle.vehicleId);
   }
 
+  const priceForPayload = computePrice({ draft, vehicle: VEHICLES.find((v) => v.id === draft.vehicle?.vehicleId)!, addOns: ADD_ONS, tiers: PROTECTION_TIERS });
   const payload = fromBookingDraft(draft, {
     resolveVehicleId: () => numericId,
     addOns: ADD_ONS,
     protectionTiers: PROTECTION_TIERS,
+    rateTotalCents: priceForPayload.totalCents,
   });
 
   const response = await createBookingRequest(payload);
@@ -184,6 +186,7 @@ export async function liveSubmitBooking({
     vehicle,
     price,
     clock,
+    publicToken: response.data.public_token,
   });
 
   // Remember this mapping for the funnel's next call, and persist the

@@ -149,10 +149,23 @@ describe("wheels-public/adapters", () => {
       expect(payload.notes).toMatch(/WhatsApp/);
     });
 
+
+    it("sends structured rate fields per Adam P0 contract", () => {
+      const payload = fromBookingDraft(draft(), {
+        resolveVehicleId: () => 131,
+        addOns: ADD_ONS,
+        protectionTiers: PROTECTION_TIERS,
+      });
+      expect(payload.rate_type).toBe("best_price");
+      expect(payload.mileage_plan).toBe("200km_per_day");
+      expect(payload.selected_rate_label).toContain("Best Price");
+      expect(payload.whatsapp_opt_in).toBe(true);
+    });
+
     it("maps payment_method correctly across all frontend methods", () => {
       const map: Record<NonNullable<BookingDraft["paymentMethod"]>, string> = {
-        card: "online_pending",
-        "whish-online": "online_pending",
+        card: "online_payment",
+        "whish-online": "online_payment",
         cash: "cash_on_pickup",
         transfer: "bank_transfer",
         omt: "omt",

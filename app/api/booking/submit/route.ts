@@ -21,6 +21,9 @@ export async function POST(request: Request) {
         { status: 409 },
       );
     }
+    if (err instanceof Error && err.message.includes("3 months")) {
+      return NextResponse.json({ message: err.message }, { status: 400 });
+    }
     if (err instanceof Error && err.message === "Incomplete booking") {
       return NextResponse.json({ message: err.message }, { status: 400 });
     }

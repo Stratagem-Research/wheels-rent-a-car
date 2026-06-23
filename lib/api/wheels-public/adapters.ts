@@ -93,6 +93,8 @@ export interface FromBookingDraftOptions {
   protectionTiers?: ProtectionTier[];
   /** Override the country code used when sending phone — defaults to "LB". */
   defaultCountry?: string;
+  /** Total rental price in cents for selected_rate_price. */
+  rateTotalCents?: number;
 }
 
 export class MissingBackendVehicleIdError extends Error {
@@ -159,6 +161,44 @@ export function fromBookingDraft(
       expiration_date: draft.driver.licenceExpiry,
     },
     notes,
+    ...buildRateSelectionFields(draft, options.rateTotalCents),
+    whatsapp_opt_in: draft.whatsappOptIn ?? true,
+    email_opt_in: draft.marketingConsent ?? false,
+    customer_language: "en",
+    notification_channel: draft.whatsappOptIn !== false ? "whatsapp" : "email",
+  };
+}
+
+function buildRateSelectionFields(
+  draft: BookingDraft,
+  rateTotalCents?: number,
+): Pick<
+  BookingRequestPayload,
+  | "rate_type"
+  | "mileage_plan"
+  | "selected_rate_label"
+  | "selected_rate_price"
+  | "selected_mileage_limit"
+> {
+  const rate = draft.vehicle?.rate;
+  if (!rate) return {};
+
+  const rateType = rate.type === "best-price" ? "best_price" : "flexible";
+  const mileagePlan = rate.mileage === "unlimited" ? "unlimited" : "200km_per_day";
+  const rateLabel = rate.type === "best-price" ? "Best Price" : "Flexible";
+  const mileageLabel = rate.mileage === "unlimited" ? "Unlimited" : "200 km/day";
+
+  const price =
+    typeof rateTotalCents === "number" && Number.isFinite(rateTotalCents)
+      ? Math.round(rateTotalCents / 100)
+      : undefined;
+
+  return {
+    rate_type: rateType,
+    mileage_plan: mileagePlan,
+    selected_rate_label: `${rateLabel} · ${mileageLabel}`,
+    ...(price != null ? { selected_rate_price: price } : {}),
+    selected_mileage_limit: mileageLabel,
   };
 }
 
@@ -166,7 +206,7 @@ function mapPaymentMethod(method: BookingDraft["paymentMethod"]): string {
   switch (method) {
     case "card":
     case "whish-online":
-      return "online_pending";
+      return "online_payment";
     case "cash":
       return "cash_on_pickup";
     case "transfer":
@@ -346,6 +386,7 @@ export function toInternalBooking(data: BookingData, options: ToInternalBookingO
     promoCode: draft.promoCode,
     price: { ...price, totalCents },
     currency: "USD",
+    ...(options.publicToken ? { publicToken: options.publicToken } : {}),
   };
 }
 

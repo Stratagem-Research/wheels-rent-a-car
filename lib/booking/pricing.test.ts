@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { computePrice, formatUsd, generateBookingRef, perDayRate, rentalDays } from "./pricing";
+import {
+  computePrice,
+  formatUsd,
+  generateBookingRef,
+  isWithinOnlineBookingWindow,
+  perDayRate,
+  rentalDays,
+} from "./pricing";
 import { VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
 import { ADD_ONS, PROTECTION_TIERS } from "@/lib/api/mocks/fixtures/catalog";
 import type { BookingDraft } from "@/types/domain";
@@ -88,5 +95,16 @@ describe("booking/pricing", () => {
   it("generates a ref that matches WRC-YYMMDD-XXXX", () => {
     const ref = generateBookingRef(new Date("2026-05-20T10:00:00.000Z"));
     expect(ref).toMatch(/^WRC-260520-[A-Z0-9]{4}$/);
+  });
+});
+
+
+describe("isWithinOnlineBookingWindow", () => {
+  it("allows rentals up to 92 days", () => {
+    expect(isWithinOnlineBookingWindow("2026-05-01T10:00", "2026-06-01T10:00")).toBe(true);
+  });
+
+  it("rejects rentals longer than 92 days", () => {
+    expect(isWithinOnlineBookingWindow("2026-05-01T10:00", "2026-09-01T10:00")).toBe(false);
   });
 });

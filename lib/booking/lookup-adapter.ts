@@ -1,6 +1,15 @@
-import type { Booking } from "@/types/domain";
+import type { Booking, BookingState } from "@/types/domain";
 import { VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
 import { fromBackendDateTime } from "@/lib/api/wheels-public/datetime";
+
+/** Map Wizard operational status strings to the website BookingState. */
+export function wizardStatusToBookingState(status: string): BookingState {
+  if (status === "approved" || status === "confirmed") return "confirmed";
+  if (status === "cancelled" || status === "canceled") return "cancelled";
+  if (status === "completed") return "completed";
+  if (status === "expired") return "expired";
+  return "pending";
+}
 
 /** Map a Laravel public lookup payload into the internal Booking shape. */
 export function toBookingFromLookup(lookup: {
@@ -25,12 +34,7 @@ export function toBookingFromLookup(lookup: {
   const fallbackVehicle = matchedVehicle ?? VEHICLES[0]!;
   return {
     ref: lookup.reference,
-    state:
-      lookup.status === "approved" || lookup.status === "confirmed"
-        ? "confirmed"
-        : lookup.status === "cancelled" || lookup.status === "canceled"
-          ? "cancelled"
-          : "pending",
+    state: wizardStatusToBookingState(lookup.status),
     createdAt: new Date().toISOString(),
     pickup: {
       type: "branch",
