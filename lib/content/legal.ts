@@ -32,7 +32,7 @@ export const LEGAL_ARTICLES: Record<LegalArticle["slug"], LegalArticle> = {
     lastUpdated: "2026-05-15",
     intro:
       "How Wheels Rent A Car collects, uses, and shares personal information when you visit our website, book a rental, or interact with us through WhatsApp, phone, email, or in person at one of our branches.",
-    // draftNote: "[draft by counsel]" — hidden from UI per request; legal copy is under review by the client's lawyers.
+    // draftNote: "[draft by counsel]", hidden from UI per request; legal copy is under review by the client's lawyers.
     sections: [
       {
         id: "what-we-collect",
@@ -72,7 +72,7 @@ export const LEGAL_ARTICLES: Record<LegalArticle["slug"], LegalArticle> = {
     lastUpdated: "2026-05-15",
     intro:
       "By renting a vehicle from Wheels Rent A Car SAL, you agree to these Terms & Conditions. They supplement the individual rental agreement signed at pickup.",
-    // draftNote: "[draft by counsel]" — hidden from UI per request; legal copy is under review by the client's lawyers.
+    // draftNote: "[draft by counsel]", hidden from UI per request; legal copy is under review by the client's lawyers.
     sections: [
       {
         id: "who-can-rent",
@@ -121,7 +121,7 @@ export const LEGAL_ARTICLES: Record<LegalArticle["slug"], LegalArticle> = {
     title: "Cookie Policy",
     lastUpdated: "2026-05-15",
     intro: "What cookies we use, how to manage them, and how they relate to your privacy choices.",
-    // draftNote: "[draft by counsel]" — hidden from UI per request; legal copy is under review by the client's lawyers.
+    // draftNote: "[draft by counsel]", hidden from UI per request; legal copy is under review by the client's lawyers.
     sections: [
       {
         id: "what-are-cookies",
@@ -131,7 +131,7 @@ export const LEGAL_ARTICLES: Record<LegalArticle["slug"], LegalArticle> = {
       {
         id: "categories",
         heading: "Categories we use",
-        body: "Essential cookies are required for the site to work (authentication, search-state persistence, booking funnel). Analytics cookies are anonymised data we use to improve the site (Google Analytics 4, Meta Pixel) — opt in via the cookie banner. Marketing cookies are used to personalise advertising on other platforms — opt in via the cookie banner.",
+        body: "Essential cookies are required for the site to work (authentication, search-state persistence, booking funnel). Analytics cookies are anonymised data we use to improve the site (Google Analytics 4, Meta Pixel), opt in via the cookie banner. Marketing cookies are used to personalise advertising on other platforms, opt in via the cookie banner.",
       },
       {
         id: "managing",

@@ -64,7 +64,7 @@ export class WheelsThrottledError extends ApiError {
     body: unknown,
     public readonly retryAfterSeconds?: number,
   ) {
-    super(429, url, body, "Too many requests — backend throttled.");
+    super(429, url, body, "Too many requests, backend throttled.");
     this.name = "WheelsThrottledError";
   }
 }
@@ -164,7 +164,7 @@ export function createWheelsPublicClient(
     },
 
     async createBookingRequest(payload) {
-      // Validate outgoing payload too — catches programming mistakes before
+      // Validate outgoing payload too, catches programming mistakes before
       // we waste a network call.
       const safe = BookingRequestPayloadSchema.parse(payload);
       const url = `${baseUrl}/booking-request`;
@@ -335,7 +335,7 @@ async function requestJson<T>(url: string, options: RequestJsonOptions<T>): Prom
     } catch (err) {
       clearTimeout(timer);
 
-      // Already a typed error — propagate as-is.
+      // Already a typed error, propagate as-is.
       if (err instanceof ApiError) throw err;
 
       const isNetworkLike =

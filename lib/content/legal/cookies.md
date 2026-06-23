@@ -8,9 +8,9 @@ Cookies are small text files stored on your device when you visit a website. The
 
 ## 2. Categories we use
 
-- **Essential cookies** — required for the site to work (authentication, search-state persistence, booking funnel). Cannot be disabled.
-- **Analytics cookies** — anonymised data we use to improve the site (Google Analytics 4, Meta Pixel). Opt in via the cookie banner.
-- **Marketing cookies** — used to personalise advertising on other platforms. Opt in via the cookie banner.
+- **Essential cookies**, required for the site to work (authentication, search-state persistence, booking funnel). Cannot be disabled.
+- **Analytics cookies**, anonymised data we use to improve the site (Google Analytics 4, Meta Pixel). Opt in via the cookie banner.
+- **Marketing cookies**, used to personalise advertising on other platforms. Opt in via the cookie banner.
 
 ## 3. Managing cookies
 

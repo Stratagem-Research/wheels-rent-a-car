@@ -1,4 +1,4 @@
-import type { AddOn, LongTermTier, ProtectionTier, Review } from "@/types/domain";
+import type { AddOn, CarWashPackage, LongTermTier, ProtectionTier, Review } from "@/types/domain";
 import { getAdminCsrfHeader } from "@/lib/admin/csrf";
 
 async function adminGet<T>(path: string): Promise<T[]> {
@@ -46,6 +46,14 @@ export function fetchAdminLongTermTiers(): Promise<LongTermTier[]> {
 
 export function writeAdminLongTermTiers(items: LongTermTier[]): Promise<void> {
   return adminPut("/api/admin/catalog/long-term-tiers", items);
+}
+
+export function fetchAdminCarWashPackages(): Promise<CarWashPackage[]> {
+  return adminGet<CarWashPackage>("/api/admin/catalog/car-wash-packages");
+}
+
+export function writeAdminCarWashPackages(items: CarWashPackage[]): Promise<void> {
+  return adminPut("/api/admin/catalog/car-wash-packages", items);
 }
 
 export function fetchAdminReviews(): Promise<Review[]> {

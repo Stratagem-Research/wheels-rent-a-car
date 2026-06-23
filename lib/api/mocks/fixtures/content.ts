@@ -6,7 +6,7 @@ export const REVIEWS: Review[] = [
     source: "google",
     rating: 5,
     author: "Sara M.",
-    body: "Easy pickup at the Hazmieh hub — car was spotless. The WhatsApp updates made everything easy.",
+    body: "Easy pickup at the Hazmieh hub, car was spotless. The WhatsApp updates made everything easy.",
     date: "2026-04-12",
   },
   {
@@ -53,7 +53,7 @@ export const REVIEWS: Review[] = [
 
 export const SITE_CONFIG: SiteConfig = {
   promo: {
-    message: "Summer in Lebanon — 15% off on weekly rentals. Code SUMMER15 →",
+    message: "Summer in Lebanon, 15% off on weekly rentals. Code SUMMER15 →",
     href: "/vehicles?promo=SUMMER15",
   },
   maintenance: false,

@@ -11,7 +11,7 @@ import { isRtlLocale, routing } from "@/i18n/routing";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Wheels Rent A Car — Premium Car Rental in Lebanon",
+  title: "Wheels Rent A Car · Premium Car Rental in Lebanon",
   description:
     "Rent a premium car in Lebanon. Pickup at our Hazmieh hub, 24/7 WhatsApp support, free cancellation. Book online in under 90 seconds.",
   icons: {

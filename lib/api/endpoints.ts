@@ -36,6 +36,7 @@ export const endpoints = {
   addons: `${API_BASE}/addons`,
   protectionTiers: `${API_BASE}/protection-tiers`,
   longTermTiers: `${API_BASE}/long-term-tiers`,
+  carWashPackages: `${API_BASE}/car-wash/packages`,
 
   // Locations
   locations: `${API_BASE}/locations`,
@@ -64,6 +65,8 @@ export const endpoints = {
   leadsLongTerm: `${API_BASE}/leads/long-term`,
   leadsChauffeur: `${API_BASE}/leads/chauffeur`,
   leadsCorporate: `${API_BASE}/leads/corporate`,
+  leadsCarWash: `${API_BASE}/leads/car-wash`,
+  leadsFleetPartnership: `${API_BASE}/leads/fleet-partnership`,
   contact: `${API_BASE}/contact`,
 
   // Misc

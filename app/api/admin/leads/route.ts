@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import {
+  listCarWashLeads,
   listChauffeurLeads,
   listCorporateLeads,
+  listFleetPartnershipLeads,
   listLongTermLeads,
   updateLeadStatus,
   writeAdminAuditLog,
@@ -11,7 +13,14 @@ import { listContactLeads, updateContactLeadStatus } from "@/lib/supabase/contac
 import { requireAdminCsrf, requireAdminSession } from "@/lib/server/admin-api";
 
 const LeadStatusSchema = z.enum(["new", "in-progress", "won", "lost"]);
-const LeadKindSchema = z.enum(["long-term", "corporate", "chauffeur", "contact"]);
+const LeadKindSchema = z.enum([
+  "long-term",
+  "corporate",
+  "chauffeur",
+  "car-wash",
+  "fleet-partnership",
+  "contact",
+]);
 
 const LeadUpdateSchema = z.object({
   id: z.string().uuid(),
@@ -25,13 +34,15 @@ export async function GET(request: Request) {
   const auth = requireAdminSession(request, ["content-editor", "ops-admin"]);
   if (!auth.ok) return auth.response;
   try {
-    const [longTerm, corporate, chauffeur, contact] = await Promise.all([
+    const [longTerm, corporate, chauffeur, carWash, fleetPartnership, contact] = await Promise.all([
       listLongTermLeads(),
       listCorporateLeads(),
       listChauffeurLeads(),
+      listCarWashLeads(),
+      listFleetPartnershipLeads(),
       listContactLeads(),
     ]);
-    const all = [...longTerm, ...corporate, ...chauffeur, ...contact];
+    const all = [...longTerm, ...corporate, ...chauffeur, ...carWash, ...fleetPartnership, ...contact];
     const counters = {
       total: all.length,
       new: all.filter((item) => item.status === "new").length,
@@ -44,6 +55,8 @@ export async function GET(request: Request) {
       longTerm,
       corporate,
       chauffeur,
+      carWash,
+      fleetPartnership,
       contact,
     });
   } catch (error) {
@@ -71,7 +84,11 @@ export async function PATCH(request: Request) {
           ? "long_term_enquiries"
           : parsed.data.kind === "corporate"
             ? "corporate_enquiries"
-            : "chauffeur_enquiries";
+            : parsed.data.kind === "chauffeur"
+              ? "chauffeur_enquiries"
+              : parsed.data.kind === "car-wash"
+                ? "car_wash_enquiries"
+                : "fleet_partnership_enquiries";
       await updateLeadStatus(
         table,
         parsed.data.id,

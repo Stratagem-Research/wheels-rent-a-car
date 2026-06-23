@@ -56,6 +56,42 @@ export type ChauffeurLead = {
   updated_at: string;
 };
 
+export type CarWashLead = {
+  id: string;
+  full_name: string;
+  email: string;
+  mobile: string;
+  package_id: string | null;
+  vehicle_class: string | null;
+  preferred_date: string | null;
+  preferred_time: string | null;
+  vehicle_make_model: string | null;
+  notes: string | null;
+  marketing: boolean;
+  metadata: Record<string, unknown>;
+  status: AdminLeadStatus;
+  owner: string | null;
+  admin_notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type FleetPartnershipLead = {
+  id: string;
+  full_name: string;
+  email: string;
+  mobile: string;
+  company_name: string | null;
+  vehicle_count: string | null;
+  notes: string | null;
+  marketing: boolean;
+  status: AdminLeadStatus;
+  owner: string | null;
+  admin_notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 type VehicleMetadataRow = {
   frontend_vehicle_id: string;
   slug: string;
@@ -166,8 +202,33 @@ export async function listChauffeurLeads(): Promise<ChauffeurLead[]> {
   return (data ?? []) as ChauffeurLead[];
 }
 
+export async function listCarWashLeads(): Promise<CarWashLead[]> {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("car_wash_enquiries")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as CarWashLead[];
+}
+
+export async function listFleetPartnershipLeads(): Promise<FleetPartnershipLead[]> {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("fleet_partnership_enquiries")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as FleetPartnershipLead[];
+}
+
 export async function updateLeadStatus(
-  table: "long_term_enquiries" | "corporate_enquiries" | "chauffeur_enquiries",
+  table:
+    | "long_term_enquiries"
+    | "corporate_enquiries"
+    | "chauffeur_enquiries"
+    | "car_wash_enquiries"
+    | "fleet_partnership_enquiries",
   id: string,
   status: AdminLeadStatus,
   owner: string | null,
@@ -241,6 +302,68 @@ export async function insertChauffeurLead(input: {
       trip_date: input.tripDate ?? null,
       passengers: input.passengers ?? null,
       pickup_location: input.pickupLocation ?? null,
+      notes: input.notes ?? null,
+      marketing: input.marketing,
+    })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+  return data.id as string;
+}
+
+export async function insertCarWashLead(input: {
+  fullName: string;
+  email: string;
+  mobile: string;
+  packageId?: string;
+  vehicleClass?: string;
+  preferredDate?: string;
+  preferredTime?: string;
+  vehicleMakeModel?: string;
+  notes?: string;
+  marketing: boolean;
+  metadata?: Record<string, unknown>;
+}): Promise<string> {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("car_wash_enquiries")
+    .insert({
+      full_name: input.fullName,
+      email: input.email,
+      mobile: input.mobile,
+      package_id: input.packageId ?? null,
+      vehicle_class: input.vehicleClass ?? null,
+      preferred_date: input.preferredDate ?? null,
+      preferred_time: input.preferredTime ?? null,
+      vehicle_make_model: input.vehicleMakeModel ?? null,
+      notes: input.notes ?? null,
+      marketing: input.marketing,
+      metadata: input.metadata ?? {},
+    })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+  return data.id as string;
+}
+
+export async function insertFleetPartnershipLead(input: {
+  fullName: string;
+  email: string;
+  mobile: string;
+  companyName?: string;
+  vehicleCount?: string;
+  notes?: string;
+  marketing: boolean;
+}): Promise<string> {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("fleet_partnership_enquiries")
+    .insert({
+      full_name: input.fullName,
+      email: input.email,
+      mobile: input.mobile,
+      company_name: input.companyName ?? null,
+      vehicle_count: input.vehicleCount ?? null,
       notes: input.notes ?? null,
       marketing: input.marketing,
     })

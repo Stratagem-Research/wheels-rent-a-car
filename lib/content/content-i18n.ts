@@ -53,7 +53,7 @@ export const HELP_ARTICLE_T: Record<string, ArticleLocales> = {
   "rental-terms": {
     ar: {
       title: "شروط الإيجار",
-      intro: "كل ما توافق عليه عند الاستئجار من Wheels — مبسّطاً بلغة واضحة.",
+      intro: "كل ما توافق عليه عند الاستئجار من Wheels, مبسّطاً بلغة واضحة.",
       sections: {
         intro: {
           heading: "مقدمة",
@@ -87,7 +87,7 @@ export const HELP_ARTICLE_T: Record<string, ArticleLocales> = {
     },
     fr: {
       title: "Conditions de location",
-      intro: "Tout ce que vous acceptez en louant chez Wheels — expliqué simplement.",
+      intro: "Tout ce que vous acceptez en louant chez Wheels, expliqué simplement.",
       sections: {
         intro: {
           heading: "Introduction",
@@ -132,7 +132,7 @@ export const HELP_ARTICLE_T: Record<string, ArticleLocales> = {
         },
         tiers: {
           heading: "فئاتنا الثلاث",
-          body: "الأساسية مشمولة مع كل إيجار — مسؤولية تجاه الغير + أضرار الاصطدام بتحمّل 800$. وSmart يضيف تغطية الإطارات والزجاج الأمامي، وفتح القفل، والأمتعة الشخصية حتى 500$. وAll-inclusive يلغي التحمّل بالكامل ويرفع تغطية الأمتعة إلى 2000$.",
+          body: "الأساسية مشمولة مع كل إيجار, مسؤولية تجاه الغير + أضرار الاصطدام بتحمّل 800$. وSmart يضيف تغطية الإطارات والزجاج الأمامي، وفتح القفل، والأمتعة الشخصية حتى 500$. وAll-inclusive يلغي التحمّل بالكامل ويرفع تغطية الأمتعة إلى 2000$.",
         },
         "what-is-not-covered": {
           heading: "ما هو غير مغطّى",
@@ -155,7 +155,7 @@ export const HELP_ARTICLE_T: Record<string, ArticleLocales> = {
         },
         tiers: {
           heading: "Nos trois formules",
-          body: "Basic est incluse avec chaque location — responsabilité au tiers + dommages collision avec franchise de 800 $. Smart ajoute la couverture pneus + pare-brise, l'ouverture en cas de clés enfermées, et les effets personnels jusqu'à 500 $. All-inclusive supprime entièrement la franchise et porte les effets personnels à 2 000 $.",
+          body: "Basic est incluse avec chaque location, responsabilité au tiers + dommages collision avec franchise de 800 $. Smart ajoute la couverture pneus + pare-brise, l'ouverture en cas de clés enfermées, et les effets personnels jusqu'à 500 $. All-inclusive supprime entièrement la franchise et porte les effets personnels à 2 000 $.",
         },
         "what-is-not-covered": {
           heading: "Ce qui n'est pas couvert",
@@ -180,15 +180,15 @@ export const HELP_ARTICLE_T: Record<string, ArticleLocales> = {
         },
         "when-charged": {
           heading: "متى يتم الخصم",
-          body: "تُخصم مدفوعات البطاقة عند الحجز. وتُحصَّل الحجوزات النقدية عند الاستلام. وتُؤكَّد حجوزات الحوالة وOMT بمجرد التحقّق من الإيصال — عادةً خلال 24 ساعة (حوالة) أو 4 ساعات (OMT).",
+          body: "تُخصم مدفوعات البطاقة عند الحجز. وتُحصَّل الحجوزات النقدية عند الاستلام. وتُؤكَّد حجوزات الحوالة وOMT بمجرد التحقّق من الإيصال, عادةً خلال 24 ساعة (حوالة) أو 4 ساعات (OMT).",
         },
         deposit: {
           heading: "تأمين الضمان",
-          body: "نحتجز وديعة قابلة للاسترداد على بطاقتك عند الاستلام. يختلف المبلغ حسب الفئة — 300$ اقتصادية، 500$ سيدان، 750$ دفع رباعي، 1500$ فاخرة. ويُحرَّر بعد فحص الإرجاع.",
+          body: "نحتجز وديعة قابلة للاسترداد على بطاقتك عند الاستلام. يختلف المبلغ حسب الفئة, 300$ اقتصادية، 500$ سيدان، 750$ دفع رباعي، 1500$ فاخرة. ويُحرَّر بعد فحص الإرجاع.",
         },
         refunds: {
           heading: "المبالغ المستردّة",
-          body: "تُسوّى مبالغ ردّ البطاقة خلال 3 إلى 10 أيام عمل. الحجوزات النقدية لا استرداد لها — لم نخصم منك شيئاً. أما الحجوزات قيد الانتظار التي تُلغى قبل التحقّق فلا تُتبادَل فيها أيّ أموال.",
+          body: "تُسوّى مبالغ ردّ البطاقة خلال 3 إلى 10 أيام عمل. الحجوزات النقدية لا استرداد لها, لم نخصم منك شيئاً. أما الحجوزات قيد الانتظار التي تُلغى قبل التحقّق فلا تُتبادَل فيها أيّ أموال.",
         },
       },
     },
@@ -203,15 +203,15 @@ export const HELP_ARTICLE_T: Record<string, ArticleLocales> = {
         },
         "when-charged": {
           heading: "Quand vous êtes débité",
-          body: "Les paiements par carte sont capturés à la réservation. Les réservations en espèces sont réglées au retrait. Les réservations par virement et OMT sont confirmées dès vérification du reçu — généralement sous 24h (virement) ou 4h (OMT).",
+          body: "Les paiements par carte sont capturés à la réservation. Les réservations en espèces sont réglées au retrait. Les réservations par virement et OMT sont confirmées dès vérification du reçu, généralement sous 24h (virement) ou 4h (OMT).",
         },
         deposit: {
           heading: "La caution",
-          body: "Nous bloquons une caution remboursable sur votre carte au retrait. Le montant varie selon la catégorie — 300 $ économique, 500 $ berline, 750 $ SUV, 1 500 $ luxe. Elle est libérée après l'inspection au retour.",
+          body: "Nous bloquons une caution remboursable sur votre carte au retrait. Le montant varie selon la catégorie, 300 $ économique, 500 $ berline, 750 $ SUV, 1 500 $ luxe. Elle est libérée après l'inspection au retour.",
         },
         refunds: {
           heading: "Remboursements",
-          body: "Les remboursements par carte arrivent en 3 à 10 jours ouvrés. Les réservations en espèces n'ont pas de remboursement — nous ne vous avons jamais débité. Pour les réservations En attente annulées avant vérification, aucun fonds n'est échangé.",
+          body: "Les remboursements par carte arrivent en 3 à 10 jours ouvrés. Les réservations en espèces n'ont pas de remboursement, nous ne vous avons jamais débité. Pour les réservations En attente annulées avant vérification, aucun fonds n'est échangé.",
         },
       },
     },
@@ -228,7 +228,7 @@ export const HELP_ARTICLE_T: Record<string, ArticleLocales> = {
         },
         "within-24h": {
           heading: "خلال 24 ساعة من الاستلام",
-          body: "تُطبَّق رسوم بقيمة يوم واحد. نتنازل عنها في حالات اضطراب السفر الموثّقة (رحلات ملغاة، طقس قاسٍ) — راسلنا مع إثبات وسنراجع الأمر.",
+          body: "تُطبَّق رسوم بقيمة يوم واحد. نتنازل عنها في حالات اضطراب السفر الموثّقة (رحلات ملغاة، طقس قاسٍ), راسلنا مع إثبات وسنراجع الأمر.",
         },
         "best-price": {
           heading: "سعر «أفضل سعر»",
@@ -251,7 +251,7 @@ export const HELP_ARTICLE_T: Record<string, ArticleLocales> = {
         },
         "within-24h": {
           heading: "Dans les 24 heures du retrait",
-          body: "Des frais d'une journée s'appliquent. Nous y renonçons en cas de perturbations de voyage documentées (vols annulés, météo sévère) — écrivez-nous avec un justificatif et nous examinerons.",
+          body: "Des frais d'une journée s'appliquent. Nous y renonçons en cas de perturbations de voyage documentées (vols annulés, météo sévère), écrivez-nous avec un justificatif et nous examinerons.",
         },
         "best-price": {
           heading: "Tarif « Meilleur prix »",
@@ -423,7 +423,7 @@ export const LEGAL_ARTICLE_T: Record<string, ArticleLocales> = {
         },
         categories: {
           heading: "الفئات التي نستخدمها",
-          body: "الملفات الأساسية ضرورية لعمل الموقع (المصادقة، حفظ حالة البحث، مسار الحجز). ملفات التحليلات بيانات مجهولة نستخدمها لتحسين الموقع (Google Analytics 4، Meta Pixel) — وافق عليها عبر شريط ملفات تعريف الارتباط. ملفات التسويق تُستخدَم لتخصيص الإعلانات على منصّات أخرى — وافق عليها عبر الشريط.",
+          body: "الملفات الأساسية ضرورية لعمل الموقع (المصادقة، حفظ حالة البحث، مسار الحجز). ملفات التحليلات بيانات مجهولة نستخدمها لتحسين الموقع (Google Analytics 4، Meta Pixel), وافق عليها عبر شريط ملفات تعريف الارتباط. ملفات التسويق تُستخدَم لتخصيص الإعلانات على منصّات أخرى, وافق عليها عبر الشريط.",
         },
         managing: {
           heading: "إدارة ملفات تعريف الارتباط",
@@ -450,7 +450,7 @@ export const LEGAL_ARTICLE_T: Record<string, ArticleLocales> = {
         },
         categories: {
           heading: "Catégories que nous utilisons",
-          body: "Les cookies essentiels sont requis pour le fonctionnement du site (authentification, persistance de la recherche, tunnel de réservation). Les cookies analytiques sont des données anonymisées que nous utilisons pour améliorer le site (Google Analytics 4, Meta Pixel) — à activer via la bannière. Les cookies marketing servent à personnaliser la publicité sur d'autres plateformes — à activer via la bannière.",
+          body: "Les cookies essentiels sont requis pour le fonctionnement du site (authentification, persistance de la recherche, tunnel de réservation). Les cookies analytiques sont des données anonymisées que nous utilisons pour améliorer le site (Google Analytics 4, Meta Pixel), à activer via la bannière. Les cookies marketing servent à personnaliser la publicité sur d'autres plateformes, à activer via la bannière.",
         },
         managing: {
           heading: "Gérer les cookies",

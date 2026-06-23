@@ -61,7 +61,7 @@ export function ChannelCard({
       <div className="mt-auto pt-2">
         {closed ? (
           <p role="status" className="bg-warning-bg text-warning label-md rounded-pill px-4 py-2">
-            {closedMessage ?? "Closed — message us on WhatsApp."}
+            {closedMessage ?? "Closed, message us on WhatsApp."}
           </p>
         ) : (
           <Button asChild variant={cta.variant ?? "primary"} size="md" fullWidth>

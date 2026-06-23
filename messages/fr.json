@@ -26,6 +26,8 @@
     "fleet": "Flotte",
     "longTermRental": "Location longue durée",
     "chauffeurService": "Service chauffeur",
+    "carWashService": "Lavage auto",
+    "fleetPartnership": "Partenariat flotte",
     "manageBooking": "Gérer la réservation",
     "helpCentre": "Centre d'aide",
     "allChannels": "Tous les canaux",
@@ -59,19 +61,19 @@
     "email": "E-mail",
     "emailPlaceholder": "vous@exemple.com",
     "emailInvalid": "Saisissez un e-mail valide.",
-    "newsletterThanks": "Merci — vous êtes sur la liste.",
+    "newsletterThanks": "Merci, vous êtes sur la liste.",
     "noThanks": "Non merci",
     "subscribe": "S'abonner"
   },
   "whatsapp": {
     "fabLabel": "Discuter avec nous sur WhatsApp",
     "messages": {
-      "default": "Bonjour Wheels — j'ai une question sur la location de voiture.",
-      "fleet": "Bonjour Wheels — je regarde la flotte et j'ai besoin d'aide.",
-      "pdp": "Bonjour Wheels — je suis intéressé par {model}.",
-      "selectVehicle": "Bonjour Wheels — j'ai besoin d'aide pour choisir une voiture.",
-      "checkout": "Bonjour Wheels — je finalise une réservation et j'ai besoin d'aide.",
-      "confirmation": "Bonjour Wheels — ma référence est {ref}. J'ai une question."
+      "default": "Bonjour Wheels, j'ai une question sur la location de voiture.",
+      "fleet": "Bonjour Wheels, je regarde la flotte et j'ai besoin d'aide.",
+      "pdp": "Bonjour Wheels, je suis intéressé par {model}.",
+      "selectVehicle": "Bonjour Wheels, j'ai besoin d'aide pour choisir une voiture.",
+      "checkout": "Bonjour Wheels, je finalise une réservation et j'ai besoin d'aide.",
+      "confirmation": "Bonjour Wheels, ma référence est {ref}. J'ai une question."
     }
   },
   "home": {
@@ -123,16 +125,16 @@
       "previousAria": "Avantage précédent",
       "nextAria": "Avantage suivant",
       "pickupTitle": "Retrait gratuit à Hazmieh",
-      "pickupBody": "Retrouvez notre agent au hub de Hazmieh. Clés en main, papiers réglés, au volant en 15 minutes — sans file d'attente à l'aéroport ni frais de transfert surprise.",
+      "pickupBody": "Retrouvez notre agent au hub de Hazmieh. Clés en main, papiers réglés, au volant en 15 minutes, sans file d'attente à l'aéroport ni frais de transfert surprise.",
       "pickupCta": "Trouver le hub",
       "cancellationTitle": "Annulation gratuite jusqu'à 24h",
-      "cancellationBody": "Les plans changent. Annulez gratuitement jusqu'à 24 heures avant le retrait et nous vous remboursons — sans frais, sans complication, sans petits caractères.",
+      "cancellationBody": "Les plans changent. Annulez gratuitement jusqu'à 24 heures avant le retrait et nous vous remboursons, sans frais, sans complication, sans petits caractères.",
       "cancellationCta": "Lire la politique",
       "whatsappTitle": "WhatsApp 24/7",
       "whatsappBody": "De vraies personnes derrière chaque message. Support en langue locale, réponses instantanées aux heures de bureau, et de garde la nuit. Pas de bots, pas de musique d'attente.",
       "whatsappCta": "Discuter avec nous",
       "paymentTitle": "Payez comme vous voulez",
-      "paymentBody": "Carte, espèces, virement bancaire ou OMT / Whish — selon ce qui vous arrange. Les espèces et OMT se confirment en personne ; les cartes se confirment instantanément.",
+      "paymentBody": "Carte, espèces, virement bancaire ou OMT / Whish, selon ce qui vous arrange. Les espèces et OMT se confirment en personne ; les cartes se confirment instantanément.",
       "paymentCta": "Voir les options de paiement"
     },
     "reviews": {
@@ -150,14 +152,14 @@
       "longTermImageAlt": "Location longue durée",
       "chauffeurEyebrow": "Conduit pour vous",
       "chauffeurTitle": "Détendez-vous. On conduit.",
-      "chauffeurDescription": "Transferts aéroport, excursions et location à l'heure — avec des chauffeurs vérifiés, anglophones, et des véhicules premium.",
+      "chauffeurDescription": "Transferts aéroport, excursions et location à l'heure, avec des chauffeurs vérifiés, anglophones, et des véhicules premium.",
       "chauffeurCta": "Demander un chauffeur",
       "chauffeurImageAlt": "Service de chauffeur"
     },
     "exploreLebanon": {
       "eyebrow": "Conçu pour le pays",
       "heading": "Explorez le Liban.",
-      "subtitle": "Guides d'excursions en autonomie — où aller, quoi voir, et quelle voiture convient à l'itinéraire.",
+      "subtitle": "Guides d'excursions en autonomie, où aller, quoi voir, et quelle voiture convient à l'itinéraire.",
       "viewAll": "Voir toutes les excursions"
     }
   },
@@ -201,7 +203,7 @@
       "Véhicule de remplacement si le vôtre doit passer en atelier",
       "Assistance routière 24/7",
       "Changement gratuit de catégorie une fois / trimestre",
-      "Facturation mensuelle — sans paiement intégral d'avance",
+      "Facturation mensuelle, sans paiement intégral d'avance",
       "Livraison gratuite dans le Grand Beyrouth",
       "Gestionnaire de compte sur WhatsApp"
     ],
@@ -213,7 +215,7 @@
       { "q": "Quel est l'engagement minimum ?", "a": "Un mois minimum. En dessous, nos locations journalières / hebdomadaires conviennent mieux." },
       { "q": "Puis-je annuler par anticipation ?", "a": "Oui. Une résiliation anticipée entraîne la différence entre le tarif de la formule choisie et celui de la formule plus courte suivante, calculée sur les jours réellement parcourus." },
       { "q": "Qu'en est-il de l'entretien ?", "a": "Wheels gère toutes les révisions. Déposez la voiture ; nous vous remettons un véhicule de remplacement ; vous la récupérez ensuite." },
-      { "q": "Puis-je changer de voiture ?", "a": "Oui — une fois par trimestre gratuitement pour les formules ≥ 3 mois. Les changements de même catégorie sont simples ; les surclassements ajustent le tarif journalier." },
+      { "q": "Puis-je changer de voiture ?", "a": "Oui, une fois par trimestre gratuitement pour les formules ≥ 3 mois. Les changements de même catégorie sont simples ; les surclassements ajustent le tarif journalier." },
       { "q": "La caution est-elle différente en longue durée ?", "a": "Même caution par catégorie qu'une location journalière. Elle est libérée après le retour final." },
       { "q": "Comment fonctionne la facturation mensuelle ?", "a": "Premier mois au démarrage ; mois suivants à la même date par carte ou virement. Un relevé unique à la fin de chaque mois civil." }
     ],
@@ -238,7 +240,7 @@
     "phoneDescription": "Parlez-nous pendant les heures de bureau.",
     "phoneHours": "Lun–Sam · 8:00 – 20:00",
     "call": "Appeler",
-    "closedMessage": "Fermé — écrivez-nous sur WhatsApp.",
+    "closedMessage": "Fermé, écrivez-nous sur WhatsApp.",
     "emailTitle": "E-mail",
     "emailDescription": "Pour les demandes plus longues.",
     "emailHours": "Réponse sous 4h",
@@ -253,7 +255,7 @@
     "eyebrow": "Chauffeur",
     "heroLine1": "Détendez-vous.",
     "heroLine2": "On s'occupe de conduire.",
-    "heroSubtitle": "Transferts aéroport, excursions et location à l'heure — avec des chauffeurs vérifiés, anglophones, et des véhicules premium.",
+    "heroSubtitle": "Transferts aéroport, excursions et location à l'heure, avec des chauffeurs vérifiés, anglophones, et des véhicules premium.",
     "requestDriver": "Demander un chauffeur",
     "chatOnWhatsapp": "Discuter sur WhatsApp",
     "requestCta": "Demander : {service}",
@@ -262,16 +264,16 @@
     "categoriesSubtitle": "Choisissez le format adapté à votre trajet. On s'occupe du reste.",
     "categories": [
       { "title": "Transfert aéroport", "body": "Aéroport de Beyrouth ↔ hôtel, jour et nuit. Le chauffeur attend jusqu'à 90 minutes en cas de vol retardé, sans frais.", "from": "dès 45$" },
-      { "title": "Excursion", "body": "Cèdres, Baalbek, Byblos, Tyr — itinéraires d'une journée avec entrées et arrêts déjeuner organisés.", "from": "dès 180$" },
+      { "title": "Excursion", "body": "Cèdres, Baalbek, Byblos, Tyr, itinéraires d'une journée avec entrées et arrêts déjeuner organisés.", "from": "dès 180$" },
       { "title": "À l'heure", "body": "Minimum 4 heures. Berline, SUV ou van. Parfait pour réunions, mariages ou découverte de la ville.", "from": "dès 35$ / heure" }
     ],
     "vehiclesEyebrow": "La flotte",
     "vehiclesHeading": "Catégories de véhicules.",
     "vehiclesSubtitle": "Tous les véhicules ont moins de 3 ans. Détaillés avant chaque trajet.",
     "vehicleClasses": [
-      { "title": "Berline", "body": "Mercedes Classe E ou similaire — 2 à 3 passagers, confort exécutif." },
-      { "title": "SUV", "body": "Mercedes GLE ou similaire — 4 à 5 passagers, coffre généreux." },
-      { "title": "Van", "body": "Mercedes Classe V ou similaire — jusqu'à 7 passagers, idéal en famille." }
+      { "title": "Berline", "body": "Mercedes Classe E ou similaire, 2 à 3 passagers, confort exécutif." },
+      { "title": "SUV", "body": "Mercedes GLE ou similaire, 4 à 5 passagers, coffre généreux." },
+      { "title": "Van", "body": "Mercedes Classe V ou similaire, jusqu'à 7 passagers, idéal en famille." }
     ],
     "howEyebrow": "Parcours de réservation",
     "howHeading": "Comment ça marche.",
@@ -295,19 +297,19 @@
     "faqHeading": "Questions fréquentes.",
     "faqs": [
       { "q": "Puis-je réserver le jour même ?", "a": "Sous réserve de disponibilité. Écrivez-nous sur WhatsApp pour les demandes du jour même et nous confirmons sous 15 minutes." },
-      { "q": "Le pourboire est-il inclus ?", "a": "Non — le pourboire est à votre discrétion. Le chauffeur apprécie le geste mais ne l'attend pas." },
-      { "q": "Les chauffeurs parlent-ils anglais ?", "a": "Oui. L'arabe et le français sont aussi largement disponibles — précisez votre préférence à la réservation." },
+      { "q": "Le pourboire est-il inclus ?", "a": "Non, le pourboire est à votre discrétion. Le chauffeur apprécie le geste mais ne l'attend pas." },
+      { "q": "Les chauffeurs parlent-ils anglais ?", "a": "Oui. L'arabe et le français sont aussi largement disponibles, précisez votre préférence à la réservation." },
       { "q": "Et si mon vol est retardé ?", "a": "Les chauffeurs aéroport attendent jusqu'à 90 minutes après l'heure d'atterrissage prévue, sans frais. Nous suivons le vol en direct." },
       { "q": "Combien de bagages entrent ?", "a": "Berline : 2 grands + 2 cabine. SUV : 4 grands + 4 cabine. Van : 7 grands + bagages à main. Dites-nous si vous avez des extras." }
     ],
     "formHeading": "Demander un chauffeur",
-    "formSubtitle": "Donnez-nous l'essentiel — nous répondons sous un jour ouvré avec un devis et l'assignation d'un chauffeur.",
+    "formSubtitle": "Donnez-nous l'essentiel, nous répondons sous un jour ouvré avec un devis et l'assignation d'un chauffeur.",
     "formWarning": "Besoin d'une prise en charge le jour même ? Écrivez-nous d'abord sur WhatsApp pour la réponse la plus rapide.",
     "bottomHeading": "Vous préférez conduire vous-même ?",
     "bottomSubtitle": "Notre flotte en autonomie est de l'autre côté de la page.",
     "browseFleet": "Parcourir la flotte",
     "jsonLdName": "Service de chauffeur",
-    "jsonLdDescription": "Service de chauffeur professionnel au Liban — transferts aéroport, excursions et location à l'heure avec des chauffeurs vérifiés et anglophones."
+    "jsonLdDescription": "Service de chauffeur professionnel au Liban, transferts aéroport, excursions et location à l'heure avec des chauffeurs vérifiés et anglophones."
   },
   "corporate": {
     "eyebrow": "Pour les entreprises",
@@ -351,7 +353,7 @@
     "faqEyebrow": "FAQ",
     "faqHeading": "Questions fréquentes.",
     "faqs": [
-      { "q": "Y a-t-il un contrat minimum ?", "a": "Starter n'exige aucun contrat — facturation au mois. Growth fonctionne généralement sur un accord de 6 mois. Les conditions Enterprise sont sur mesure." },
+      { "q": "Y a-t-il un contrat minimum ?", "a": "Starter n'exige aucun contrat, facturation au mois. Growth fonctionne généralement sur un accord de 6 mois. Les conditions Enterprise sont sur mesure." },
       { "q": "Comment fonctionne la facturation ?", "a": "Une facture mensuelle unique consolidée par employé, projet ou centre de coûts. Paiement par virement (libanais ou international) ou carte. Net-15 par défaut ; Net-30 pour Enterprise." },
       { "q": "Qui peut conduire nos véhicules d'entreprise ?", "a": "Tout employé titulaire d'un permis valide et répondant à notre exigence d'âge standard (25+). Les documents conducteur sont stockés une fois dans votre portail et réutilisés à chaque réservation." },
       { "q": "Pouvons-nous changer de catégorie en cours de contrat ?", "a": "Oui. Les formules Growth et Enterprise incluent des échanges gratuits une fois par trimestre ; les échanges de même catégorie sont immédiats, les surclassements ajustent proportionnellement le tarif journalier." },
@@ -359,18 +361,73 @@
       { "q": "Nos cadres en visite peuvent-ils utiliser le compte ?", "a": "Oui. Les permis internationaux en caractères latins sont acceptés ; pour les permis non latins, un permis de conduire international est requis. Nous pouvons pré-autoriser les conducteurs avant leur arrivée." }
     ],
     "formHeading": "Parler aux ventes entreprises",
-    "formSubtitle": "Donnez-nous quelques détails — nous répondons sous un jour ouvré avec un devis sur mesure et la présentation d'un gestionnaire de compte.",
+    "formSubtitle": "Donnez-nous quelques détails, nous répondons sous un jour ouvré avec un devis sur mesure et la présentation d'un gestionnaire de compte.",
     "bottomHeading": "Une voiture pour une journée ?",
     "bottomSubtitle": "Parcourez notre flotte en location journalière ou discutez sur WhatsApp.",
     "browseFleet": "Parcourir la flotte",
     "jsonLdName": "Location de voiture d'entreprise",
-    "jsonLdDescription": "Location de flotte d'entreprise au Liban — voitures dédiées, tarifs au volume, facture mensuelle unique, gestion de compte."
+    "jsonLdDescription": "Location de flotte d'entreprise au Liban, voitures dédiées, tarifs au volume, facture mensuelle unique, gestion de compte."
+  },
+  "carWash": {
+    "eyebrow": "Lavage auto",
+    "heroLine1": "Des voitures impeccables.",
+    "heroLine2": "Bien faites.",
+    "heroSubtitle": "Lavage, détailing et entretien intérieur à notre atelier de Hazmieh, du lavage express de 30 minutes à la préparation mariage.",
+    "bookWash": "Réserver un lavage",
+    "chatOnWhatsapp": "Discuter sur WhatsApp",
+    "requestPackage": "Demander",
+    "packagesEyebrow": "Services",
+    "packagesHeading": "Choisissez votre formule.",
+    "packagesSubtitle": "Tarifs transparents en USD ou LBP. Nous confirmons votre créneau après envoi.",
+    "vehicleCar": "Voiture",
+    "vehicleSuv": "SUV",
+    "turnaroundHours": "Le véhicule reste {hours}h pour sécher",
+    "howEyebrow": "Parcours de réservation",
+    "howHeading": "Comment ça marche.",
+    "howSteps": [
+      { "title": "Choisissez une formule", "body": "Sélectionnez le niveau de lavage ou détailing adapté." },
+      { "title": "Choisissez une date", "body": "Indiquez quand vous souhaitez déposer ou arriver." },
+      { "title": "Nous confirmons", "body": "Notre équipe confirme l'horaire et le prix final par WhatsApp ou téléphone." }
+    ],
+    "trustEyebrow": "Notre équipe",
+    "trustHeading": "Plus de 30 ans d'entretien automobile.",
+    "trust": [
+      { "title": "Finition manuelle", "body": "Chaque véhicule est préparé par notre équipe interne avant remise." },
+      { "title": "Standards flotte", "body": "Les mêmes standards que notre flotte de location, pour votre voiture aussi." },
+      { "title": "Confiance locale", "body": "Jawdat et l'équipe atelier entretiennent des véhicules au Liban depuis des décennies." }
+    ],
+    "faqEyebrow": "FAQ",
+    "faqHeading": "Questions fréquentes.",
+    "faqs": [
+      { "q": "Faut-il réserver à l'avance ?", "a": "Oui, envoyez le formulaire ou écrivez-nous sur WhatsApp pour réserver une baie et confirmer l'horaire." },
+      { "q": "Puis-je attendre pendant le lavage ?", "a": "Lavages normal et spécial le jour même. Le nettoyage intérieur profond nécessite jusqu'à 36 heures." },
+      { "q": "Quels paiements acceptez-vous ?", "a": "USD et LBP à l'atelier. Le prix affiché est indicatif, nous confirmons à la réservation." },
+      { "q": "Où se trouve l'atelier ?", "a": "À notre hub Wheels Hazmieh, Gallery Semaan, face à Sea Sweet." },
+      { "q": "Lavez-vous uniquement la flotte de location ?", "a": "Non, nous accueillons aussi les véhicules privés et les clients sans rendez-vous." }
+    ],
+    "deepCleanWarning": "Ce service nécessite que votre véhicule reste à l'atelier jusqu'à {hours} heures pour un séchage intérieur correct.",
+    "formHeading": "Demander un lavage",
+    "formSubtitle": "Indiquez formule, date et véhicule, nous confirmons votre créneau sous un jour ouvré.",
+    "fleetPartnershipHint": "Vous possédez des véhicules que nous pourrions gérer ?",
+    "fleetPartnershipLink": "Partenariat flotte",
+    "bottomHeading": "Besoin d'une voiture aussi ?",
+    "bottomSubtitle": "Parcourez notre flotte de location ou discutez sur WhatsApp.",
+    "browseFleet": "Parcourir la flotte",
+    "jsonLdName": "Lavage & détailing",
+    "jsonLdDescription": "Lavage et détailing professionnel à Hazmieh, Liban, lavage extérieur, nettoyage intérieur profond, entretien moteur et préparation mariage."
+  },
+  "fleetPartnership": {
+    "eyebrow": "Partenariat",
+    "heading": "Partenariat flotte",
+    "lead": "Si vous possédez des véhicules, Wheels peut aider à la maintenance, la préparation et l'intégration location. Dites-nous ce que vous avez, nous explorerons les options ensemble.",
+    "formHeading": "Nous contacter",
+    "formSubtitle": "Une courte note suffit. Nous répondons en privé sous un jour ouvré."
   },
   "locations": {
     "eyebrow": "Notre hub",
     "heroHeading": "Rendez-nous visite à Hazmieh.",
     "aboutHeading": "À propos de cette agence",
-    "aboutBody": "Wheels Hazmieh est notre agence principale. Passez récupérer votre voiture, ou écrivez-nous sur WhatsApp et nous organisons la livraison partout dans le Grand Beyrouth — y compris l'aéroport de Beyrouth.",
+    "aboutBody": "Wheels Hazmieh est notre agence principale. Passez récupérer votre voiture, ou écrivez-nous sur WhatsApp et nous organisons la livraison partout dans le Grand Beyrouth, y compris l'aéroport de Beyrouth.",
     "parkingHeading": "Stationnement & accès",
     "parkingItems": [
       "Stationnement courte durée juste devant Gallery Semaan.",
@@ -389,7 +446,7 @@
     "days": ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
     "faqs": [
       { "q": "Puis-je récupérer en dehors des heures d'ouverture ?", "a": "Nous sommes ouverts du lundi au samedi de 08:00 à 20:00 et le dimanche de 10:00 à 16:00. Pour les retraits en dehors de ces horaires, écrivez-nous sur WhatsApp et nous nous arrangerons." },
-      { "q": "Pouvez-vous livrer la voiture à mon hôtel ou à l'aéroport ?", "a": "Oui — nous pouvons livrer et récupérer partout dans le Grand Beyrouth. Écrivez-nous sur WhatsApp pour organiser et nous confirmerons les éventuels frais de distance avant le retrait." },
+      { "q": "Pouvez-vous livrer la voiture à mon hôtel ou à l'aéroport ?", "a": "Oui, nous pouvons livrer et récupérer partout dans le Grand Beyrouth. Écrivez-nous sur WhatsApp pour organiser et nous confirmerons les éventuels frais de distance avant le retrait." },
       { "q": "Où me garer pour récupérer la voiture ?", "a": "Il y a un stationnement courte durée juste devant Gallery Semaan. Repérez la signalétique Wheels et notre agent vous aidera." }
     ]
   },
@@ -481,7 +538,7 @@
     "locOurBranch": "Notre agence",
     "locAirport": "Retrait aéroport",
     "locDeliver": "Ou livrez-moi",
-    "locDeliverPlaceholder": "Adresse d'hôtel, quartier — partout dans le Grand Beyrouth",
+    "locDeliverPlaceholder": "Adresse d'hôtel, quartier, partout dans le Grand Beyrouth",
     "locDeliverAria": "Adresse de livraison",
     "locChoose": "Choisir le lieu de retrait",
     "locAria": "Lieu de {label} : {summary}",
@@ -520,7 +577,7 @@
     "emptyHeading": "Aucune excursion dans cette région pour l'instant.",
     "emptyBody": "Nous publions de nouveaux guides chaque mois. Essayez une autre région ou revenez plus tard.",
     "recommendedFor": "Recommandé pour ce trajet",
-    "basedOn": "Selon l'état de la route et le terrain — choisissez n'importe quelle voiture de la catégorie {category} pour parcourir cet itinéraire confortablement.",
+    "basedOn": "Selon l'état de la route et le terrain, choisissez n'importe quelle voiture de la catégorie {category} pour parcourir cet itinéraire confortablement.",
     "browseCars": "Parcourir les voitures {category}",
     "takeChauffeur": "Prendre un chauffeur à la place",
     "keepExploring": "Continuez d'explorer",
@@ -554,15 +611,15 @@
     "otherFormats": "Autres formats avec chauffeur",
     "scheduleEyebrow": "Programme type",
     "howDayFlows": "Le déroulé de la journée.",
-    "scheduleNote": "Le programme final est confirmé avec votre chauffeur après la demande — chaque itinéraire est adapté à votre groupe et à votre rythme.",
+    "scheduleNote": "Le programme final est confirmé avec votre chauffeur après la demande, chaque itinéraire est adapté à votre groupe et à votre rythme.",
     "moreRoutesEyebrow": "Plus d'itinéraires",
     "otherItineraries": "Autres itinéraires.",
     "seeAll": "Voir tout",
     "vehicleClassLabels": { "sedan": "Berline", "suv": "SUV", "van": "Van" },
     "vehicleClassBlurbs": {
-      "sedan": "Mercedes Classe E ou similaire — confort exécutif pour 2-3 passagers.",
-      "suv": "Mercedes GLE ou similaire — 4-5 passagers avec un coffre généreux.",
-      "van": "Mercedes Classe V ou similaire — jusqu'à 7 passagers, idéal en famille."
+      "sedan": "Mercedes Classe E ou similaire, confort exécutif pour 2-3 passagers.",
+      "suv": "Mercedes GLE ou similaire, 4-5 passagers avec un coffre généreux.",
+      "van": "Mercedes Classe V ou similaire, jusqu'à 7 passagers, idéal en famille."
     }
   },
   "auth": {
@@ -608,7 +665,7 @@
     "forgot": {
       "title": "Mot de passe oublié ?",
       "sentTitle": "Vérifiez votre boîte de réception.",
-      "subtitle": "Saisissez votre e-mail — nous vous enverrons un lien de réinitialisation.",
+      "subtitle": "Saisissez votre e-mail, nous vous enverrons un lien de réinitialisation.",
       "sentSubtitle": "Si nous avons un compte pour {email}, un lien de réinitialisation est en route. Il expire dans 30 minutes.",
       "remembered": "Vous vous en souvenez ?",
       "signIn": "Se connecter",
@@ -653,7 +710,7 @@
     },
     "hold": {
       "active": "Votre réservation est maintenue pendant {time}",
-      "expired": "Votre réservation provisoire a expiré — les prix ont pu changer."
+      "expired": "Votre réservation provisoire a expiré, les prix ont pu changer."
     },
     "protection": {
       "heading": "Choisissez votre protection",
@@ -667,7 +724,7 @@
       "faqHeading": "Questions fréquentes",
       "faqs": [
         { "q": "Que couvre la franchise ?", "a": "C'est le montant maximum que vous paieriez de votre poche en cas de dommages. La protection Basic a une franchise de 800$ ; Smart la réduit à 250$ ; All-inclusive la ramène à zéro." },
-        { "q": "Puis-je changer au comptoir ?", "a": "Oui. Vous pouvez surclasser votre protection au moment de récupérer la voiture — mais vous ne pouvez pas la rétrograder une fois la location commencée." },
+        { "q": "Puis-je changer au comptoir ?", "a": "Oui. Vous pouvez surclasser votre protection au moment de récupérer la voiture, mais vous ne pouvez pas la rétrograder une fois la location commencée." },
         { "q": "Les dommages aux pneus et au pare-brise sont-ils couverts ?", "a": "À partir de la formule Smart. Basic n'inclut pas la couverture pneus ou pare-brise ; vous paieriez ces réparations vous-même." }
       ],
       "readTerms": "Lire les conditions d'assurance complètes"
@@ -682,7 +739,7 @@
       "countryOfResidence": "Pays de résidence",
       "whatsappOptIn": "Envoyez mes mises à jour de réservation via WhatsApp.",
       "licenceHeading": "Permis de conduire",
-      "licenceHelper": "Nous vérifierons au retrait. Les permis étrangers doivent être en caractères latins — apportez votre passeport.",
+      "licenceHelper": "Nous vérifierons au retrait. Les permis étrangers doivent être en caractères latins, apportez votre passeport.",
       "licenceNumber": "Numéro de permis",
       "issuingCountry": "Pays de délivrance",
       "issueDate": "Date de délivrance",
@@ -713,7 +770,7 @@
       "idlePrompt": "Besoin d'aide pour finaliser votre réservation ?",
       "idlePromptLink": "Discuter avec notre équipe",
       "holdExpired": "Votre réservation provisoire a expiré. Nous revérifierons le prix à la validation.",
-      "vehicleTaken": "Ce véhicule vient d'être pris — choisissez-en un autre.",
+      "vehicleTaken": "Ce véhicule vient d'être pris, choisissez-en un autre.",
       "submitError": "Nous n'avons pas pu valider votre réservation. Réessayez ou contactez-nous sur WhatsApp.",
       "countries": {
         "LB": "Liban",
@@ -748,21 +805,21 @@
       "needChange": "Besoin de modifier ?",
       "modify": "Modifier",
       "cancel": "Annuler",
-      "modifyToast": "La modification arrive au Sprint 7 — contactez-nous sur WhatsApp pour l'instant.",
-      "cancelToast": "L'annulation arrive au Sprint 7 — contactez-nous sur WhatsApp pour l'instant.",
+      "modifyToast": "La modification arrive au Sprint 7, contactez-nous sur WhatsApp pour l'instant.",
+      "cancelToast": "L'annulation arrive au Sprint 7, contactez-nous sur WhatsApp pour l'instant.",
       "preferChat": "Vous préférez discuter ?",
       "whatsappUs": "Écrivez-nous sur WhatsApp",
       "nextSteps": "Prochaines étapes",
       "stepBringLicence": "Apportez votre permis de conduire et la carte de crédit utilisée.",
       "stepHaveRef": "Ayez votre référence de réservation à portée de main.",
       "stepWhatsapp24h": "Nous vous écrirons sur WhatsApp 24 heures avant le retrait avec le point de rendez-vous.",
-      "stepPickupAt": "Retrait à {branch} — notre équipe vous enverra les détails de stationnement sur WhatsApp.",
+      "stepPickupAt": "Retrait à {branch}, notre équipe vous enverra les détails de stationnement sur WhatsApp.",
       "stepDeliverTo": "Nous livrerons à : {address}",
       "stepBringCash": "Apportez des USD ou des LBP pour le paiement au comptoir.",
       "stepSendTransfer": "Effectuez votre virement si ce n'est pas déjà fait. Nous confirmons sous 24h après réception.",
       "stepPayOmt": "Payez dans n'importe quelle agence OMT, Whish ou Bob Finance avec la référence ci-dessus.",
       "upsellHeading": "Créez un compte en un clic",
-      "upsellBody": "Utilisez {email} — nous enregistrerons votre réservation et votre permis pour la prochaine fois.",
+      "upsellBody": "Utilisez {email}, nous enregistrerons votre réservation et votre permis pour la prochaine fois.",
       "createAccount": "Créer un compte",
       "noThanks": "Non merci",
       "crossSellHeading": "Vous restez un mois ou plus ?",
@@ -798,7 +855,7 @@
     "emailInvalid": "Saisissez un e-mail valide.",
     "mobileRequired": "Le numéro de mobile est requis.",
     "submitError": "Nous n'avons pas pu envoyer votre demande. Réessayez ou contactez-nous sur WhatsApp.",
-    "success": "Merci — nous vous recontactons sous 24 heures.",
+    "success": "Merci, nous vous recontactons sous 24 heures.",
     "successAddSomething": "Quelque chose à ajouter ? Discutez sur WhatsApp",
     "classSedan": "Berline",
     "classSuv": "SUV",
@@ -843,6 +900,28 @@
       "notesPlaceholder": "Taille de flotte, catégories de véhicules, durée de location typique, préférences contractuelles...",
       "marketing": "Je souhaite recevoir occasionnellement des nouvelles B2B de Wheels."
     },
+    "carWash": {
+      "package": "Formule",
+      "packageRequired": "Sélectionnez une formule.",
+      "vehicleClass": "Type de véhicule",
+      "vehicleClassRequired": "Sélectionnez voiture ou SUV.",
+      "preferredDate": "Date souhaitée",
+      "preferredDateRequired": "Indiquez votre date souhaitée.",
+      "preferredTime": "Heure souhaitée (optionnel)",
+      "preferredTimePlaceholder": "ex. Matin, 10:00",
+      "vehicleMakeModel": "Marque & modèle (optionnel)",
+      "vehicleMakeModelPlaceholder": "ex. Toyota Corolla",
+      "estimatedPrice": "Prix estimé",
+      "quoteOnRequest": "Devis sur demande"
+    },
+    "fleetPartnership": {
+      "company": "Entreprise (optionnel)",
+      "vehicleCount": "Nombre approximatif de véhicules",
+      "count1To3": "1–3 véhicules",
+      "count4To10": "4–10 véhicules",
+      "count10Plus": "10+ véhicules",
+      "notesPlaceholder": "Parlez-nous de vos véhicules et de ce que vous recherchez..."
+    },
     "contactForm": {
       "subject": "Sujet",
       "subjectGeneral": "Demande générale",
@@ -857,7 +936,7 @@
       "messageRequired": "Dites-nous comment nous pouvons aider.",
       "sendMessage": "Envoyer le message",
       "submitError": "Nous n'avons pas pu envoyer votre message. Essayez WhatsApp à la place.",
-      "success": "Merci — nous répondons sous 4 heures."
+      "success": "Merci, nous répondons sous 4 heures."
     }
   },
   "accountPages": {
@@ -1025,7 +1104,7 @@
     "pendingBody": "Nous confirmerons votre réservation dans les 24 heures après réception du paiement et vous informerons sur WhatsApp.",
     "copyReference": "Copier la référence {value}",
     "referenceCopied": "Référence copiée",
-    "referenceCopyError": "Impossible de copier — veuillez copier manuellement."
+    "referenceCopyError": "Impossible de copier, veuillez copier manuellement."
   },
   "checkoutPayment": {
     "paymentMethodAria": "Mode de paiement",
@@ -1040,7 +1119,7 @@
     "omtLabel": "OMT / Whish / Bob",
     "omtTagline": "Payez dans n'importe quelle agence",
     "whishOnlineBody": "Vous serez redirigé vers Whish pour finaliser le paiement en toute sécurité. La réservation est confirmée uniquement après vérification du statut Whish.",
-    "cardHosted": "Hébergé par Areeba — nous ne stockons jamais vos données de carte.",
+    "cardHosted": "Hébergé par Areeba, nous ne stockons jamais vos données de carte.",
     "cardNumber": "Numéro de carte",
     "cardNumberPlaceholder": "4242 4242 4242 4242",
     "cardExpiry": "Expiration",
@@ -1060,7 +1139,7 @@
     "omtHelper": "Optionnel : téléversez le reçu pour accélérer la vérification (généralement sous 4 h).",
     "omtUploadLabel": "Téléverser le reçu OMT (optionnel)",
     "copied": "Copié dans le presse-papiers",
-    "copyError": "Impossible de copier — veuillez copier manuellement.",
+    "copyError": "Impossible de copier, veuillez copier manuellement.",
     "pendingReferenceFallback": "(votre référence de réservation s'affichera ici à l'envoi)",
     "choosePaymentMethod": "Choisissez un mode de paiement.",
     "cardErrorNumber": "Saisissez un numéro de carte valide.",
@@ -1070,7 +1149,7 @@
     "transferProofRequired": "Téléversez une preuve de virement pour envoyer.",
     "whishUnavailable": "Le paiement en ligne Whish n'est pas configuré localement. Pour tester, choisissez espèces, virement bancaire ou paiement en agence OMT/Whish.",
     "continueToWhish": "Continuer vers Whish",
-    "submitPendingVerification": "Envoyer la réservation — en attente de vérification",
+    "submitPendingVerification": "Envoyer la réservation, en attente de vérification",
     "howWouldYouLikeToPay": "Comment souhaitez-vous payer ?",
     "payAndConfirm": "Payer et confirmer",
     "confirmReservation": "Confirmer la réservation"
@@ -1088,7 +1167,7 @@
     "mobile": "Mobile",
     "mobileHelper": "Utilisé pour les mises à jour WhatsApp.",
     "dateOfBirth": "Date de naissance",
-    "dobLockedHelper": "Verrouillée après le premier enregistrement — utilisée pour vérifier l'âge du conducteur.",
+    "dobLockedHelper": "Verrouillée après le premier enregistrement, utilisée pour vérifier l'âge du conducteur.",
     "countryOfResidence": "Pays de résidence",
     "preferences": "Préférences",
     "whatsappUpdates": "Envoyez-moi les mises à jour de réservation via WhatsApp.",
@@ -1101,7 +1180,7 @@
     "deleteAccount": "Supprimer le compte",
     "needHelp": "Besoin d'aide avec votre compte ?",
     "passwordUpdated": "Mot de passe mis à jour.",
-    "changePasswordDescription": "Choisissez un nouveau mot de passe — au moins 8 caractères avec un mélange de lettres et de chiffres.",
+    "changePasswordDescription": "Choisissez un nouveau mot de passe, au moins 8 caractères avec un mélange de lettres et de chiffres.",
     "currentPassword": "Mot de passe actuel",
     "newPassword": "Nouveau mot de passe",
     "cancel": "Annuler",
@@ -1117,7 +1196,7 @@
   "accountDocuments": {
     "documentSaved": "Document enregistré.",
     "title": "Documents",
-    "subtitle": "Téléversez votre permis et votre pièce d'identité une seule fois — les prochaines réservations seront préremplies.",
+    "subtitle": "Téléversez votre permis et votre pièce d'identité une seule fois, les prochaines réservations seront préremplies.",
     "licenceSection": "Permis de conduire",
     "licenceCardTitle": "Permis de conduire",
     "replaceLicence": "Remplacer le permis",
@@ -1176,14 +1255,14 @@
     "offline": "La réservation en ligne est temporairement indisponible. Contactez-nous sur WhatsApp."
   },
   "meta": {
-    "homeTitle": "Wheels Rent A Car — Location de voitures premium au Liban · Retrait gratuit à Hazmieh",
+    "homeTitle": "Wheels Rent A Car, Location de voitures premium au Liban · Retrait gratuit à Hazmieh",
     "homeDescription": "Location de voitures premium au Liban. Retrait gratuit à Hazmieh. Support WhatsApp 24/7. Annulation gratuite jusqu'à 24 heures. Réservez en moins de 90 secondes.",
     "aboutTitle": "À propos de Wheels Rent A Car · Location de voitures premium au Liban",
     "aboutDescription": "Wheels est une marque de location de voitures premium née à Beyrouth. Rencontrez l'équipe et découvrez comment nous gérons notre flotte à travers le Liban.",
     "locationsTitle": "Rendez-nous visite à Hazmieh · Wheels Rent A Car",
-    "locationsDescription": "Wheels Hazmieh — Gallery Semaan, face à Sea Sweet, à côté de l'hôtel Lancaster Tamar, Beyrouth, Liban. Récupérez votre voiture à notre agence ou écrivez-nous sur WhatsApp.",
-    "vehiclesTitle": "Notre flotte — Voitures premium au Liban · Wheels Rent A Car",
-    "vehiclesDescription": "Parcourez la flotte Wheels — berline, SUV, luxe et 7 places. Filtrez par prix, transmission et équipements. Sélectionnez en ligne et réservez en quelques secondes.",
+    "locationsDescription": "Wheels Hazmieh, Gallery Semaan, face à Sea Sweet, à côté de l'hôtel Lancaster Tamar, Beyrouth, Liban. Récupérez votre voiture à notre agence ou écrivez-nous sur WhatsApp.",
+    "vehiclesTitle": "Notre flotte, Voitures premium au Liban · Wheels Rent A Car",
+    "vehiclesDescription": "Parcourez la flotte Wheels, berline, SUV, luxe et 7 places. Filtrez par prix, transmission et équipements. Sélectionnez en ligne et réservez en quelques secondes.",
     "helpTitle": "Aide & support · Wheels Rent A Car",
     "helpDescription": "Trouvez des réponses sur la réservation, le retrait, le paiement, l'assurance et l'annulation. Ou discutez avec nous sur WhatsApp.",
     "termsTitle": "Conditions générales · Wheels Rent A Car",
@@ -1192,7 +1271,7 @@
     "privacyDescription": "Comment Wheels Rent A Car collecte, utilise et protège vos données personnelles.",
     "cookiesTitle": "Politique de cookies · Wheels Rent A Car",
     "cookiesDescription": "Quels cookies nous utilisons et comment gérer vos préférences.",
-    "notFoundTitle": "Mauvais virage — page introuvable · Wheels"
+    "notFoundTitle": "Mauvais virage, page introuvable · Wheels"
   },
   "notFound": {
     "brand": "Wheels",

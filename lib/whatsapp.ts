@@ -33,18 +33,18 @@ export function whatsAppMessage(
 ): string {
   switch (context) {
     case "fleet":
-      return "Hi Wheels — I'm browsing your fleet and would like some help.";
+      return "Hi Wheels, I'm browsing your fleet and would like some help.";
     case "pdp":
-      return `Hi Wheels — I'm interested in the ${details.model ?? "car"}.`;
+      return `Hi Wheels, I'm interested in the ${details.model ?? "car"}.`;
     case "select-vehicle":
-      return `Hi Wheels — I need help choosing a car${details.pickup && details.return ? ` for ${details.pickup} → ${details.return}` : ""}.`;
+      return `Hi Wheels, I need help choosing a car${details.pickup && details.return ? ` for ${details.pickup} → ${details.return}` : ""}.`;
     case "checkout":
-      return "Hi Wheels — I'm completing a booking and need help.";
+      return "Hi Wheels, I'm completing a booking and need help.";
     case "confirmation":
-      return `Hi Wheels — my booking ref is ${details.ref ?? ""}. I have a question.`;
+      return `Hi Wheels, my booking ref is ${details.ref ?? ""}. I have a question.`;
     case "default":
     default:
-      return "Hi Wheels — I have a question about renting a car.";
+      return "Hi Wheels, I have a question about renting a car.";
   }
 }
 

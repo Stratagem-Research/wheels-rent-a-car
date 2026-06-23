@@ -12,7 +12,7 @@ import { useTrips } from "@/lib/admin/useAdminStore";
 import { getLocalizedString, getLocalizedStringArray } from "@/lib/i18n/localized";
 
 /*
- * /trips/[slug] — self-drive trip article.
+ * /trips/[slug], self-drive trip article.
  *
  * Client component so admin-created/edited trips reflect live. Hero
  * cover photo + title + meta, body in body-lg narrow column,
@@ -36,7 +36,7 @@ export default function TripDetailPage({ params }: PageProps) {
 
   // Update document title client-side so the tab reflects the article.
   React.useEffect(() => {
-    if (trip) document.title = `${getLocalizedString(trip.title, locale)} — Wheels Rent A Car`;
+    if (trip) document.title = `${getLocalizedString(trip.title, locale)} · Wheels Rent A Car`;
   }, [locale, trip]);
 
   if (!trip) notFound();

@@ -35,29 +35,29 @@ export const FAQ_T: Record<string, { question: LocaleText; answer: LocaleText }>
   "f-b-4": {
     question: { ar: "قبل كم من الوقت يمكنني الحجز؟", fr: "Combien de temps à l'avance puis-je réserver ?" },
     answer: {
-      ar: "حتى 11 شهراً مقدماً. للاستلام في اليوم نفسه، اتصل بنا — سنؤكّد عبر واتساب.",
-      fr: "Jusqu'à 11 mois à l'avance. Pour un retrait le jour même, appelez-nous — nous confirmons par WhatsApp.",
+      ar: "حتى 11 شهراً مقدماً. للاستلام في اليوم نفسه، اتصل بنا, سنؤكّد عبر واتساب.",
+      fr: "Jusqu'à 11 mois à l'avance. Pour un retrait le jour même, appelez-nous, nous confirmons par WhatsApp.",
     },
   },
   "f-p-1": {
     question: { ar: "أين أستلم السيارة؟", fr: "Où récupérer la voiture ?" },
     answer: {
-      ar: "في مركزنا بحازمية (Gallery Semaan، مقابل Sea Sweet) أو عبر التوصيل إلى أيّ عنوان في بيروت الكبرى — بما في ذلك مطار بيروت.",
-      fr: "À notre hub de Hazmieh (Gallery Semaan, face à Sea Sweet) ou par livraison à toute adresse du Grand Beyrouth — y compris l'aéroport de Beyrouth.",
+      ar: "في مركزنا بحازمية (Gallery Semaan، مقابل Sea Sweet) أو عبر التوصيل إلى أيّ عنوان في بيروت الكبرى, بما في ذلك مطار بيروت.",
+      fr: "À notre hub de Hazmieh (Gallery Semaan, face à Sea Sweet) ou par livraison à toute adresse du Grand Beyrouth, y compris l'aéroport de Beyrouth.",
     },
   },
   "f-p-2": {
     question: { ar: "ما أوقات الاستلام والإرجاع؟", fr: "À quelle heure puis-je récupérer ou rendre ?" },
     answer: {
-      ar: "مركزنا مفتوح 08:00–20:00 من الإثنين إلى السبت و10:00–16:00 يوم الأحد. للاستلام خارج هذه الأوقات، راسلنا عبر واتساب — سنرتّب الأمر.",
-      fr: "Notre hub est ouvert de 08:00 à 20:00 du lundi au samedi et de 10:00 à 16:00 le dimanche. En dehors de ces horaires, écrivez-nous sur WhatsApp — nous nous arrangerons.",
+      ar: "مركزنا مفتوح 08:00–20:00 من الإثنين إلى السبت و10:00–16:00 يوم الأحد. للاستلام خارج هذه الأوقات، راسلنا عبر واتساب, سنرتّب الأمر.",
+      fr: "Notre hub est ouvert de 08:00 à 20:00 du lundi au samedi et de 10:00 à 16:00 le dimanche. En dehors de ces horaires, écrivez-nous sur WhatsApp, nous nous arrangerons.",
     },
   },
   "f-p-3": {
     question: { ar: "هل يمكنكم لقائي في المطار؟", fr: "Pouvez-vous me retrouver à l'aéroport ?" },
     answer: {
-      ar: "نعم. اختر التوصيل وأدخل المطار — نتتبّع رحلتك ونلتقي بك عند الوصول. التأخير حتى 90 دقيقة مجاني.",
-      fr: "Oui. Choisissez la livraison et indiquez l'aéroport — nous suivons votre vol et vous accueillons aux arrivées. Jusqu'à 90 minutes de retard sont gratuites.",
+      ar: "نعم. اختر التوصيل وأدخل المطار, نتتبّع رحلتك ونلتقي بك عند الوصول. التأخير حتى 90 دقيقة مجاني.",
+      fr: "Oui. Choisissez la livraison et indiquez l'aéroport, nous suivons votre vol et vous accueillons aux arrivées. Jusqu'à 90 minutes de retard sont gratuites.",
     },
   },
   "f-p-4": {
@@ -84,8 +84,8 @@ export const FAQ_T: Record<string, { question: LocaleText; answer: LocaleText }>
   "f-pa-3": {
     question: { ar: "ما هو التأمين (الوديعة)؟", fr: "Quel est le montant de la caution ?" },
     answer: {
-      ar: "قابلة للاسترداد، وتختلف حسب فئة السيارة — عادةً 300$ للاقتصادية وحتى 1500$ للفاخرة. تُحرَّر بعد فحص الإرجاع.",
-      fr: "Remboursable, elle varie selon la catégorie — généralement 300$ pour l'économique, jusqu'à 1 500$ pour le luxe. Libérée après l'inspection au retour.",
+      ar: "قابلة للاسترداد، وتختلف حسب فئة السيارة, عادةً 300$ للاقتصادية وحتى 1500$ للفاخرة. تُحرَّر بعد فحص الإرجاع.",
+      fr: "Remboursable, elle varie selon la catégorie, généralement 300$ pour l'économique, jusqu'à 1 500$ pour le luxe. Libérée après l'inspection au retour.",
     },
   },
   "f-pa-4": {
@@ -147,8 +147,8 @@ export const FAQ_T: Record<string, { question: LocaleText; answer: LocaleText }>
   "f-d-4": {
     question: { ar: "هل يمكنني إضافة سائق إضافي؟", fr: "Puis-je ajouter un conducteur supplémentaire ?" },
     answer: {
-      ar: "نعم — عند الحجز أو عند المكتب. يجب أن يقدّم كل سائق إضافي رخصة سارية أيضاً.",
-      fr: "Oui — à la réservation ou au comptoir. Chaque conducteur supplémentaire doit aussi présenter un permis valide.",
+      ar: "نعم, عند الحجز أو عند المكتب. يجب أن يقدّم كل سائق إضافي رخصة سارية أيضاً.",
+      fr: "Oui, à la réservation ou au comptoir. Chaque conducteur supplémentaire doit aussi présenter un permis valide.",
     },
   },
   "f-c-1": {
@@ -236,30 +236,30 @@ La plupart des visiteurs associent les Cèdres au musée Gibran de Bcharré, à 
   "baalbek-anjar": {
     title: { ar: "بعلبك وعنجر", fr: "Baalbek & Anjar" },
     excerpt: {
-      ar: "معابد رومانية في بعلبك ومدينة عنجر الأموية — ثنائية في سهل البقاع.",
-      fr: "Les temples romains de Baalbek et la cité palatiale omeyyade d'Anjar — un duo dans la plaine de la Bekaa.",
+      ar: "معابد رومانية في بعلبك ومدينة عنجر الأموية, ثنائية في سهل البقاع.",
+      fr: "Les temples romains de Baalbek et la cité palatiale omeyyade d'Anjar, un duo dans la plaine de la Bekaa.",
     },
     meta: { ar: "9 ساعات · يُنصح بسيدان", fr: "9h · Berline recommandée" },
     alt: { ar: "آثار رومانية في بعلبك بسهل البقاع", fr: "Ruines romaines de Baalbek dans la Bekaa" },
     body: {
-      ar: `معبد جوبيتر في بعلبك هو أكبر معبد روماني بُني على الإطلاق — أعمدته الستة القائمة يبلغ ارتفاعها 22م. خصّص ساعتين للموقع، ثم قُد 40 دقيقة جنوباً إلى مدينة عنجر الأموية لأطلال أهدأ لكنها لا تقلّ أهمية.
+      ar: `معبد جوبيتر في بعلبك هو أكبر معبد روماني بُني على الإطلاق, أعمدته الستة القائمة يبلغ ارتفاعها 22م. خصّص ساعتين للموقع، ثم قُد 40 دقيقة جنوباً إلى مدينة عنجر الأموية لأطلال أهدأ لكنها لا تقلّ أهمية.
 
 سهل البقاع بين الموقعين هو بلاد النبيذ: شاتو كسارة ودومين واردي وشاتو كفريا تقدّم جميعها زيارات للأقبية وتذوّقاً إن حجزت مسبقاً. يضيف كثير من المسافرين غداءً بقاعياً (مزة في تاولات عميق) قبل العودة إلى بيروت عبر ضهر البيدر.
 
-سيدان مريحة تتولّى المسار جيداً — فالبقاع مستوٍ في معظمه بعد تجاوز ممرّ الجبل.`,
-      fr: `Le temple de Jupiter à Baalbek est le plus grand temple romain jamais construit — ses six colonnes debout font 22 m de haut. Comptez deux heures sur le site, puis roulez 40 minutes au sud jusqu'à la cité palatiale omeyyade d'Anjar, une ruine plus calme mais tout aussi remarquable.
+سيدان مريحة تتولّى المسار جيداً, فالبقاع مستوٍ في معظمه بعد تجاوز ممرّ الجبل.`,
+      fr: `Le temple de Jupiter à Baalbek est le plus grand temple romain jamais construit, ses six colonnes debout font 22 m de haut. Comptez deux heures sur le site, puis roulez 40 minutes au sud jusqu'à la cité palatiale omeyyade d'Anjar, une ruine plus calme mais tout aussi remarquable.
 
 La Bekaa entre les deux est une région viticole : Château Ksara, Domaine Wardy et Château Kefraya proposent visites de caves et dégustations sur réservation. Beaucoup ajoutent un déjeuner dans la Bekaa (mezzé à Tawlet Ammiq) avant de revenir à Beyrouth par le col de Dahr el Baidar.
 
-Une berline confortable convient bien — la Bekaa est en grande partie plate une fois le col franchi.`,
+Une berline confortable convient bien, la Bekaa est en grande partie plate une fois le col franchi.`,
     },
     tags: { ar: ["تاريخ", "نبيذ", "البقاع"], fr: ["histoire", "vin", "bekaa"] },
   },
   "tyre-sidon": {
     title: { ar: "صور وصيدا", fr: "Tyr & Saïda" },
     excerpt: {
-      ar: "موانئ فينيقية وأسواق مملوكية وغداء بحري في ميناء صور القديم — الساحل الجنوبي في يوم.",
-      fr: "Ports phéniciens, souks mamelouks et déjeuner de fruits de mer au vieux port de Tyr — la côte sud en une journée.",
+      ar: "موانئ فينيقية وأسواق مملوكية وغداء بحري في ميناء صور القديم, الساحل الجنوبي في يوم.",
+      fr: "Ports phéniciens, souks mamelouks et déjeuner de fruits de mer au vieux port de Tyr, la côte sud en une journée.",
     },
     meta: { ar: "8 ساعات · يُنصح بسيدان", fr: "8h · Berline recommandée" },
     alt: { ar: "قرية ساحلية في جنوب لبنان بين صور وصيدا", fr: "Village côtier du sud du Liban entre Tyr et Saïda" },
@@ -282,10 +282,10 @@ Une berline parcourt facilement l'itinéraire. Avec une journée de plus, ajoute
     meta: { ar: "7 ساعات · أيّ سيارة", fr: "7h · Toute voiture" },
     alt: { ar: "ميناء جبيل عند الساعة الذهبية", fr: "Le port de Byblos à l'heure dorée" },
     body: {
-      ar: `جبيل هي أسهل رحلة يومية من بيروت — 35 دقيقة على الطريق الساحلي. يجمع الميناء الفينيقي والقلعة الصليبية والسوق القديم في ثلاث ساعات. الغداء في بيبي عبد في الميناء القديم هو الخيار الكلاسيكي.
+      ar: `جبيل هي أسهل رحلة يومية من بيروت, 35 دقيقة على الطريق الساحلي. يجمع الميناء الفينيقي والقلعة الصليبية والسوق القديم في ثلاث ساعات. الغداء في بيبي عبد في الميناء القديم هو الخيار الكلاسيكي.
 
 أضِف البترون في طريق العودة: الواجهة البحرية والجدار الفينيقي وعصير ليمون حلمي هي البرنامج المعتاد.`,
-      fr: `Byblos (Jbeil) est l'excursion la plus facile depuis Beyrouth — 35 minutes par la côtière. Le port phénicien, le château croisé et le vieux souk se bouclent en trois heures. Le déjeuner chez Pepe Abed dans le vieux port est le grand classique.
+      fr: `Byblos (Jbeil) est l'excursion la plus facile depuis Beyrouth, 35 minutes par la côtière. Le port phénicien, le château croisé et le vieux souk se bouclent en trois heures. Le déjeuner chez Pepe Abed dans le vieux port est le grand classique.
 
 Ajoutez Batroun au retour : le front de mer, le mur phénicien et une limonade chez Hilmi sont au programme.`,
     },
@@ -300,20 +300,20 @@ Ajoutez Batroun au retour : le front de mer, le mur phénicien et une limonade c
     meta: { ar: "8 ساعات · يُنصح بدفع رباعي", fr: "8h · SUV recommandé" },
     alt: { ar: "منظر جبال الشوف", fr: "Paysage des montagnes du Chouf" },
     body: {
-      ar: `محمية أرز الشوف هي أكبر تجمّع للأرز في لبنان — سلسلة من المسارات تتراوح بين 30 دقيقة ومشي يوم كامل. قصر بيت الدين، على بُعد 30 دقيقة، هو أفضل قصر محفوظ من القرن التاسع عشر في البلاد ويستضيف مهرجان بيت الدين صيفاً.
+      ar: `محمية أرز الشوف هي أكبر تجمّع للأرز في لبنان, سلسلة من المسارات تتراوح بين 30 دقيقة ومشي يوم كامل. قصر بيت الدين، على بُعد 30 دقيقة، هو أفضل قصر محفوظ من القرن التاسع عشر في البلاد ويستضيف مهرجان بيت الدين صيفاً.
 
-الطريق مليء بالمنعطفات؛ دفع رباعي أكثر راحة، رغم أن سيدان تتولّاه في الطقس الجيد. خيارات الغداء تشمل المطاعم الموسمية في دير القمر — جرّب الكبة النيّة.`,
-      fr: `La réserve de cèdres du Chouf est la plus grande cédraie du Liban — des sentiers allant de 30 minutes à une journée de marche. Le palais de Beiteddine, à 30 minutes, est le palais du XIXe siècle le mieux conservé du pays et accueille le festival de Beiteddine en été.
+الطريق مليء بالمنعطفات؛ دفع رباعي أكثر راحة، رغم أن سيدان تتولّاه في الطقس الجيد. خيارات الغداء تشمل المطاعم الموسمية في دير القمر, جرّب الكبة النيّة.`,
+      fr: `La réserve de cèdres du Chouf est la plus grande cédraie du Liban, des sentiers allant de 30 minutes à une journée de marche. Le palais de Beiteddine, à 30 minutes, est le palais du XIXe siècle le mieux conservé du pays et accueille le festival de Beiteddine en été.
 
-La route est pleine de virages ; un SUV est plus confortable, bien qu'une berline s'en sorte par beau temps. Pour le déjeuner, essayez les restaurants saisonniers de Deir el Qamar — goûtez le kibbeh nayyeh.`,
+La route est pleine de virages ; un SUV est plus confortable, bien qu'une berline s'en sorte par beau temps. Pour le déjeuner, essayez les restaurants saisonniers de Deir el Qamar, goûtez le kibbeh nayyeh.`,
     },
     tags: { ar: ["جبال", "أرز", "تاريخ"], fr: ["montagnes", "cèdres", "histoire"] },
   },
   "qadisha-valley": {
     title: { ar: "وادي قاديشا", fr: "Vallée de la Qadisha" },
     excerpt: {
-      ar: "أديرة مارونية منحوتة في وادٍ رملي — من أكثر دروب لبنان سينمائية.",
-      fr: "Des monastères maronites taillés dans une gorge de grès — l'une des routes les plus cinématographiques du Liban.",
+      ar: "أديرة مارونية منحوتة في وادٍ رملي, من أكثر دروب لبنان سينمائية.",
+      fr: "Des monastères maronites taillés dans une gorge de grès, l'une des routes les plus cinématographiques du Liban.",
     },
     meta: { ar: "9 ساعات · يُنصح بدفع رباعي", fr: "9h · SUV recommandé" },
     alt: { ar: "أديرة وادي قاديشا", fr: "Monastères de la vallée de la Qadisha" },
@@ -509,13 +509,13 @@ export const ABOUT_T = {
   storyParagraphs: {
     ar: [
       "تأسّست Wheels في بيروت على يد عائلة شغوفة بالسيارات لم تجد تجربة إيجار تستحقّ ثمنها في مدينتها. كان السيّاح الوافدون يُسلَّمون مفاتيح مغبرّة؛ والمقيمون يتجادلون عند المكتب؛ والمغتربون يتنقّلون بين ثلاثة تطبيقات للعثور على سيارة نظيفة.",
-      "بدأنا صغاراً — اثنتا عشرة سيارة ورقم واتساب كان مارك يردّ عليه بنفسه. واليوم ندير أسطولنا من مركز واحد في حازمية، بالروح نفسها: سيارات نظيفة، وأسعار صادقة، وأشخاص حقيقيون يردّون على كل رسالة.",
-      "المميّز لا يعني الباهظ — بل يعني أن كل ما يُفترَض أن يعمل، يعمل. تُؤجَّر الياريس وتُعاد في اليوم نفسه بإتقان. وتصل التاهو إلى موقف فندقك في الوقت المحدّد. ويُقرأ تأكيد الحجز وكأن صديقاً كتبه، لأن صديقاً كتبه فعلاً.",
+      "بدأنا صغاراً, اثنتا عشرة سيارة ورقم واتساب كان مارك يردّ عليه بنفسه. واليوم ندير أسطولنا من مركز واحد في حازمية، بالروح نفسها: سيارات نظيفة، وأسعار صادقة، وأشخاص حقيقيون يردّون على كل رسالة.",
+      "المميّز لا يعني الباهظ, بل يعني أن كل ما يُفترَض أن يعمل، يعمل. تُؤجَّر الياريس وتُعاد في اليوم نفسه بإتقان. وتصل التاهو إلى موقف فندقك في الوقت المحدّد. ويُقرأ تأكيد الحجز وكأن صديقاً كتبه، لأن صديقاً كتبه فعلاً.",
     ],
     fr: [
       "Wheels a été fondée à Beyrouth par une famille passionnée d'automobile qui ne trouvait pas, dans sa propre ville, une expérience de location à la hauteur du prix. Les touristes recevaient des clés poussiéreuses ; les habitants devaient négocier au comptoir ; les expatriés jonglaient avec trois applis pour trouver une voiture propre.",
-      "Nous avons commencé modestement — douze voitures et un numéro WhatsApp que Marc gérait lui-même. Aujourd'hui, nous exploitons notre flotte depuis un hub unique à Hazmieh, avec le même état d'esprit : des voitures propres, des prix honnêtes, et de vraies personnes derrière chaque message.",
-      "Premium ne veut pas dire cher — cela veut dire que tout ce qui doit fonctionner fonctionne. La Yaris est louée et rendue le jour même, parfaitement. La Tahoe arrive à la voiturier de votre hôtel à l'heure. La confirmation de réservation se lit comme si un ami l'avait écrite, parce que c'est le cas.",
+      "Nous avons commencé modestement, douze voitures et un numéro WhatsApp que Marc gérait lui-même. Aujourd'hui, nous exploitons notre flotte depuis un hub unique à Hazmieh, avec le même état d'esprit : des voitures propres, des prix honnêtes, et de vraies personnes derrière chaque message.",
+      "Premium ne veut pas dire cher, cela veut dire que tout ce qui doit fonctionner fonctionne. La Yaris est louée et rendue le jour même, parfaitement. La Tahoe arrive à la voiturier de votre hôtel à l'heure. La confirmation de réservation se lit comme si un ami l'avait écrite, parce que c'est le cas.",
     ],
   } as LocaleList,
   pullQuote: {
@@ -528,12 +528,12 @@ export const ABOUT_T = {
   } as LocaleText,
   fleetParagraphs: {
     ar: [
-      "نحدّد عمر كل سيارة بثلاث سنوات. وبعد ذلك تُباع أو تُحال للتقاعد — لا تُمرَّر إلى المستأجر التالي.",
+      "نحدّد عمر كل سيارة بثلاث سنوات. وبعد ذلك تُباع أو تُحال للتقاعد, لا تُمرَّر إلى المستأجر التالي.",
       "تُفحَص السيارات على يد ميكانيكي معتمد كل 5000 كم وتُنظَّف بين كل إيجار. وتُدوَّر الإطارات وفق جدول زمني، لا بناءً على شكوى.",
       "نختار الطُرز المناسبة للطرق اللبنانية: ارتفاع كافٍ عن الأرض لممرّ فقرا الجبلي، وراحة تكفي للقيادة الطويلة إلى صور، وصندوق يتّسع لعطلة في الأرز.",
     ],
     fr: [
-      "Nous limitons chaque véhicule à trois ans d'âge. Au-delà, il est vendu ou retiré — pas refilé au locataire suivant.",
+      "Nous limitons chaque véhicule à trois ans d'âge. Au-delà, il est vendu ou retiré, pas refilé au locataire suivant.",
       "Les voitures sont inspectées par un mécanicien certifié tous les 5 000 km et nettoyées entre chaque location. Les pneus tournent selon un calendrier, pas sur réclamation.",
       "Nous choisissons les modèles pour les routes libanaises : assez de garde au sol pour le col de Faqra, assez de confort pour le long trajet vers Tyr, assez de coffre pour un week-end aux Cèdres.",
     ],
@@ -594,6 +594,6 @@ export const HELP_TOPIC_T: Record<string, { title: LocaleText; blurb: LocaleText
   },
   whatsapp: {
     title: { ar: "راسلنا عبر واتساب", fr: "Écrivez-nous sur WhatsApp" },
-    blurb: { ar: "أشخاص حقيقيون، 24/7 — أسرع إجابة.", fr: "De vraies personnes, 24/7 — la réponse la plus rapide." },
+    blurb: { ar: "أشخاص حقيقيون، 24/7, أسرع إجابة.", fr: "De vraies personnes, 24/7, la réponse la plus rapide." },
   },
 };

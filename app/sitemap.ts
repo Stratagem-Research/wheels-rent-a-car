@@ -30,6 +30,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/locations",
     "/long-term",
     "/chauffeur",
+    "/car-wash",
+    "/fleet-partnership",
     "/corporate",
     "/trips",
     "/itineraries",

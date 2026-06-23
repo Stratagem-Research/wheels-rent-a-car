@@ -27,7 +27,7 @@ export const HELP_ARTICLES: Record<string, HelpArticle> = {
     slug: "rental-terms",
     title: "Rental terms",
     lastUpdated: "2026-05-15",
-    intro: "Everything you agree to when you rent from Wheels — distilled into plain English.",
+    intro: "Everything you agree to when you rent from Wheels, distilled into plain English.",
     sections: [
       {
         id: "intro",
@@ -81,7 +81,7 @@ export const HELP_ARTICLES: Record<string, HelpArticle> = {
       {
         id: "tiers",
         heading: "Our three tiers",
-        body: "Basic is included with every rental — third-party liability + collision damage with the $800 deductible. Smart adds tyre + windscreen cover, lockout, and personal effects up to $500. All-inclusive removes the deductible entirely and bumps personal effects to $2,000.",
+        body: "Basic is included with every rental, third-party liability + collision damage with the $800 deductible. Smart adds tyre + windscreen cover, lockout, and personal effects up to $500. All-inclusive removes the deductible entirely and bumps personal effects to $2,000.",
       },
       {
         id: "what-is-not-covered",
@@ -110,17 +110,17 @@ export const HELP_ARTICLES: Record<string, HelpArticle> = {
       {
         id: "when-charged",
         heading: "When you're charged",
-        body: "Card payments are captured at booking. Cash bookings are charged at pickup. Transfer and OMT bookings are confirmed once we verify receipt — typically within 24h (transfer) or 4h (OMT).",
+        body: "Card payments are captured at booking. Cash bookings are charged at pickup. Transfer and OMT bookings are confirmed once we verify receipt, typically within 24h (transfer) or 4h (OMT).",
       },
       {
         id: "deposit",
         heading: "The security deposit",
-        body: "We hold a refundable deposit on your card at pickup. Amount varies by category — $300 economy, $500 sedan, $750 SUV, $1,500 luxury. It's released after the return inspection.",
+        body: "We hold a refundable deposit on your card at pickup. Amount varies by category, $300 economy, $500 sedan, $750 SUV, $1,500 luxury. It's released after the return inspection.",
       },
       {
         id: "refunds",
         heading: "Refunds",
-        body: "Card refunds clear in 3–10 business days. Cash bookings have no refund — we never charged you. For Pending bookings cancelled before verification, no funds change hands.",
+        body: "Card refunds clear in 3–10 business days. Cash bookings have no refund, we never charged you. For Pending bookings cancelled before verification, no funds change hands.",
       },
     ],
   },
@@ -139,7 +139,7 @@ export const HELP_ARTICLES: Record<string, HelpArticle> = {
       {
         id: "within-24h",
         heading: "Within 24 hours of pickup",
-        body: "A one-day rate fee applies. We waive this for documented travel disruptions (cancelled flights, severe weather) — message us with proof and we'll review.",
+        body: "A one-day rate fee applies. We waive this for documented travel disruptions (cancelled flights, severe weather), message us with proof and we'll review.",
       },
       {
         id: "best-price",
@@ -194,7 +194,7 @@ export const HELP_TOPICS = [
   {
     slug: "whatsapp",
     title: "WhatsApp us",
-    blurb: "Real humans, 24/7 — fastest answer.",
+    blurb: "Real humans, 24/7, fastest answer.",
     iconName: "message-circle",
   },
 ] as const;

@@ -127,3 +127,18 @@ export function formatUsd(cents: Cents): string {
   const dollars = cents / 100;
   return dollars % 1 === 0 ? `$${dollars.toFixed(0)}` : `$${dollars.toFixed(2)}`;
 }
+
+/** Format whole LBP amounts (not cents). */
+export function formatLbp(amount: number): string {
+  return `${amount.toLocaleString("en-US")} LBP`;
+}
+
+export function formatMoney(
+  amount: number,
+  currency: "USD" | "LBP",
+  options?: { isCents?: boolean },
+): string {
+  if (currency === "LBP") return formatLbp(amount);
+  const cents = options?.isCents === false ? Math.round(amount * 100) : amount;
+  return formatUsd(cents);
+}

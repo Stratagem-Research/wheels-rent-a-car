@@ -53,6 +53,11 @@ export const PAGE_HERO_IMAGES = {
     alt: "Aerial view of the Beirut cityscape",
     position: "center 40%",
   },
+  carWash: {
+    src: "/images/Page Heroes/car-wash.jpg",
+    alt: "A clean vehicle at a professional car wash bay",
+    position: "center 50%",
+  },
 } satisfies Record<string, PageHeroImage>;
 
 /** Standalone branch photograph used in the body of /locations. */

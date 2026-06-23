@@ -25,11 +25,11 @@ import type { Booking } from "@/types/domain";
 /**
  * Modify / Cancel modals for booking detail.
  *
- * Modify (mock) — lets the user pick a new pickup datetime; submits as a
+ * Modify (mock), lets the user pick a new pickup datetime; submits as a
  * non-payment-affecting change. Real backend would recompute pricing and
  * gate by policy.
  *
- * Cancel — computes a mock refund preview based on hours-until-pickup
+ * Cancel, computes a mock refund preview based on hours-until-pickup
  * (≥24h free, otherwise one-day rate fee). 2-step confirmation as required
  * by 12_account.md.
  */
@@ -51,7 +51,7 @@ export function ModifyBookingModal({
       // Mock: no real PATCH endpoint exists yet. Just fire the analytics event.
       await new Promise((r) => setTimeout(r, 300));
       track(EVENTS.BOOKING_MODIFIED, { ref: booking.ref });
-      toast.success("Modification request submitted — we'll WhatsApp you to confirm.");
+      toast.success("Modification request submitted, we'll WhatsApp you to confirm.");
     } finally {
       setSubmitting(false);
     }
@@ -139,7 +139,7 @@ export function CancelBookingModal({
             <ModalDescription>
               {refundFull
                 ? `You'll receive a full refund of ${formatUsd(refundCents)} within 3–10 business days.`
-                : `Within 24 hours of pickup — a one-day rate fee applies. Refund: ${formatUsd(refundCents)}.`}
+                : `Within 24 hours of pickup, a one-day rate fee applies. Refund: ${formatUsd(refundCents)}.`}
             </ModalDescription>
             <ModalFooter>
               <Button variant="secondary">Keep booking</Button>
@@ -152,7 +152,7 @@ export function CancelBookingModal({
           <>
             <ModalTitle>Confirm cancellation</ModalTitle>
             <ModalDescription>
-              We&apos;ll cancel {booking.ref}. This can&apos;t be undone — you&apos;ll need to
+              We&apos;ll cancel {booking.ref}. This can&apos;t be undone, you&apos;ll need to
               re-book if your plans change.
             </ModalDescription>
             {error ? <ErrorText className="mt-3">{error}</ErrorText> : null}

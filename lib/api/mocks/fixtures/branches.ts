@@ -1,7 +1,7 @@
 import type { Branch } from "@/types/domain";
 
 /**
- * Wheels has one physical branch — Hazmieh — plus a meet-and-greet pickup
+ * Wheels has one physical branch, Hazmieh, plus a meet-and-greet pickup
  * point at Beirut Rafic Hariri International Airport (BEY). The airport
  * entry is a logical location rather than a separate counter: the same
  * Hazmieh team meets travellers at arrivals on request.
@@ -33,13 +33,13 @@ export const BRANCHES: Branch[] = [
     id: "br-bey-airport",
     slug: "bey-airport",
     name: "Beirut Airport (BEY)",
-    address: "Beirut Rafic Hariri International Airport — Arrivals meet & greet",
+    address: "Beirut Rafic Hariri International Airport, Arrivals meet & greet",
     city: "Beirut",
     lat: 33.8209,
     lng: 35.4884,
     phone: "+961 1 629 100",
     whatsapp: "+961 3 100 200",
-    // Airport meet-and-greet is on call any time a flight lands — same staff
+    // Airport meet-and-greet is on call any time a flight lands, same staff
     // as Hazmieh, just dispatched on demand.
     hours: [
       { day: 1, open: "00:00", close: "23:59" },

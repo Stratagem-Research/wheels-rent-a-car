@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  Droplets,
   Building2,
   HelpCircle,
   Info,
@@ -38,6 +39,7 @@ const NAV_ITEMS: Array<{
   { href: "/admin/itineraries", label: "Itineraries", icon: MapPinned },
   { href: "/admin/faqs", label: "FAQs", icon: HelpCircle },
   { href: "/admin/corporate", label: "Corporate", icon: Building2 },
+  { href: "/admin/car-wash", label: "Car wash", icon: Droplets },
   { href: "/admin/about", label: "About", icon: Info },
   { href: "/admin/leads", label: "Leads", icon: Users },
   { href: "/admin/fleet", label: "Fleet", icon: Route },

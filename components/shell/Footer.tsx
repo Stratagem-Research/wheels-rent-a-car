@@ -27,7 +27,9 @@ const WHEELS_LINKS = [
   { href: "/vehicles", labelKey: "fleet", ns: "footer" },
   { href: "/long-term", labelKey: "longTermRental", ns: "footer" },
   { href: "/chauffeur", labelKey: "chauffeurService", ns: "footer" },
+  { href: "/car-wash", labelKey: "carWashService", ns: "footer" },
   { href: "/corporate", labelKey: "corporate", ns: "nav" },
+  { href: "/fleet-partnership", labelKey: "fleetPartnership", ns: "footer" },
 ] as const;
 
 const HELP_LINKS = [

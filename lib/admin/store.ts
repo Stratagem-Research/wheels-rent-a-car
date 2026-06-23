@@ -6,7 +6,7 @@
 
 import type { CorporateTier, FaqGroup, Itinerary, Trip } from "@/types/domain";
 import { notifyCmsUpdated, type CmsResource } from "@/lib/admin/cms-events";
-import type { ChauffeurLead, CorporateLead, LongTermLead } from "@/lib/supabase/admin-repository";
+import type { ChauffeurLead, CarWashLead, CorporateLead, FleetPartnershipLead, LongTermLead } from "@/lib/supabase/admin-repository";
 
 async function cmsGet<T>(path: string): Promise<T> {
   const res = await fetch(path, { cache: "no-store" });
@@ -88,6 +88,8 @@ export type AdminLeadsResponse = {
   longTerm: LongTermLead[];
   corporate: CorporateLead[];
   chauffeur: ChauffeurLead[];
+  carWash: CarWashLead[];
+  fleetPartnership: FleetPartnershipLead[];
 };
 
 export async function fetchAdminLeads(): Promise<AdminLeadsResponse> {
@@ -101,7 +103,7 @@ export async function fetchAdminLeads(): Promise<AdminLeadsResponse> {
 
 export async function updateAdminLeadStatus(input: {
   id: string;
-  kind: "long-term" | "corporate" | "chauffeur";
+  kind: "long-term" | "corporate" | "chauffeur" | "car-wash" | "fleet-partnership";
   status: "new" | "in-progress" | "won" | "lost";
   owner?: string;
   adminNotes?: string;

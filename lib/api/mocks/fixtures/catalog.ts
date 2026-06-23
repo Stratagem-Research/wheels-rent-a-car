@@ -1,4 +1,4 @@
-import type { AddOn, ChauffeurItinerary, LongTermTier, ProtectionTier } from "@/types/domain";
+import type { AddOn, CarWashPackage, ChauffeurItinerary, LongTermTier, ProtectionTier } from "@/types/domain";
 
 /** 11 add-ons across all 5 categories (matches 04_booking_flow.md step 2). */
 export const ADD_ONS: AddOn[] = [
@@ -208,6 +208,93 @@ export const LONG_TERM_TIERS: LongTermTier[] = [
       "Monthly billing",
       "Dedicated account manager",
     ],
+  },
+];
+
+/** Car wash packages for /car-wash. */
+export const CAR_WASH_PACKAGES: CarWashPackage[] = [
+  {
+    id: "normal-wash",
+    name: { en: "Normal car wash", ar: "غسيل سيارة عادي", fr: "Lavage standard" },
+    description: {
+      en: "Exterior wash and dry. Ready in 30 minutes.",
+      ar: "غسيل وتجفيف خارجي. جاهز خلال 30 دقيقة.",
+      fr: "Lavage et séchage extérieur. Prêt en 30 minutes.",
+    },
+    durationMinutes: 30,
+    currency: "LBP",
+    pricingMode: "by_vehicle_class",
+    vehiclePrices: [
+      { vehicleClass: "car", amount: 600_000 },
+      { vehicleClass: "suv", amount: 700_000 },
+    ],
+    icon: "droplets",
+  },
+  {
+    id: "special-wash",
+    name: { en: "Special car wash", ar: "غسيل سيارة خاص", fr: "Lavage spécial" },
+    description: {
+      en: "Full exterior detail with premium products. One hour.",
+      ar: "تفاصيل خارجية كاملة بمنتجات مميزة. ساعة واحدة.",
+      fr: "Détail extérieur complet avec produits premium. Une heure.",
+    },
+    durationMinutes: 60,
+    currency: "USD",
+    pricingMode: "fixed",
+    priceCents: 1500,
+    icon: "sparkles",
+  },
+  {
+    id: "interior-deep-clean",
+    name: {
+      en: "Carpet / interior deep cleaning",
+      ar: "تنظيف عميق للمقاعد والسجاد",
+      fr: "Nettoyage profond intérieur / tapis",
+    },
+    description: {
+      en: "Five hours of deep interior work. Vehicle stays 36 hours to dry properly.",
+      ar: "خمس ساعات تنظيف داخلي عميق. تبقى السيارة 36 ساعة للتجفيف.",
+      fr: "Cinq heures de nettoyage intérieur en profondeur. Le véhicule reste 36 heures pour sécher.",
+    },
+    durationMinutes: 300,
+    turnaroundHours: 36,
+    currency: "USD",
+    pricingMode: "fixed",
+    priceCents: 8000,
+    icon: "sofa",
+  },
+  {
+    id: "dry-engine",
+    name: { en: "Dry engine cleaning", ar: "تنظيف المحرك بدون ماء", fr: "Nettoyage moteur à sec" },
+    description: {
+      en: "Water-free engine bay cleaning. One hour.",
+      ar: "تنظيف حجرة المحرك بدون ماء. ساعة واحدة.",
+      fr: "Nettoyage du compartiment moteur sans eau. Une heure.",
+    },
+    durationMinutes: 60,
+    currency: "USD",
+    pricingMode: "fixed",
+    priceCents: 2000,
+    icon: "cog",
+  },
+  {
+    id: "wedding-detailing",
+    name: {
+      en: "Wedding preparation / detailing",
+      ar: "تحضير وتفصيل لحفلات الزفاف",
+      fr: "Préparation / détailing mariage",
+    },
+    description: {
+      en: "Full presentation detail for your special day. Three hours.",
+      ar: "تفصيل كامل ليومك المميز. ثلاث ساعات.",
+      fr: "Détail complet pour votre grand jour. Trois heures.",
+    },
+    durationMinutes: 180,
+    currency: "USD",
+    pricingMode: "fixed",
+    priceCents: 5000,
+    icon: "heart",
+    popular: true,
   },
 ];
 

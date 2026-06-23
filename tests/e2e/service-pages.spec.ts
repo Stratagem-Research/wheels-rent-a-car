@@ -38,6 +38,16 @@ test.describe("service pages @smoke", () => {
     await expect(page.getByRole("button", { name: /Send my enquiry/i })).toBeVisible();
   });
 
+  test("car wash page renders packages + form", async ({ page }) => {
+    await page.goto("/car-wash");
+    await expect(
+      page.getByRole("heading", { name: /Spotless cars/i }),
+    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Pick your package/i })).toBeVisible();
+    await page.getByRole("button", { name: /Request/i }).first().click();
+    await expect(page.getByRole("button", { name: /Send my enquiry/i })).toBeVisible();
+  });
+
   test("trips listing renders", async ({ page }) => {
     await page.goto("/trips");
     await expect(

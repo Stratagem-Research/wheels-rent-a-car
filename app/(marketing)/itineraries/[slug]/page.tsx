@@ -13,9 +13,9 @@ import { formatUsd } from "@/lib/booking/pricing";
 import { getLocalizedString, getLocalizedStringArray } from "@/lib/i18n/localized";
 
 /*
- * /itineraries/[slug] — chauffeur itinerary detail.
+ * /itineraries/[slug], chauffeur itinerary detail.
  *
- * Client component for the same reason as /trips/[slug] — admin writes
+ * Client component for the same reason as /trips/[slug], admin writes
  * load from Supabase via `useItineraries()`, so the detail page reads the same
  * hook the listing uses. Lone red CTA is "Request this itinerary".
  */
@@ -33,7 +33,7 @@ export default function ItineraryDetailPage({ params }: PageProps) {
 
   React.useEffect(() => {
     if (itin) {
-      document.title = `${getLocalizedString(itin.title, locale)} — Chauffeur itinerary — Wheels Rent A Car`;
+      document.title = `${getLocalizedString(itin.title, locale)} · Chauffeur itinerary · Wheels Rent A Car`;
     }
   }, [itin, locale]);
 

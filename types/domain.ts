@@ -391,6 +391,28 @@ export interface ChauffeurItinerary {
 
 // ── Corporate tiers (Phase 12 — un-descoped) ─────────────────────────────
 
+export interface CarWashVehiclePrice {
+  vehicleClass: "car" | "suv";
+  amount: number;
+}
+
+export interface CarWashPackage {
+  id: string;
+  name: LocalizedStringValue;
+  description: LocalizedStringValue;
+  durationMinutes: number;
+  turnaroundHours?: number;
+  currency: "USD" | "LBP";
+  pricingMode: "fixed" | "by_vehicle_class";
+  priceCents?: number;
+  priceLbp?: number;
+  vehiclePrices?: CarWashVehiclePrice[];
+  quoteOnly?: boolean;
+  popular?: boolean;
+  icon: string;
+  active?: boolean;
+}
+
 export interface CorporateTier {
   id: string;
   name: LocalizedStringValue;

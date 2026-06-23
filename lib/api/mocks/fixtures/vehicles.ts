@@ -1,11 +1,11 @@
 import type { Vehicle } from "@/types/domain";
 
 /**
- * Wheels Hazmieh fleet — 11 vehicles, every one matched to a real photo
+ * Wheels Hazmieh fleet, 11 vehicles, every one matched to a real photo
  * under `/public/images/Car Images/`. Daily rates in cents (USD).
  *
  * If you add a vehicle, the photo must exist. Don't fall back to a
- * placeholder — empty image slots break the redesigned card aesthetic.
+ * placeholder, empty image slots break the redesigned card aesthetic.
  */
 export const VEHICLES: Vehicle[] = [
   {
@@ -46,7 +46,7 @@ export const VEHICLES: Vehicle[] = [
     category: "economy",
     tagline: "Reliable, quiet, and the cheapest way to get around Lebanon.",
     description:
-      "The Sunny is the workhorse of Lebanese rentals — relaxed automatic, generous fuel range, and parts in every garage.",
+      "The Sunny is the workhorse of Lebanese rentals, relaxed automatic, generous fuel range, and parts in every garage.",
     transmission: "automatic",
     fuel: "petrol",
     seats: 5,
@@ -72,7 +72,7 @@ export const VEHICLES: Vehicle[] = [
     model: "Spark",
     year: 2020,
     category: "economy",
-    tagline: "Compact city hatch — easy to park, easier on fuel.",
+    tagline: "Compact city hatch, easy to park, easier on fuel.",
     transmission: "automatic",
     fuel: "petrol",
     seats: 4,
@@ -199,7 +199,7 @@ export const VEHICLES: Vehicle[] = [
     model: "Sportage",
     year: 2018,
     category: "suv",
-    tagline: "Compact SUV — confident on coastal roads and mountain switchbacks.",
+    tagline: "Compact SUV, confident on coastal roads and mountain switchbacks.",
     transmission: "automatic",
     fuel: "petrol",
     seats: 5,
@@ -225,7 +225,7 @@ export const VEHICLES: Vehicle[] = [
     year: 2024,
     category: "suv",
     badge: "new",
-    tagline: "Latest-gen compact SUV — generous tech, easy to park.",
+    tagline: "Latest-gen compact SUV, generous tech, easy to park.",
     transmission: "automatic",
     fuel: "petrol",
     seats: 5,
@@ -275,7 +275,7 @@ export const VEHICLES: Vehicle[] = [
     model: "Tahoe",
     year: 2022,
     category: "luxury",
-    tagline: "Full-size SUV — leather, room for seven, and presence on the road.",
+    tagline: "Full-size SUV, leather, room for seven, and presence on the road.",
     transmission: "automatic",
     fuel: "petrol",
     seats: 7,

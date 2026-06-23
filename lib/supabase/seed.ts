@@ -1,5 +1,6 @@
 import {
   ADD_ONS,
+  CAR_WASH_PACKAGES,
   LONG_TERM_TIERS,
   PROTECTION_TIERS,
 } from "@/lib/api/mocks/fixtures/catalog";
@@ -16,6 +17,7 @@ import {
 import { VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
 import {
   replaceAddOnsInDb,
+  replaceCarWashPackagesInDb,
   replaceLongTermTiersInDb,
   replaceProtectionTiersInDb,
 } from "@/lib/supabase/catalog-repository";
@@ -155,9 +157,14 @@ export async function seedWebsiteData(resources: SeedResource[] = ["all"]): Prom
     await replaceAddOnsInDb(ADD_ONS);
     await replaceProtectionTiersInDb(PROTECTION_TIERS);
     await replaceLongTermTiersInDb(LONG_TERM_TIERS);
+    await replaceCarWashPackagesInDb(CAR_WASH_PACKAGES);
     results.push({
       resource: "catalog",
-      count: ADD_ONS.length + PROTECTION_TIERS.length + LONG_TERM_TIERS.length,
+      count:
+        ADD_ONS.length +
+        PROTECTION_TIERS.length +
+        LONG_TERM_TIERS.length +
+        CAR_WASH_PACKAGES.length,
     });
   }
 

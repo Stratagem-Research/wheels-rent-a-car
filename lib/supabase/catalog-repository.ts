@@ -1,10 +1,12 @@
-import type { AddOn, LongTermTier, ProtectionTier } from "@/types/domain";
+import type { AddOn, CarWashPackage, LongTermTier, ProtectionTier } from "@/types/domain";
 import {
   ADD_ONS as FALLBACK_ADDONS,
+  CAR_WASH_PACKAGES as FALLBACK_CAR_WASH,
   LONG_TERM_TIERS as FALLBACK_LONG_TERM,
   PROTECTION_TIERS as FALLBACK_PROTECTION,
 } from "@/lib/api/mocks/fixtures/catalog";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
+import { isLocalizedString, toLocalizedString } from "@/lib/i18n/localized";
 
 type AddOnRow = {
   id: string;
@@ -43,6 +45,30 @@ type LongTermRow = {
   active: boolean;
 };
 
+type CarWashRow = {
+  id: string;
+  name: unknown;
+  description: unknown;
+  duration_minutes: number;
+  turnaround_hours: number | null;
+  currency: CarWashPackage["currency"];
+  pricing_mode: CarWashPackage["pricingMode"];
+  price_cents: number | null;
+  price_lbp: number | null;
+  vehicle_prices: CarWashPackage["vehiclePrices"] | null;
+  quote_only: boolean;
+  popular: boolean;
+  icon: string;
+  sort_order: number;
+  active: boolean;
+};
+
+function coerceLocalizedField(value: unknown): CarWashPackage["name"] {
+  if (isLocalizedString(value)) return value;
+  if (typeof value === "string") return value;
+  return "";
+}
+
 function toAddOn(row: AddOnRow): AddOn {
   return {
     id: row.id,
@@ -76,6 +102,25 @@ function toLongTermTier(row: LongTermRow): LongTermTier {
     savingsPercent: row.savings_percent,
     inclusions: row.inclusions ?? [],
     popular: row.popular || undefined,
+  };
+}
+
+function toCarWashPackage(row: CarWashRow): CarWashPackage {
+  return {
+    id: row.id,
+    name: coerceLocalizedField(row.name),
+    description: coerceLocalizedField(row.description),
+    durationMinutes: row.duration_minutes,
+    turnaroundHours: row.turnaround_hours ?? undefined,
+    currency: row.currency,
+    pricingMode: row.pricing_mode,
+    priceCents: row.price_cents ?? undefined,
+    priceLbp: row.price_lbp ?? undefined,
+    vehiclePrices: row.vehicle_prices ?? undefined,
+    quoteOnly: row.quote_only || undefined,
+    popular: row.popular || undefined,
+    icon: row.icon,
+    active: row.active,
   };
 }
 
@@ -116,6 +161,17 @@ export async function listLongTermTiersFromDb(): Promise<LongTermTier[]> {
   const rows = (data ?? []) as LongTermRow[];
   if (rows.length === 0) return FALLBACK_LONG_TERM;
   return rows.map(toLongTermTier);
+}
+
+export async function listCarWashPackagesFromDb(activeOnly = true): Promise<CarWashPackage[]> {
+  const supabase = getSupabaseAdminClient();
+  let query = supabase.from("catalog_car_wash_packages").select("*").order("sort_order");
+  if (activeOnly) query = query.eq("active", true);
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+  const rows = (data ?? []) as CarWashRow[];
+  if (rows.length === 0) return FALLBACK_CAR_WASH;
+  return rows.map(toCarWashPackage);
 }
 
 export async function replaceAddOnsInDb(items: AddOn[]): Promise<void> {
@@ -185,5 +241,35 @@ export async function replaceLongTermTiersInDb(items: LongTermTier[]): Promise<v
     updated_at: new Date().toISOString(),
   }));
   const { error } = await supabase.from("catalog_long_term_tiers").insert(rows);
+  if (error) throw new Error(error.message);
+}
+
+export async function replaceCarWashPackagesInDb(items: CarWashPackage[]): Promise<void> {
+  const supabase = getSupabaseAdminClient();
+  const { error: clearError } = await supabase
+    .from("catalog_car_wash_packages")
+    .delete()
+    .neq("id", "");
+  if (clearError) throw new Error(clearError.message);
+  if (items.length === 0) return;
+  const rows = items.map((item, index) => ({
+    id: item.id,
+    name: toLocalizedString(item.name),
+    description: toLocalizedString(item.description),
+    duration_minutes: item.durationMinutes,
+    turnaround_hours: item.turnaroundHours ?? null,
+    currency: item.currency,
+    pricing_mode: item.pricingMode,
+    price_cents: item.priceCents ?? null,
+    price_lbp: item.priceLbp ?? null,
+    vehicle_prices: item.vehiclePrices ?? null,
+    quote_only: item.quoteOnly ?? false,
+    popular: item.popular ?? false,
+    icon: item.icon,
+    sort_order: index,
+    active: item.active ?? true,
+    updated_at: new Date().toISOString(),
+  }));
+  const { error } = await supabase.from("catalog_car_wash_packages").insert(rows);
   if (error) throw new Error(error.message);
 }
