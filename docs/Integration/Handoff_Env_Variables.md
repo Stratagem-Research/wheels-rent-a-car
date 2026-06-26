@@ -44,6 +44,16 @@
 every auth redirect/callback URL. It **must** be the real production domain
 before go-live — local defaults to `http://localhost:3000`.
 
+Per Adam (2026-06-22), production origins are env-driven on the website side
+(not hardcoded). Current production values:
+
+- `https://wheelsrentacar.com.lb`
+- `https://www.wheelsrentacar.com.lb`
+- `https://booking.wheelsrentacar.com.lb`
+
+Future domain migration (when ready): `wheels.com.lb` and subdomains. Wizard
+will manage allowed CORS origins in their settings/API section.
+
 In the **Supabase dashboard → Authentication → URL Configuration**, the allowed
 redirect URLs must include:
 

@@ -1,6 +1,6 @@
 # Wheels API Gap Analysis (Post-Adam Clarifications)
 
-Status: updated after P0 rollout confirmation; awaiting Wizard clarification responses (tracked in `LaunchGate_External_Signoff.md`).
+Status: updated 2026-06-22 after Adam boundary reply; launch blockers still pending (tracked in `LaunchGate_External_Signoff.md`).
 
 ## Delivered and verified
 
@@ -11,14 +11,42 @@ Status: updated after P0 rollout confirmation; awaiting Wizard clarification res
 - Internal sync-status endpoint contract path confirmed.
 - Website-side Supabase + hybrid payment integration scaffolding landed in repo.
 
+## Confirmed by Adam (2026-06-22) — website-owned
+
+Adam explicitly confirmed these remain on the website side. See `Adam_Response_System_Boundaries.md`.
+
+- Vehicle metadata/media CMS (photos, slugs, badges, descriptions).
+- Customer-facing checkout validation (including required email).
+- Payment provider flow and customer-facing payment state.
+- Refund calculations and cancellation orchestration.
+- Customer accounts (website layer).
+- Customer email and WhatsApp communication.
+- Promo/marketing banners (CMS).
+
+Wizard supplies operational vehicle IDs; website enriches with marketing data.
+
+## Confirmed by Adam (2026-06-22) — Wizard-owned
+
+- Operational vehicles, availability, bookings, internal status, fleet blocking.
+- Canonical booking reference and `public_token`.
+- Public lookup/status endpoints.
+- Internal `sync-status` receiver (server-to-server).
+- Internal ops notifications (Wizard-side).
+
+## Cancellation model (aligned)
+
+- Customer requests cancel on website → website calculates refund → website syncs `cancel_request` (or equivalent) to Wizard.
+- Wizard booking status changes only after internal team approval.
+- No public Wizard endpoint that auto-cancels or auto-refunds.
+
+Implementation: `lib/api/wheels-public/sync-status.ts` (`cancel_requested` → `sync_type: cancel_request`, `status: pending_approval`).
+
 ## No longer requested from Wizard (website-owned)
 
-- Vehicle metadata/media CMS APIs for launch.
 - Locations API for launch.
-- Promo validation API for launch.
+- Promo validation API for launch (pending Elie confirmation on website-side validation).
 - Customer-facing notifications implementation.
 - Website customer-account state orchestration.
-- Cancellation/refund workflow orchestration.
 
 ## Remaining backend clarifications / small gaps
 

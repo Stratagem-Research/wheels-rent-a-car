@@ -1,4 +1,4 @@
-> **Status: SENT by Marc.** Awaiting Adam's response.
+> **Status: SENT by Marc.** Adam replied 2026-06-22 with system boundary clarification (see [Adam_Response_System_Boundaries.md](./Adam_Response_System_Boundaries.md)). Launch blockers below remain open — follow-up draft: [Email_to_Adam_Followup_Launch_Blockers.md](./Email_to_Adam_Followup_Launch_Blockers.md).
 
 # Email to Adam — Launch blockers + handoff (draft)
 
