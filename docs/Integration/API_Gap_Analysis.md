@@ -1,6 +1,6 @@
 # Wheels API Gap Analysis (Post-Adam Clarifications)
 
-Status: updated 2026-06-22 after Adam boundary reply; launch blockers still pending (tracked in `LaunchGate_External_Signoff.md`).
+Status: updated 2026-06-22 after Adam demo URL + vehicle sync reply (see `Adam_Response_Demo_And_Vehicle_Sync.md`).
 
 ## Delivered and verified
 
@@ -41,22 +41,30 @@ Wizard supplies operational vehicle IDs; website enriches with marketing data.
 
 Implementation: `lib/api/wheels-public/sync-status.ts` (`cancel_requested` → `sync_type: cancel_request`, `status: pending_approval`).
 
-## No longer requested from Wizard (website-owned)
+## Vehicle sync (Adam 2026-06-22 — agreed architecture)
 
-- Locations API for launch.
-- Promo validation API for launch (pending Elie confirmation on website-side validation).
-- Customer-facing notifications implementation.
-- Website customer-account state orchestration.
+Wizard is the source of truth for operational vehicles. The website syncs via API into `wizard_vehicles`, then enriches with `vehicle_metadata` (photos, slugs, badges, SEO).
+
+Flow: Wizard vehicle → sync API → Supabase → marketing enrichment → booking uses `wizard_vehicle_id`.
+
+- **Assumed endpoint:** `GET /api/public/vehicles` (website-enabled only) — confirm with Adam.
+- **Manual `vehicle_wizard_map`:** staging-only fallback; deprecated for production.
+
+Implementation: `lib/server/wizard-vehicle-sync.ts`, `lib/booking/wizard-vehicle-id.ts`.
+
+## Confirmed by Adam (2026-06-22) — promo codes
+
+Website-side promo validation at launch. Wizard receives code/discount in booking payload only.
 
 ## Remaining backend clarifications / small gaps
 
-1. Confirm production rate-limit values per endpoint and environment.
-2. Confirm sanitized `429` and 4xx error envelope is deployed in all environments.
-3. Confirm internal API token lifecycle: creation, rotation, expiry, staging/prod separation.
-4. Confirm `public_token` rotation behavior (if rotated, old-token validity window).
-5. Publish fixed enum list for `sync_type`.
-6. Confirm future plan for status enum extension to include request-like states.
-7. Confirm idempotency/replay policy for `sync-status`.
+1. Confirm vehicle sync HTTP path and response schema on new demo.
+2. Confirm production rate-limit values per endpoint (agreed for next Wizard revision).
+3. Confirm sanitized `429` and 4xx error envelope (agreed for next Wizard revision).
+4. Confirm internal API token lifecycle: creation, rotation, expiry, staging/prod separation.
+5. Confirm `public_token` rotation behavior (agreed for next Wizard revision).
+6. Publish fixed enum list for `sync_type` (agreed for next Wizard revision).
+7. Confirm idempotency/replay policy for `sync-status` (agreed for next Wizard revision).
 
 ## Integration risk notes
 

@@ -1,4 +1,4 @@
-> **Status: DRAFT — ready to send by Marc.**
+> **Status: ANSWERED by Adam 2026-06-22 (follow-up).** See [Adam_Response_Demo_And_Vehicle_Sync.md](./Adam_Response_Demo_And_Vehicle_Sync.md).
 
 # Email to Adam — follow-up (boundaries aligned + launch blockers)
 

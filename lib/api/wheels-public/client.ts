@@ -28,6 +28,7 @@ import {
   SyncStatusRequestSchema,
   SyncStatusResponseSchema,
   VehicleAvailabilityResponseSchema,
+  WizardVehiclesResponseSchema,
   type AvailabilityResponse,
   type BookingLookupResponse,
   type BookingRequestPayload,
@@ -36,6 +37,7 @@ import {
   type SyncStatusRequest,
   type SyncStatusResponse,
   type VehicleAvailabilityResponse,
+  type WizardVehiclesResponse,
 } from "./schemas";
 
 /** Base error matching the convention in `lib/api/client.ts`. */
@@ -122,20 +124,37 @@ export interface WheelsPublicClient {
   createBookingRequest: (payload: BookingRequestPayload) => Promise<BookingSuccessResponse>;
   getBookingByReferenceEmail: (reference: string, email: string) => Promise<BookingLookupResponse>;
   getBookingStatusByToken: (publicToken: string) => Promise<BookingStatusResponse>;
+  getWizardVehicles: () => Promise<WizardVehiclesResponse>;
 }
 
 export interface WheelsInternalClient {
   syncBookingStatus: (reference: string, payload: SyncStatusRequest) => Promise<SyncStatusResponse>;
 }
 
-const DEFAULT_BASE_URL =
-  process.env.NEXT_PUBLIC_WHEELS_API_BASE_URL ??
-  "https://lucid-mclean.217-160-215-26.plesk.page/api/public";
+export function resolveWheelsPublicBaseUrl(explicit?: string): string {
+  const baseUrl = explicit ?? process.env.NEXT_PUBLIC_WHEELS_API_BASE_URL;
+  if (!baseUrl?.trim()) {
+    throw new Error(
+      "NEXT_PUBLIC_WHEELS_API_BASE_URL is required (demo: https://adoring-hugle.85-215-232-144.plesk.page/api/public).",
+    );
+  }
+  return baseUrl.replace(/\/+$/, "");
+}
+
+export function resolveWheelsInternalBaseUrl(explicit?: string): string {
+  const baseUrl = explicit ?? process.env.WHEELS_INTERNAL_API_BASE_URL;
+  if (!baseUrl?.trim()) {
+    throw new Error(
+      "WHEELS_INTERNAL_API_BASE_URL is required (demo: https://adoring-hugle.85-215-232-144.plesk.page/api/v1).",
+    );
+  }
+  return baseUrl.replace(/\/+$/, "");
+}
 
 export function createWheelsPublicClient(
   options: WheelsPublicClientOptions = {},
 ): WheelsPublicClient {
-  const baseUrl = (options.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, "");
+  const baseUrl = resolveWheelsPublicBaseUrl(options.baseUrl);
   const timeoutMs = options.timeoutMs ?? 15_000;
   const maxAttempts = Math.max(1, options.maxAttempts ?? 3);
   const fetchImpl = options.fetchImpl ?? fetch;
@@ -202,6 +221,18 @@ export function createWheelsPublicClient(
         maxAttempts,
       });
     },
+
+    async getWizardVehicles() {
+      const url = `${baseUrl}/vehicles`;
+      return requestJson(url, {
+        method: "GET",
+        schema: WizardVehiclesResponseSchema,
+        failureSchema: GenericErrorResponseSchema,
+        fetchImpl,
+        timeoutMs,
+        maxAttempts: 1,
+      });
+    },
   };
 }
 
@@ -211,11 +242,7 @@ export function createWheelsInternalClient(
   if (typeof window !== "undefined" && process.env.NODE_ENV !== "test") {
     throw new Error("createWheelsInternalClient is server-only and must not run in browser code.");
   }
-  const baseUrl = (
-    options.baseUrl ??
-    process.env.WHEELS_INTERNAL_API_BASE_URL ??
-    "https://lucid-mclean.217-160-215-26.plesk.page/api/v1"
-  ).replace(/\/+$/, "");
+  const baseUrl = resolveWheelsInternalBaseUrl(options.baseUrl);
   const timeoutMs = options.timeoutMs ?? 15_000;
   const maxAttempts = Math.max(1, options.maxAttempts ?? 3);
   const fetchImpl = options.fetchImpl ?? fetch;
@@ -254,6 +281,7 @@ export const getVehicleAvailability = defaultClient.getVehicleAvailability;
 export const createBookingRequest = defaultClient.createBookingRequest;
 export const getBookingByReferenceEmail = defaultClient.getBookingByReferenceEmail;
 export const getBookingStatusByToken = defaultClient.getBookingStatusByToken;
+export const getWizardVehicles = defaultClient.getWizardVehicles;
 
 // ── Internals ───────────────────────────────────────────────────────────
 

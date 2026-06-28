@@ -8,7 +8,7 @@ on:
       base_url:
         description: "Wheels API base URL (overrides NEXT_PUBLIC_WHEELS_API_BASE_URL)"
         required: false
-        default: "https://lucid-mclean.217-160-215-26.plesk.page/api/public"
+        default: "https://adoring-hugle.85-215-232-144.plesk.page/api/public"
 
 concurrency:
   # Only one live smoke at a time — we hit a shared backend.

@@ -26,7 +26,7 @@ const live = describe.skipIf(process.env.RUN_LIVE_API_TESTS !== "1");
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_WHEELS_API_BASE_URL ??
-  "https://lucid-mclean.217-160-215-26.plesk.page/api/public";
+  "https://adoring-hugle.85-215-232-144.plesk.page/api/public";
 
 const START = "2027-04-15 10:00";
 const END = "2027-04-19 10:00";

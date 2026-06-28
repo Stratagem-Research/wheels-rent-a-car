@@ -83,7 +83,7 @@ describe("wheels-public/schemas", () => {
   describe("BookingLookupResponseSchema", () => {
     it("parses lookup by reference+email payload", () => {
       const parsed = BookingLookupResponseSchema.parse(bookingLookupSuccess);
-      expect(parsed.data.reference).toBe("WRC-270415-9KQ4");
+      expect(parsed.data.reference).toBe("WRC-260628-9KXG");
       expect(parsed.data.customer.email).toContain("@");
     });
   });
@@ -91,8 +91,8 @@ describe("wheels-public/schemas", () => {
   describe("BookingStatusResponseSchema", () => {
     it("parses status by public token payload", () => {
       const parsed = BookingStatusResponseSchema.parse(bookingStatusSuccess);
-      expect(parsed.data.status).toBe("approved");
-      expect(parsed.data.payment_status).toBe("paid");
+      expect(parsed.data.status).toBe("pending_approval");
+      expect(parsed.data.payment_status).toBe("unpaid");
     });
   });
 

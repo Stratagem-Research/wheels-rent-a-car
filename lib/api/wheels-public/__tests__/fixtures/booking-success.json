@@ -2,32 +2,28 @@
   "success": true,
   "message": "Booking request successfully created.",
   "data": {
-    "id": 1271,
-    "booking_id": 1197,
-    "reference": "WRC-270415-9KQ4",
-    "public_token": "pub_2hn2rx7s",
+    "id": 1345,
+    "booking_id": 1271,
+    "reference": "WRC-260628-9KXG",
+    "public_token": "Zjb93yQyjBB4Gp3QlLcjWBczx8B983S65TE6X6Nj4BSWtlCI",
     "status": "pending_approval",
     "payment_status": "unpaid",
     "amount": 80,
     "paid_amount": 0,
     "due_amount": 80,
-    "start_date_time": "2027-04-15 10:00",
-    "end_date_time": "2027-04-19 14:00",
-    "internal_block_until": "2027-04-19 14:30",
+    "start_date_time": "2027-04-15 10:00:00",
+    "end_date_time": "2027-04-19 10:00:00",
+    "internal_block_until": "2027-04-19 14:00:00",
     "timezone": "Asia/Beirut",
-    "start_date": "2027-04-15",
-    "start_time": "10:00:00",
-    "end_date": "2027-04-19",
-    "end_time": "14:00:00",
     "vehicle": {
-      "id": 131,
+      "id": 132,
       "name": "MICRA",
       "license_plate": null
     },
     "customer": {
       "id": 694,
-      "name": "Smoke  Test",
-      "email": "smoke+1779262380@stratagemresearch.co",
+      "name": "Smoke Test",
+      "email": "smoke+1782611241@stratagemresearch.co",
       "phone_number": "+96170000000"
     }
   }

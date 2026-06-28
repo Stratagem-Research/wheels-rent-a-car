@@ -141,7 +141,7 @@ describe("wheels-public/client", () => {
         startDateTime: "2027-04-15 10:00",
         endDateTime: "2027-04-19 10:00",
       });
-      expect(result.data.id).toBe(131);
+      expect(result.data.id).toBe(132);
       expect(new URL(capturedUrl).pathname).toBe("/public/availability/131");
     });
   });
@@ -249,16 +249,16 @@ describe("wheels-public/client", () => {
       server.use(
         http.get(`${BASE}/bookings/:reference`, ({ request, params }) => {
           capturedUrl = request.url;
-          expect(params.reference).toBe("WRC-270415-9KQ4");
+          expect(params.reference).toBe("WRC-260628-9KXG");
           return HttpResponse.json(bookingLookupSuccess);
         }),
       );
 
       const result = await client().getBookingByReferenceEmail(
-        "WRC-270415-9KQ4",
+        "WRC-260628-9KXG",
         "smoke@stratagemresearch.co",
       );
-      expect(result.data.reference).toBe("WRC-270415-9KQ4");
+      expect(result.data.reference).toBe("WRC-260628-9KXG");
       expect(new URL(capturedUrl).searchParams.get("email")).toBe("smoke@stratagemresearch.co");
     });
   });
@@ -273,8 +273,8 @@ describe("wheels-public/client", () => {
       );
 
       const result = await client().getBookingStatusByToken("pub_2hn2rx7s");
-      expect(result.data.status).toBe("approved");
-      expect(result.data.payment_status).toBe("paid");
+      expect(result.data.status).toBe("pending_approval");
+      expect(result.data.payment_status).toBe("unpaid");
     });
   });
 

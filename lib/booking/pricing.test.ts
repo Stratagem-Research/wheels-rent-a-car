@@ -73,6 +73,7 @@ describe("booking/pricing", () => {
       vehicle: yaris,
       addOns: ADD_ONS,
       tiers: PROTECTION_TIERS,
+      promoDiscountPercent: 15,
     });
     expect(withPromo.discountCents).toBeGreaterThan(0);
     expect(withPromo.totalCents).toBeLessThan(noPromo.totalCents);

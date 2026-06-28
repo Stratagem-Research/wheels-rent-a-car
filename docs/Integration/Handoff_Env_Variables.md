@@ -28,6 +28,15 @@
 - `SENTRY_DSN`
 - `SENTRY_AUTH_TOKEN`
 
+## Wizard API URLs (env-driven — never hardcode in application code)
+
+| Environment | Public API | Internal API |
+| --- | --- | --- |
+| Demo | `https://adoring-hugle.85-215-232-144.plesk.page/api/public` | `https://adoring-hugle.85-215-232-144.plesk.page/api/v1` |
+| Production | `https://system.wheelsrentacar.com.lb/api/public` | `https://system.wheelsrentacar.com.lb/api/v1` |
+
+Retired demo host `lucid-mclean...` must not be used.
+
 ## Test/smoke toggles
 
 - `RUN_LIVE_API_TESTS=1`

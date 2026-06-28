@@ -1,23 +1,28 @@
 {
   "success": true,
   "data": {
-    "reference": "WRC-270415-9KQ4",
-    "booking_id": 1197,
-    "status": "approved",
-    "payment_status": "paid",
+    "reference": "WRC-260628-9KXG",
+    "booking_id": 1271,
+    "status": "pending_approval",
+    "payment_status": "unpaid",
     "amount": 80,
-    "paid_amount": 80,
-    "due_amount": 0,
-    "start_date_time": "2027-04-15 10:00",
-    "end_date_time": "2027-04-19 14:00",
-    "internal_block_until": "2027-04-19 14:30",
+    "paid_amount": 0,
+    "due_amount": 80,
+    "start_date_time": "2027-04-15 10:00:00",
+    "end_date_time": "2027-04-19 10:00:00",
     "timezone": "Asia/Beirut",
+    "internal_block_until": "2027-04-19 14:00:00",
     "vehicle": {
-      "id": 131,
+      "id": 132,
       "name": "MICRA",
-      "model": "Nissan Micra",
-      "license_plate": null,
-      "vehicle_type_id": 1
+      "model": "MICRA",
+      "vehicle_type_id": 1,
+      "license_plate": null
+    },
+    "customer": {
+      "name": "Smoke Test",
+      "email": "smoke+1782611241@stratagemresearch.co",
+      "phone_number": "+96170000000"
     }
   }
 }

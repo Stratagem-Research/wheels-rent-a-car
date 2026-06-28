@@ -9,6 +9,7 @@ import type {
   RateType,
   Vehicle,
 } from "@/types/domain";
+import { promoDiscountCents } from "./promo";
 
 /**
  * Client + server shared pricing engine.
@@ -67,6 +68,8 @@ export interface ComputePriceInputs {
   vehicle?: Vehicle;
   addOns: AddOn[];
   tiers: ProtectionTier[];
+  /** Website-validated promo discount percent (0–100). */
+  promoDiscountPercent?: number;
 }
 
 export function computePrice({
@@ -74,6 +77,7 @@ export function computePrice({
   vehicle,
   addOns,
   tiers,
+  promoDiscountPercent = 0,
 }: ComputePriceInputs): BookingPriceBreakdown {
   if (!vehicle || !draft.vehicle) return emptyBreakdown();
 
@@ -96,7 +100,10 @@ export function computePrice({
   const taxesCents = Math.round(subtotal * TAX_RATE);
   const feesCents = deliveryCents;
 
-  const discountCents = draft.promoCode === "SUMMER15" ? Math.round(subtotal * 0.15) : 0;
+  const discountCents =
+    draft.promoCode && promoDiscountPercent > 0
+      ? promoDiscountCents(subtotal, promoDiscountPercent)
+      : 0;
   const totalCents = Math.max(0, subtotal + taxesCents - discountCents);
   const depositCents = DEPOSIT_BY_CATEGORY[vehicle.category] ?? 50_000;
 

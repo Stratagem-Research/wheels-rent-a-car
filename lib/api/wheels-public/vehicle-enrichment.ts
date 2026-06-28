@@ -124,8 +124,8 @@ function synthesizePlaceholder(
   const displayName = backend.name.toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase());
 
   return {
-    id: `wheels-${backend.id}`,
-    slug: slug || `wheels-${backend.id}`,
+    id: `wiz-${backend.id}`,
+    slug: slug || `wiz-${backend.id}`,
     make: "Wheels",
     model: displayName || `Vehicle #${backend.id}`,
     year: new Date().getFullYear(),

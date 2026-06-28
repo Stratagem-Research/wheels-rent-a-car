@@ -23,8 +23,8 @@
 
 set -euo pipefail
 
-BASE_URL="${WHEELS_API_BASE_URL:-https://lucid-mclean.217-160-215-26.plesk.page/api/public}"
-INTERNAL_BASE_URL="${WHEELS_INTERNAL_API_BASE_URL:-}"
+BASE_URL="${WHEELS_API_BASE_URL:-https://adoring-hugle.85-215-232-144.plesk.page/api/public}"
+INTERNAL_BASE_URL="${WHEELS_INTERNAL_API_BASE_URL:-${BASE_URL%/api/public}/api/v1}"
 INTERNAL_API_TOKEN="${WHEELS_INTERNAL_API_TOKEN:-}"
 FIXTURE_DIR="$(cd "$(dirname "$0")/.." && pwd)/lib/api/wheels-public/__tests__/fixtures"
 WRITE=1

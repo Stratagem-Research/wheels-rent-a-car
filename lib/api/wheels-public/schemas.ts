@@ -75,6 +75,38 @@ export const VehicleAvailabilityResponseSchema = z.object({
   data: PublicVehicleSchema,
 });
 
+// ── /vehicles — website-enabled fleet sync (Adam 2026-06-22) ───────────
+
+export const WizardVehicleSchema = z
+  .object({
+    id: z.number().int().positive(),
+    vehicle_type_id: z.number().int().positive(),
+    brand: z.string().optional(),
+    model: z.string().optional(),
+    name: z.string().optional(),
+    display_name: z.string().optional(),
+    vehicle_type: z.string().optional(),
+    category: z.string().optional(),
+    website_enabled: z.boolean().optional(),
+    is_website_enabled: z.boolean().optional(),
+    public_status: z.string().optional(),
+    gearbox: z.string().optional(),
+    fuel_type: z.string().optional(),
+    number_of_seats: z.number().int().nonnegative().optional(),
+    updated_at: BackendDateTimeSchema.optional(),
+  })
+  .passthrough();
+
+export const WizardVehiclesResponseSchema = z.object({
+  success: z.literal(true),
+  data: z
+    .object({
+      count: z.number().int().nonnegative().optional(),
+      vehicles: z.array(WizardVehicleSchema),
+    })
+    .passthrough(),
+});
+
 // ── /booking-request — request body + response ───────────────────────────
 
 export const BookingCustomerInputSchema = z
@@ -117,6 +149,8 @@ export const BookingRequestPayloadSchema = z
     email_opt_in: z.boolean().optional(),
     customer_language: z.string().optional(),
     notification_channel: z.string().optional(),
+    promo_code: z.string().optional(),
+    discount_amount: z.number().nonnegative().optional(),
     customer: BookingCustomerInputSchema,
     notes: z.string().optional(),
   })
@@ -132,7 +166,7 @@ export const BookingResponseVehicleSchema = z
 
 export const BookingResponseCustomerSchema = z
   .object({
-    id: z.number().int().positive(),
+    id: z.number().int().positive().optional(),
     /** Empirically contains a double-space ("Smoke  Test") — adapter normalizes. */
     name: z.string(),
     email: z.string().nullable(),
@@ -177,11 +211,11 @@ export const BookingFailureResponseSchema = z.object({
 
 export const PublicRateSelectionSchema = z
   .object({
-    rate_type: z.string().optional(),
-    mileage_plan: z.string().optional(),
-    selected_rate_label: z.string().optional(),
-    selected_rate_price: z.number().nonnegative().optional(),
-    selected_mileage_limit: z.string().optional(),
+    rate_type: z.string().nullable().optional(),
+    mileage_plan: z.string().nullable().optional(),
+    selected_rate_label: z.string().nullable().optional(),
+    selected_rate_price: z.number().nonnegative().nullable().optional(),
+    selected_mileage_limit: z.string().nullable().optional(),
   })
   .passthrough();
 
@@ -285,6 +319,8 @@ export type Pricing = z.infer<typeof PricingSchema>;
 export type PublicVehicle = z.infer<typeof PublicVehicleSchema>;
 export type AvailabilityResponse = z.infer<typeof AvailabilityResponseSchema>;
 export type VehicleAvailabilityResponse = z.infer<typeof VehicleAvailabilityResponseSchema>;
+export type WizardVehicle = z.infer<typeof WizardVehicleSchema>;
+export type WizardVehiclesResponse = z.infer<typeof WizardVehiclesResponseSchema>;
 export type BookingCustomerInput = z.infer<typeof BookingCustomerInputSchema>;
 export type BookingRequestPayload = z.infer<typeof BookingRequestPayloadSchema>;
 export type BookingData = z.infer<typeof BookingDataSchema>;

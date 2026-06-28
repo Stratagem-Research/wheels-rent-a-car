@@ -20,7 +20,8 @@
     "env:check:payment-deferred": "./scripts/check-env.sh payment-deferred",
     "security:rls:negative": "./scripts/run-rls-negative-tests.sh",
     "db:seed": "node --import tsx scripts/seed-website.ts all",
-    "db:migrate": "node --import tsx scripts/apply-all-migrations.mjs"
+    "db:migrate": "node --import tsx scripts/apply-all-migrations.mjs",
+    "wizard:sync-vehicles": "node --import tsx scripts/sync-wizard-vehicles.ts"
   },
   "engines": {
     "node": ">=20.0.0"

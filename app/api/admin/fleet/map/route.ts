@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+/** Staging-only fallback. Production fleet uses POST /api/admin/fleet/sync. */
 import {
   listVehicleWizardMap,
   replaceVehicleWizardMap,

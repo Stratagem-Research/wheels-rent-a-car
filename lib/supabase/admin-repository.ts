@@ -92,7 +92,7 @@ export type FleetPartnershipLead = {
   updated_at: string;
 };
 
-type VehicleMetadataRow = {
+export type VehicleMetadataRow = {
   frontend_vehicle_id: string;
   slug: string;
   tagline: string | null;

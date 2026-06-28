@@ -95,6 +95,8 @@ export interface FromBookingDraftOptions {
   defaultCountry?: string;
   /** Total rental price in cents for selected_rate_price. */
   rateTotalCents?: number;
+  /** Website-validated promo discount in cents for Wizard payload. */
+  promoDiscountCents?: number;
 }
 
 export class MissingBackendVehicleIdError extends Error {
@@ -166,6 +168,12 @@ export function fromBookingDraft(
     email_opt_in: draft.marketingConsent ?? false,
     customer_language: "en",
     notification_channel: draft.whatsappOptIn !== false ? "whatsapp" : "email",
+    ...(draft.promoCode && options.promoDiscountCents != null && options.promoDiscountCents > 0
+      ? {
+          promo_code: draft.promoCode,
+          discount_amount: Math.round(options.promoDiscountCents / 100),
+        }
+      : {}),
   };
 }
 

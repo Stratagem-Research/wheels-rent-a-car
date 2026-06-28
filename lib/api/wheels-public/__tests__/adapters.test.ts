@@ -162,6 +162,17 @@ describe("wheels-public/adapters", () => {
       expect(payload.whatsapp_opt_in).toBe(true);
     });
 
+    it("passes website-validated promo fields to Wizard payload", () => {
+      const payload = fromBookingDraft(draft({ promoCode: "SUMMER15" }), {
+        resolveVehicleId: () => 131,
+        addOns: ADD_ONS,
+        protectionTiers: PROTECTION_TIERS,
+        promoDiscountCents: 1500,
+      });
+      expect(payload.promo_code).toBe("SUMMER15");
+      expect(payload.discount_amount).toBe(15);
+    });
+
     it("maps payment_method correctly across all frontend methods", () => {
       const map: Record<NonNullable<BookingDraft["paymentMethod"]>, string> = {
         card: "online_payment",
@@ -277,7 +288,7 @@ describe("wheels-public/adapters", () => {
       expect(result.state).toBe("pending");
     });
 
-    it("trusts backend's start_date/start_time and end_date/end_time (incl. 14:00 normalization)", () => {
+    it("trusts backend start_date_time and end_date_time from the live payload", () => {
       const result = toInternalBooking(successData, {
         draft: draft(),
         vehicle: yaris,
@@ -293,8 +304,7 @@ describe("wheels-public/adapters", () => {
         },
         clock: () => new Date("2026-05-20T10:00:00.000Z"),
       });
-      // Backend normalizes end time to 14:00 — surfaced verbatim.
-      expect(result.return.datetime).toBe("2027-04-19T11:00:00.000Z");
+      expect(result.return.datetime).toBe("2027-04-19T07:00:00.000Z");
       expect(result.pickup.datetime).toBe("2027-04-15T07:00:00.000Z");
     });
   });

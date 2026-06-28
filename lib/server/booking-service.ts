@@ -10,7 +10,10 @@ import type {
   SubmitBookingRequest,
   SubmitBookingResponse,
 } from "@/types/domain";
+import { parseWizardVehicleId } from "@/lib/booking/wizard-vehicle-id";
+import { validatePromoCodeFromRow } from "@/lib/booking/promo";
 import { toBookingFromLookup } from "@/lib/booking/lookup-adapter";
+import { findPromoCode } from "@/lib/supabase/promo-codes-repository";
 import {
   computePrice,
   generateBookingRef,
@@ -146,6 +149,15 @@ export async function handleBookingRate(body: {
   return { perDayCents: perDay, totalCents: perDay * days, rentalDays: days };
 }
 
+async function resolvePromoDiscountPercent(promoCode?: string): Promise<number> {
+  if (!promoCode?.trim()) return 0;
+  const row = await findPromoCode(promoCode);
+  const result = validatePromoCodeFromRow(promoCode, row);
+  if (!result) return 0;
+  if (!result.valid) throw new Error(result.reason);
+  return result.discountPercent;
+}
+
 export async function handleBookingQuote(body: QuoteRequest): Promise<QuoteResponse> {
   assertOnlineBookingWindow(body.draft.pickup.datetime, body.draft.return.datetime);
   const { addOns, tiers, vehicles } = await getCatalog();
@@ -153,11 +165,15 @@ export async function handleBookingQuote(body: QuoteRequest): Promise<QuoteRespo
     ? vehicles.find((v) => v.id === body.draft.vehicle?.vehicleId)
     : undefined;
   const days = rentalDays(body.draft.pickup.datetime, body.draft.return.datetime);
-  const price = computePrice({ draft: body.draft, vehicle, addOns, tiers });
+  const promoDiscountPercent = await resolvePromoDiscountPercent(body.draft.promoCode);
+  const price = computePrice({ draft: body.draft, vehicle, addOns, tiers, promoDiscountPercent });
   return { rentalDays: days, price, changedSinceLastQuote: false };
 }
 
 async function resolveWizardVehicleId(frontendVehicleId: string): Promise<number | null> {
+  const fromPrefix = parseWizardVehicleId(frontendVehicleId);
+  if (fromPrefix != null) return fromPrefix;
+
   const map = await listVehicleWizardMap();
   const row = map.find((item) => item.frontend_vehicle_id === frontendVehicleId);
   return row?.wizard_vehicle_id ?? null;
@@ -190,12 +206,19 @@ export async function handleBookingSubmit(
       throw new Error(`No wizard mapping for vehicle ${draft.vehicle.vehicleId}`);
     }
 
-    const price = computePrice({ draft, vehicle, addOns, tiers });
+    const price = computePrice({
+      draft,
+      vehicle,
+      addOns,
+      tiers,
+      promoDiscountPercent: await resolvePromoDiscountPercent(draft.promoCode),
+    });
     const payload = fromBookingDraft(draft, {
       resolveVehicleId: () => numericId,
       addOns,
       protectionTiers: tiers,
       rateTotalCents: price.totalCents,
+      promoDiscountCents: price.discountCents,
     });
     const response = await createBookingRequest(payload);
     const booking = toInternalBooking(response.data, {
@@ -227,7 +250,13 @@ export async function handleBookingSubmit(
   const ref = generateBookingRef();
   const state =
     draft.paymentMethod === "card" || draft.paymentMethod === "cash" ? "confirmed" : "pending";
-  const price = computePrice({ draft, vehicle, addOns, tiers });
+  const price = computePrice({
+    draft,
+    vehicle,
+    addOns,
+    tiers,
+    promoDiscountPercent: await resolvePromoDiscountPercent(draft.promoCode),
+  });
 
   const booking: Booking = {
     ref,

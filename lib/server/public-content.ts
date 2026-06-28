@@ -11,6 +11,7 @@ import {
   listVehicleMetadata,
   toVehicleWithMetadata,
 } from "@/lib/supabase/admin-repository";
+import { getSyncedPublicVehicles } from "@/lib/server/wizard-catalog";
 
 export async function getPublicBranches(): Promise<Branch[]> {
   try {
@@ -54,6 +55,9 @@ export async function getPublicSiteConfig(): Promise<SiteConfig> {
 
 export async function getPublicVehicles(): Promise<Vehicle[]> {
   try {
+    const synced = await getSyncedPublicVehicles();
+    if (synced.length > 0) return synced;
+
     const metadata = await listVehicleMetadata();
     if (metadata.length === 0) return FALLBACK_VEHICLES;
     return FALLBACK_VEHICLES.map((vehicle) => toVehicleWithMetadata(vehicle, metadata));

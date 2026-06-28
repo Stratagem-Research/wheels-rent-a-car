@@ -6,26 +6,6 @@
     "count": 63,
     "vehicles": [
       {
-        "id": 131,
-        "name": "MICRA",
-        "model": "MICRA",
-        "license_plate": null,
-        "vehicle_type_id": 1,
-        "vehicle_type": "small",
-        "gearbox": "automatic",
-        "fuel_type": "petrol",
-        "number_of_seats": 4,
-        "is_available": true,
-        "unavailable_reason": null,
-        "pricing": {
-          "days": 4,
-          "price_option": "standard",
-          "price_label": "Standard Price",
-          "daily_price": 20,
-          "total": 80
-        }
-      },
-      {
         "id": 132,
         "name": "MICRA",
         "model": "MICRA",
@@ -327,26 +307,6 @@
       },
       {
         "id": 152,
-        "name": "SPARK",
-        "model": "SPARK",
-        "license_plate": null,
-        "vehicle_type_id": 1,
-        "vehicle_type": "small",
-        "gearbox": "automatic",
-        "fuel_type": "petrol",
-        "number_of_seats": 4,
-        "is_available": true,
-        "unavailable_reason": null,
-        "pricing": {
-          "days": 4,
-          "price_option": "standard",
-          "price_label": "Standard Price",
-          "daily_price": 20,
-          "total": 80
-        }
-      },
-      {
-        "id": 153,
         "name": "SPARK",
         "model": "SPARK",
         "license_plate": null,
@@ -1249,6 +1209,46 @@
         "id": 231,
         "name": "MAGNITE",
         "model": "MAGNITE",
+        "license_plate": null,
+        "vehicle_type_id": 7,
+        "vehicle_type": "SMALL SUV",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 45,
+          "total": 180
+        }
+      },
+      {
+        "id": 235,
+        "name": "ECLIPSE CROSS",
+        "model": "ECLIPSE CROSS",
+        "license_plate": null,
+        "vehicle_type_id": 7,
+        "vehicle_type": "SMALL SUV",
+        "gearbox": "automatic",
+        "fuel_type": "petrol",
+        "number_of_seats": 4,
+        "is_available": true,
+        "unavailable_reason": null,
+        "pricing": {
+          "days": 4,
+          "price_option": "standard",
+          "price_label": "Standard Price",
+          "daily_price": 45,
+          "total": 180
+        }
+      },
+      {
+        "id": 236,
+        "name": "ECLIPSE CROSS",
+        "model": "ECLIPSE CROSS",
         "license_plate": null,
         "vehicle_type_id": 7,
         "vehicle_type": "SMALL SUV",
