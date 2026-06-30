@@ -36,13 +36,21 @@ export function wizardRowToVehicle(row: WizardVehicleRow, metadataRows: VehicleM
   const operational = row.operational ?? {};
   const seats =
     typeof operational.number_of_seats === "number" ? operational.number_of_seats : 4;
+  const doors =
+    typeof operational.number_of_doors === "number" ? operational.number_of_doors : 4;
   const gearbox =
-    operational.gearbox === "manual" ? "manual" : ("automatic" as const);
+    operational.gearbox === "manual" || operational.transmission === "manual"
+      ? "manual"
+      : ("automatic" as const);
   const fuelRaw = operational.fuel_type;
   const fuel =
     fuelRaw === "diesel" || fuelRaw === "hybrid" || fuelRaw === "electric"
       ? fuelRaw
       : ("petrol" as const);
+  const dailyRate =
+    typeof operational.daily_rate === "number" && operational.daily_rate > 0
+      ? Math.round(operational.daily_rate * 100)
+      : 2000;
 
   const base: Vehicle = {
     id: frontendId,
@@ -54,11 +62,11 @@ export function wizardRowToVehicle(row: WizardVehicleRow, metadataRows: VehicleM
     transmission: gearbox,
     fuel,
     seats,
-    doors: 4,
+    doors,
     bags: 3,
     features: [],
     images: [PLACEHOLDER_IMAGE],
-    dailyRateFromCents: 2000,
+    dailyRateFromCents: dailyRate,
     ownsInFleet: true,
   };
 

@@ -1,7 +1,9 @@
 import { syncWizardVehiclesFromApi } from "@/lib/server/wizard-vehicle-sync";
 
 async function main() {
-  const result = await syncWizardVehiclesFromApi();
+  // Optional incremental sync: `pnpm wizard:sync-vehicles "2026-06-27 00:00:00"`
+  const updatedSince = process.argv[2]?.trim() || undefined;
+  const result = await syncWizardVehiclesFromApi({ updatedSince });
   console.log(JSON.stringify(result, null, 2));
 }
 

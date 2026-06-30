@@ -32,7 +32,7 @@ Archives: [Adam_Response_System_Boundaries.md](./Adam_Response_System_Boundaries
 | Item | Requested from Wizard | Status | Owner | Target date |
 | --- | --- | --- | --- | --- |
 | `WIZARD_API_TOKEN` | Staging bearer token via secure channel | Pending secure channel | Adam | TBD |
-| Vehicle sync API | `GET /api/public/vehicles` (assumed); confirm path + schema | Implementation started; path TBD | Adam / Website | TBD |
+| Vehicle sync API | Internal `GET /api/v1/vehicles/sync` (bearer); schema confirmed | Implemented 2026-06-30; awaiting token to run live | Adam / Website | Token pending |
 | Staging server access | SSH/deploy for Next.js website stack | Pending | Adam | TBD |
 | Rate limits | Final per-endpoint limits for staging/prod | Agreed for next Wizard revision | Adam | TBD |
 | Sanitized errors | 429/4xx sanitized JSON envelope | Agreed for next Wizard revision | Adam | TBD |

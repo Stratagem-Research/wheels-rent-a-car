@@ -1,7 +1,6 @@
-import { getAvailability, getWizardVehicles } from "@/lib/api/wheels-public";
+import { createWheelsInternalClient } from "@/lib/api/wheels-public";
 import type { WizardVehicle } from "@/lib/api/wheels-public/schemas";
-import { mapVehicleTypeToCategory } from "@/lib/api/wheels-public/vehicle-enrichment";
-import { toBackendDateTime } from "@/lib/api/wheels-public/datetime";
+import { getServerEnv } from "@/lib/server/env";
 import {
   frontendVehicleIdFromWizard,
   slugifyVehicleName,
@@ -11,100 +10,91 @@ import {
   upsertWizardVehicles,
   type UpsertWizardVehicleInput,
 } from "@/lib/supabase/wizard-vehicles-repository";
-import { ApiError as WheelsApiError } from "@/lib/api/wheels-public/client";
 
 export type WizardVehicleSyncResult = {
-  source: "vehicles_endpoint" | "availability_bootstrap";
+  source: "vehicles_sync_endpoint";
+  fetched: number;
   upserted: number;
-  message?: string;
+  updatedSince?: string;
 };
 
-function isWebsiteEnabled(vehicle: WizardVehicle): boolean {
-  if (vehicle.website_enabled === true || vehicle.is_website_enabled === true) return true;
-  if (vehicle.public_status?.toLowerCase() === "public") return true;
-  return vehicle.website_enabled !== false && vehicle.is_website_enabled !== false;
+export interface SyncWizardVehiclesOptions {
+  /** ISO/backend datetime; forwards as `?updated_since=` for incremental sync. */
+  updatedSince?: string;
 }
 
-function wizardVehicleToRow(vehicle: WizardVehicle): UpsertWizardVehicleInput {
+/** Wizard numeric id — `vehicle_id` is canonical, `id` is a mirror. */
+function wizardVehicleId(vehicle: WizardVehicle): number | null {
+  return vehicle.vehicle_id ?? vehicle.id ?? null;
+}
+
+/**
+ * A vehicle is shown on the website when Wizard flags it enabled AND it is
+ * not sold. `is_publicly_bookable` is an additional gate when present.
+ */
+function isWebsiteEnabled(vehicle: WizardVehicle): boolean {
+  if (vehicle.is_sold === true) return false;
+  if (vehicle.website_enabled === false) return false;
+  if (vehicle.is_publicly_bookable === false) return false;
+  if (vehicle.status && vehicle.status.toLowerCase() !== "active") return false;
+  return vehicle.website_enabled === true || vehicle.is_publicly_bookable === true;
+}
+
+function wizardVehicleToRow(vehicle: WizardVehicle, id: number): UpsertWizardVehicleInput {
   const displayName =
     vehicle.display_name?.trim() ||
-    [vehicle.brand, vehicle.model].filter(Boolean).join(" ").trim() ||
     vehicle.name?.trim() ||
-    `Vehicle ${vehicle.id}`;
-
-  const category =
-    vehicle.category?.trim() ||
-    (vehicle.vehicle_type ? mapVehicleTypeToCategory(vehicle.vehicle_type) : undefined) ||
-    null;
+    [vehicle.brand, vehicle.model].filter(Boolean).join(" ").trim() ||
+    `Vehicle ${id}`;
 
   return {
-    wizard_vehicle_id: vehicle.id,
+    wizard_vehicle_id: id,
     vehicle_type_id: vehicle.vehicle_type_id ?? null,
-    brand: vehicle.brand ?? vehicle.name ?? null,
-    model: vehicle.model ?? vehicle.name ?? null,
+    brand: vehicle.brand ?? null,
+    model: vehicle.model ?? null,
     display_name: displayName,
-    category,
+    category: vehicle.category?.trim() ? vehicle.category.toLowerCase() : null,
     website_enabled: isWebsiteEnabled(vehicle),
     wizard_updated_at: vehicle.updated_at ?? null,
     operational: {
-      vehicle_type: vehicle.vehicle_type,
-      gearbox: vehicle.gearbox,
-      fuel_type: vehicle.fuel_type,
-      number_of_seats: vehicle.number_of_seats,
-      public_status: vehicle.public_status,
+      public_vehicle_key: vehicle.public_vehicle_key ?? null,
+      gearbox: vehicle.gearbox ?? vehicle.transmission ?? null,
+      transmission: vehicle.transmission ?? vehicle.gearbox ?? null,
+      fuel_type: vehicle.fuel_type ?? null,
+      number_of_seats: vehicle.number_of_seats ?? null,
+      number_of_doors: vehicle.number_of_doors ?? null,
+      status: vehicle.status ?? null,
+      daily_rate: vehicle.pricing?.daily_rate ?? vehicle.pricing?.standard_price ?? null,
+      currency: vehicle.pricing?.currency ?? null,
     },
   };
 }
 
-async function bootstrapFromAvailability(): Promise<WizardVehicle[]> {
-  const start = new Date();
-  start.setDate(start.getDate() + 7);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 7);
-
-  const response = await getAvailability({
-    startDateTime: toBackendDateTime(start.toISOString()),
-    endDateTime: toBackendDateTime(end.toISOString()),
-    includeBooked: true,
+/**
+ * Sync website-enabled vehicles from Wizard's internal
+ * `GET /api/v1/vehicles/sync` endpoint into Supabase. Server-to-server only
+ * (bearer token). Pass `updatedSince` for incremental sync.
+ */
+export async function syncWizardVehiclesFromApi(
+  options: SyncWizardVehiclesOptions = {},
+): Promise<WizardVehicleSyncResult> {
+  const env = getServerEnv();
+  const client = createWheelsInternalClient({
+    apiToken: env.WHEELS_INTERNAL_API_TOKEN,
+    baseUrl: env.WHEELS_INTERNAL_API_BASE_URL,
   });
 
-  const byId = new Map<number, WizardVehicle>();
-  for (const vehicle of response.data.vehicles) {
-    if (!byId.has(vehicle.id)) {
-      byId.set(vehicle.id, {
-        id: vehicle.id,
-        vehicle_type_id: vehicle.vehicle_type_id,
-        brand: vehicle.name,
-        model: vehicle.model,
-        name: vehicle.name,
-        display_name: vehicle.name,
-        vehicle_type: vehicle.vehicle_type,
-        website_enabled: true,
-        gearbox: vehicle.gearbox,
-        fuel_type: vehicle.fuel_type,
-        number_of_seats: vehicle.number_of_seats,
-      });
-    }
-  }
-  return [...byId.values()];
-}
+  const response = await client.syncVehicles({ updatedSince: options.updatedSince });
+  const vehicles = response.data.vehicles;
 
-export async function syncWizardVehiclesFromApi(): Promise<WizardVehicleSyncResult> {
-  let vehicles: WizardVehicle[];
-  let source: WizardVehicleSyncResult["source"] = "vehicles_endpoint";
-
-  try {
-    const response = await getWizardVehicles();
-    vehicles = response.data.vehicles;
-  } catch (error) {
-    const notFound =
-      error instanceof WheelsApiError && (error.status === 404 || error.status === 405);
-    if (!notFound) throw error;
-    source = "availability_bootstrap";
-    vehicles = await bootstrapFromAvailability();
+  const rows: UpsertWizardVehicleInput[] = [];
+  for (const vehicle of vehicles) {
+    const id = wizardVehicleId(vehicle);
+    if (id == null) continue;
+    const row = wizardVehicleToRow(vehicle, id);
+    if (row.website_enabled) rows.push(row);
   }
 
-  const rows = vehicles.map(wizardVehicleToRow).filter((row) => row.website_enabled);
   const upserted = await upsertWizardVehicles(rows);
 
   for (const row of rows) {
@@ -117,11 +107,9 @@ export async function syncWizardVehiclesFromApi(): Promise<WizardVehicleSyncResu
   }
 
   return {
-    source,
+    source: "vehicles_sync_endpoint",
+    fetched: vehicles.length,
     upserted,
-    message:
-      source === "availability_bootstrap"
-        ? "GET /api/public/vehicles returned 404; bootstrapped unique vehicles from /availability."
-        : undefined,
+    updatedSince: options.updatedSince,
   };
 }

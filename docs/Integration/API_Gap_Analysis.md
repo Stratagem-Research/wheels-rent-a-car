@@ -41,16 +41,19 @@ Wizard supplies operational vehicle IDs; website enriches with marketing data.
 
 Implementation: `lib/api/wheels-public/sync-status.ts` (`cancel_requested` → `sync_type: cancel_request`, `status: pending_approval`).
 
-## Vehicle sync (Adam 2026-06-22 — agreed architecture)
+## Vehicle sync (Adam 2026-06-30 — endpoint confirmed)
 
 Wizard is the source of truth for operational vehicles. The website syncs via API into `wizard_vehicles`, then enriches with `vehicle_metadata` (photos, slugs, badges, SEO).
 
 Flow: Wizard vehicle → sync API → Supabase → marketing enrichment → booking uses `wizard_vehicle_id`.
 
-- **Assumed endpoint:** `GET /api/public/vehicles` (website-enabled only) — confirm with Adam.
+- **Confirmed endpoint:** internal `GET /api/v1/vehicles/sync` (bearer-authenticated, server-to-server). Incremental via `?updated_since=`.
+- `GET /api/public/vehicles` is reserved for an optional future public list, not the sync source.
 - **Manual `vehicle_wizard_map`:** staging-only fallback; deprecated for production.
 
-Implementation: `lib/server/wizard-vehicle-sync.ts`, `lib/booking/wizard-vehicle-id.ts`.
+See [Adam_Response_Vehicle_Sync_Endpoint.md](./Adam_Response_Vehicle_Sync_Endpoint.md) and [Wizard_Vehicle_Sync_Endpoint.md](./Wizard_Vehicle_Sync_Endpoint.md).
+
+Implementation: `lib/server/wizard-vehicle-sync.ts`, `lib/api/wheels-public/client.ts` (`syncVehicles`), `lib/booking/wizard-vehicle-id.ts`.
 
 ## Confirmed by Adam (2026-06-22) — promo codes
 
@@ -58,7 +61,7 @@ Website-side promo validation at launch. Wizard receives code/discount in bookin
 
 ## Remaining backend clarifications / small gaps
 
-1. Confirm vehicle sync HTTP path and response schema on new demo.
+1. Vehicle sync HTTP path and response schema — CONFIRMED 2026-06-30 (`GET /api/v1/vehicles/sync`).
 2. Confirm production rate-limit values per endpoint (agreed for next Wizard revision).
 3. Confirm sanitized `429` and 4xx error envelope (agreed for next Wizard revision).
 4. Confirm internal API token lifecycle: creation, rotation, expiry, staging/prod separation.

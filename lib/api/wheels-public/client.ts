@@ -28,7 +28,7 @@ import {
   SyncStatusRequestSchema,
   SyncStatusResponseSchema,
   VehicleAvailabilityResponseSchema,
-  WizardVehiclesResponseSchema,
+  WizardVehicleSyncResponseSchema,
   type AvailabilityResponse,
   type BookingLookupResponse,
   type BookingRequestPayload,
@@ -37,7 +37,7 @@ import {
   type SyncStatusRequest,
   type SyncStatusResponse,
   type VehicleAvailabilityResponse,
-  type WizardVehiclesResponse,
+  type WizardVehicleSyncResponse,
 } from "./schemas";
 
 /** Base error matching the convention in `lib/api/client.ts`. */
@@ -124,11 +124,12 @@ export interface WheelsPublicClient {
   createBookingRequest: (payload: BookingRequestPayload) => Promise<BookingSuccessResponse>;
   getBookingByReferenceEmail: (reference: string, email: string) => Promise<BookingLookupResponse>;
   getBookingStatusByToken: (publicToken: string) => Promise<BookingStatusResponse>;
-  getWizardVehicles: () => Promise<WizardVehiclesResponse>;
 }
 
 export interface WheelsInternalClient {
   syncBookingStatus: (reference: string, payload: SyncStatusRequest) => Promise<SyncStatusResponse>;
+  /** GET /api/v1/vehicles/sync — internal fleet sync (bearer-authenticated). */
+  syncVehicles: (options?: { updatedSince?: string }) => Promise<WizardVehicleSyncResponse>;
 }
 
 export function resolveWheelsPublicBaseUrl(explicit?: string): string {
@@ -221,18 +222,6 @@ export function createWheelsPublicClient(
         maxAttempts,
       });
     },
-
-    async getWizardVehicles() {
-      const url = `${baseUrl}/vehicles`;
-      return requestJson(url, {
-        method: "GET",
-        schema: WizardVehiclesResponseSchema,
-        failureSchema: GenericErrorResponseSchema,
-        fetchImpl,
-        timeoutMs,
-        maxAttempts: 1,
-      });
-    },
   };
 }
 
@@ -248,6 +237,15 @@ export function createWheelsInternalClient(
   const fetchImpl = options.fetchImpl ?? fetch;
   const apiToken = options.apiToken;
 
+  const authedFetch = ((input: RequestInfo | URL, init?: RequestInit) =>
+    fetchImpl(input, {
+      ...init,
+      headers: {
+        ...(init?.headers ?? {}),
+        Authorization: `Bearer ${apiToken}`,
+      },
+    })) as typeof fetch;
+
   return {
     async syncBookingStatus(reference, payload) {
       const safe = SyncStatusRequestSchema.parse(payload);
@@ -257,14 +255,22 @@ export function createWheelsInternalClient(
         body: safe,
         schema: SyncStatusResponseSchema,
         failureSchema: GenericErrorResponseSchema,
-        fetchImpl: ((input: RequestInfo | URL, init?: RequestInit) =>
-          fetchImpl(input, {
-            ...init,
-            headers: {
-              ...(init?.headers ?? {}),
-              Authorization: `Bearer ${apiToken}`,
-            },
-          })) as typeof fetch,
+        fetchImpl: authedFetch,
+        timeoutMs,
+        maxAttempts,
+      });
+    },
+
+    async syncVehicles(syncOptions) {
+      const query = syncOptions?.updatedSince
+        ? `?updated_since=${encodeURIComponent(syncOptions.updatedSince)}`
+        : "";
+      const url = `${baseUrl}/vehicles/sync${query}`;
+      return requestJson(url, {
+        method: "GET",
+        schema: WizardVehicleSyncResponseSchema,
+        failureSchema: GenericErrorResponseSchema,
+        fetchImpl: authedFetch,
         timeoutMs,
         maxAttempts,
       });
@@ -281,7 +287,6 @@ export const getVehicleAvailability = defaultClient.getVehicleAvailability;
 export const createBookingRequest = defaultClient.createBookingRequest;
 export const getBookingByReferenceEmail = defaultClient.getBookingByReferenceEmail;
 export const getBookingStatusByToken = defaultClient.getBookingStatusByToken;
-export const getWizardVehicles = defaultClient.getWizardVehicles;
 
 // ── Internals ───────────────────────────────────────────────────────────
 

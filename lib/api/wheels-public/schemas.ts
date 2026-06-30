@@ -75,32 +75,54 @@ export const VehicleAvailabilityResponseSchema = z.object({
   data: PublicVehicleSchema,
 });
 
-// ── /vehicles — website-enabled fleet sync (Adam 2026-06-22) ───────────
+// ── GET /api/v1/vehicles/sync — internal fleet sync (Adam 2026-06-30) ───
+//
+// Server-to-server, bearer-authenticated. Returns only non-sensitive vehicle
+// data (no license plates, notes, or customer/operational private fields).
 
-export const WizardVehicleSchema = z
+export const WizardVehiclePricingSchema = z
   .object({
-    id: z.number().int().positive(),
-    vehicle_type_id: z.number().int().positive(),
-    brand: z.string().optional(),
-    model: z.string().optional(),
-    name: z.string().optional(),
-    display_name: z.string().optional(),
-    vehicle_type: z.string().optional(),
-    category: z.string().optional(),
-    website_enabled: z.boolean().optional(),
-    is_website_enabled: z.boolean().optional(),
-    public_status: z.string().optional(),
-    gearbox: z.string().optional(),
-    fuel_type: z.string().optional(),
-    number_of_seats: z.number().int().nonnegative().optional(),
-    updated_at: BackendDateTimeSchema.optional(),
+    daily_rate: z.number().nonnegative().nullable().optional(),
+    standard_price: z.number().nonnegative().nullable().optional(),
+    currency: z.string().nullable().optional(),
   })
   .passthrough();
 
-export const WizardVehiclesResponseSchema = z.object({
+export const WizardVehicleSchema = z
+  .object({
+    vehicle_id: z.number().int().positive().optional(),
+    id: z.number().int().positive().optional(),
+    public_vehicle_key: z.string().optional(),
+    vehicle_type_id: z.number().int().positive().optional(),
+    brand: z.string().nullable().optional(),
+    model: z.string().nullable().optional(),
+    name: z.string().nullable().optional(),
+    display_name: z.string().nullable().optional(),
+    category: z.string().nullable().optional(),
+    gearbox: z.string().nullable().optional(),
+    transmission: z.string().nullable().optional(),
+    fuel_type: z.string().nullable().optional(),
+    number_of_seats: z.number().int().nonnegative().nullable().optional(),
+    number_of_doors: z.number().int().nonnegative().nullable().optional(),
+    status: z.string().nullable().optional(),
+    website_enabled: z.boolean().optional(),
+    is_sold: z.boolean().optional(),
+    is_publicly_bookable: z.boolean().optional(),
+    pricing: WizardVehiclePricingSchema.optional(),
+    updated_at: BackendDateTimeSchema.optional(),
+    created_at: BackendDateTimeSchema.optional(),
+    timezone: z.string().optional(),
+  })
+  .passthrough();
+
+export const WizardVehicleSyncResponseSchema = z.object({
   success: z.literal(true),
   data: z
     .object({
+      sync_type: z.string().optional(),
+      parent_id: z.number().int().optional(),
+      timezone: z.string().optional(),
+      updated_since: z.string().nullable().optional(),
       count: z.number().int().nonnegative().optional(),
       vehicles: z.array(WizardVehicleSchema),
     })
@@ -320,7 +342,7 @@ export type PublicVehicle = z.infer<typeof PublicVehicleSchema>;
 export type AvailabilityResponse = z.infer<typeof AvailabilityResponseSchema>;
 export type VehicleAvailabilityResponse = z.infer<typeof VehicleAvailabilityResponseSchema>;
 export type WizardVehicle = z.infer<typeof WizardVehicleSchema>;
-export type WizardVehiclesResponse = z.infer<typeof WizardVehiclesResponseSchema>;
+export type WizardVehicleSyncResponse = z.infer<typeof WizardVehicleSyncResponseSchema>;
 export type BookingCustomerInput = z.infer<typeof BookingCustomerInputSchema>;
 export type BookingRequestPayload = z.infer<typeof BookingRequestPayloadSchema>;
 export type BookingData = z.infer<typeof BookingDataSchema>;

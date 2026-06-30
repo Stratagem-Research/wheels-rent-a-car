@@ -25,7 +25,6 @@ export {
   createBookingRequest,
   getBookingByReferenceEmail,
   getBookingStatusByToken,
-  getWizardVehicles,
   createWheelsPublicClient,
   createWheelsInternalClient,
   resolveWheelsPublicBaseUrl,
@@ -94,6 +93,7 @@ export {
   SyncStatusRequestSchema,
   SyncStatusResponseSchema,
   VehicleAvailabilityResponseSchema,
+  WizardVehicleSyncResponseSchema,
   type WizardVehicle,
-  type WizardVehiclesResponse,
+  type WizardVehicleSyncResponse,
 } from "./schemas";

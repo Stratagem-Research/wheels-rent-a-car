@@ -21,7 +21,7 @@ Define the website-owned persistence layer and boundaries that sit outside Wizar
 Wizard remains the source of truth for operational vehicles. The website must not maintain a manual numeric ID map in production.
 
 ```text
-Wizard API (GET /api/public/vehicles)
+Wizard internal API (GET /api/v1/vehicles/sync, bearer auth)
   → wizard_vehicles (Supabase)
   → merge vehicle_metadata (photos, slugs, badges, SEO)
   → public Vehicle[] for /api/vehicles and booking funnel

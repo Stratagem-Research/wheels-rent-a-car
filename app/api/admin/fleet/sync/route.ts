@@ -9,8 +9,10 @@ export async function POST(request: Request) {
   const csrfResponse = requireAdminCsrf(request);
   if (csrfResponse) return csrfResponse;
 
+  const updatedSince = new URL(request.url).searchParams.get("updated_since")?.trim() || undefined;
+
   try {
-    const result = await syncWizardVehiclesFromApi();
+    const result = await syncWizardVehiclesFromApi({ updatedSince });
     await writeAdminAuditLog({
       actor: auth.session.username,
       role: auth.session.role,
