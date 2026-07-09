@@ -2,7 +2,7 @@
 
 Status: In progress
 Owner: Website Team + Wizard Team (Adam)
-Last updated: 2026-06-22
+Last updated: 2026-07-08
 
 ## Ownership boundaries (confirmed by Adam, 2026-06-22)
 
@@ -56,7 +56,9 @@ Archives: [Adam_Response_System_Boundaries.md](./Adam_Response_System_Boundaries
 
 - 2026-06-22: Adam boundary reply archived.
 - 2026-06-22: Adam demo URL + vehicle sync reply archived ([Adam_Response_Demo_And_Vehicle_Sync.md](./Adam_Response_Demo_And_Vehicle_Sync.md)).
-- Next: await secure-channel token; send ack email ([Email_to_Adam_Ack_Demo_Vehicle_Sync.md](./Email_to_Adam_Ack_Demo_Vehicle_Sync.md)); run smoke tests when token arrives.
+- 2026-06-30: Vehicle sync endpoint confirmed; website implementation complete ([Adam_Response_Vehicle_Sync_Endpoint.md](./Adam_Response_Vehicle_Sync_Endpoint.md)).
+- 2026-07-08: Status update sent while awaiting token ([Email_to_Adam_Status_Update.md](./Email_to_Adam_Status_Update.md)).
+- Next: await secure-channel token + staging access; run live sync and smoke tests when token arrives; await Elie team photos and Adam polish feedback doc.
 
 ## Exit criteria
 
