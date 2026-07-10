@@ -31,7 +31,7 @@ Archives: [Adam_Response_System_Boundaries.md](./Adam_Response_System_Boundaries
 
 | Item | Requested from Wizard | Status | Owner | Target date |
 | --- | --- | --- | --- | --- |
-| `WIZARD_API_TOKEN` | Staging bearer token via secure channel | Pending secure channel | Adam | TBD |
+| `WIZARD_API_TOKEN` | Staging bearer token via secure channel | Received 2026-07-09; works for `sync-status`, not yet for `vehicles/sync` (401) | Adam | Confirm route auth |
 | Vehicle sync API | Internal `GET /api/v1/vehicles/sync` (bearer); schema confirmed | Implemented 2026-06-30; awaiting token to run live | Adam / Website | Token pending |
 | Staging server access | SSH/deploy for Next.js website stack | Pending | Adam | TBD |
 | Rate limits | Final per-endpoint limits for staging/prod | Agreed for next Wizard revision | Adam | TBD |
@@ -58,7 +58,8 @@ Archives: [Adam_Response_System_Boundaries.md](./Adam_Response_System_Boundaries
 - 2026-06-22: Adam demo URL + vehicle sync reply archived ([Adam_Response_Demo_And_Vehicle_Sync.md](./Adam_Response_Demo_And_Vehicle_Sync.md)).
 - 2026-06-30: Vehicle sync endpoint confirmed; website implementation complete ([Adam_Response_Vehicle_Sync_Endpoint.md](./Adam_Response_Vehicle_Sync_Endpoint.md)).
 - 2026-07-08: Status update sent while awaiting token ([Email_to_Adam_Status_Update.md](./Email_to_Adam_Status_Update.md)).
-- Next: await secure-channel token + staging access; run live sync and smoke tests when token arrives; await Elie team photos and Adam polish feedback doc.
+- 2026-07-09: Staging token received; `sync-status` works but `vehicles/sync` returns 401 — draft follow-up ([Email_to_Adam_Vehicle_Sync_401.md](./Email_to_Adam_Vehicle_Sync_401.md)).
+- Next: Adam to confirm `vehicles/sync` auth on demo; then run live sync + full smoke tests; await staging access, Elie team photos, and polish feedback doc.
 
 ## Exit criteria
 

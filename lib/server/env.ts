@@ -35,7 +35,8 @@ export function getServerEnv(): ServerEnv {
     WHISH_SECRET: process.env.WHISH_SECRET,
     WEBSITE_URL: process.env.WEBSITE_URL,
     WHEELS_INTERNAL_API_BASE_URL: process.env.WHEELS_INTERNAL_API_BASE_URL,
-    WHEELS_INTERNAL_API_TOKEN: process.env.WHEELS_INTERNAL_API_TOKEN,
+    WHEELS_INTERNAL_API_TOKEN:
+      process.env.WHEELS_INTERNAL_API_TOKEN ?? process.env.WIZARD_API_TOKEN,
   });
 }
 

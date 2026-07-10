@@ -25,4 +25,17 @@ describe("server/env", () => {
 
     expect(() => getServerEnv()).not.toThrow();
   });
+
+  it("accepts WIZARD_API_TOKEN as alias for WHEELS_INTERNAL_API_TOKEN", () => {
+    vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "srk");
+    vi.stubEnv("DATABASE_URL", "postgres://postgres:pw@localhost:5432/postgres");
+    vi.stubEnv("WHISH_CHANNEL", "channel");
+    vi.stubEnv("WHISH_SECRET", "secret");
+    vi.stubEnv("WEBSITE_URL", "https://wheels.com.lb");
+    vi.stubEnv("WHEELS_INTERNAL_API_BASE_URL", "https://api.wheels.com.lb/api/v1");
+    delete process.env.WHEELS_INTERNAL_API_TOKEN;
+    vi.stubEnv("WIZARD_API_TOKEN", "wizard-token");
+
+    expect(getServerEnv().WHEELS_INTERNAL_API_TOKEN).toBe("wizard-token");
+  });
 });
