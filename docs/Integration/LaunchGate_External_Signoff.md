@@ -2,7 +2,7 @@
 
 Status: In progress
 Owner: Website Team + Wizard Team (Adam)
-Last updated: 2026-07-08
+Last updated: 2026-07-11
 
 ## Ownership boundaries (confirmed by Adam, 2026-06-22)
 
@@ -31,8 +31,8 @@ Archives: [Adam_Response_System_Boundaries.md](./Adam_Response_System_Boundaries
 
 | Item | Requested from Wizard | Status | Owner | Target date |
 | --- | --- | --- | --- | --- |
-| `WIZARD_API_TOKEN` | Staging bearer token via secure channel | Received 2026-07-09; works for `sync-status`, not yet for `vehicles/sync` (401) | Adam | Confirm route auth |
-| Vehicle sync API | Internal `GET /api/v1/vehicles/sync` (bearer); schema confirmed | Implemented 2026-06-30; awaiting token to run live | Adam / Website | Token pending |
+| `WIZARD_API_TOKEN` | Staging bearer token via secure channel | **Delivered and verified 2026-07-11** — works for `sync-status` and `vehicles/sync` | Adam | Done |
+| Vehicle sync API | Internal `GET /api/v1/vehicles/sync` (bearer); schema confirmed | **Live and verified 2026-07-11** — 65 vehicles synced into `wizard_vehicles` | Adam / Website | Done |
 | Staging server access | SSH/deploy for Next.js website stack | Pending | Adam | TBD |
 | Rate limits | Final per-endpoint limits for staging/prod | Agreed for next Wizard revision | Adam | TBD |
 | Sanitized errors | 429/4xx sanitized JSON envelope | Agreed for next Wizard revision | Adam | TBD |
@@ -59,7 +59,8 @@ Archives: [Adam_Response_System_Boundaries.md](./Adam_Response_System_Boundaries
 - 2026-06-30: Vehicle sync endpoint confirmed; website implementation complete ([Adam_Response_Vehicle_Sync_Endpoint.md](./Adam_Response_Vehicle_Sync_Endpoint.md)).
 - 2026-07-08: Status update sent while awaiting token ([Email_to_Adam_Status_Update.md](./Email_to_Adam_Status_Update.md)).
 - 2026-07-09: Staging token received; `sync-status` works but `vehicles/sync` returns 401 — draft follow-up ([Email_to_Adam_Vehicle_Sync_401.md](./Email_to_Adam_Vehicle_Sync_401.md)).
-- Next: Adam to confirm `vehicles/sync` auth on demo; then run live sync + full smoke tests; await staging access, Elie team photos, and polish feedback doc.
+- 2026-07-11: Adam fixed `vehicles/sync` auth. Live verification: `pnpm wizard:sync-vehicles` fetched 65 vehicles, upserted 65 into Supabase; full public + internal smoke suite (7/7 steps) passes; `NEXT_PUBLIC_USE_REAL_BOOKING_API=true` enabled locally. See [Vehicle_Sync_Live_Verification.md](./Vehicle_Sync_Live_Verification.md).
+- Next: await staging server access, Elie's team photos, and Adam's site polish feedback doc. Whish payment credentials remain the only launch blocker on the website side.
 
 ## Exit criteria
 

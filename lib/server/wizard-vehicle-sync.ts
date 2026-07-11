@@ -28,6 +28,8 @@ function wizardVehicleId(vehicle: WizardVehicle): number | null {
   return vehicle.vehicle_id ?? vehicle.id ?? null;
 }
 
+const WEBSITE_SYNC_STATUSES = new Set(["active", "available"]);
+
 /**
  * A vehicle is shown on the website when Wizard flags it enabled AND it is
  * not sold. `is_publicly_bookable` is an additional gate when present.
@@ -36,7 +38,12 @@ function isWebsiteEnabled(vehicle: WizardVehicle): boolean {
   if (vehicle.is_sold === true) return false;
   if (vehicle.website_enabled === false) return false;
   if (vehicle.is_publicly_bookable === false) return false;
-  if (vehicle.status && vehicle.status.toLowerCase() !== "active") return false;
+  if (
+    vehicle.status &&
+    !WEBSITE_SYNC_STATUSES.has(vehicle.status.trim().toLowerCase())
+  ) {
+    return false;
+  }
   return vehicle.website_enabled === true || vehicle.is_publicly_bookable === true;
 }
 

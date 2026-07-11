@@ -178,6 +178,8 @@ fi
 # 7. POST /api/v1/bookings/{reference}/sync-status (optional) ───────────
 if [[ -n "$BOOKING_REFERENCE" && -n "$INTERNAL_BASE_URL" && -n "$INTERNAL_API_TOKEN" ]]; then
   bold "[7/7] POST internal sync-status for $BOOKING_REFERENCE"
+  # Mirrors lib/api/wheels-public/sync-status.ts: "pending" lifecycle maps to
+  # Wizard's "pending_approval" status (Wizard has no raw "pending" enum value).
   RES_SYNC=$(curl -sS -X POST \
     "$INTERNAL_BASE_URL/bookings/$BOOKING_REFERENCE/sync-status" \
     -H "Accept: application/json" \
@@ -185,7 +187,7 @@ if [[ -n "$BOOKING_REFERENCE" && -n "$INTERNAL_BASE_URL" && -n "$INTERNAL_API_TO
     -H "Authorization: Bearer $INTERNAL_API_TOKEN" \
     --data-binary "$(cat <<'EOF'
 {
-  "status": "pending",
+  "status": "pending_approval",
   "payment_status": "unpaid",
   "sync_type": "status_update",
   "message": "Smoke probe from scripts/wheels-api-smoke.sh"
