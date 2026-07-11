@@ -1,6 +1,7 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import { renderWithIntl } from "@/tests/utils/render-with-intl";
 import { FaqAccordion } from "./FaqAccordion";
 import type { FaqEntry } from "@/types/domain";
 
@@ -25,7 +26,7 @@ describe("FaqAccordion", () => {
 
   it("opens from a deep-linked hash without controlled-mode warnings", async () => {
     window.location.hash = "#f-b-2";
-    render(<FaqAccordion entries={entries} />);
+    renderWithIntl(<FaqAccordion entries={entries} />);
 
     await waitFor(() => {
       expect(screen.getByRole("button", { name: "Is insurance included?" })).toHaveAttribute(
@@ -37,7 +38,7 @@ describe("FaqAccordion", () => {
 
   it("updates the URL hash when an item is expanded", async () => {
     const user = userEvent.setup();
-    render(<FaqAccordion entries={entries} />);
+    renderWithIntl(<FaqAccordion entries={entries} />);
 
     await user.click(screen.getByRole("button", { name: "What do I need?" }));
 
