@@ -1,5 +1,11 @@
 -- RLS negative tests for website-owned tables.
 -- Run with: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rls-negative-tests.sql
+--
+-- A table is "protected" if a restricted role either (a) gets a privilege
+-- error, or (b) gets zero rows back (RLS enabled with no matching policy —
+-- Postgres's default-deny). Both outcomes mean no data leaked, so the test
+-- checks actual row visibility rather than assuming an exception is always
+-- thrown.
 
 begin;
 
@@ -10,8 +16,9 @@ set local role anon;
 
 do $$
 begin
-  perform 1 from public.payment_events limit 1;
-  raise exception 'RLS breach: anon can read public.payment_events';
+  if exists (select 1 from public.payment_events limit 1) then
+    raise exception 'RLS breach: anon can read public.payment_events';
+  end if;
 exception
   when insufficient_privilege then
     null;
@@ -20,8 +27,9 @@ $$;
 
 do $$
 begin
-  perform 1 from public.notification_outbox limit 1;
-  raise exception 'RLS breach: anon can read public.notification_outbox';
+  if exists (select 1 from public.notification_outbox limit 1) then
+    raise exception 'RLS breach: anon can read public.notification_outbox';
+  end if;
 exception
   when insufficient_privilege then
     null;
@@ -30,8 +38,9 @@ $$;
 
 do $$
 begin
-  perform 1 from public.booking_state_timeline limit 1;
-  raise exception 'RLS breach: anon can read public.booking_state_timeline';
+  if exists (select 1 from public.booking_state_timeline limit 1) then
+    raise exception 'RLS breach: anon can read public.booking_state_timeline';
+  end if;
 exception
   when insufficient_privilege then
     null;
@@ -40,8 +49,9 @@ $$;
 
 do $$
 begin
-  perform 1 from public.admin_audit_logs limit 1;
-  raise exception 'RLS breach: anon can read public.admin_audit_logs';
+  if exists (select 1 from public.admin_audit_logs limit 1) then
+    raise exception 'RLS breach: anon can read public.admin_audit_logs';
+  end if;
 exception
   when insufficient_privilege then
     null;
@@ -56,8 +66,9 @@ set local "request.jwt.claim.sub" = '00000000-0000-0000-0000-000000000001';
 
 do $$
 begin
-  perform 1 from public.payment_events limit 1;
-  raise exception 'RLS breach: authenticated user can read public.payment_events';
+  if exists (select 1 from public.payment_events limit 1) then
+    raise exception 'RLS breach: authenticated user can read public.payment_events';
+  end if;
 exception
   when insufficient_privilege then
     null;
@@ -66,8 +77,9 @@ $$;
 
 do $$
 begin
-  perform 1 from public.notification_logs limit 1;
-  raise exception 'RLS breach: authenticated user can read public.notification_logs';
+  if exists (select 1 from public.notification_logs limit 1) then
+    raise exception 'RLS breach: authenticated user can read public.notification_logs';
+  end if;
 exception
   when insufficient_privilege then
     null;

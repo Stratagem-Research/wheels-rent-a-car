@@ -57,6 +57,9 @@ function useSavedVehiclesStore(): SavedVehiclesStore {
 
   React.useEffect(() => {
     if (!sessionReady) return;
+    // Fetch-on-session-ready: state updates only happen after the awaited
+    // request settles, not synchronously within this effect body.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refresh();
   }, [sessionReady, refresh]);
 

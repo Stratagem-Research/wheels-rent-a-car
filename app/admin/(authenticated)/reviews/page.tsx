@@ -34,6 +34,9 @@ export default function AdminReviewsPage() {
   }, []);
 
   React.useEffect(() => {
+    // Idempotent fetch-on-mount: `load` re-sets `loading` to its already-true
+    // initial value before awaiting, not a cascading-render risk.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
 

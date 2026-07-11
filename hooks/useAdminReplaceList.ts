@@ -50,6 +50,10 @@ export function useAdminReplaceList<T>({
   }, [fetch, loadError]);
 
   React.useEffect(() => {
+    // `load` sets `loading` back to `true` as its first statement (already the
+    // initial state) before awaiting the fetch — an idempotent, intentional
+    // fetch-on-mount, not a cascading-render risk.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
 

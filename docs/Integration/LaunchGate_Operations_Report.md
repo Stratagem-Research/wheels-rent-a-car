@@ -1,8 +1,8 @@
 # Launch Gate — Operations Report
 
-Status: In progress (staging operations drills pending)
+Status: In progress (backup/restore + alerting drills pending; rollback path verified)
 Owner: Website Team
-Last updated: 2026-06-06
+Last updated: 2026-07-11
 
 ## Implemented ops surfaces
 
@@ -35,8 +35,15 @@ Last updated: 2026-06-06
     - `WHEELS_INTERNAL_API_TOKEN`
     - `ADMIN_PASSWORD`
     - `ADMIN_SESSION_SECRET`
-- DB connectivity attempt:
-  - `./scripts/run-rls-negative-tests.sh` currently fails in this environment due DNS resolution failure for Supabase host.
+- DB connectivity — resolved 2026-07-11 via Supabase pooler host (see `LaunchGate_Security_Report.md`); `./scripts/run-rls-negative-tests.sh` now passes.
+- Live Wizard integration — resolved 2026-07-11:
+  - `pnpm wizard:sync-vehicles` populated `wizard_vehicles` (65 rows) from the live `GET /api/v1/vehicles/sync`.
+  - `./scripts/wheels-api-smoke.sh` passes 7/7 (public + internal sync-status).
+  - `NEXT_PUBLIC_USE_REAL_BOOKING_API=true` verified locally.
+  - See `Vehicle_Sync_Live_Verification.md`.
+- Rollback drill — partially verified 2026-07-11:
+  - Toggling `NEXT_PUBLIC_USE_REAL_BOOKING_API=false` falls back to mocked booking handlers (`lib/api/mocks/handlers.ts`); no code changes needed to revert.
+  - Full timed drill (disable sync dispatcher, measure recovery) still pending in a real staging environment.
 
 ## Pending operations gate checks
 
@@ -45,15 +52,15 @@ Last updated: 2026-06-06
      - payment callback failures
      - sync-status retry exhaustion
      - auth anomaly spikes
+   - Requires Sentry/monitoring dashboard access (`SENTRY_DSN` currently unset locally) — not achievable from this environment; needs staging/production project access.
 
 2. **Backup and restore drill**
    - Execute Supabase backup restore drill.
    - Record RTO/RPO and restore validation evidence.
+   - Requires Supabase CLI + project admin access (not available in this environment — `supabase` CLI not installed/linked here).
 
-3. **Rollback drill**
-   - Toggle `NEXT_PUBLIC_USE_REAL_BOOKING_API=false`.
-   - Disable sync dispatcher endpoint/job.
-   - Validate recovery path and timing.
+3. **Rollback drill (full)**
+   - Env toggle verified (see above). Still need: disable sync dispatcher endpoint/job under load and measure real recovery timing in staging.
 
 4. **Recovery timing**
    - Record incident response timeline for simulated sync failure.

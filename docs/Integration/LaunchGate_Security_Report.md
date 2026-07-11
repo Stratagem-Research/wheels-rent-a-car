@@ -1,8 +1,8 @@
 # Launch Gate — Security Report
 
-Status: Partially complete (staging-dependent checks pending)
+Status: RLS checks passed against live Supabase; ops drills still pending
 Owner: Website Team
-Last updated: 2026-06-06
+Last updated: 2026-07-11
 
 ## Executed checks
 
@@ -36,17 +36,34 @@ Last updated: 2026-06-06
    - Runner: `scripts/run-rls-negative-tests.sh`
    - Includes negative checks for `anon` and `authenticated` access to service-managed tables, plus authenticated insert path for `long_term_enquiries`.
 
-6. **Staging DB connectivity attempt**
-   - Command: `set -a; . ./.env; set +a; psql \"$DATABASE_URL\" -Atc \"select count(*) from auth.users;\"`
-   - Result: blocked in this environment due DNS resolution failure for the Supabase host.
+6. **Staging DB connectivity — resolved 2026-07-11**
+   - Direct `db.<ref>.supabase.co` host still fails DNS resolution in this
+     environment (IPv6-only record). Workaround: use the IPv4-friendly
+     Supabase pooler host (`aws-1-eu-central-1.pooler.supabase.com`,
+     user `postgres.<project-ref>`), same pattern already used by
+     `scripts/apply-all-migrations.mjs`.
+   - Once connected, `psql` reached the DB successfully.
+
+7. **RLS negative tests — executed and passed 2026-07-11**
+   - Ran `scripts/run-rls-negative-tests.sh` against the live Supabase project
+     via the pooler connection.
+   - Found and fixed a **test-logic bug**: the script treated any successful
+     `SELECT` as a breach, but RLS-enabled-with-no-policy protects by
+     returning zero rows (not a privilege error). This made the test always
+     fail even when data was genuinely inaccessible. Rewrote assertions to
+     check actual row visibility (`exists(select ...)`) instead of only
+     catching `insufficient_privilege` (`scripts/rls-negative-tests.sql`).
+   - After the fix, confirmed with a direct query that `anon` sees **zero
+     rows** on `payment_events` — genuinely protected, not a false pass.
+   - Full suite result: **all checks pass** (anon + authenticated blocked from
+     service-managed tables; authenticated insert on `long_term_enquiries`
+     succeeds as intended).
 
 ## Pending checks (must pass in staging)
 
 - Credential rotation confirmation for any values exposed outside secret managers.
-- RLS negative tests against staging data:
-  - cross-user profile read/write attempts must fail.
-  - service-managed tables must be inaccessible to normal user tokens.
 - CI log review for accidental secret output.
+- Re-run RLS negative tests against the production Supabase project before go-live (verified against the shared staging/dev project so far).
 
 ## Evidence references
 
