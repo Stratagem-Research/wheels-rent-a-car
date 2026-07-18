@@ -1,13 +1,22 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { handleBookingCancelPreview } from "@/lib/server/booking-service";
 
+const CancelPreviewSchema = z.object({
+  ref: z.string().min(1),
+  email: z.string().email(),
+});
+
 export async function POST(request: Request) {
+  const body = await request.json().catch(() => null);
+  const parsed = CancelPreviewSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ message: "Invalid cancel preview payload." }, { status: 400 });
+  }
   try {
-    const body = (await request.json()) as { ref: string };
-    const result = await handleBookingCancelPreview(body);
+    const result = await handleBookingCancelPreview(parsed.data);
     return NextResponse.json(result);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Cancel preview failed.";
-    return NextResponse.json({ message }, { status: 500 });
+  } catch {
+    return NextResponse.json({ message: "Booking not found." }, { status: 404 });
   }
 }

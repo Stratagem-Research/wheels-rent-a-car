@@ -996,6 +996,35 @@
       "needHelp": "Need help?",
       "chatOnWhatsapp": "Chat on WhatsApp"
     },
+    "modifyModal": {
+      "title": "Request a change",
+      "description": "Pick a new pickup date and time. Our team will review and confirm by WhatsApp or email — your booking isn't changed automatically.",
+      "newPickupDateAria": "New pickup date",
+      "newPickupTimeAria": "New pickup time",
+      "keepAsIs": "Keep as is",
+      "requestChange": "Request change",
+      "doneTitle": "Change requested",
+      "doneBody": "Your change request for {ref} is with our team. We'll confirm the new pickup time by WhatsApp or email.",
+      "close": "Close",
+      "requestedToast": "Change request sent. We'll confirm shortly.",
+      "requestError": "Couldn't send the change request. Try again or chat with us on WhatsApp."
+    },
+    "cancelModal": {
+      "previewTitle": "Request cancellation?",
+      "previewRefundFull": "If approved, you'll receive an estimated full refund of {amount}. Cancellations are reviewed by our team before they're final.",
+      "previewRefundPartial": "Within 24 hours of pickup a one-day rate fee applies. Estimated refund if approved: {amount}. Cancellations are reviewed by our team before they're final.",
+      "keepBooking": "Keep booking",
+      "continueToCancel": "Continue",
+      "confirmTitle": "Confirm cancellation request",
+      "confirmBody": "We'll send a cancellation request for {ref} to our team. Your booking stays active until they confirm — we'll email you the outcome.",
+      "back": "Back",
+      "requestCancellation": "Request cancellation",
+      "doneTitle": "Cancellation requested",
+      "doneBody": "Your request for {ref} is with our team. You'll receive an email once it's reviewed — usually within a few hours.",
+      "close": "Close",
+      "requestedToast": "Cancellation request sent. We'll email you once it's reviewed.",
+      "requestError": "Couldn't send the cancellation request. Try again or chat with us on WhatsApp."
+    },
     "saved": {
       "heading": "Saved cars",
       "countNone": "You haven't saved any cars yet.",

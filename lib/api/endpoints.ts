@@ -32,6 +32,7 @@ export const endpoints = {
     `${WHEELS_INTERNAL_BASE}/bookings/${encodeURIComponent(reference)}/sync-status`,
   bookingCancelPreview: `${API_BASE}/booking/cancel-preview`,
   bookingCancel: (ref: string) => `${API_BASE}/booking/${ref}/cancel`,
+  bookingChange: (ref: string) => `${API_BASE}/booking/${ref}/change`,
 
   // Catalog
   addons: `${API_BASE}/addons`,

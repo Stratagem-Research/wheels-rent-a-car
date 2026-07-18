@@ -528,7 +528,12 @@
     "bagsLabel": "{count, plural, one {# bagage} other {# bagages}}",
     "doorsLabel": "{count} portes",
     "transAutomatic": "Automatique",
-    "transManual": "Manuelle"
+    "transManual": "Manuelle",
+    "saveVehicleAria": "Enregistrer {vehicle}",
+    "unsaveVehicleAria": "Retirer {vehicle} des voitures enregistrées",
+    "savedToast": "Ajouté à votre liste.",
+    "unsavedToast": "Retiré des voitures enregistrées.",
+    "saveError": "Impossible de mettre à jour les voitures enregistrées. Réessayez."
   },
   "searchUi": {
     "tabCars": "Voitures",
@@ -991,6 +996,35 @@
       "needHelp": "Besoin d'aide ?",
       "chatOnWhatsapp": "Discuter sur WhatsApp"
     },
+    "modifyModal": {
+      "title": "Demander une modification",
+      "description": "Choisissez une nouvelle date et heure de prise en charge. Notre équipe examinera et confirmera par WhatsApp ou e-mail — votre réservation n'est pas modifiée automatiquement.",
+      "newPickupDateAria": "Nouvelle date de prise en charge",
+      "newPickupTimeAria": "Nouvelle heure de prise en charge",
+      "keepAsIs": "Garder tel quel",
+      "requestChange": "Demander la modification",
+      "doneTitle": "Modification demandée",
+      "doneBody": "Votre demande de modification pour {ref} est entre les mains de notre équipe. Nous confirmerons la nouvelle heure de prise en charge par WhatsApp ou e-mail.",
+      "close": "Fermer",
+      "requestedToast": "Demande de modification envoyée. Nous confirmerons sous peu.",
+      "requestError": "Impossible d'envoyer la demande de modification. Réessayez ou contactez-nous sur WhatsApp."
+    },
+    "cancelModal": {
+      "previewTitle": "Demander l'annulation ?",
+      "previewRefundFull": "En cas d'approbation, vous recevrez un remboursement intégral estimé de {amount}. Les annulations sont examinées par notre équipe avant d'être définitives.",
+      "previewRefundPartial": "À moins de 24 heures du départ, des frais d'une journée s'appliquent. Remboursement estimé en cas d'approbation : {amount}. Les annulations sont examinées par notre équipe avant d'être définitives.",
+      "keepBooking": "Garder la réservation",
+      "continueToCancel": "Continuer",
+      "confirmTitle": "Confirmer la demande d'annulation",
+      "confirmBody": "Nous enverrons une demande d'annulation pour {ref} à notre équipe. Votre réservation reste active jusqu'à confirmation — nous vous informerons du résultat par e-mail.",
+      "back": "Retour",
+      "requestCancellation": "Demander l'annulation",
+      "doneTitle": "Annulation demandée",
+      "doneBody": "Votre demande pour {ref} est entre les mains de notre équipe. Vous recevrez un e-mail dès qu'elle sera examinée — généralement sous quelques heures.",
+      "close": "Fermer",
+      "requestedToast": "Demande d'annulation envoyée. Nous vous informerons par e-mail après examen.",
+      "requestError": "Impossible d'envoyer la demande d'annulation. Réessayez ou contactez-nous sur WhatsApp."
+    },
     "saved": {
       "heading": "Voitures enregistrées",
       "countNone": "Vous n'avez encore enregistré aucune voiture.",
@@ -999,7 +1033,8 @@
       "emptyHeading": "Aucune voiture enregistrée pour l'instant.",
       "emptyBody": "Touchez le cœur sur un véhicule pour l'enregistrer.",
       "browseCars": "Parcourir les voitures",
-      "remove": "Retirer"
+      "remove": "Retirer",
+      "removeError": "Impossible de retirer cette voiture. Réessayez."
     }
   },
   "search": {
@@ -1195,6 +1230,7 @@
   },
   "accountDocuments": {
     "documentSaved": "Document enregistré.",
+    "saveFailed": "Impossible d'enregistrer le document. Réessayez.",
     "title": "Documents",
     "subtitle": "Téléversez votre permis et votre pièce d'identité une seule fois, les prochaines réservations seront préremplies.",
     "licenceSection": "Permis de conduire",

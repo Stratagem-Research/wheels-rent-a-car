@@ -384,9 +384,74 @@ export async function handleBookingCancelRequest(body: {
   return { requested: true };
 }
 
-export async function handleBookingCancelPreview(body: { ref: string }) {
-  const booking = mockBookings.get(body.ref);
-  if (!booking) return { refundCents: 0 };
+export class ChangeRequestSyncError extends Error {
+  constructor(cause: unknown) {
+    super("Failed to deliver the change request to the Wizard.");
+    this.name = "ChangeRequestSyncError";
+    this.cause = cause;
+  }
+}
+
+/**
+ * Customer modification REQUEST — mirrors handleBookingCancelRequest. Never
+ * mutates the booking directly; the Wizard team reviews and confirms by
+ * WhatsApp/email per the account UI copy.
+ */
+export async function handleBookingChangeRequest(body: {
+  ref: string;
+  email: string;
+  requestedPickupDatetime: string;
+  note?: string;
+}): Promise<{ requested: true }> {
+  const booking = await handleBookingLookup({ ref: body.ref, email: body.email });
+
+  if (booking.state === "cancelled" || booking.state === "completed" || booking.state === "expired") {
+    throw new BookingNotCancellableError(booking.state);
+  }
+
+  if (realBookingApiEnabled()) {
+    try {
+      await dispatchWizardSync(body.ref, {
+        lifecycleState: "change_requested",
+        message: `Customer requested a booking change via website. Requested pickup: ${body.requestedPickupDatetime}.${body.note ? ` Note: ${body.note}` : ""}`,
+      });
+    } catch (err) {
+      throw new ChangeRequestSyncError(err);
+    }
+  }
+
+  await appendBookingState(body.ref, "change_requested", {
+    source: "customer",
+    email: body.email,
+    requestedPickupDatetime: body.requestedPickupDatetime,
+    note: body.note,
+  }).catch(() => undefined);
+  await enqueueNotification({
+    bookingReference: body.ref,
+    channel: "email",
+    template: "booking_change_requested",
+    recipient: body.email,
+    payload: {
+      ref: body.ref,
+      currentPickupDatetime: booking.pickup.datetime,
+      requestedPickupDatetime: body.requestedPickupDatetime,
+      vehicle: `${booking.vehicleSnapshot.make} ${booking.vehicleSnapshot.model}`,
+    },
+  }).catch(() => undefined);
+
+  return { requested: true };
+}
+
+/**
+ * Estimated refund preview. Ref+email gated like the lookup (P0.3) — this
+ * quotes an estimate only; the authoritative refund is decided by the
+ * Wizard team after a cancel request is reviewed.
+ */
+export async function handleBookingCancelPreview(body: {
+  ref: string;
+  email: string;
+}): Promise<{ refundCents: number }> {
+  const booking = await handleBookingLookup({ ref: body.ref, email: body.email });
   return { refundCents: booking.price.totalCents };
 }
 

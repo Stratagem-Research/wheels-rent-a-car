@@ -27,14 +27,11 @@ import type { Booking } from "@/types/domain";
 /**
  * Modify / Cancel modals for booking detail.
  *
- * Modify (mock), lets the user pick a new pickup datetime; submits as a
- * non-payment-affecting change. Real backend would recompute pricing and
- * gate by policy.
- *
- * Cancel submits a cancellation REQUEST to `/api/booking/{ref}/cancel` —
- * the booking is only cancelled after the Wheels team approves it in the
- * Wizard (system-boundary agreement). The refund shown is an estimate based
- * on hours-until-pickup (≥24h free, otherwise one-day rate fee). 2-step
+ * Both submit a REQUEST only — `/api/booking/{ref}/change` and
+ * `/api/booking/{ref}/cancel`. Neither mutates the booking directly; the
+ * Wheels team reviews and confirms in the Wizard (system-boundary
+ * agreement). The refund shown in Cancel is an estimate based on
+ * hours-until-pickup (≥24h free, otherwise one-day rate fee). 2-step
  * confirmation as required by 12_account.md.
  */
 
@@ -45,17 +42,28 @@ export function ModifyBookingModal({
   booking: Booking;
   children: React.ReactNode;
 }) {
+  const t = useTranslations("accountPages.modifyModal");
+  const router = useRouter();
   const [pickupDate, setPickupDate] = React.useState(booking.pickup.datetime.slice(0, 10));
   const [pickupTime, setPickupTime] = React.useState(booking.pickup.datetime.slice(11, 16));
+  const [step, setStep] = React.useState<"form" | "done">("form");
   const [submitting, setSubmitting] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
   const onConfirm = async () => {
     setSubmitting(true);
+    setError(null);
     try {
-      // Mock: no real PATCH endpoint exists yet. Just fire the analytics event.
-      await new Promise((r) => setTimeout(r, 300));
+      await api.post(endpoints.bookingChange(booking.ref), {
+        email: booking.driver.email,
+        requestedPickupDatetime: `${pickupDate}T${pickupTime}:00.000Z`,
+      });
       track(EVENTS.BOOKING_MODIFIED, { ref: booking.ref });
-      toast.success("Modification request submitted, we'll WhatsApp you to confirm.");
+      toast.success(t("requestedToast"));
+      setStep("done");
+      router.refresh();
+    } catch {
+      setError(t("requestError"));
     } finally {
       setSubmitting(false);
     }
@@ -65,30 +73,45 @@ export function ModifyBookingModal({
     <Modal>
       <ModalTrigger asChild>{children}</ModalTrigger>
       <ModalContent size="sm">
-        <ModalTitle>Modify booking</ModalTitle>
-        <ModalDescription>
-          Change your pickup date and time. We&apos;ll confirm by WhatsApp.
-        </ModalDescription>
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          <Input
-            type="date"
-            value={pickupDate}
-            onChange={(e) => setPickupDate(e.target.value)}
-            aria-label="New pickup date"
-          />
-          <Input
-            type="time"
-            value={pickupTime}
-            onChange={(e) => setPickupTime(e.target.value)}
-            aria-label="New pickup time"
-          />
-        </div>
-        <ModalFooter>
-          <Button variant="secondary">Keep as is</Button>
-          <Button variant="primary" loading={submitting} onClick={onConfirm}>
-            Request change
-          </Button>
-        </ModalFooter>
+        {step === "form" ? (
+          <>
+            <ModalTitle>{t("title")}</ModalTitle>
+            <ModalDescription>{t("description")}</ModalDescription>
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <Input
+                type="date"
+                value={pickupDate}
+                onChange={(e) => setPickupDate(e.target.value)}
+                aria-label={t("newPickupDateAria")}
+              />
+              <Input
+                type="time"
+                value={pickupTime}
+                onChange={(e) => setPickupTime(e.target.value)}
+                aria-label={t("newPickupTimeAria")}
+              />
+            </div>
+            {error ? <ErrorText className="mt-3">{error}</ErrorText> : null}
+            <ModalFooter>
+              <ModalClose asChild>
+                <Button variant="secondary">{t("keepAsIs")}</Button>
+              </ModalClose>
+              <Button variant="primary" loading={submitting} onClick={onConfirm}>
+                {t("requestChange")}
+              </Button>
+            </ModalFooter>
+          </>
+        ) : (
+          <>
+            <ModalTitle>{t("doneTitle")}</ModalTitle>
+            <ModalDescription>{t("doneBody", { ref: booking.ref })}</ModalDescription>
+            <ModalFooter>
+              <ModalClose asChild>
+                <Button variant="primary">{t("close")}</Button>
+              </ModalClose>
+            </ModalFooter>
+          </>
+        )}
       </ModalContent>
     </Modal>
   );
