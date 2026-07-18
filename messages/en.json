@@ -489,7 +489,8 @@
     "resultsAria": "Vehicle results",
     "emptyHeading": "No cars match these filters.",
     "emptyBody": "Try clearing a filter or expanding the price range.",
-    "resetFilters": "Reset filters"
+    "resetFilters": "Reset filters",
+    "availabilityErrorBanner": "We couldn't verify live availability for these dates — showing the full fleet instead."
   },
   "fleet": {
     "orSimilar": "or similar",

@@ -7,6 +7,7 @@ import { Suspense } from "react";
 import { RouteProgressBar, SkipToContent, ToastProvider } from "@/components/ui";
 import { CookieBanner } from "@/components/consent/CookieBanner";
 import { SavedVehiclesProvider } from "@/components/providers/SavedVehiclesProvider";
+import { SessionProvider } from "@/components/providers/SessionProvider";
 import { isRtlLocale, routing } from "@/i18n/routing";
 import "./globals.css";
 
@@ -48,15 +49,17 @@ export default async function RootLayout({
     <html lang={language} dir={direction} className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body>
         <NextIntlClientProvider messages={messages}>
-          <SavedVehiclesProvider>
-            <SkipToContent />
-            <Suspense fallback={null}>
-              <RouteProgressBar />
-            </Suspense>
-            {children}
-            <ToastProvider />
-            <CookieBanner />
-          </SavedVehiclesProvider>
+          <SessionProvider>
+            <SavedVehiclesProvider>
+              <SkipToContent />
+              <Suspense fallback={null}>
+                <RouteProgressBar />
+              </Suspense>
+              {children}
+              <ToastProvider />
+              <CookieBanner />
+            </SavedVehiclesProvider>
+          </SessionProvider>
         </NextIntlClientProvider>
       </body>
     </html>

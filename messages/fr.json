@@ -489,7 +489,8 @@
     "resultsAria": "Résultats de véhicules",
     "emptyHeading": "Aucune voiture ne correspond à ces filtres.",
     "emptyBody": "Essayez de retirer un filtre ou d'élargir la fourchette de prix.",
-    "resetFilters": "Réinitialiser les filtres"
+    "resetFilters": "Réinitialiser les filtres",
+    "availabilityErrorBanner": "Nous n'avons pas pu vérifier la disponibilité réelle pour ces dates — la flotte complète est affichée à la place."
   },
   "fleet": {
     "orSimilar": "ou similaire",

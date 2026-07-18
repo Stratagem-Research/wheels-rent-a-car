@@ -49,9 +49,11 @@ import type { MileagePlan, RateType, Vehicle, VehicleCategory, Branch } from "@/
 export function VehiclesClient({
   vehicles,
   branches,
+  availabilityError = false,
 }: {
   vehicles: Vehicle[];
   branches: Branch[];
+  availabilityError?: boolean;
 }) {
   const t = useTranslations("vehicles");
   const tCat = useTranslations("vehicleCategories");
@@ -72,7 +74,39 @@ export function VehiclesClient({
   const isStep1 = searchParams.get("step") === "1";
   const selectedSlug = searchParams.get("selected");
 
-  const { ready, draft, setVehicle } = useBookingDraft();
+  const { ready, draft, setPickup, setReturn, setVehicle } = useBookingDraft();
+
+  // Seed the draft's pickup/return from the URL whenever they carry dates
+  // that differ from what's currently stored — otherwise the draft stays on
+  // its default 3-day window regardless of what the user picked in
+  // SearchBar, and every downstream day-count (VehicleCardExpanded, extras,
+  // ...) is wrong.
+  React.useEffect(() => {
+    if (!ready || !draft) return;
+    const pickupAt = searchParams.get("pickupAt");
+    const returnAt = searchParams.get("returnAt");
+    if (!pickupAt || !returnAt) return;
+    if (draft.pickup.datetime === pickupAt && draft.return.datetime === returnAt) return;
+
+    const pickupType = searchParams.get("pickupType");
+    setPickup({
+      type:
+        pickupType === "airport" ||
+        pickupType === "branch" ||
+        pickupType === "address-delivery" ||
+        pickupType === "chauffeur"
+          ? pickupType
+          : draft.pickup.type,
+      locationId: searchParams.get("pickupLoc") ?? draft.pickup.locationId,
+      address: searchParams.get("pickupAddr") ?? draft.pickup.address,
+      datetime: pickupAt,
+    });
+    setReturn({
+      locationId: searchParams.get("returnLoc") ?? draft.return.locationId,
+      address: searchParams.get("returnAddr") ?? draft.return.address,
+      datetime: returnAt,
+    });
+  }, [ready, draft, searchParams, setPickup, setReturn]);
 
   const expandedVehicle: Vehicle | null = React.useMemo(() => {
     if (!selectedSlug) return null;
@@ -170,6 +204,12 @@ export function VehiclesClient({
         <h1 className="display-md text-ink-100 text-[clamp(24px,2.5vw,36px)] leading-[1.05] whitespace-nowrap">
           {t("title")}
         </h1>
+
+        {availabilityError ? (
+          <p className="bg-signal-blue/10 text-signal-blue label-md mt-4 rounded-lg px-4 py-2">
+            {t("availabilityErrorBanner")}
+          </p>
+        ) : null}
 
         {/* Toolbar — every filter is a visible chip. No hidden "Filter" sheet,
          * no fuel filter, no guaranteed-model filter. Categories are

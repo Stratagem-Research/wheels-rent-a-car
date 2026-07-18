@@ -1,7 +1,9 @@
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { getPublicBranches, getPublicVehicles } from "@/lib/server/public-content";
+import { handleBookingAvailability } from "@/lib/server/booking-service";
 import { VehiclesClient } from "./_components/VehiclesClient";
+import type { Vehicle } from "@/types/domain";
 
 /**
  * /vehicles — Phase 7 canonical results page. Thin server wrapper holding
@@ -14,11 +16,59 @@ export async function generateMetadata() {
   return { title: t("vehiclesTitle"), description: t("vehiclesDescription") };
 }
 
-export default async function VehiclesPage() {
-  const [vehicles, branches] = await Promise.all([getPublicVehicles(), getPublicBranches()]);
+interface PageProps {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}
+
+/**
+ * When pickupAt/returnAt are on the URL, resolve the list against real
+ * Wizard availability for those dates instead of the full catalog — closes
+ * the gap where /vehicles ignored picked dates until the final 409 at
+ * submit. Falls back to the unfiltered catalog if the window is invalid
+ * (>3 months) or the availability call fails.
+ */
+async function resolveVehiclesForDates(
+  pickupAt?: string,
+  returnAt?: string,
+): Promise<{ vehicles: Vehicle[]; availabilityError: boolean }> {
+  const catalog = await getPublicVehicles();
+  if (!pickupAt || !returnAt) {
+    return { vehicles: catalog, availabilityError: false };
+  }
+  try {
+    const { items } = await handleBookingAvailability({
+      pickup: { type: "branch", datetime: pickupAt },
+      return: { datetime: returnAt },
+    });
+    // Wizard's live /availability can return vehicles our locally synced
+    // catalog doesn't know about yet (not synced, or not website-enabled).
+    // Every downstream step (extras, protection, submit) resolves vehicles
+    // against that local catalog — so only show the intersection, using the
+    // catalog's own (CMS-enriched) Vehicle object rather than the live
+    // response's best-guess enrichment.
+    const catalogById = new Map(catalog.map((v) => [v.id, v]));
+    const vehicles = items
+      .map((item) => catalogById.get(item.vehicle.id))
+      .filter((v): v is Vehicle => v != null);
+    return { vehicles, availabilityError: false };
+  } catch {
+    return { vehicles: catalog, availabilityError: true };
+  }
+}
+
+export default async function VehiclesPage({ searchParams }: PageProps) {
+  const sp = await searchParams;
+  const pickupAt = typeof sp.pickupAt === "string" ? sp.pickupAt : undefined;
+  const returnAt = typeof sp.returnAt === "string" ? sp.returnAt : undefined;
+
+  const [{ vehicles, availabilityError }, branches] = await Promise.all([
+    resolveVehiclesForDates(pickupAt, returnAt),
+    getPublicBranches(),
+  ]);
+
   return (
     <Suspense fallback={null}>
-      <VehiclesClient vehicles={vehicles} branches={branches} />
+      <VehiclesClient vehicles={vehicles} branches={branches} availabilityError={availabilityError} />
     </Suspense>
   );
 }

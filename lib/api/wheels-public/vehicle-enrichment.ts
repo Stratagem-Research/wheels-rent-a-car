@@ -84,7 +84,7 @@ export function enrichVehicle(backend: PublicVehicle, options: EnrichVehicleOpti
     const slug = idMap[backend.id];
     if (slug) {
       const match = VEHICLES.find((v) => v.slug === slug);
-      if (match) return match;
+      if (match) return { ...match, id: `wiz-${backend.id}` };
     }
   }
 
@@ -94,7 +94,7 @@ export function enrichVehicle(backend: PublicVehicle, options: EnrichVehicleOpti
     const byModel = VEHICLES.find((v) => v.model.toLowerCase() === nameKey);
     if (byModel) {
       onMiss?.(backend, "model");
-      return byModel;
+      return { ...byModel, id: `wiz-${backend.id}` };
     }
   }
 
@@ -104,7 +104,7 @@ export function enrichVehicle(backend: PublicVehicle, options: EnrichVehicleOpti
     const byCategory = VEHICLES.find((v) => v.category === category);
     if (byCategory) {
       onMiss?.(backend, "category");
-      return byCategory;
+      return { ...byCategory, id: `wiz-${backend.id}` };
     }
   }
 
