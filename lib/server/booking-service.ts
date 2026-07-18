@@ -3,6 +3,7 @@ import type {
   AvailableVehicle,
   Booking,
   BookingDraft,
+  BookingState,
   LookupBookingRequest,
   QuoteRequest,
   QuoteResponse,
@@ -42,6 +43,7 @@ import { toBackendDateTime } from "@/lib/api/wheels-public/datetime";
 import { realBookingApiEnabled } from "@/lib/api/wheels-public/live-handlers";
 import { dispatchWizardSync } from "@/lib/server/wizard-sync";
 import { appendBookingState } from "@/lib/server/payment-events";
+import { enqueueNotification } from "@/lib/server/notifications";
 
 export { VehicleUnavailableError };
 
@@ -316,6 +318,70 @@ export async function handleBookingStatusByToken(publicToken: string) {
   }
   const response = await getBookingStatusByToken(publicToken);
   return response.data;
+}
+
+export class BookingNotCancellableError extends Error {
+  constructor(public readonly state: BookingState) {
+    super(`Booking in state "${state}" cannot be cancelled.`);
+    this.name = "BookingNotCancellableError";
+  }
+}
+
+export class CancelRequestSyncError extends Error {
+  constructor(cause: unknown) {
+    super("Failed to deliver cancellation request to the Wizard.");
+    this.name = "CancelRequestSyncError";
+    this.cause = cause;
+  }
+}
+
+/**
+ * Customer cancellation REQUEST — never cancels the booking directly.
+ * Per the Wizard system-boundary agreement, a customer request must not
+ * change the Wizard booking or trigger refund state; we notify the Wizard
+ * via a `cancel_request` sync and their team approves internally.
+ */
+export async function handleBookingCancelRequest(body: {
+  ref: string;
+  email: string;
+}): Promise<{ requested: true }> {
+  // Ref + email must both match — same generic-404 rule as the lookup.
+  const booking = await handleBookingLookup({ ref: body.ref, email: body.email });
+
+  if (booking.state === "cancelled" || booking.state === "completed" || booking.state === "expired") {
+    throw new BookingNotCancellableError(booking.state);
+  }
+
+  if (realBookingApiEnabled()) {
+    try {
+      await dispatchWizardSync(body.ref, {
+        lifecycleState: "cancel_requested",
+        message: "Customer requested cancellation via website.",
+      });
+    } catch (err) {
+      throw new CancelRequestSyncError(err);
+    }
+  }
+
+  // Website-side records are best-effort: the Wizard sync above is the
+  // operational source of truth; a Supabase hiccup must not fail the request.
+  await appendBookingState(body.ref, "cancel_requested", {
+    source: "customer",
+    email: body.email,
+  }).catch(() => undefined);
+  await enqueueNotification({
+    bookingReference: body.ref,
+    channel: "email",
+    template: "booking_cancel_requested",
+    recipient: body.email,
+    payload: {
+      ref: body.ref,
+      pickupDatetime: booking.pickup.datetime,
+      vehicle: `${booking.vehicleSnapshot.make} ${booking.vehicleSnapshot.model}`,
+    },
+  }).catch(() => undefined);
+
+  return { requested: true };
 }
 
 export async function handleBookingCancelPreview(body: { ref: string }) {

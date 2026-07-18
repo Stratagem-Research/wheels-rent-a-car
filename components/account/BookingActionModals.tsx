@@ -2,12 +2,14 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { differenceInHours, parseISO } from "date-fns";
 import { Button } from "@/components/ui/Button";
 import { ErrorText } from "@/components/ui/FormAtoms";
 import { Input } from "@/components/ui/Input";
 import {
   Modal,
+  ModalClose,
   ModalContent,
   ModalDescription,
   ModalFooter,
@@ -29,9 +31,11 @@ import type { Booking } from "@/types/domain";
  * non-payment-affecting change. Real backend would recompute pricing and
  * gate by policy.
  *
- * Cancel, computes a mock refund preview based on hours-until-pickup
- * (≥24h free, otherwise one-day rate fee). 2-step confirmation as required
- * by 12_account.md.
+ * Cancel submits a cancellation REQUEST to `/api/booking/{ref}/cancel` —
+ * the booking is only cancelled after the Wheels team approves it in the
+ * Wizard (system-boundary agreement). The refund shown is an estimate based
+ * on hours-until-pickup (≥24h free, otherwise one-day rate fee). 2-step
+ * confirmation as required by 12_account.md.
  */
 
 export function ModifyBookingModal({
@@ -97,12 +101,13 @@ export function CancelBookingModal({
   booking: Booking;
   children: React.ReactNode;
 }) {
+  const t = useTranslations("accountPages.cancelModal");
   const router = useRouter();
-  const [step, setStep] = React.useState<"preview" | "confirm">("preview");
+  const [step, setStep] = React.useState<"preview" | "confirm" | "done">("preview");
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  // Mock refund preview: free if ≥ 24h before pickup.
+  // Estimated refund IF the request is approved: free if ≥ 24h before pickup.
   const hoursToPickup = Math.max(
     0,
     differenceInHours(parseISO(booking.pickup.datetime), new Date()),
@@ -117,13 +122,15 @@ export function CancelBookingModal({
     setSubmitting(true);
     setError(null);
     try {
-      await api.post(endpoints.bookingCancelPreview, { ref: booking.ref });
-      // Real cancel endpoint would mutate state; here we just fire analytics.
+      await api.post(endpoints.bookingCancel(booking.ref), {
+        email: booking.driver.email,
+      });
       track(EVENTS.BOOKING_CANCELLED, { ref: booking.ref });
-      toast.success("Booking cancelled. A confirmation will arrive shortly.");
+      toast.success(t("requestedToast"));
+      setStep("done");
       router.refresh();
     } catch {
-      setError("Couldn't cancel right now. Try again or chat with us on WhatsApp.");
+      setError(t("requestError"));
     } finally {
       setSubmitting(false);
     }
@@ -135,34 +142,43 @@ export function CancelBookingModal({
       <ModalContent size="sm">
         {step === "preview" ? (
           <>
-            <ModalTitle>Cancel this booking?</ModalTitle>
+            <ModalTitle>{t("previewTitle")}</ModalTitle>
             <ModalDescription>
               {refundFull
-                ? `You'll receive a full refund of ${formatUsd(refundCents)} within 3–10 business days.`
-                : `Within 24 hours of pickup, a one-day rate fee applies. Refund: ${formatUsd(refundCents)}.`}
+                ? t("previewRefundFull", { amount: formatUsd(refundCents) })
+                : t("previewRefundPartial", { amount: formatUsd(refundCents) })}
             </ModalDescription>
             <ModalFooter>
-              <Button variant="secondary">Keep booking</Button>
+              <ModalClose asChild>
+                <Button variant="secondary">{t("keepBooking")}</Button>
+              </ModalClose>
               <Button variant="cta" onClick={() => setStep("confirm")}>
-                Continue to cancel
+                {t("continueToCancel")}
+              </Button>
+            </ModalFooter>
+          </>
+        ) : step === "confirm" ? (
+          <>
+            <ModalTitle>{t("confirmTitle")}</ModalTitle>
+            <ModalDescription>{t("confirmBody", { ref: booking.ref })}</ModalDescription>
+            {error ? <ErrorText className="mt-3">{error}</ErrorText> : null}
+            <ModalFooter>
+              <Button variant="secondary" onClick={() => setStep("preview")}>
+                {t("back")}
+              </Button>
+              <Button variant="cta" loading={submitting} onClick={onConfirm}>
+                {t("requestCancellation")}
               </Button>
             </ModalFooter>
           </>
         ) : (
           <>
-            <ModalTitle>Confirm cancellation</ModalTitle>
-            <ModalDescription>
-              We&apos;ll cancel {booking.ref}. This can&apos;t be undone, you&apos;ll need to
-              re-book if your plans change.
-            </ModalDescription>
-            {error ? <ErrorText className="mt-3">{error}</ErrorText> : null}
+            <ModalTitle>{t("doneTitle")}</ModalTitle>
+            <ModalDescription>{t("doneBody", { ref: booking.ref })}</ModalDescription>
             <ModalFooter>
-              <Button variant="secondary" onClick={() => setStep("preview")}>
-                Back
-              </Button>
-              <Button variant="cta" loading={submitting} onClick={onConfirm}>
-                Cancel booking
-              </Button>
+              <ModalClose asChild>
+                <Button variant="primary">{t("close")}</Button>
+              </ModalClose>
             </ModalFooter>
           </>
         )}
