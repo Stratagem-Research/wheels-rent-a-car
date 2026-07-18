@@ -45,6 +45,15 @@ export interface DatePopoverProps {
   /** Controlled open state (used by the new SearchBar to chain time-after-date). */
   open?: boolean;
   onOpenChange?: (next: boolean) => void;
+  /**
+   * Which end of the range this trigger edits, when a complete range
+   * already exists and the user clicks a new date. "start" (default)
+   * restarts a fresh two-click pick from that date — used by the pickup
+   * field. "end" instead keeps `from` anchored and only moves `to` — used
+   * by the return field, so clicking a new return date doesn't silently
+   * overwrite the pickup date.
+   */
+  anchor?: "start" | "end";
 }
 
 function defaultMin() {
@@ -77,6 +86,7 @@ export function DatePopover({
   renderTrigger,
   open,
   onOpenChange,
+  anchor = "start",
   ...aria
 }: DatePopoverProps) {
   const t = useTranslations("searchUi");
@@ -155,6 +165,7 @@ export function DatePopover({
               min={min}
               max={max}
               monthCount={monthCount}
+              anchor={anchor}
             />
           )}
         </Popover.Content>
@@ -186,12 +197,14 @@ function RangeView({
   min,
   max,
   monthCount,
+  anchor = "start",
 }: {
   rangeValue?: { from?: Date; to?: Date };
   onRangeChange?: (next: { from?: Date; to?: Date }) => void;
   min: Date;
   max: Date;
   monthCount: number;
+  anchor?: "start" | "end";
 }) {
   // Controlled month state — drives our custom top-right nav.
   const [currentMonth, setCurrentMonth] = React.useState<Date>(
@@ -201,8 +214,15 @@ function RangeView({
   const handleSelect = (_selected: { from?: Date; to?: Date } | undefined, triggerDate: Date) => {
     const hadCompleteRange = !!(rangeValue?.from && rangeValue?.to);
     if (hadCompleteRange && triggerDate) {
-      // User clicked while the range was already complete — treat this as
-      // starting a NEW range. Keep the calendar open for the second click.
+      // Editing the return field: keep the pickup date anchored and only
+      // move the return date, as long as the new date is still after it.
+      if (anchor === "end" && rangeValue?.from && isAfter(triggerDate, rangeValue.from)) {
+        onRangeChange?.({ from: rangeValue.from, to: triggerDate });
+        return;
+      }
+      // Pickup field (or an "end" click that can't be a valid return date,
+      // e.g. on/before the current pickup) — start a NEW range from here.
+      // Keep the calendar open for the second click.
       onRangeChange?.({ from: triggerDate, to: undefined });
       return;
     }

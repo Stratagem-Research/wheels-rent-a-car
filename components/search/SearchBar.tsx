@@ -336,6 +336,7 @@ function ExpandedLayout({
           <Field label={t("returnDate")}>
             <DatePopover
               mode="range"
+              anchor="end"
               open={returnDateOpen}
               onOpenChange={setReturnDateOpen}
               rangeValue={{
