@@ -1,8 +1,8 @@
 import { WhishClient, parseCallbackUrl, type WhishCurrency } from "whish-pay";
-import { getServerEnv } from "@/lib/server/env";
+import { getWhishEnv } from "@/lib/server/env";
 
 export function getWhishClient() {
-  const env = getServerEnv();
+  const env = getWhishEnv();
   return new WhishClient({
     channel: env.WHISH_CHANNEL,
     secret: env.WHISH_SECRET,

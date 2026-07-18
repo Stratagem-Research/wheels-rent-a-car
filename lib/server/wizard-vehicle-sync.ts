@@ -1,6 +1,6 @@
 import { createWheelsInternalClient } from "@/lib/api/wheels-public";
 import type { WizardVehicle } from "@/lib/api/wheels-public/schemas";
-import { getServerEnv } from "@/lib/server/env";
+import { getWizardEnv } from "@/lib/server/env";
 import {
   frontendVehicleIdFromWizard,
   slugifyVehicleName,
@@ -85,7 +85,7 @@ function wizardVehicleToRow(vehicle: WizardVehicle, id: number): UpsertWizardVeh
 export async function syncWizardVehiclesFromApi(
   options: SyncWizardVehiclesOptions = {},
 ): Promise<WizardVehicleSyncResult> {
-  const env = getServerEnv();
+  const env = getWizardEnv();
   const client = createWheelsInternalClient({
     apiToken: env.WHEELS_INTERNAL_API_TOKEN,
     baseUrl: env.WHEELS_INTERNAL_API_BASE_URL,

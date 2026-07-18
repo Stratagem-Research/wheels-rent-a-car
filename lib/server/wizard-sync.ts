@@ -3,14 +3,14 @@ import {
   mapWebsiteSyncToWizardPayload,
   type WebsiteToWizardSyncInput,
 } from "@/lib/api/wheels-public";
-import { getServerEnv } from "@/lib/server/env";
+import { getWizardEnv } from "@/lib/server/env";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export async function dispatchWizardSync(
   bookingReference: string,
   input: WebsiteToWizardSyncInput,
 ): Promise<void> {
-  const env = getServerEnv();
+  const env = getWizardEnv();
   const client = createWheelsInternalClient({
     apiToken: env.WHEELS_INTERNAL_API_TOKEN,
     baseUrl: env.WHEELS_INTERNAL_API_BASE_URL,

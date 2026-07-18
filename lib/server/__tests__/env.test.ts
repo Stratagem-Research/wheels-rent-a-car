@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getPublicEnv, getServerEnv } from "@/lib/server/env";
+import { getPublicEnv, getServerEnv, getWhishEnv, getWizardEnv } from "@/lib/server/env";
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -37,5 +37,28 @@ describe("server/env", () => {
     vi.stubEnv("WIZARD_API_TOKEN", "wizard-token");
 
     expect(getServerEnv().WHEELS_INTERNAL_API_TOKEN).toBe("wizard-token");
+  });
+
+  it("getWizardEnv validates only Wizard vars, ignoring Whish/Supabase", () => {
+    vi.stubEnv("WHEELS_INTERNAL_API_BASE_URL", "https://api.wheels.com.lb/api/v1");
+    vi.stubEnv("WHEELS_INTERNAL_API_TOKEN", "token");
+
+    expect(() => getWizardEnv()).not.toThrow();
+  });
+
+  it("getWizardEnv accepts WIZARD_API_TOKEN as a fallback alias", () => {
+    vi.stubEnv("WHEELS_INTERNAL_API_BASE_URL", "https://api.wheels.com.lb/api/v1");
+    delete process.env.WHEELS_INTERNAL_API_TOKEN;
+    vi.stubEnv("WIZARD_API_TOKEN", "wizard-token");
+
+    expect(getWizardEnv().WHEELS_INTERNAL_API_TOKEN).toBe("wizard-token");
+  });
+
+  it("getWhishEnv validates only Whish vars, ignoring Wizard/Supabase", () => {
+    vi.stubEnv("WHISH_CHANNEL", "channel");
+    vi.stubEnv("WHISH_SECRET", "secret");
+    vi.stubEnv("WEBSITE_URL", "https://wheels.com.lb");
+
+    expect(() => getWhishEnv()).not.toThrow();
   });
 });

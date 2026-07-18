@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getWhishClient } from "@/lib/payments/whish";
-import { getServerEnv } from "@/lib/server/env";
+import { getWhishEnv } from "@/lib/server/env";
 import { appendBookingState, recordPaymentEvent } from "@/lib/server/payment-events";
 
 const CreateWhishPaymentSchema = z.object({
@@ -71,10 +71,10 @@ export async function POST(request: Request) {
 }
 
 function safeGetServerEnv():
-  | { success: true; data: ReturnType<typeof getServerEnv> }
+  | { success: true; data: ReturnType<typeof getWhishEnv> }
   | { success: false } {
   try {
-    return { success: true, data: getServerEnv() };
+    return { success: true, data: getWhishEnv() };
   } catch {
     return { success: false };
   }

@@ -16,8 +16,21 @@ const ServerEnvSchema = z.object({
   WHEELS_INTERNAL_API_TOKEN: z.string().min(1),
 });
 
+const WhishEnvSchema = z.object({
+  WHISH_CHANNEL: z.string().min(1),
+  WHISH_SECRET: z.string().min(1),
+  WEBSITE_URL: z.string().url(),
+});
+
+const WizardEnvSchema = z.object({
+  WHEELS_INTERNAL_API_BASE_URL: z.string().url(),
+  WHEELS_INTERNAL_API_TOKEN: z.string().min(1),
+});
+
 type PublicEnv = z.infer<typeof PublicEnvSchema>;
 type ServerEnv = z.infer<typeof ServerEnvSchema>;
+type WhishEnv = z.infer<typeof WhishEnvSchema>;
+type WizardEnv = z.infer<typeof WizardEnvSchema>;
 
 export function getPublicEnv(): PublicEnv {
   return PublicEnvSchema.parse({
@@ -34,6 +47,24 @@ export function getServerEnv(): ServerEnv {
     WHISH_CHANNEL: process.env.WHISH_CHANNEL,
     WHISH_SECRET: process.env.WHISH_SECRET,
     WEBSITE_URL: process.env.WEBSITE_URL,
+    WHEELS_INTERNAL_API_BASE_URL: process.env.WHEELS_INTERNAL_API_BASE_URL,
+    WHEELS_INTERNAL_API_TOKEN:
+      process.env.WHEELS_INTERNAL_API_TOKEN ?? process.env.WIZARD_API_TOKEN,
+  });
+}
+
+/** Whish-only slice, for consumers that don't need Supabase/Wizard vars. */
+export function getWhishEnv(): WhishEnv {
+  return WhishEnvSchema.parse({
+    WHISH_CHANNEL: process.env.WHISH_CHANNEL,
+    WHISH_SECRET: process.env.WHISH_SECRET,
+    WEBSITE_URL: process.env.WEBSITE_URL,
+  });
+}
+
+/** Wizard-only slice, for consumers that don't need Supabase/Whish vars. */
+export function getWizardEnv(): WizardEnv {
+  return WizardEnvSchema.parse({
     WHEELS_INTERNAL_API_BASE_URL: process.env.WHEELS_INTERNAL_API_BASE_URL,
     WHEELS_INTERNAL_API_TOKEN:
       process.env.WHEELS_INTERNAL_API_TOKEN ?? process.env.WIZARD_API_TOKEN,
