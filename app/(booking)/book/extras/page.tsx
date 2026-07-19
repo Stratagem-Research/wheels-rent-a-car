@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -13,7 +13,7 @@ import { useBookingDraft } from "@/hooks/useBookingDraft";
 import { useBookingCatalog } from "@/hooks/useBookingCatalog";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
-import type { AddOnCategory } from "@/types/domain";
+import type { AddOnCategory, MileagePlan, RateType } from "@/types/domain";
 
 const CATEGORY_ORDER: { id: AddOnCategory; titleKey: string }[] = [
   { id: "driver-access", titleKey: "categoryDriverAccess" },
@@ -31,12 +31,28 @@ const CATEGORY_ORDER: { id: AddOnCategory; titleKey: string }[] = [
  * Vehicle-gone guard: if the draft has no vehicle (or the selected vehicle
  * is missing from the fixture), bounce back to step 1.
  */
+function parseRateFromSearch(params: URLSearchParams): {
+  type: RateType;
+  mileage: MileagePlan;
+} {
+  const type: RateType = params.get("rate") === "flexible" ? "flexible" : "best-price";
+  const mileage: MileagePlan =
+    params.get("mileage") === "capped-200km" ? "capped-200km" : "unlimited";
+  return { type, mileage };
+}
+
 export default function ExtrasPage() {
   const t = useTranslations("bookingFlow");
   const router = useRouter();
-  const { draft, upsertExtra, ready } = useBookingDraft();
-  const { addOns: ADD_ONS, protectionTiers: PROTECTION_TIERS, vehicles: VEHICLES, branches: BRANCHES } =
-    useBookingCatalog();
+  const searchParams = useSearchParams();
+  const { draft, setVehicle, upsertExtra, ready } = useBookingDraft();
+  const {
+    addOns: ADD_ONS,
+    protectionTiers: PROTECTION_TIERS,
+    vehicles: VEHICLES,
+    branches: BRANCHES,
+    ready: catalogReady,
+  } = useBookingCatalog();
   const firedView = React.useRef(false);
 
   // Fire extras_viewed once per mount.
@@ -46,15 +62,20 @@ export default function ExtrasPage() {
     track(EVENTS.EXTRAS_VIEWED);
   }, [ready, draft]);
 
-  // Vehicle gone? Back to step 1.
+  // Prefer draft.vehicle; if missing, re-seed from ?vehicleId= (Next navigation
+  // can outrun a prior setVehicle write). No vehicle at all → back to step 1.
   React.useEffect(() => {
     if (!ready || !draft) return;
-    if (!draft.vehicle) {
-      router.replace("/book/select-vehicle");
+    if (draft.vehicle) return;
+    const vehicleId = searchParams.get("vehicleId")?.trim();
+    if (vehicleId) {
+      setVehicle(vehicleId, parseRateFromSearch(searchParams));
+      return;
     }
-  }, [ready, draft, router]);
+    router.replace("/book/select-vehicle");
+  }, [ready, draft, router, searchParams, setVehicle]);
 
-  if (!ready || !draft) {
+  if (!ready || !draft || !draft.vehicle) {
     return (
       <>
         <Stepper current={2} />
@@ -65,9 +86,20 @@ export default function ExtrasPage() {
     );
   }
 
-  const vehicle = draft.vehicle
-    ? VEHICLES.find((v) => v.id === draft.vehicle?.vehicleId)
-    : undefined;
+  const vehicle = VEHICLES.find((v) => v.id === draft.vehicle?.vehicleId);
+
+  // Wait for the live catalog before concluding the vehicle is gone — the
+  // hook starts on fixture data whose ids won't match a DB-backed selection.
+  if (!vehicle && !catalogReady) {
+    return (
+      <>
+        <Stepper current={2} />
+        <div className="mx-auto max-w-[var(--container-full)] px-5 py-10 sm:px-5">
+          <Skeleton className="h-40 rounded-lg" />
+        </div>
+      </>
+    );
+  }
 
   const qtyOf = (addOnId: string): number =>
     draft.extras.find((e) => e.addOnId === addOnId)?.qty ?? 0;

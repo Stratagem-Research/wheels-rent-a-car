@@ -116,12 +116,12 @@ export function useBookingDraft(): UseBookingDraftReturn {
 
   const setDraft = React.useCallback(
     (next: BookingDraft | ((prev: BookingDraft) => BookingDraft)) => {
-      setDraftState((prev) => {
-        const base = prev ?? defaultDraft();
-        const value = typeof next === "function" ? next(base) : next;
-        writeStored(value);
-        return value;
-      });
+      // Read + write sessionStorage synchronously so a follow-up router.push
+      // (e.g. vehicle confirm → /book/extras) cannot race the React updater.
+      const base = readStored() ?? defaultDraft();
+      const value = typeof next === "function" ? next(base) : next;
+      writeStored(value);
+      setDraftState(value);
     },
     [],
   );

@@ -143,7 +143,14 @@ export function VehiclesClient({
         rate: choice.type,
         mileage: choice.mileage,
       });
-      router.push("/book/extras");
+      // Mirror vehicleId (+ rate) in the URL so /book/extras can re-seed the
+      // draft if sessionStorage was empty on first paint.
+      const extras = new URLSearchParams({
+        vehicleId,
+        rate: choice.type,
+        mileage: choice.mileage,
+      });
+      router.push(`/book/extras?${extras.toString()}`);
     },
     [router, setVehicle],
   );

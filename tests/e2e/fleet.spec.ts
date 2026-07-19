@@ -25,7 +25,7 @@ test.describe("fleet — inline expansion replaces the PDP", () => {
   test("Next on an expanded card routes to /book/extras", async ({ page }) => {
     await page.goto("/vehicles?selected=kia-cerato");
     await page.getByRole("button", { name: /^Next/i }).click();
-    await expect(page).toHaveURL(/\/book\/extras/);
+    await expect(page).toHaveURL(/\/book\/extras\?.*vehicleId=/);
   });
 
   test("/book/select-vehicle redirects to /vehicles?step=1", async ({ page }) => {
