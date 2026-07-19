@@ -24,7 +24,7 @@ import { endpoints } from "@/lib/api/endpoints";
  */
 
 /**
- * Default tier IDs mirror the seeded fixture in `lib/api/mocks/fixtures/catalog.ts`.
+ * Default tier IDs mirror the seeded fixture in `lib/api/fixtures/catalog.ts`.
  * Admin-created tiers carry custom IDs; the form falls back to "co-growth"
  * when the incoming `initialTier` doesn't match a known label, and shows a
  * generic option label inside the select.

@@ -3,12 +3,12 @@
 import * as React from "react";
 import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
-import { BRANCHES as FALLBACK_BRANCHES } from "@/lib/api/mocks/fixtures/branches";
+import { BRANCHES as FALLBACK_BRANCHES } from "@/lib/api/fixtures/branches";
 import {
   ADD_ONS as FALLBACK_ADDONS,
   PROTECTION_TIERS as FALLBACK_TIERS,
-} from "@/lib/api/mocks/fixtures/catalog";
-import { VEHICLES as FALLBACK_VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
+} from "@/lib/api/fixtures/catalog";
+import { VEHICLES as FALLBACK_VEHICLES } from "@/lib/api/fixtures/vehicles";
 import type { AddOn, Branch, ProtectionTier, Vehicle } from "@/types/domain";
 
 type BookingCatalog = {

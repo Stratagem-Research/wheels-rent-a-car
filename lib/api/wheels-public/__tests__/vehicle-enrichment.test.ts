@@ -7,7 +7,7 @@ import {
   resetEnrichmentWarnings,
 } from "../vehicle-enrichment";
 import type { PublicVehicle } from "../schemas";
-import { VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
+import { VEHICLES } from "@/lib/api/fixtures/vehicles";
 
 function publicVehicle(overrides: Partial<PublicVehicle> = {}): PublicVehicle {
   return {

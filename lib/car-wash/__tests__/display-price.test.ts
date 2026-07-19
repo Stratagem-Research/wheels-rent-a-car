@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CAR_WASH_PACKAGES } from "@/lib/api/mocks/fixtures/catalog";
+import { CAR_WASH_PACKAGES } from "@/lib/api/fixtures/catalog";
 import {
   formatCarWashPackagePrice,
   formatDurationMinutes,

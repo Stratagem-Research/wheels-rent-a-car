@@ -3,8 +3,8 @@
  * Not used at runtime — public/admin pages read from Supabase via /api/cms/*.
  */
 import type { CorporateTier, FaqGroup, Itinerary, Trip } from "@/types/domain";
-import { BRANCHES } from "@/lib/api/mocks/fixtures/branches";
-import { SITE_CONFIG } from "@/lib/api/mocks/fixtures/content";
+import { BRANCHES } from "@/lib/api/fixtures/branches";
+import { SITE_CONFIG } from "@/lib/api/fixtures/content";
 import {
   ABOUT_PULL_QUOTE,
   ABOUT_STATS,

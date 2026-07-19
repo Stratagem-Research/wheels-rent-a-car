@@ -3,8 +3,8 @@ import {
   CAR_WASH_PACKAGES,
   LONG_TERM_TIERS,
   PROTECTION_TIERS,
-} from "@/lib/api/mocks/fixtures/catalog";
-import { REVIEWS } from "@/lib/api/mocks/fixtures/content";
+} from "@/lib/api/fixtures/catalog";
+import { REVIEWS } from "@/lib/api/fixtures/content";
 import {
   ABOUT_CONTENT_SEED,
   CORPORATE_TIERS,
@@ -14,7 +14,7 @@ import {
   PROMOTIONS_SEED,
   TRIPS,
 } from "@/lib/supabase/seed-data";
-import { VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
+import { VEHICLES } from "@/lib/api/fixtures/vehicles";
 import {
   replaceAddOnsInDb,
   replaceCarWashPackagesInDb,

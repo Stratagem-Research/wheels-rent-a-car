@@ -1,5 +1,5 @@
 import type { Booking, BookingState } from "@/types/domain";
-import { VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
+import { VEHICLES } from "@/lib/api/fixtures/vehicles";
 import { fromBackendDateTime } from "@/lib/api/wheels-public/datetime";
 
 /** Map Wizard operational status strings to the website BookingState. */

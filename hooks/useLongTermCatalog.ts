@@ -3,8 +3,8 @@
 import * as React from "react";
 import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
-import { LONG_TERM_TIERS as FALLBACK_TIERS } from "@/lib/api/mocks/fixtures/catalog";
-import { VEHICLES as FALLBACK_VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
+import { LONG_TERM_TIERS as FALLBACK_TIERS } from "@/lib/api/fixtures/catalog";
+import { VEHICLES as FALLBACK_VEHICLES } from "@/lib/api/fixtures/vehicles";
 import type { LongTermTier, Vehicle } from "@/types/domain";
 
 export function useLongTermCatalog() {

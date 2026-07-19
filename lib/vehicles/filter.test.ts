@@ -8,7 +8,7 @@ import {
   parseFiltersFromSearch,
   sortFiltered,
 } from "./filter";
-import { VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
+import { VEHICLES } from "@/lib/api/fixtures/vehicles";
 
 describe("vehicles/filter", () => {
   describe("parseFiltersFromSearch", () => {

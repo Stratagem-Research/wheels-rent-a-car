@@ -9,7 +9,7 @@ import { ContactForm } from "@/components/contact/ContactForm";
 import { LocationsMap } from "@/components/locations/LocationsMap";
 import { PageHero } from "@/components/marketing/PageHero";
 import { PAGE_HERO_IMAGES } from "@/lib/marketing/hero-images";
-import { BRANCHES } from "@/lib/api/mocks/fixtures/branches";
+import { BRANCHES } from "@/lib/api/fixtures/branches";
 import { whatsAppHref } from "@/lib/whatsapp";
 
 const SOCIALS = [

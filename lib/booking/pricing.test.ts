@@ -7,8 +7,8 @@ import {
   perDayRate,
   rentalDays,
 } from "./pricing";
-import { VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
-import { ADD_ONS, PROTECTION_TIERS } from "@/lib/api/mocks/fixtures/catalog";
+import { VEHICLES } from "@/lib/api/fixtures/vehicles";
+import { ADD_ONS, PROTECTION_TIERS } from "@/lib/api/fixtures/catalog";
 import type { BookingDraft } from "@/types/domain";
 
 const yaris = VEHICLES.find((v) => v.slug === "toyota-yaris")!;

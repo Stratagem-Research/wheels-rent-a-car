@@ -1,7 +1,7 @@
 import type { Branch, Review, SiteConfig, Vehicle } from "@/types/domain";
-import { BRANCHES as FALLBACK_BRANCHES } from "@/lib/api/mocks/fixtures/branches";
-import { SITE_CONFIG as FALLBACK_SITE_CONFIG } from "@/lib/api/mocks/fixtures/content";
-import { VEHICLES as FALLBACK_VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
+import { BRANCHES as FALLBACK_BRANCHES } from "@/lib/api/fixtures/branches";
+import { SITE_CONFIG as FALLBACK_SITE_CONFIG } from "@/lib/api/fixtures/content";
+import { VEHICLES as FALLBACK_VEHICLES } from "@/lib/api/fixtures/vehicles";
 import { listReviewsFromDb } from "@/lib/supabase/reviews-repository";
 import { ABOUT_CONTENT_SEED } from "@/lib/supabase/seed-data";
 import {
@@ -82,7 +82,7 @@ export async function getPublicReviews(limit = 10): Promise<Review[]> {
   try {
     return await listReviewsFromDb(limit);
   } catch {
-    const { REVIEWS } = await import("@/lib/api/mocks/fixtures/content");
+    const { REVIEWS } = await import("@/lib/api/fixtures/content");
     return REVIEWS.slice(0, limit);
   }
 }

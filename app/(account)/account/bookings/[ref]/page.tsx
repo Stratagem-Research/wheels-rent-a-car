@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { BookingDetailPanel } from "@/components/account/BookingDetailPanel";
 import { CancelBookingModal, ModifyBookingModal } from "@/components/account/BookingActionModals";
-import { BRANCHES } from "@/lib/api/mocks/fixtures/branches";
+import { BRANCHES } from "@/lib/api/fixtures/branches";
 import { api } from "@/lib/api/client";
 import { whatsAppHref } from "@/lib/whatsapp";
 import { bookingToIcs, downloadIcs } from "@/lib/booking/calendar";

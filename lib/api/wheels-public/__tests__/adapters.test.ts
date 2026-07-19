@@ -9,8 +9,8 @@ import {
   toInternalBooking,
 } from "../adapters";
 import { BookingRequestPayloadSchema, BookingSuccessResponseSchema } from "../schemas";
-import { ADD_ONS, PROTECTION_TIERS } from "@/lib/api/mocks/fixtures/catalog";
-import { VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
+import { ADD_ONS, PROTECTION_TIERS } from "@/lib/api/fixtures/catalog";
+import { VEHICLES } from "@/lib/api/fixtures/vehicles";
 import type { BookingDraft } from "@/types/domain";
 import availabilitySuccess from "./fixtures/availability-success.json";
 import bookingSuccess from "./fixtures/booking-success.json";

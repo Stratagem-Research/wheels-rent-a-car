@@ -1,5 +1,5 @@
 import type { Review } from "@/types/domain";
-import { REVIEWS as FALLBACK_REVIEWS } from "@/lib/api/mocks/fixtures/content";
+import { REVIEWS as FALLBACK_REVIEWS } from "@/lib/api/fixtures/content";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 type ReviewRow = {

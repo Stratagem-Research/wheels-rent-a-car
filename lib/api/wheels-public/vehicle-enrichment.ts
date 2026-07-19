@@ -23,7 +23,7 @@
  */
 
 import type { Vehicle, VehicleCategory } from "@/types/domain";
-import { VEHICLES } from "@/lib/api/mocks/fixtures/vehicles";
+import { VEHICLES } from "@/lib/api/fixtures/vehicles";
 import type { PublicVehicle } from "./schemas";
 
 export type BackendIdToSlugMap = Readonly<Record<number, string>>;

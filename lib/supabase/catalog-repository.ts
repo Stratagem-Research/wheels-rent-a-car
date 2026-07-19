@@ -4,7 +4,7 @@ import {
   CAR_WASH_PACKAGES as FALLBACK_CAR_WASH,
   LONG_TERM_TIERS as FALLBACK_LONG_TERM,
   PROTECTION_TIERS as FALLBACK_PROTECTION,
-} from "@/lib/api/mocks/fixtures/catalog";
+} from "@/lib/api/fixtures/catalog";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { isLocalizedString, toLocalizedString } from "@/lib/i18n/localized";
 
