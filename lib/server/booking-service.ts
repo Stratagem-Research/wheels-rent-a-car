@@ -454,10 +454,3 @@ export async function handleBookingCancelPreview(body: {
   const booking = await handleBookingLookup({ ref: body.ref, email: body.email });
   return { refundCents: booking.price.totalCents };
 }
-
-/** Dev-only: expose mock bookings for account list when user has no user_bookings rows. */
-export function getMockBookingsForEmail(email: string): Booking[] {
-  return Array.from(mockBookings.values()).filter(
-    (b) => b.driver.email.toLowerCase() === email.toLowerCase(),
-  );
-}

@@ -95,10 +95,5 @@
       "@swc/core",
       "@parcel/watcher"
     ]
-  },
-  "msw": {
-    "workerDirectory": [
-      "public"
-    ]
   }
 }

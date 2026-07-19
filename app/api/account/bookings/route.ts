@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAccountUser } from "@/lib/server/account-auth";
-import {
-  getMockBookingsForEmail,
-  handleBookingLookup,
-} from "@/lib/server/booking-service";
+import { handleBookingLookup } from "@/lib/server/booking-service";
 import { listUserBookings } from "@/lib/supabase/user-bookings-repository";
 
 export async function GET() {
@@ -23,11 +20,7 @@ export async function GET() {
       }),
     );
 
-    let items = bookings.filter((b): b is NonNullable<typeof b> => Boolean(b));
-
-    if (items.length === 0 && email) {
-      items = getMockBookingsForEmail(email);
-    }
+    const items = bookings.filter((b): b is NonNullable<typeof b> => Boolean(b));
 
     return NextResponse.json({ items, total: items.length });
   } catch {

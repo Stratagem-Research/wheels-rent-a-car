@@ -20,9 +20,7 @@ import { endpoints } from "@/lib/api/endpoints";
  * same `LeadFormSuccess` state). Corporate-specific fields: company,
  * job title, monthly volume estimate, tier, urgency.
  *
- * POSTs to `/api/leads/corporate` — the MSW handler in
- * `lib/api/mocks/handlers.ts` already maps this to a stubbed Lead id;
- * Wheels' backend will replace it with a real lead-capture endpoint.
+ * POSTs to `/api/leads/corporate` (Next.js route handler).
  */
 
 /**

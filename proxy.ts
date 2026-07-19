@@ -19,7 +19,6 @@ const MAINTENANCE_ALLOWLIST = [
   "/api/health",
   "/favicon",
   "/images",
-  "/mockServiceWorker.js",
 ];
 
 export function proxy(req: NextRequest) {
@@ -91,7 +90,7 @@ export function proxy(req: NextRequest) {
 
 export const config = {
   // Skip Next internals + static assets — everything else goes through.
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|mockServiceWorker.js).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };
 
 function stripLocalePrefix(pathname: string): {

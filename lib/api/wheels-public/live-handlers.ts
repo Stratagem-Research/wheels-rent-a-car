@@ -1,12 +1,10 @@
 /**
- * Glue that makes the existing `/api/booking/availability` and
- * `/api/booking/submit` handlers in `lib/api/mocks/handlers.ts` delegate to
- * the live Wheels public API when `NEXT_PUBLIC_USE_REAL_BOOKING_API === "true"`.
+ * Glue for `/api/booking/availability` and `/api/booking/submit` Next.js
+ * route handlers when `NEXT_PUBLIC_USE_REAL_BOOKING_API === "true"`.
  *
- * The shape returned by these functions matches what the MSW mock returned
- * before — so the rest of the codebase (booking funnel, confirmation page,
- * account screens) doesn't know or care that the data came from a different
- * source. That isolation is the whole point of the bridge.
+ * Returns the same domain shapes the rest of the funnel already consumes,
+ * so booking / confirmation / account screens don't care that data came
+ * from the Wheels public API bridge.
  */
 
 import type {
