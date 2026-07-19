@@ -126,7 +126,7 @@ We executed an 11-sprint Phase-1 build (commit `e464915`) and started a Sixt-aes
 
 - **`geist` npm package** (Vercel-maintained) for Geist Sans + Geist Mono. Self-hosted woff2 via `next/font/local` is the fallback if licensing requires it.
 - **`framer-motion@^12`** in Phase 11 (motion layer).
-- Everything else stays: Next.js 16 + Tailwind v4 + Radix + MSW + Vitest + Playwright.
+- Everything else stays: Next.js 16 + Tailwind v4 + Radix + Vitest + Playwright.
 
 ---
 
@@ -447,7 +447,7 @@ We executed an 11-sprint Phase-1 build (commit `e464915`) and started a Sixt-aes
 - **`useBookingDraft` hook** — Phase 7's expanded-card "NEXT" CTA pushes through this.
 - **`whatsAppHref()` helper** — reuse for "Ask on WhatsApp" in expanded card.
 - **`useLastSearch` + `readLastSearch`** — already in `lib/search/persistence.ts`; powers the SearchBar prefill + LocationPicker history.
-- **MSW handlers** — handlers stay; only fixtures evolve (vehicle photos, branch list — already done in P1).
+- **Seed/fallback fixtures** — vehicle photos and branch seed data remain shared by repositories and tests.
 - **Playwright `storageState`** — already seeds `wheels.consent` + newsletter dismissal; no change needed.
 - **Phase-2 DatePopover, TimePicker, LocationPicker** — keep as-is; they're already on the new spec.
 

@@ -2,12 +2,11 @@ import { test, expect, type Page } from "@playwright/test";
 
 /**
  * Full-funnel coverage: navigate from /book/select-vehicle through the
- * three steps + checkout, exercising each payment method.
+ * three steps + checkout, exercising each currently supported payment method.
  *
- *   Card     → Confirmed
  *   Cash     → Confirmed
- *   Transfer → Pending (requires proof upload)
- *   OMT      → Pending (no proof needed)
+ *   Transfer → Pending
+ *   OMT      → Pending
  *
  * Each test starts fresh so sessionStorage is clean.
  */
@@ -60,28 +59,7 @@ async function acceptTerms(page: Page): Promise<void> {
   await page.getByLabel(/I agree to the Terms/i).check();
 }
 
-test.describe("checkout — all payment methods", () => {
-  test("Card path lands on a Confirmed booking", async ({ page }) => {
-    await pickFirstVehicle(page);
-    await continueToProtection(page);
-    await pickSmartTier(page);
-    await fillDriverInfo(page);
-    // BEY airport pickup requires flight number.
-    // Card method (default selected once clicked).
-    await page.getByLabel(/Credit \/ Debit card/i).click();
-    await page.getByPlaceholder("4242 4242 4242 4242").fill("4242424242424242");
-    await page.getByPlaceholder("MM/YY").fill("12/30");
-    await page.getByPlaceholder("•••").fill("123");
-    await page.getByPlaceholder("Full name as on card").fill("Test Driver");
-    await acceptTerms(page);
-    await page
-      .getByRole("button", { name: /Pay & confirm/i })
-      .first()
-      .click();
-    await expect(page).toHaveURL(/\/book\/confirmation\/WRC-/, { timeout: 10000 });
-    await expect(page.getByRole("heading", { name: /Your booking is confirmed/i })).toBeVisible();
-  });
-
+test.describe("checkout — supported payment methods", () => {
   test("Cash path lands on a Confirmed booking", async ({ page }) => {
     await pickFirstVehicle(page);
     await continueToProtection(page);
@@ -97,25 +75,13 @@ test.describe("checkout — all payment methods", () => {
     await expect(page.getByRole("heading", { name: /Your booking is confirmed/i })).toBeVisible();
   });
 
-  test("Bank transfer requires proof and lands on Pending", async ({ page }) => {
+  test("Bank transfer lands on Pending", async ({ page }) => {
     await pickFirstVehicle(page);
     await continueToProtection(page);
     await pickSmartTier(page);
     await fillDriverInfo(page);
     await page.getByLabel(/Bank transfer/i).click();
     await acceptTerms(page);
-    // Submit without proof first — should be blocked by validation.
-    await page
-      .getByRole("button", { name: /Submit booking/i })
-      .first()
-      .click();
-    await expect(page).toHaveURL(/\/book\/checkout/);
-    // Upload a tiny PDF-like blob to satisfy the file requirement.
-    await page.locator('input[type="file"]').setInputFiles({
-      name: "proof.pdf",
-      mimeType: "application/pdf",
-      buffer: Buffer.from("%PDF-1.4\n%mock\n"),
-    });
     await page
       .getByRole("button", { name: /Submit booking/i })
       .first()

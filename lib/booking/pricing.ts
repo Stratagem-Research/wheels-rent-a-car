@@ -14,16 +14,10 @@ import { promoDiscountCents } from "./promo";
 /**
  * Client + server shared pricing engine.
  *
- * Lives here (not in /lib/api/mocks) so:
- *   - The booking flow recomputes the running total locally on every toggle
- *     (instant UI feedback per 04_booking_flow.md step 2: "right panel
- *     updates within 200ms of any toggle").
- *   - The MSW pricing handler re-exports the same functions so mock + client
- *     totals match exactly.
+ * The booking flow uses this for an instant preview on every toggle (per
+ * 04_booking_flow.md step 2); `/api/booking/quote` remains authoritative.
  *
- * When real backend lands: the source-of-truth `/api/booking/quote` will
- * still be authoritative, and the client uses these functions as a
- * preview-only approximation.
+ * Keep this approximation aligned with the backend pricing contract.
  */
 
 const TAX_RATE = 0.11;

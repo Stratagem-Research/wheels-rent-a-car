@@ -21,8 +21,8 @@ import { getPublicBranches, getPublicReviews, getPublicVehicles } from "@/lib/se
  * Categories + Featured4 already carry the inverse-block rhythm and the
  * extra strip was visual noise above the fold.)
  *
- * Server component — data comes directly from mock fixtures during dev. When
- * the real backend lands, these imports become typed fetch() calls.
+ * Server component — content resolves through the website repositories and
+ * their explicit seed-data fallbacks.
  */
 
 export async function generateMetadata() {

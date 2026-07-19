@@ -23,7 +23,7 @@ type FaqAccordionEntry = {
  *
  * Controlled from the first paint (`value=""` when collapsed) so Radix never
  * flips between uncontrolled and controlled. Hash deep-links use replaceState
- * instead of document navigation to stay compatible with the MSW worker in dev.
+ * to avoid a redundant route navigation.
  */
 
 export function FaqAccordion({

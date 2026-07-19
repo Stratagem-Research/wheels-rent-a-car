@@ -25,13 +25,12 @@ Confirmed 2026-06-30: source is `GET /api/v1/vehicles/sync` (not `/api/public/ve
 | --- | --- |
 | `POST /booking-request` full smoke | Pending `WHEELS_INTERNAL_API_TOKEN` |
 | `POST /api/v1/bookings/{ref}/sync-status` | Pending token |
-| `RUN_LIVE_API_TESTS=1` full suite | Pending token + `NEXT_PUBLIC_USE_REAL_BOOKING_API=true` |
+| `RUN_LIVE_API_TESTS=1` full suite | Pending token |
 
 ## When token arrives
 
 1. Set in `.env`:
    - `WHEELS_INTERNAL_API_TOKEN=<secure channel>`
-   - `NEXT_PUBLIC_USE_REAL_BOOKING_API=true`
 2. Run `pnpm wizard:sync-vehicles` to populate `wizard_vehicles` from `GET /api/v1/vehicles/sync`
 3. Run `./scripts/wheels-api-smoke.sh`
 4. Run `RUN_LIVE_API_TESTS=1 pnpm test -- tests/integration/wheels-public.live.test.ts`

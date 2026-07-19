@@ -59,7 +59,7 @@ Archives: [Adam_Response_System_Boundaries.md](./Adam_Response_System_Boundaries
 - 2026-06-30: Vehicle sync endpoint confirmed; website implementation complete ([Adam_Response_Vehicle_Sync_Endpoint.md](./Adam_Response_Vehicle_Sync_Endpoint.md)).
 - 2026-07-08: Status update sent while awaiting token ([Email_to_Adam_Status_Update.md](./Email_to_Adam_Status_Update.md)).
 - 2026-07-09: Staging token received; `sync-status` works but `vehicles/sync` returns 401 — draft follow-up ([Email_to_Adam_Vehicle_Sync_401.md](./Email_to_Adam_Vehicle_Sync_401.md)).
-- 2026-07-11: Adam fixed `vehicles/sync` auth. Live verification: `pnpm wizard:sync-vehicles` fetched 65 vehicles, upserted 65 into Supabase; full public + internal smoke suite (7/7 steps) passes; `NEXT_PUBLIC_USE_REAL_BOOKING_API=true` enabled locally. See [Vehicle_Sync_Live_Verification.md](./Vehicle_Sync_Live_Verification.md).
+- 2026-07-11: Adam fixed `vehicles/sync` auth. Live verification: `pnpm wizard:sync-vehicles` fetched 65 vehicles, upserted 65 into Supabase; full public + internal smoke suite (7/7 steps) passes. See [Vehicle_Sync_Live_Verification.md](./Vehicle_Sync_Live_Verification.md).
 - Next: await staging server access, Elie's team photos, and Adam's site polish feedback doc. Whish payment credentials remain the only launch blocker on the website side.
 
 ## Exit criteria

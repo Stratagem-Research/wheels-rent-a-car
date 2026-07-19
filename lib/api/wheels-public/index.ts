@@ -2,11 +2,8 @@
  * Wheels public API integration layer.
  *
  * The booking funnel speaks the internal contract from `types/domain.ts`.
- * This module is the only place that knows the Laravel-shape lives:
- *
- *   funnel → mock handler → (flag on?)
- *                            ├── yes → wheels-public client + adapters → Laravel
- *                            └── no  → existing MSW fixtures
+ * This module is the only place that knows the Laravel-shaped public API;
+ * Next.js route handlers call this client and adapt responses to domain types.
  *
  * Consumers should import from this index, not from sub-modules, so the
  * surface area stays stable when internals move.

@@ -31,7 +31,7 @@
 - Consume backend APIs from Wheels' internal management system. The `GET /api/...` and `POST /api/...` endpoints referenced in the implementation specs are the frontend's contract with that backend — define expected shapes in `/types/domain.ts` and call them through a thin client in `/lib/api/`.
 - Integrate with **client-side SDKs** for: payment (Areeba/Stripe hosted forms or tokenization), WhatsApp `wa.me` deep-links.
 - Hand off the WhatsApp Business API server, email service, PSP webhook server, database, ops admin, and any operational infrastructure to Wheels' backend team.
-- During development before backend is ready, use the **mock API layer** (MSW in `/lib/api/mocks/`) that returns the shapes defined in `/types/domain.ts`. Mocks are drop-in replaceable with real endpoints once the backend is wired.
+- Browser API traffic uses Next.js route handlers. Typed fixtures under `/lib/api/mocks/fixtures/` are seed data and explicit repository fallbacks, not an intercepted API layer.
 
 **Out of scope for this codebase:**
 
@@ -44,7 +44,7 @@
 
 When a feature requires backend behavior that doesn't yet exist, document the expected API contract in the relevant `/docs/Implementation/NN_*.md` file under "Data requirements" and stub it in the mock layer. **Do not build backend services here.**
 
-**Wheels Public API (Laravel).** The bridge now covers `GET /availability`, `GET /availability/{id}`, `POST /booking-request`, `GET /bookings/{reference}?email=...`, and `GET /booking-status/{public_token}`. Internal booking sync is server-to-server via `POST /api/v1/bookings/{reference}/sync-status` and must never be called from the browser. The frontend consumes the public contract behind `NEXT_PUBLIC_USE_REAL_BOOKING_API`; full contract + adapter behavior lives in [`docs/Implementation/19_backend_public_api.md`](docs/Implementation/19_backend_public_api.md), with remaining clarifications in [`docs/Integration/API_Gap_Analysis.md`](docs/Integration/API_Gap_Analysis.md).
+**Wheels Public API (Laravel).** The bridge covers `GET /availability`, `GET /availability/{id}`, `POST /booking-request`, `GET /bookings/{reference}?email=...`, and `GET /booking-status/{public_token}`. Internal booking sync is server-to-server via `POST /api/v1/bookings/{reference}/sync-status` and must never be called from the browser. Full contract + adapter behavior lives in [`docs/Implementation/19_backend_public_api.md`](docs/Implementation/19_backend_public_api.md), with remaining clarifications in [`docs/Integration/API_Gap_Analysis.md`](docs/Integration/API_Gap_Analysis.md).
 
 ---
 
@@ -134,8 +134,8 @@ If a stakeholder asks for a brand exception, push back and link them to `docs/De
 - **Forms:** React Hook Form + Zod for client-side validation. Inline validation on blur; submit validation scrolls to the first error.
 - **State:** React Server Components for content; client components only where interactivity is needed. The booking-draft model lives in `sessionStorage` (`wheels.booking.draft`) — no global store needed.
 - **API client:** thin fetch wrapper in `/lib/api/`, typed against `/types/domain.ts`.
-- **Wheels Public API bridge:** `/lib/api/wheels-public/` — Zod-validated client + adapter that maps the Laravel public booking contract (availability, booking-request, lookup, status) plus server-side sync-status payload mapping to the internal contract. Engaged when `NEXT_PUBLIC_USE_REAL_BOOKING_API=true`; full spec in `docs/Implementation/19_backend_public_api.md`.
-- **Mocks (dev only):** MSW in `/lib/api/mocks/` with fixtures under `/lib/api/mocks/fixtures/`. The fleet is 11 vehicles with real PNGs under `public/images/Car Images/`.
+- **Wheels Public API bridge:** `/lib/api/wheels-public/` — Zod-validated client + adapter that maps the Laravel public booking contract (availability, booking-request, lookup, status) plus server-side sync-status payload mapping to the internal contract. Full spec in `docs/Implementation/19_backend_public_api.md`.
+- **Seed/fallback fixtures:** `/lib/api/mocks/fixtures/` contains typed seed data and explicit repository fallbacks. It does not intercept API requests.
 - **Hosting:** Vercel.
 - **Payments (frontend integration):** Areeba primary; Stripe Elements as international fallback. Never collect raw PAN client-side.
 - **Analytics:** GA4 + Meta Pixel. Server-side Conversions API is backend's concern — frontend emits `dataLayer` events with consistent names.
@@ -215,7 +215,7 @@ The 5-step booking flow is **the conversion engine**. It needs more care than an
 - Vehicle availability is rechecked on every step entry; if the car is gone, redirect to step 1 with a toast.
 - The hold timer (24:00 countdown) at step 4 recomputes pricing on expiry.
 - Mobile UX uses a sticky bottom action bar showing Total + the singular CTA; the summary panel becomes a bottom sheet.
-- Always test the four payment paths: Card, Cash, Bank transfer (with file upload), OMT.
+- Test every enabled payment path. Card must remain hidden until an Areeba/Stripe-hosted form is integrated; never substitute raw PAN fields or fake tokens.
 
 ---
 

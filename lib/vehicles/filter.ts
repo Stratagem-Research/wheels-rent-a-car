@@ -2,7 +2,7 @@ import type { Cents, FuelType, Transmission, Vehicle, VehicleCategory } from "@/
 
 /**
  * Fleet-browse filter logic per 02_fleet_browse.md §4. Shared by the listing
- * page (server) and the mock API handler.
+ * page and unit tests.
  *
  * Pagination is fixed at 24/page in the spec; we accept it as an input so
  * tests can use smaller windows.

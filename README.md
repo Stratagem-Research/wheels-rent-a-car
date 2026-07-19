@@ -15,7 +15,7 @@ Customer-facing Next.js application for [Wheels Rent A Car (Lebanon)](https://wh
 | Forms       | React Hook Form + Zod |
 | State       | RSC + `sessionStorage` booking-draft (no Redux/Zustand) |
 | i18n        | next-intl (single locale in Phase 1) |
-| Mocks       | MSW v2 (browser worker) |
+| API         | Next.js route handlers + Wheels Laravel bridge |
 | Tests       | Vitest + React Testing Library + Playwright + axe-core |
 | Errors      | Sentry (`@sentry/nextjs`) — env-gated |
 
@@ -27,13 +27,11 @@ pnpm install
 pnpm dev                # → http://localhost:3000
 ```
 
-The first dev boot installs the MSW service worker into `/public/mockServiceWorker.js`. All `fetch('/api/...')` calls are intercepted by handlers in `lib/api/mocks/handlers.ts` against fixtures in `lib/api/mocks/fixtures/`.
-
 ## Useful scripts
 
 | Command              | What it does |
 | -------------------- | ---------------------------------------- |
-| `pnpm dev`           | Dev server with Turbopack + MSW |
+| `pnpm dev`           | Dev server with Turbopack |
 | `pnpm build`         | Production build |
 | `pnpm start`         | Serve the production build |
 | `pnpm typecheck`     | `tsc --noEmit` |
@@ -47,15 +45,14 @@ The first dev boot installs the MSW service worker into `/public/mockServiceWork
 
 ## Environment variables
 
-Copy `.env.example` → `.env.local`. None are strictly required for local dev (the app degrades gracefully when keys are missing).
+Copy `.env.example` → `.env.local` and configure Supabase plus the Wheels public
+API before exercising authenticated or booking flows.
 
 | Var                                | Purpose |
 | ---------------------------------- | -------------------------------------------------- |
 | `NEXT_PUBLIC_SITE_URL`             | Sitemap + canonical URLs. Defaults to `http://localhost:3000`. |
-| `NEXT_PUBLIC_MOCK_API`             | Set `"false"` to bypass MSW and hit the real backend at `NEXT_PUBLIC_API_BASE_URL`. Default ON in dev. |
-| `NEXT_PUBLIC_API_BASE_URL`         | Prefix for real backend calls when mocks are off. |
+| `NEXT_PUBLIC_API_BASE_URL`         | Optional prefix for external API calls; empty uses same-origin route handlers. |
 | `NEXT_PUBLIC_WHEELS_API_BASE_URL`  | Wheels Laravel public API base. Defaults to the test URL. |
-| `NEXT_PUBLIC_USE_REAL_BOOKING_API` | `"true"` makes booking handlers delegate to the real Laravel public API (availability/submit/lookup/status) via the integration layer. |
 | `NEXT_PUBLIC_SUPABASE_URL`         | Supabase project URL (public). |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Supabase publishable anon key (public). |
 | `WHEELS_INTERNAL_API_BASE_URL`     | Server-only base URL for Wizard internal sync endpoint (`/api/v1/...`). |
@@ -112,8 +109,8 @@ components/
 
 lib/
   api/            typed fetch wrapper + endpoint catalog
-  api/mocks/      MSW worker + handlers + fixtures
-  api/wheels-public/  Laravel public booking client + adapters (when real API is on)
+  api/mocks/fixtures/  seed data + explicit repository fallbacks
+  api/wheels-public/  Laravel public booking client + adapters
   admin/          server-session auth helpers + Supabase-backed store + useAdminStore hooks
   auth/           session helpers + Supabase user mapping
   booking/        pricing engine, calendar helpers, .ics generator, ref helpers
@@ -132,19 +129,16 @@ messages/en.json  i18n catalog (wired; most UI copy still inline until migration
 proxy.ts          auth gating + maintenance-mode rewrite + admin noindex
 ```
 
-## Mock backend
+## Data architecture
 
-The "API" is MSW. Handlers live in `lib/api/mocks/handlers.ts` and bind fixtures from `lib/api/mocks/fixtures/`. To make the app talk to a real backend:
-
-1. Set `NEXT_PUBLIC_MOCK_API=false`.
-2. Set `NEXT_PUBLIC_API_BASE_URL=https://your-backend.example.com`.
-3. The typed client in `lib/api/client.ts` prefixes every request path — no code changes elsewhere.
-
-Toggle failure modes during development by appending `?mock-error=500` (or `404`) to any URL.
+Browser requests use same-origin Next.js route handlers. Website-owned data is
+stored in Supabase; Wheels-owned availability and booking operations go through
+the Laravel public API bridge. Files under `lib/api/mocks/fixtures/` are retained
+only as seed data and explicit repository fallbacks—not as an intercepted API.
 
 ## Real backend wiring (Wheels Public + Internal Sync)
 
-The Laravel public contract now includes `availability`, `availability/{id}`, `booking-request`, booking lookup by reference+email, and booking status by public token. When `NEXT_PUBLIC_USE_REAL_BOOKING_API=true`, the booking handlers in `lib/api/mocks/handlers.ts` delegate to that API through `lib/api/wheels-public/`. Internal `sync-status` is server-to-server only and uses `WHEELS_INTERNAL_API_BASE_URL` + `WHEELS_INTERNAL_API_TOKEN`. Full spec, adapter rules, and runbook are in `docs/Implementation/19_backend_public_api.md`. Use `./scripts/wheels-api-smoke.sh` for ad-hoc curl probes and `RUN_LIVE_API_TESTS=1 pnpm test -- tests/integration/wheels-public.live.test.ts` for live integration tests.
+The Laravel public contract includes `availability`, `availability/{id}`, `booking-request`, booking lookup by reference+email, and booking status by public token. Booking route handlers call it through `lib/api/wheels-public/`. Internal `sync-status` is server-to-server only and uses `WHEELS_INTERNAL_API_BASE_URL` + `WHEELS_INTERNAL_API_TOKEN`. Full spec, adapter rules, and runbook are in `docs/Implementation/19_backend_public_api.md`. Use `./scripts/wheels-api-smoke.sh` for ad-hoc curl probes and `RUN_LIVE_API_TESTS=1 pnpm test -- tests/integration/wheels-public.live.test.ts` for live integration tests.
 
 ## Secret safety
 
@@ -175,8 +169,8 @@ Pnpm version comes from `package.json#packageManager`; do **not** also pass `ver
 Built for Vercel. Push to `main` → Vercel deploys. Required environment in Vercel project settings:
 
 - `NEXT_PUBLIC_SITE_URL` — production origin (`https://wheels.example.com`).
-- `NEXT_PUBLIC_MOCK_API` — `false` once the real backend is live.
-- `NEXT_PUBLIC_API_BASE_URL` — the real backend URL.
+- `NEXT_PUBLIC_WHEELS_API_BASE_URL` — Wheels public booking API URL.
+- `WHEELS_INTERNAL_API_BASE_URL` + `WHEELS_INTERNAL_API_TOKEN` — server-side sync.
 - Sentry envs as documented above.
 
 ## Conventions

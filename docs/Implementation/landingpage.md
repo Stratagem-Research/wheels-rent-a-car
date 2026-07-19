@@ -553,7 +553,9 @@ The 60/40 inverse marketing card used both in §1.2 (hero promo) and §6 (long-t
 - **Search criteria persistence:** read/write `localStorage` key `wheels.lastSearch`.
 - **Booking draft persistence:** read `sessionStorage` key `wheels.booking.draft` (banner trigger).
 
-All endpoints assumed to be served by the Wheels backend per the frontend-only scope (`CLAUDE.md` §1a). During dev, mocks live in `/lib/api/mocks/`.
+Endpoints are exposed through Next.js route handlers. Wheels-owned data delegates
+to the public API; website-owned content uses Supabase with explicit seed-data
+fallbacks.
 
 ---
 

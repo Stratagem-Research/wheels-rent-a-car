@@ -613,7 +613,7 @@ Below: contact form on a paper card (ink-10 band), branch map with selected-stat
 - **Forms:** React Hook Form + Zod for client-side validation. Inline validation on blur; submit scrolls to first error.
 - **State:** React Server Components for content; client components only where interactivity is needed. Booking-draft model lives in `sessionStorage` (`wheels.booking.draft`).
 - **API client:** thin fetch wrapper in `/lib/api/`, typed against `/types/domain.ts`.
-- **Mocks (dev only):** MSW in `/lib/api/mocks/` with fixtures under `/lib/api/mocks/fixtures/`. Drop-in replaceable with real endpoints once backend is wired.
+- **Seed/fallback data:** typed fixtures under `/lib/api/mocks/fixtures/` support database seeding, tests, and explicit repository fallbacks. API traffic is not intercepted.
 - **Hosting:** Vercel.
 - **Payments (frontend integration):** Areeba primary; Stripe Elements as international fallback. Never raw PAN.
 - **Analytics:** GA4 + Meta Pixel. Server-side Conversions API is backend's concern.
@@ -636,7 +636,7 @@ Below: contact form on a paper card (ink-10 band), branch map with selected-stat
 
 This codebase is the **frontend** of the customer-facing web app. The backend (vehicle inventory, pricing engine, reservation persistence, internal CRM, WhatsApp Business API server, transactional email, PSP webhook handling, ops admin) lives in Wheels' internal management system and is **out of scope** here. The `/api/...` endpoints referenced in the implementation specs are the frontend's contract with the backend.
 
-During development before the backend is ready, the frontend uses the **mock API layer** (MSW in `/lib/api/mocks/`) returning the shapes defined in `/types/domain.ts`. Mocks are drop-in replaceable with real endpoints.
+Browser API traffic goes through Next.js route handlers typed against `/types/domain.ts`. Wheels-owned booking operations delegate to the Laravel public API; website-owned content and account data use Supabase.
 
 ---
 

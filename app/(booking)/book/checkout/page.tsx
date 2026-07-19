@@ -14,10 +14,7 @@ import { toast } from "@/components/ui/Toast";
 import { Stepper } from "@/components/booking/Stepper";
 import { FlowSummaryPanel } from "@/components/booking/FlowSummaryPanel";
 import { HoldTimer, clearHold } from "@/components/booking/HoldTimer";
-import {
-  PaymentMethodSelector,
-  type CardFormValue,
-} from "@/components/booking/PaymentMethodSelector";
+import { PaymentMethodSelector } from "@/components/booking/PaymentMethodSelector";
 import { useBookingDraft } from "@/hooks/useBookingDraft";
 import { useBookingCatalog } from "@/hooks/useBookingCatalog";
 import { whatsAppHref } from "@/lib/whatsapp";
@@ -49,9 +46,6 @@ interface CheckoutFormState {
   deliveryAddress: string;
   // Payment
   paymentMethod: PaymentMethod | null;
-  card: CardFormValue;
-  transferProof: File | null;
-  omtReceipt: File | null;
   // Consents
   termsAccepted: boolean;
   marketing: boolean;
@@ -75,9 +69,6 @@ const emptyForm = (): CheckoutFormState => ({
   flightNumber: "",
   deliveryAddress: "",
   paymentMethod: null,
-  card: { number: "", expiry: "", cvv: "", holder: "" },
-  transferProof: null,
-  omtReceipt: null,
   termsAccepted: false,
   marketing: false,
   promoOpen: false,
@@ -191,15 +182,6 @@ export default function CheckoutPage() {
       e.deliveryAddress = t("deliveryRequired");
     }
     if (!form.paymentMethod) e.paymentMethod = tPayment("choosePaymentMethod");
-    if (form.paymentMethod === "card") {
-      if (form.card.number.replace(/\s/g, "").length < 12) e.card = tPayment("cardErrorNumber");
-      if (!form.card.expiry.match(/^\d{2}\/?\d{2}$/)) e.card = tPayment("cardErrorExpiry");
-      if (!form.card.cvv.match(/^\d{3,4}$/)) e.card = tPayment("cardErrorCvv");
-      if (!form.card.holder.trim()) e.card = tPayment("cardErrorHolder");
-    }
-    if (form.paymentMethod === "transfer" && !form.transferProof) {
-      e.transferProof = tPayment("transferProofRequired");
-    }
     if (!form.termsAccepted) e.terms = t("acceptTerms");
     return e;
   };
@@ -241,8 +223,6 @@ export default function CheckoutPage() {
 
       const response = await api.post<SubmitBookingResponse>(endpoints.bookingSubmit, {
         draft: completeDraft,
-        paymentToken: form.paymentMethod === "card" ? "mock_pm_token" : undefined,
-        proofFileId: form.transferProof ? "mock_proof_file" : undefined,
       });
 
       if (form.paymentMethod === "whish-online") {
@@ -344,16 +324,8 @@ export default function CheckoutPage() {
               <PaymentMethodSelector
                 value={form.paymentMethod}
                 onValueChange={onPaymentMethod}
-                card={form.card}
-                onCardChange={(c) => setForm((f) => ({ ...f, card: c }))}
-                cardError={errors.card}
-                transferProof={form.transferProof}
-                onTransferProofChange={(file) => setForm((f) => ({ ...f, transferProof: file }))}
-                omtReceipt={form.omtReceipt}
-                onOmtReceiptChange={(file) => setForm((f) => ({ ...f, omtReceipt: file }))}
               />
               {errors.paymentMethod ? <ErrorText>{errors.paymentMethod}</ErrorText> : null}
-              {errors.transferProof ? <ErrorText>{errors.transferProof}</ErrorText> : null}
             </section>
 
             <PromoSection form={form} setForm={setForm} />

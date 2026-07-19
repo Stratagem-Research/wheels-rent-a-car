@@ -44,6 +44,7 @@ Validate full website + Wizard integration in staging before production cutover.
 
 ## Rollback
 
-- Set `NEXT_PUBLIC_USE_REAL_BOOKING_API=false` to force mock booking flows.
+- Roll back the deployment if the public booking API integration regresses;
+  there is no in-memory/mock booking fallback.
 - Disable internal sync dispatcher if Wizard internal endpoint degrades.
 - Restore latest DB snapshot if website-owned state corruption is detected.

@@ -6,9 +6,8 @@
  * - Throws `ApiError` (typed) with status, body, and url on non-2xx.
  * - Always JSON in/out; multipart is a separate helper.
  *
- * The mock layer (MSW) intercepts the same paths in dev. To target a real
- * backend, set NEXT_PUBLIC_API_BASE_URL — the client prefixes that to every
- * request path. Default is "" so paths are same-origin and MSW catches them.
+ * Requests are same-origin by default and resolve through Next.js route
+ * handlers. NEXT_PUBLIC_API_BASE_URL can prefix paths for an external API.
  */
 
 const RETRYABLE_ENDPOINTS = ["/api/booking/", "/api/account/bookings", "/api/auth/"];

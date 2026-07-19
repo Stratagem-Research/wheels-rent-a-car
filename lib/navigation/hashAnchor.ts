@@ -1,9 +1,8 @@
 /**
  * In-app hash anchors without document navigation.
  *
- * Full `path#id` navigations can be intercepted by the MSW service worker in
- * dev and surface as failed passthrough fetches. `replaceState` + scroll keeps
- * shareable URLs without reloading the page.
+ * `replaceState` + scroll keeps shareable URLs without reloading the page or
+ * asking the App Router to fetch the current route again.
  */
 
 export function readLocationHash(): string {

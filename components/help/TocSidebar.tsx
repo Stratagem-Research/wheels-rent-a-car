@@ -16,7 +16,7 @@ export interface TocEntry {
  *
  * Active section is detected via IntersectionObserver so the link
  * highlights as the user scrolls past matching <h2 id="..." /> targets.
- * TOC clicks use HashLink to avoid MSW intercepting `path#section` fetches.
+ * TOC clicks use HashLink to update the URL without a route fetch.
  */
 export function TocSidebar({ entries, className }: { entries: TocEntry[]; className?: string }) {
   const t = useTranslations("helpUi");

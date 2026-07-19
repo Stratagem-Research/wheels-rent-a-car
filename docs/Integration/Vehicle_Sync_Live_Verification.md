@@ -36,7 +36,7 @@ Full smoke suite (`./scripts/wheels-api-smoke.sh`) — **7/7 steps pass.**
 
 ## Current `.env` state
 
-- `NEXT_PUBLIC_USE_REAL_BOOKING_API=true` — real booking API enabled.
+- Public booking API integration is always enabled.
 - `WHEELS_INTERNAL_API_TOKEN` / `WIZARD_API_TOKEN` — set to the live staging token.
 - `WIZARD_PUBLIC_PARENT_ID=2` — recorded, not yet required by any call we make.
 

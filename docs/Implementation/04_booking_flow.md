@@ -613,7 +613,7 @@ Centered status hero with icon + headline + ref + copy button.
 - **Add-ons catalog:** `GET /api/addons` → list with prices.
 - **Protection tiers:** `GET /api/protection-tiers` → list with deductibles + included items.
 - **Pricing recalculation:** `POST /api/booking/quote` body `{ draft }` → full breakdown.
-- **Submit booking:** `POST /api/booking/submit` body `{ draft, paymentToken | proofFileId }` → returns `bookingRef` and `state`.
+- **Submit booking:** `POST /api/booking/submit` body `{ draft }` → returns the booking and state. Hosted payment providers use their own tokenized/redirect flow and must never send raw card data through this endpoint.
 - **Confirmation detail:** `GET /api/booking/[ref]?email=` → full booking details (no auth needed when accessed directly post-confirmation; later requires auth or manage-booking lookup).
 - **Cancellation policy preview:** `POST /api/booking/cancel-preview` → expected refund amount.
 

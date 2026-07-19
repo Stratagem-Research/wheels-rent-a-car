@@ -39,10 +39,10 @@ Last updated: 2026-07-11
 - Live Wizard integration — resolved 2026-07-11:
   - `pnpm wizard:sync-vehicles` populated `wizard_vehicles` (65 rows) from the live `GET /api/v1/vehicles/sync`.
   - `./scripts/wheels-api-smoke.sh` passes 7/7 (public + internal sync-status).
-  - `NEXT_PUBLIC_USE_REAL_BOOKING_API=true` verified locally.
+  - Public booking API flow verified locally.
   - See `Vehicle_Sync_Live_Verification.md`.
 - Rollback drill — partially verified 2026-07-11:
-  - Toggling `NEXT_PUBLIC_USE_REAL_BOOKING_API=false` falls back to mocked booking handlers (`lib/api/mocks/handlers.ts`); no code changes needed to revert.
+  - The obsolete mock-handler rollback path has been removed; rollback now means restoring the previous deployment.
   - Full timed drill (disable sync dispatcher, measure recovery) still pending in a real staging environment.
 
 ## Pending operations gate checks

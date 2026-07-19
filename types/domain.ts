@@ -1,10 +1,9 @@
 /**
  * Wheels Rent A Car — domain types.
  *
- * Single source of truth for every API shape. Mocks under /lib/api/mocks
- * return these exact shapes; real backend endpoints from Wheels' internal
- * system must conform to them too. Update this file FIRST when a contract
- * changes, then propagate to fixtures + handlers + consuming components.
+ * Single source of truth for every API shape. Next.js route handlers and the
+ * Wheels backend adapters must conform to these types. Update this file first
+ * when a contract changes, then propagate to routes and consumers.
  *
  * Conventions:
  * - Dates and times serialize as ISO-8601 strings (`YYYY-MM-DDTHH:mm:ssZ`).
@@ -522,10 +521,6 @@ export interface QuoteResponse {
 
 export interface SubmitBookingRequest {
   draft: BookingDraft;
-  /** PSP token for card payments; ignored for cash/transfer/omt. */
-  paymentToken?: string;
-  /** File ref for bank-transfer proof. */
-  proofFileId?: string;
 }
 
 export interface SubmitBookingResponse {
