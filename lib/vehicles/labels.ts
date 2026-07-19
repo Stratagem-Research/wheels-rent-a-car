@@ -3,7 +3,7 @@ import type { VehicleCategory } from "@/types/domain";
 /**
  * Human-readable labels for the closed `VehicleCategory` enum.
  *
- * Lives outside the components folder so utility code (filter sidebar, mock
+ * Lives outside the components folder so utility code (filter sidebar, seed
  * fixtures, JSON-LD generators) can import it without pulling React.
  */
 export const CATEGORY_LABELS: Record<VehicleCategory | "all", string> = {

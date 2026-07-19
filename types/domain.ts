@@ -320,7 +320,7 @@ export interface UserDocument {
   issueDate: ISODate;
   expiryDate: ISODate;
   issuingCountry: CountryCode;
-  /** URL of stored scan (in mocks, a placeholder image path). */
+  /** URL of the stored document scan, when available. */
   scanUrl?: string;
   status: DocumentStatus;
   uploadedAt: ISODateTime;

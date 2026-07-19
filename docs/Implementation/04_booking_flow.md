@@ -62,8 +62,9 @@ It's a 5-step linear funnel with:
 ### Save-and-exit
 
 - Top-right "Save & exit" link visible at every step.
-- Click → confirmation modal: "We'll save your booking for 24 hours. Sign up to easily resume." → option to email a resume link.
+- Click → confirmation modal: "We'll save your booking for 24 hours. Sign up to easily resume."
 - Saves the `BookingDraft` (per `00_global.md` §20) under `wheels.booking.draft` in `sessionStorage` for 24h.
+- Resume-link email is deferred until a backend `/api/booking/resume-link` endpoint exists.
 
 ---
 

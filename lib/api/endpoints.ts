@@ -1,6 +1,6 @@
 /**
  * Endpoint catalog. Centralised so:
- *   1. Mock handlers and the typed client reference the same strings.
+ *   1. Route handlers and the typed client reference the same strings.
  *   2. Renaming a path is a one-file change.
  *   3. New endpoints are visible in the diff.
  */

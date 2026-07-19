@@ -5,14 +5,14 @@ import { cn } from "@/lib/utils";
 import type { Branch } from "@/types/domain";
 
 /**
- * Lightweight branch map — Phase-1 mock that doesn't require a Mapbox or
- * Google Maps API key. Renders a stylised SVG of Lebanon with pins for each
- * branch; clicking a pin syncs with the branch list via `onSelect`.
+ * Lightweight branch map — no Mapbox/Google Maps key required. Renders a
+ * stylised SVG of Lebanon with pins for each branch; clicking a pin syncs
+ * with the branch list via `onSelect`.
  *
  * The geographic projection is a simple linear mapping inside the SVG
  * viewBox over the real lat/lng bounds of Wheels' branches plus a small
- * margin. Good enough for a "find your branch" affordance; production
- * swaps this for a real map with the same Branch[] data + onSelect API.
+ * margin. Same Branch[] + onSelect API if this is later swapped for a
+ * tile-based map provider.
  */
 
 // Bounding box covering Greater Beirut + airport (the area where we
