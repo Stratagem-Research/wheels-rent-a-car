@@ -65,6 +65,9 @@ function useSessionStore(): SessionStore {
         setSession(next);
       })
       .catch(() => {
+        // /me clears httpOnly wheels.session on 401; also hit logout so any
+        // leftover Supabase cookies don't keep proxy.ts redirecting /login → /account.
+        void api.post(endpoints.authLogout, {}).catch(() => undefined);
         clearSession();
         setSession(null);
       })
