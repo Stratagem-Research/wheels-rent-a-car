@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/Input";
 import { BOOKING_REF_PATTERN } from "@/lib/booking/ref";
 import { api, ApiError } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
-import { readRefMap } from "@/lib/api/wheels-public";
 import type { Booking } from "@/types/domain";
 
 /**
@@ -99,16 +98,6 @@ export function BookingLookupForm({
       });
       onSuccess(result);
     } catch (err) {
-      const shouldUseFallback = !(err instanceof ApiError) || err.status <= 0 || err.status >= 500;
-      if (shouldUseFallback) {
-        // Temporary resilience path: if lookup endpoint is unavailable,
-        // use browser ref-map for same-device recovery.
-        const fallback = lookupViaRefMap(ref.trim(), email.trim().toLowerCase());
-        if (fallback) {
-          onSuccess(fallback);
-          return;
-        }
-      }
       recordFailure();
       // Generic error regardless of cause — avoids enumeration of valid refs
       // per 13_manage_booking.md security note.
@@ -118,69 +107,6 @@ export function BookingLookupForm({
       setSubmitting(false);
     }
   };
-
-  /**
-   * Fallback used when the API call fails — looks the booking up in the
-   * browser's localStorage ref-map written when this device created the
-   * booking. Only succeeds if BOTH ref + email match. Returns the partial
-   * Booking shape just enough for the manage-booking UI to render the
-   * "Pending backend lookup" placeholder (full details still come from the
-   * confirmation page in real-API mode).
-   */
-  function lookupViaRefMap(refValue: string, emailValue: string): Booking | null {
-    if (typeof window === "undefined") return null;
-    const map = readRefMap(window.localStorage);
-    const entry = map[refValue];
-    if (!entry || entry.email.toLowerCase() !== emailValue) return null;
-    // We don't have the full Booking server-side, so synthesize a minimal
-    // record. The consumer (BookingDetailPanel) tolerates missing optional
-    // fields and renders a banner pointing the user back to their email/
-    // WhatsApp confirmation.
-    return {
-      ref: entry.ref,
-      state: "pending",
-      createdAt: entry.createdAt,
-      pickup: { type: "branch", datetime: entry.createdAt },
-      return: { datetime: entry.createdAt },
-      vehicle: { vehicleId: "", rate: { type: "best-price", mileage: "capped-200km" } },
-      vehicleSnapshot: {
-        id: "",
-        slug: "",
-        make: "",
-        model: "",
-        year: 0,
-        category: "economy",
-        images: [],
-      },
-      extras: [],
-      protectionTierId: "pt-basic",
-      driver: {
-        firstName: "",
-        lastName: "",
-        email: entry.email,
-        phone: "",
-        dob: "",
-        licenceNumber: "",
-        licenceIssue: "",
-        licenceExpiry: "",
-        country: "LB",
-      },
-      paymentMethod: "cash",
-      marketingConsent: false,
-      whatsappOptIn: false,
-      price: {
-        baseRateCents: 0,
-        extrasCents: 0,
-        protectionCents: 0,
-        taxesCents: 0,
-        feesCents: 0,
-        discountCents: 0,
-        totalCents: 0,
-        depositCents: 0,
-      },
-      currency: "USD",
-    } satisfies Booking;
-  }
 
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4">

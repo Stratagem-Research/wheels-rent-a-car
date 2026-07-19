@@ -1,19 +1,11 @@
 import { NextResponse } from "next/server";
 import { getBookingStatusByToken } from "@/lib/api/wheels-public";
-import { realBookingApiEnabled } from "@/lib/api/wheels-public/live-handlers";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const token = url.searchParams.get("token")?.trim();
   if (!token) {
     return NextResponse.json({ message: "Missing token." }, { status: 400 });
-  }
-
-  if (!realBookingApiEnabled()) {
-    return NextResponse.json(
-      { message: "Status polling requires real booking API." },
-      { status: 503 },
-    );
   }
 
   try {

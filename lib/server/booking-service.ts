@@ -1,13 +1,11 @@
 import type {
   AvailabilityRequest,
-  AvailableVehicle,
   Booking,
   BookingDraft,
   BookingState,
   LookupBookingRequest,
   QuoteRequest,
   QuoteResponse,
-  Rate,
   SubmitBookingRequest,
   SubmitBookingResponse,
 } from "@/types/domain";
@@ -17,7 +15,6 @@ import { toBookingFromLookup } from "@/lib/booking/lookup-adapter";
 import { findPromoCode } from "@/lib/supabase/promo-codes-repository";
 import {
   computePrice,
-  generateBookingRef,
   perDayRate,
   isWithinOnlineBookingWindow,
   rentalDays,
@@ -40,14 +37,11 @@ import {
   VehicleUnavailableError,
 } from "@/lib/api/wheels-public";
 import { toBackendDateTime } from "@/lib/api/wheels-public/datetime";
-import { realBookingApiEnabled } from "@/lib/api/wheels-public/live-handlers";
 import { dispatchWizardSync } from "@/lib/server/wizard-sync";
 import { appendBookingState } from "@/lib/server/payment-events";
 import { enqueueNotification } from "@/lib/server/notifications";
 
 export { VehicleUnavailableError };
-
-const mockBookings = new Map<string, Booking>();
 
 function assertOnlineBookingWindow(pickupISO: string, returnISO: string) {
   if (!isWithinOnlineBookingWindow(pickupISO, returnISO)) {
@@ -62,7 +56,6 @@ async function syncCashBookingToWizard(
   wizardBookingId: number | undefined,
   paidAmount: number,
 ) {
-  if (!realBookingApiEnabled()) return;
   try {
     await dispatchWizardSync(booking.ref, {
       lifecycleState: "confirmed",
@@ -82,24 +75,6 @@ async function syncCashBookingToWizard(
   }
 }
 
-
-function buildRatesFor(vehicleId: string, vehicles: Awaited<ReturnType<typeof getPublicVehicles>>): Rate[] {
-  const vehicle = vehicles.find((v) => v.id === vehicleId);
-  if (!vehicle) return [];
-  return (["best-price", "flexible"] as const).flatMap((type) =>
-    (["capped-200km", "unlimited"] as const).map((mileage) => {
-      const perDay = perDayRate(vehicle, type, mileage);
-      return {
-        type,
-        mileage,
-        perDayCents: perDay,
-        totalCents: perDay * 5,
-        nonRefundable: type === "best-price",
-      } satisfies Rate;
-    }),
-  );
-}
-
 async function getCatalog() {
   const [addOns, tiers, vehicles] = await Promise.all([
     listAddOnsFromDb(),
@@ -111,28 +86,15 @@ async function getCatalog() {
 
 export async function handleBookingAvailability(body: AvailabilityRequest) {
   assertOnlineBookingWindow(body.pickup.datetime, body.return.datetime);
-  if (realBookingApiEnabled()) {
-    const response = await getAvailability({
-      startDateTime: toBackendDateTime(body.pickup.datetime),
-      endDateTime: toBackendDateTime(body.return.datetime),
-      includeBooked: false,
-    });
-    const items = toInternalAvailableVehicles(response.data.vehicles);
-    const days =
-      response.data.vehicles[0]?.pricing.days ??
-      rentalDays(body.pickup.datetime, body.return.datetime);
-    return { items, rentalDays: days };
-  }
-
-  const { vehicles } = await getCatalog();
-  const days = rentalDays(body.pickup.datetime, body.return.datetime);
-  const items: AvailableVehicle[] = vehicles.map((vehicle) => ({
-    vehicle,
-    rates: buildRatesFor(vehicle.id, vehicles).map((r) => ({
-      ...r,
-      totalCents: r.perDayCents * days,
-    })),
-  }));
+  const response = await getAvailability({
+    startDateTime: toBackendDateTime(body.pickup.datetime),
+    endDateTime: toBackendDateTime(body.return.datetime),
+    includeBooked: false,
+  });
+  const items = toInternalAvailableVehicles(response.data.vehicles);
+  const days =
+    response.data.vehicles[0]?.pricing.days ??
+    rentalDays(body.pickup.datetime, body.return.datetime);
   return { items, rentalDays: days };
 }
 
@@ -195,63 +157,18 @@ export async function handleBookingSubmit(
   const vehicle = vehicles.find((v) => v.id === draft.vehicle?.vehicleId);
   if (!vehicle) throw new Error("Vehicle gone");
 
-  if (realBookingApiEnabled()) {
-    let numericId = await resolveWizardVehicleId(draft.vehicle.vehicleId);
-    if (numericId == null) {
-      await handleBookingAvailability({
-        pickup: draft.pickup,
-        return: draft.return,
-      });
-      numericId = await resolveWizardVehicleId(draft.vehicle.vehicleId);
-    }
-    if (numericId == null) {
-      throw new Error(`No wizard mapping for vehicle ${draft.vehicle.vehicleId}`);
-    }
-
-    const price = computePrice({
-      draft,
-      vehicle,
-      addOns,
-      tiers,
-      promoDiscountPercent: await resolvePromoDiscountPercent(draft.promoCode),
+  let numericId = await resolveWizardVehicleId(draft.vehicle.vehicleId);
+  if (numericId == null) {
+    await handleBookingAvailability({
+      pickup: draft.pickup,
+      return: draft.return,
     });
-    const payload = fromBookingDraft(draft, {
-      resolveVehicleId: () => numericId,
-      addOns,
-      protectionTiers: tiers,
-      rateTotalCents: price.totalCents,
-      promoDiscountCents: price.discountCents,
-    });
-    const response = await createBookingRequest(payload);
-    const booking = toInternalBooking(response.data, {
-      draft,
-      vehicle,
-      price,
-      publicToken: response.data.public_token,
-    });
-
-    mockBookings.set(booking.ref, booking);
-    if (options?.userId) {
-      await addUserBooking({
-        userId: options.userId,
-        bookingReference: booking.ref,
-        publicToken: response.data.public_token,
-        wizardBookingId: response.data.booking_id,
-      });
-    }
-    if (draft.paymentMethod === "cash") {
-      await syncCashBookingToWizard(
-        booking,
-        response.data.booking_id,
-        Math.round(booking.price.totalCents / 100),
-      );
-    }
-    return { booking };
+    numericId = await resolveWizardVehicleId(draft.vehicle.vehicleId);
+  }
+  if (numericId == null) {
+    throw new Error(`No wizard mapping for vehicle ${draft.vehicle.vehicleId}`);
   }
 
-  const ref = generateBookingRef();
-  const state =
-    draft.paymentMethod === "card" || draft.paymentMethod === "cash" ? "confirmed" : "pending";
   const price = computePrice({
     draft,
     vehicle,
@@ -259,63 +176,45 @@ export async function handleBookingSubmit(
     tiers,
     promoDiscountPercent: await resolvePromoDiscountPercent(draft.promoCode),
   });
-
-  const booking: Booking = {
-    ref,
-    state,
-    createdAt: new Date().toISOString(),
-    pickup: draft.pickup,
-    return: draft.return,
-    vehicle: draft.vehicle,
-    vehicleSnapshot: {
-      id: vehicle.id,
-      slug: vehicle.slug,
-      make: vehicle.make,
-      model: vehicle.model,
-      year: vehicle.year,
-      category: vehicle.category,
-      images: vehicle.images,
-    },
-    extras: draft.extras,
-    protectionTierId: draft.protectionTierId ?? "pt-basic",
-    driver: draft.driver,
-    flightNumber: draft.flightNumber,
-    paymentMethod: draft.paymentMethod,
-    marketingConsent: draft.marketingConsent,
-    whatsappOptIn: draft.whatsappOptIn,
-    promoCode: draft.promoCode,
+  const payload = fromBookingDraft(draft, {
+    resolveVehicleId: () => numericId,
+    addOns,
+    protectionTiers: tiers,
+    rateTotalCents: price.totalCents,
+    promoDiscountCents: price.discountCents,
+  });
+  const response = await createBookingRequest(payload);
+  const booking = toInternalBooking(response.data, {
+    draft,
+    vehicle,
     price,
-    currency: "USD",
-  };
+    publicToken: response.data.public_token,
+  });
 
-  mockBookings.set(ref, booking);
   if (options?.userId) {
-    await addUserBooking({ userId: options.userId, bookingReference: ref });
+    await addUserBooking({
+      userId: options.userId,
+      bookingReference: booking.ref,
+      publicToken: response.data.public_token,
+      wizardBookingId: response.data.booking_id,
+    });
+  }
+  if (draft.paymentMethod === "cash") {
+    await syncCashBookingToWizard(
+      booking,
+      response.data.booking_id,
+      Math.round(booking.price.totalCents / 100),
+    );
   }
   return { booking };
 }
 
 export async function handleBookingLookup(body: LookupBookingRequest): Promise<Booking> {
-  if (realBookingApiEnabled()) {
-    const response = await getBookingByReferenceEmail(body.ref, body.email);
-    return toBookingFromLookup(response.data);
-  }
-
-  const fromMock = mockBookings.get(body.ref);
-  if (fromMock && fromMock.driver.email.toLowerCase() === body.email.toLowerCase()) {
-    return fromMock;
-  }
-
-  if (!fromMock || fromMock.driver.email.toLowerCase() !== body.email.toLowerCase()) {
-    throw new Error("Not found");
-  }
-  return fromMock;
+  const response = await getBookingByReferenceEmail(body.ref, body.email);
+  return toBookingFromLookup(response.data);
 }
 
 export async function handleBookingStatusByToken(publicToken: string) {
-  if (!realBookingApiEnabled()) {
-    throw new Error("Status polling requires real booking API.");
-  }
   const response = await getBookingStatusByToken(publicToken);
   return response.data;
 }
@@ -352,15 +251,13 @@ export async function handleBookingCancelRequest(body: {
     throw new BookingNotCancellableError(booking.state);
   }
 
-  if (realBookingApiEnabled()) {
-    try {
-      await dispatchWizardSync(body.ref, {
-        lifecycleState: "cancel_requested",
-        message: "Customer requested cancellation via website.",
-      });
-    } catch (err) {
-      throw new CancelRequestSyncError(err);
-    }
+  try {
+    await dispatchWizardSync(body.ref, {
+      lifecycleState: "cancel_requested",
+      message: "Customer requested cancellation via website.",
+    });
+  } catch (err) {
+    throw new CancelRequestSyncError(err);
   }
 
   // Website-side records are best-effort: the Wizard sync above is the
@@ -409,15 +306,13 @@ export async function handleBookingChangeRequest(body: {
     throw new BookingNotCancellableError(booking.state);
   }
 
-  if (realBookingApiEnabled()) {
-    try {
-      await dispatchWizardSync(body.ref, {
-        lifecycleState: "change_requested",
-        message: `Customer requested a booking change via website. Requested pickup: ${body.requestedPickupDatetime}.${body.note ? ` Note: ${body.note}` : ""}`,
-      });
-    } catch (err) {
-      throw new ChangeRequestSyncError(err);
-    }
+  try {
+    await dispatchWizardSync(body.ref, {
+      lifecycleState: "change_requested",
+      message: `Customer requested a booking change via website. Requested pickup: ${body.requestedPickupDatetime}.${body.note ? ` Note: ${body.note}` : ""}`,
+    });
+  } catch (err) {
+    throw new ChangeRequestSyncError(err);
   }
 
   await appendBookingState(body.ref, "change_requested", {

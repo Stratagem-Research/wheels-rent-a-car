@@ -39,12 +39,8 @@ export {
   fromBookingDraft,
   synthesizeBookingRef,
   serializeAddonsAndProtectionAsNotes,
-  readRefMap,
-  writeRefMap,
-  BOOKING_REF_MAP_STORAGE_KEY,
   MissingBackendVehicleIdError,
   IncompleteBookingDraftError,
-  type BookingRefMapEntry,
   type FromBookingDraftOptions,
   type ToInternalBookingOptions,
 } from "./adapters";

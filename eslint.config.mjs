@@ -30,7 +30,6 @@ const config = [
       "playwright-report/**",
       "test-results/**",
       "next-env.d.ts",
-      "public/mockServiceWorker.js",
     ],
   },
 ];

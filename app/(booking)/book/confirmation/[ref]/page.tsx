@@ -16,11 +16,10 @@ import { BookingStatusPoller } from "@/components/booking/BookingStatusPoller";
 import { isValidBookingRef } from "@/lib/booking/ref";
 import { bookingToIcs, downloadIcs } from "@/lib/booking/calendar";
 import { whatsAppHref } from "@/lib/whatsapp";
-import { api, ApiError } from "@/lib/api/client";
+import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
 import { formatUsd } from "@/lib/booking/pricing";
-import { readRefMap } from "@/lib/api/wheels-public";
-import { clearBookingDraft, useBookingDraft } from "@/hooks/useBookingDraft";
+import { clearBookingDraft } from "@/hooks/useBookingDraft";
 import { useBookingCatalog } from "@/hooks/useBookingCatalog";
 import { toast } from "@/components/ui/Toast";
 import type { Booking, BookingState } from "@/types/domain";
@@ -44,10 +43,8 @@ export default function ConfirmationPage() {
   const ref = params?.ref ?? "";
   const email = searchParams?.get("email") ?? "";
   const statusToken = searchParams?.get("token") ?? "";
-  const { draft } = useBookingDraft();
   const {
     branches: BRANCHES,
-    vehicles: VEHICLES,
     addOns: ADD_ONS,
     protectionTiers: PROTECTION_TIERS,
   } = useBookingCatalog();
@@ -72,17 +69,6 @@ export default function ConfirmationPage() {
         clearBookingDraft();
       } catch (err) {
         if (cancelled) return;
-        const shouldUseFallback =
-          !(err instanceof ApiError) || err.status <= 0 || err.status >= 500;
-        if (shouldUseFallback) {
-          // Temporary resilience path while rollout stabilizes.
-          const local = buildLocalFallbackBooking(ref, email, draft, VEHICLES);
-          if (local) {
-            setBooking(local);
-            clearBookingDraft();
-            return;
-          }
-        }
         console.error(err);
         setLookupError(t("lookupError"));
       }
@@ -90,7 +76,7 @@ export default function ConfirmationPage() {
     return () => {
       cancelled = true;
     };
-  }, [refValid, ref, email, draft, t, VEHICLES]);
+  }, [refValid, ref, email, t]);
 
   if (error) {
     return (
@@ -139,7 +125,7 @@ export default function ConfirmationPage() {
       <Stepper current={5} />
       <BookingStatusPoller
         booking={booking}
-        publicToken={statusToken || resolvePublicToken(ref, booking.publicToken)}
+        publicToken={statusToken || booking.publicToken || null}
         onStateChange={onBookingStateChange}
       />
       <ConfirmationStatusBlock state={booking.state} bookingRef={booking.ref} />
@@ -413,77 +399,6 @@ function CrossSell() {
       </Card>
     </section>
   );
-}
-
-/**
- * Reconstruct a Booking from the browser's ref-map + the in-flight draft
- * when the backend has no lookup endpoint (real-API mode).
- *
- * The funnel always lands here directly after a successful submit, so the
- * `sessionStorage` draft is still present and the ref-map entry was just
- * written by `liveSubmitBooking`. This fallback is essentially the same
- * Booking the user just created; we just don't have a server round-trip
- * to refetch it.
- */
-function resolvePublicToken(ref: string, fromBooking?: string): string | null {
-  if (fromBooking) return fromBooking;
-  if (typeof window === "undefined") return null;
-  return readRefMap(window.localStorage)[ref]?.publicToken ?? null;
-}
-
-function buildLocalFallbackBooking(
-  ref: string,
-  email: string,
-  draft: ReturnType<typeof useBookingDraft>["draft"],
-  vehicles: ReturnType<typeof useBookingCatalog>["vehicles"],
-): Booking | null {
-  if (typeof window === "undefined") return null;
-  const entry = readRefMap(window.localStorage)[ref];
-  if (!entry) return null;
-  if (email && entry.email && entry.email.toLowerCase() !== email.toLowerCase()) return null;
-  if (!draft || !draft.vehicle || !draft.driver || !draft.paymentMethod) return null;
-
-  const vehicle = vehicles.find((v) => v.id === draft.vehicle?.vehicleId);
-  if (!vehicle) return null;
-
-  return {
-    ref: entry.ref,
-    state:
-      draft.paymentMethod === "card" || draft.paymentMethod === "cash" ? "confirmed" : "pending",
-    createdAt: entry.createdAt,
-    pickup: draft.pickup,
-    return: draft.return,
-    vehicle: draft.vehicle,
-    vehicleSnapshot: {
-      id: vehicle.id,
-      slug: vehicle.slug,
-      make: vehicle.make,
-      model: vehicle.model,
-      year: vehicle.year,
-      category: vehicle.category,
-      images: vehicle.images,
-    },
-    extras: draft.extras,
-    protectionTierId: draft.protectionTierId ?? "pt-basic",
-    driver: draft.driver,
-    flightNumber: draft.flightNumber,
-    paymentMethod: draft.paymentMethod,
-    marketingConsent: draft.marketingConsent,
-    whatsappOptIn: draft.whatsappOptIn,
-    promoCode: draft.promoCode,
-    price: {
-      baseRateCents: 0,
-      extrasCents: 0,
-      protectionCents: 0,
-      taxesCents: 0,
-      feesCents: 0,
-      discountCents: 0,
-      totalCents: 0,
-      depositCents: 0,
-    },
-    currency: "USD",
-    publicToken: entry.publicToken,
-  } satisfies Booking;
 }
 
 function labelForMethod(

@@ -1,4 +1,4 @@
-import type { AddOn, CarWashPackage, ChauffeurItinerary, LongTermTier, ProtectionTier } from "@/types/domain";
+import type { AddOn, CarWashPackage, LongTermTier, ProtectionTier } from "@/types/domain";
 
 /** 11 add-ons across all 5 categories (matches 04_booking_flow.md step 2). */
 export const ADD_ONS: AddOn[] = [
@@ -295,35 +295,5 @@ export const CAR_WASH_PACKAGES: CarWashPackage[] = [
     priceCents: 5000,
     icon: "heart",
     popular: true,
-  },
-];
-
-/** Sample chauffeur itineraries. */
-export const CHAUFFEUR_ITINERARIES: ChauffeurItinerary[] = [
-  {
-    id: "itin-cedars",
-    name: "Cedars day trip",
-    durationHours: 8,
-    route: "Beirut → Cedars → Bcharre → Beirut",
-    fromCents: 32_000,
-    description:
-      "Drive up through Tannourine, lunch in Bcharre with a view over the Qadisha Valley, and return via the coastal road.",
-  },
-  {
-    id: "itin-baalbek",
-    name: "Baalbek & Anjar",
-    durationHours: 9,
-    route: "Beirut → Baalbek → Anjar → Beirut",
-    fromCents: 36_000,
-    description:
-      "The Roman temples at Baalbek and the Umayyad ruins at Anjar, with a Beqaa Valley winery stop on request.",
-  },
-  {
-    id: "itin-tyre",
-    name: "Tyre & Sidon",
-    durationHours: 8,
-    route: "Beirut → Sidon → Tyre → Beirut",
-    fromCents: 28_000,
-    description: "Phoenician ruins along the south coast, with seafood lunch in Tyre's old port.",
   },
 ];

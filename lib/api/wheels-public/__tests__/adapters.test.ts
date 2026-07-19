@@ -1,15 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
-  BOOKING_REF_MAP_STORAGE_KEY,
   fromBookingDraft,
   IncompleteBookingDraftError,
   MissingBackendVehicleIdError,
-  readRefMap,
   serializeAddonsAndProtectionAsNotes,
   synthesizeBookingRef,
   toInternalAvailableVehicles,
   toInternalBooking,
-  writeRefMap,
 } from "../adapters";
 import { BookingRequestPayloadSchema, BookingSuccessResponseSchema } from "../schemas";
 import { ADD_ONS, PROTECTION_TIERS } from "@/lib/api/mocks/fixtures/catalog";
@@ -309,57 +306,4 @@ describe("wheels-public/adapters", () => {
     });
   });
 
-  describe("ref map storage", () => {
-    it("reads empty when nothing stored", () => {
-      const storage = new MemoryStorage();
-      expect(readRefMap(storage)).toEqual({});
-    });
-
-    it("writes and reads an entry", () => {
-      const storage = new MemoryStorage();
-      writeRefMap(storage, {
-        ref: "WRC-260520-ABCD",
-        numericId: 1271,
-        bookingId: 1197,
-        publicToken: "pub_123",
-        email: "ada@example.com",
-        createdAt: "2026-05-20T00:00:00.000Z",
-      });
-      const all = readRefMap(storage);
-      expect(all["WRC-260520-ABCD"]).toMatchObject({
-        numericId: 1271,
-        bookingId: 1197,
-        publicToken: "pub_123",
-      });
-      expect(storage.store[BOOKING_REF_MAP_STORAGE_KEY]).toBeTruthy();
-    });
-
-    it("survives a corrupted blob by returning empty", () => {
-      const storage = new MemoryStorage();
-      storage.setItem(BOOKING_REF_MAP_STORAGE_KEY, "{not json}");
-      expect(readRefMap(storage)).toEqual({});
-    });
-  });
 });
-
-class MemoryStorage implements Storage {
-  public store: Record<string, string> = {};
-  get length() {
-    return Object.keys(this.store).length;
-  }
-  clear(): void {
-    this.store = {};
-  }
-  getItem(key: string): string | null {
-    return this.store[key] ?? null;
-  }
-  key(i: number): string | null {
-    return Object.keys(this.store)[i] ?? null;
-  }
-  removeItem(key: string): void {
-    delete this.store[key];
-  }
-  setItem(key: string, value: string): void {
-    this.store[key] = value;
-  }
-}
