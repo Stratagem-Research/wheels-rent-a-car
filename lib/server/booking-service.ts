@@ -26,7 +26,7 @@ import {
   listProtectionTiersFromDb,
 } from "@/lib/supabase/catalog-repository";
 import { listVehicleWizardMap } from "@/lib/supabase/admin-repository";
-import { addUserBooking } from "@/lib/supabase/user-bookings-repository";
+import { addUserBooking, claimGuestBookingsForUser, indexGuestBooking } from "@/lib/supabase/user-bookings-repository";
 import {
   createBookingRequest,
   fromBookingDraft,
@@ -309,6 +309,17 @@ export async function handleBookingSubmit(
         console.warn("[booking-submit] user_bookings link failed (non-fatal)", err);
       }
     }
+  }
+
+  try {
+    await indexGuestBooking({
+      email: draft.driver.email,
+      bookingReference: booking.ref,
+      publicToken: response.data.public_token,
+      wizardBookingId: response.data.booking_id,
+    });
+  } catch (err) {
+    console.error("[guest-booking-index] failed", err);
   }
   if (draft.paymentMethod === "cash") {
     await syncCashBookingToWizard(

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createRouteHandlerSupabaseClient } from "@/lib/supabase/route-handler";
 import { toDomainUser } from "@/lib/auth/map-user";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
+import { claimGuestBookingsAfterAuth } from "@/lib/server/claim-guest-bookings";
 
 const LoginSchema = z.object({
   email: z.string().email(),
@@ -21,6 +22,8 @@ export async function POST(request: Request) {
   if (error || !data.user) {
     return NextResponse.json({ message: "Invalid email or password." }, { status: 401 });
   }
+
+  await claimGuestBookingsAfterAuth(data.user.id, parsed.data.email);
 
   const response = NextResponse.json({ user: toDomainUser(data.user) });
   response.cookies.set(SESSION_COOKIE_NAME, data.user.id, {

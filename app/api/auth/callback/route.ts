@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createRouteHandlerSupabaseClient } from "@/lib/supabase/route-handler";
 import { getSiteUrl } from "@/lib/server/env";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
+import { claimGuestBookingsAfterAuth } from "@/lib/server/claim-guest-bookings";
 
 /**
  * Supabase auth callback.
@@ -49,6 +50,8 @@ export async function GET(request: NextRequest) {
     dest.searchParams.set("error", "exchange_failed");
     return NextResponse.redirect(dest);
   }
+
+  await claimGuestBookingsAfterAuth(data.user.id, data.user.email ?? "");
 
   const response = NextResponse.redirect(new URL(next, origin));
   response.cookies.set(SESSION_COOKIE_NAME, data.user.id, {

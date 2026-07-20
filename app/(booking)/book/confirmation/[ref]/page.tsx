@@ -6,22 +6,20 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import Image from "next/image";
 import { format, parseISO } from "date-fns";
-import { Calendar as CalendarIcon, Check, FileText, Phone, Edit3, X } from "lucide-react";
+import { Check } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Stepper } from "@/components/booking/Stepper";
 import { ConfirmationStatusBlock } from "@/components/booking/ConfirmationStatusBlock";
 import { BookingStatusPoller } from "@/components/booking/BookingStatusPoller";
+import { BookingSelfServiceActions } from "@/components/account/BookingSelfServiceActions";
 import { isValidBookingRef } from "@/lib/booking/ref";
-import { bookingToIcs, downloadIcs } from "@/lib/booking/calendar";
-import { whatsAppHref } from "@/lib/whatsapp";
 import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
 import { formatUsd } from "@/lib/booking/pricing";
 import { clearBookingDraft } from "@/hooks/useBookingDraft";
 import { useBookingCatalog } from "@/hooks/useBookingCatalog";
-import { toast } from "@/components/ui/Toast";
 import type { Booking, BookingState } from "@/types/domain";
 
 /**
@@ -32,8 +30,8 @@ import type { Booking, BookingState } from "@/types/domain";
  *   - Clears the booking draft (the funnel state is no longer needed).
  *   - Renders ConfirmationStatusBlock + summary + actions + cross-sell.
  *
- * Modify / Cancel land in Sprint 7 (account module). Here they trigger
- * placeholder toasts so the buttons are visible end-to-end.
+ * Self-service actions (modify/cancel/calendar/invoice) reuse
+ * BookingSelfServiceActions shared with manage-booking and account detail.
  */
 export default function ConfirmationPage() {
   const t = useTranslations("bookingFlow.confirmation");
@@ -110,15 +108,6 @@ export default function ConfirmationPage() {
   const returnBranch = BRANCHES.find((b) => b.id === booking.return.locationId);
   const tier = PROTECTION_TIERS.find((t) => t.id === booking.protectionTierId);
   const heroImage = booking.vehicleSnapshot.images[0];
-
-  const onAddToCalendar = () => {
-    const ics = bookingToIcs(
-      booking,
-      pickupBranch?.name ?? booking.pickup.address ?? "Wheels Rent A Car",
-      returnBranch?.name ?? booking.return.address ?? pickupBranch?.name ?? "Wheels Rent A Car",
-    );
-    downloadIcs(ics, `wheels-${booking.ref}.ics`);
-  };
 
   return (
     <>
@@ -210,7 +199,7 @@ export default function ConfirmationPage() {
 
           <aside className="flex flex-col gap-5">
             <Card variant="elevated" className="flex flex-col gap-3">
-              <div>
+              <div id="booking-payment">
                 <span className="text-ink-50 overline">{t("total")}</span>
                 <div className="price-lg text-ink-95">{formatUsd(booking.price.totalCents)}</div>
                 <div className="body-sm text-ink-60">
@@ -228,50 +217,12 @@ export default function ConfirmationPage() {
                   <div className="label-sm text-ink-50">{t("refundableOnReturn")}</div>
                 </div>
               ) : null}
-              <div className="mt-2 flex flex-col gap-2">
-                <Button variant="primary" size="md" onClick={onAddToCalendar}>
-                  <CalendarIcon className="size-4" aria-hidden="true" /> {t("addToCalendar")}
-                </Button>
-                <Button asChild variant="secondary" size="md">
-                  <a href={`/manage-booking?ref=${booking.ref}`}>
-                    <FileText className="size-4" aria-hidden="true" /> {t("viewInvoice")}
-                  </a>
-                </Button>
-              </div>
-              <hr className="border-border" />
-              <div className="flex flex-col gap-2">
-                <span className="label-md text-ink-60">{t("needChange")}</span>
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <Button
-                    variant="tertiary"
-                    size="sm"
-                    onClick={() => toast.info(t("modifyToast"))}
-                  >
-                    <Edit3 className="size-4" aria-hidden="true" /> {t("modify")}
-                  </Button>
-                  <Button
-                    variant="tertiary"
-                    size="sm"
-                    onClick={() => toast.info(t("cancelToast"))}
-                  >
-                    <X className="size-4" aria-hidden="true" /> {t("cancel")}
-                  </Button>
-                </div>
-              </div>
             </Card>
-
-            <Card variant="outline" className="flex flex-col gap-2 p-5">
-              <span className="label-md text-ink-60">{t("preferChat")}</span>
-              <Button asChild variant="whatsapp" size="md">
-                <a
-                  href={whatsAppHref("confirmation", { ref: booking.ref })}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Phone className="size-4" aria-hidden="true" /> {t("whatsappUs")}
-                </a>
-              </Button>
-            </Card>
+            <BookingSelfServiceActions
+              booking={booking}
+              context="confirmation"
+              showCard={false}
+            />
           </aside>
         </div>
 

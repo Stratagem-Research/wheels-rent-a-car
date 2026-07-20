@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
-import { ErrorText, Field, HelperText } from "@/components/ui/FormAtoms";
+import { ErrorText, Field } from "@/components/ui/FormAtoms";
 import { Input } from "@/components/ui/Input";
 import { BOOKING_REF_PATTERN } from "@/lib/booking/ref";
 import { api, ApiError } from "@/lib/api/client";
@@ -113,7 +113,7 @@ export function BookingLookupForm({
       <Field
         label={t("referenceLabel")}
         required
-        helper={<HelperText className="text-ink-50">{t("referenceHelper")}</HelperText>}
+        helper={t("referenceHelper")}
       >
         {({ id, describedBy, invalid }) => (
           <Input

@@ -165,3 +165,45 @@ export async function userOwnsBooking(
   if (error) throw error;
   return Boolean(data);
 }
+
+export async function indexGuestBooking(input: {
+  email: string;
+  bookingReference: string;
+  publicToken?: string | null;
+  wizardBookingId?: number | null;
+}): Promise<void> {
+  const supabase = getSupabaseAdminClient();
+  const { error } = await supabase.from("guest_booking_index").upsert(
+    {
+      email: input.email.trim().toLowerCase(),
+      booking_reference: input.bookingReference,
+      public_token: input.publicToken ?? null,
+      wizard_booking_id: input.wizardBookingId ?? null,
+    },
+    { onConflict: "email,booking_reference", ignoreDuplicates: false },
+  );
+  if (error) throw error;
+}
+
+export async function claimGuestBookingsForUser(userId: string, email: string): Promise<number> {
+  const supabase = getSupabaseAdminClient();
+  const normalizedEmail = email.trim().toLowerCase();
+  const { data, error } = await supabase
+    .from("guest_booking_index")
+    .select("booking_reference, public_token, wizard_booking_id")
+    .eq("email", normalizedEmail);
+  if (error) throw error;
+  if (!data?.length) return 0;
+
+  for (const row of data) {
+    await addUserBooking({
+      userId,
+      bookingReference: row.booking_reference as string,
+      publicToken: (row.public_token as string | null) ?? null,
+      wizardBookingId: (row.wizard_booking_id as number | null) ?? null,
+      customerEmail: normalizedEmail,
+    });
+  }
+
+  return data.length;
+}

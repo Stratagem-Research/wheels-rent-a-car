@@ -115,7 +115,7 @@ export function BookingDetailPanel({ booking }: { booking: Booking }) {
 
       <hr className="border-border" />
 
-      <div className="flex items-baseline justify-between">
+      <div id="booking-payment" className="flex items-baseline justify-between scroll-mt-24">
         <span className="headline-xs text-ink-100">{tDetail("total")}</span>
         <span className="price-lg text-ink-100">{formatUsd(booking.price.totalCents)}</span>
       </div>

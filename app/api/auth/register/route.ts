@@ -4,6 +4,7 @@ import { createRouteHandlerSupabaseClient } from "@/lib/supabase/route-handler";
 import { toDomainUser } from "@/lib/auth/map-user";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { getSiteUrl } from "@/lib/server/env";
+import { claimGuestBookingsAfterAuth } from "@/lib/server/claim-guest-bookings";
 
 const RegisterSchema = z.object({
   firstName: z.string().min(1),
@@ -51,6 +52,7 @@ export async function POST(request: Request) {
     requiresEmailConfirmation,
   });
   if (data.session) {
+    await claimGuestBookingsAfterAuth(data.user.id, parsed.data.email);
     response.cookies.set(SESSION_COOKIE_NAME, data.user.id, {
       httpOnly: true,
       sameSite: "lax",

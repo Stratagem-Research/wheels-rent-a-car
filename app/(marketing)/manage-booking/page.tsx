@@ -8,15 +8,13 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { BookingLookupForm } from "@/components/account/BookingLookupForm";
 import { BookingDetailPanel } from "@/components/account/BookingDetailPanel";
+import { BookingSelfServiceActions } from "@/components/account/BookingSelfServiceActions";
 import { useSession } from "@/hooks/useSession";
 import { whatsAppHref } from "@/lib/whatsapp";
 import type { Booking } from "@/types/domain";
 
 /**
  * /manage-booking — guest booking lookup per 13_manage_booking.md.
- *
- * Phase 9 repaint: inverse hero with display-xl, paper-canvas lookup card,
- * single red CTA on the lookup form submit.
  *
  * Signed-in users redirect to /account/bookings (the account UI is richer
  * with the full bookings list + filters).
@@ -28,7 +26,6 @@ export default function ManageBookingPage() {
   const { session, ready } = useSession();
   const [booking, setBooking] = React.useState<Booking | null>(null);
 
-  // Redirect signed-in users to the account flow once we know they're in.
   React.useEffect(() => {
     if (!ready) return;
     if (session) router.replace("/account/bookings");
@@ -51,10 +48,19 @@ export default function ManageBookingPage() {
       </header>
 
       <section className="bg-paper">
-        <div className="mx-auto max-w-2xl px-5 py-16 sm:px-10 lg:py-20">
+        <div
+          className={
+            booking
+              ? "mx-auto max-w-[var(--container-full)] px-5 py-16 sm:px-10 lg:py-20"
+              : "mx-auto max-w-2xl px-5 py-16 sm:px-10 lg:py-20"
+          }
+        >
           {booking ? (
             <div className="flex flex-col gap-6">
-              <BookingDetailPanel booking={booking} />
+              <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+                <BookingDetailPanel booking={booking} />
+                <BookingSelfServiceActions booking={booking} context="guest" />
+              </div>
               <AccountUpsell email={booking.driver.email} />
             </div>
           ) : (

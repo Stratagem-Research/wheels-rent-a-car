@@ -6,6 +6,7 @@ import { appendBookingState, recordPaymentEvent } from "@/lib/server/payment-eve
 
 const CreateWhishPaymentSchema = z.object({
   bookingReference: z.string().min(1),
+  customerEmail: z.string().email(),
   amount: z.number().positive(),
   currency: z.enum(["USD", "LBP", "AED"]).default("USD"),
   invoice: z.string().min(1),
@@ -39,7 +40,7 @@ export async function POST(request: Request) {
     externalId,
     successCallbackUrl: `${env.WEBSITE_URL}/api/payments/whish/callback/success`,
     failureCallbackUrl: `${env.WEBSITE_URL}/api/payments/whish/callback/failure`,
-    successRedirectUrl: `${env.WEBSITE_URL}/book/confirmation/${encodeURIComponent(parsed.data.bookingReference)}`,
+    successRedirectUrl: `${env.WEBSITE_URL}/book/confirmation/${encodeURIComponent(parsed.data.bookingReference)}?email=${encodeURIComponent(parsed.data.customerEmail)}`,
     failureRedirectUrl: `${env.WEBSITE_URL}/book/checkout?payment=failed`,
   });
 

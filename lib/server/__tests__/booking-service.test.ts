@@ -71,9 +71,10 @@ vi.mock("@/lib/server/payment-events", () => ({
 
 vi.mock("@/lib/supabase/user-bookings-repository", () => ({
   addUserBooking: vi.fn().mockResolvedValue(undefined),
+  indexGuestBooking: vi.fn().mockResolvedValue(undefined),
 }));
 
-import { addUserBooking } from "@/lib/supabase/user-bookings-repository";
+import { addUserBooking, indexGuestBooking } from "@/lib/supabase/user-bookings-repository";
 import { handleBookingSubmit, VehicleUnavailableError } from "../booking-service";
 
 const mockAddUserBooking = vi.mocked(addUserBooking);
@@ -141,6 +142,25 @@ describe("booking-service handleBookingSubmit", () => {
       endDateTime: "2026-07-24 10:00",
     });
     expect(mockCreateBookingRequest).toHaveBeenCalled();
+    expect(indexGuestBooking).toHaveBeenCalledWith({
+      email: "test@example.com",
+      bookingReference: "WRC-260721-TEST",
+      publicToken: "tok",
+      wizardBookingId: 1,
+    });
+    expect(addUserBooking).not.toHaveBeenCalled();
+  });
+
+  it("links booking to user when userId is provided", async () => {
+    await handleBookingSubmit({ draft: completeDraft() }, { userId: "user-abc" });
+    expect(addUserBooking).toHaveBeenCalledWith({
+      userId: "user-abc",
+      bookingReference: "WRC-260721-TEST",
+      publicToken: "tok",
+      wizardBookingId: 1,
+      customerEmail: "test@example.com",
+    });
+    expect(indexGuestBooking).toHaveBeenCalled();
   });
 
   it("still returns booking when user_bookings link fails (logged-in user)", async () => {

@@ -257,6 +257,7 @@ export default function CheckoutPage() {
           endpoints.paymentsWhishCreate,
           {
             bookingReference: response.booking.ref,
+            customerEmail: completeDraft.driver.email,
             amount: Number((price.totalCents / 100).toFixed(2)),
             currency: "USD",
             invoice: `Wheels booking ${response.booking.ref}`,
