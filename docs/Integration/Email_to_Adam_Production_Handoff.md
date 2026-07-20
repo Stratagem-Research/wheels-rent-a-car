@@ -54,12 +54,14 @@ Please also confirm whether Wizard sends any customer-facing booking confirmatio
 
 ## 4. Payments
 
-We support **cash, bank transfer, and OMT** for a payment-deferred launch. For online payments:
+We support **cash, bank transfer, and OMT** for a payment-deferred launch (no online checkout required at go-live).
 
-- **Whish** — we need merchant credentials (`WHISH_CHANNEL`, `WHISH_SECRET`) when ready
-- **Bank Audi NEO** — the team is evaluating this as a card/online payment option. Is NEO the preferred online method for launch? Do you have NEO merchant/API credentials, or should we coordinate directly with Bank Audi?
+For **online/card payments**, Elie mentioned **Bank Audi NEO** — we want to confirm what you want us to integrate on the website:
 
-Please confirm whether Whish, NEO, or both should be live at launch.
+- **Whish** — we already have the checkout/callback flow built; we just need merchant credentials (`WHISH_CHANNEL`, `WHISH_SECRET`) when ready
+- **Bank Audi NEO** — is this the online payment gateway you want for card checkout? If so, do you have NEO merchant/API credentials we should use, or should we coordinate directly with Bank Audi to set up the integration?
+
+Please confirm which online method(s) should be live at launch — Whish, NEO, both, or online payments deferred until credentials are ready.
 
 Happy to jump on a short call if easier.
 
