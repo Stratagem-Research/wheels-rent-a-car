@@ -12,12 +12,12 @@ import {
   ModalDescription,
   ModalFooter,
   ModalTitle,
-  ModalTrigger,
 } from "@/components/ui/Modal";
 import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { toast } from "@/components/ui/Toast";
 import { DocumentVaultCard } from "@/components/account/DocumentVaultCard";
+import { DocumentScanPreview } from "@/components/account/DocumentScanPreview";
 import { useSession } from "@/hooks/useSession";
 import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
@@ -30,6 +30,8 @@ const COUNTRIES = [
   { code: "FR", name: "France" },
   { code: "DE", name: "Germany" },
 ];
+
+type ModalMode = "upload" | "edit" | "replace";
 
 export default function DocumentsPage() {
   const t = useTranslations("accountDocuments");
@@ -63,12 +65,20 @@ export default function DocumentsPage() {
   const licence = docs.find((d) => d.type === "licence") ?? null;
   const id = docs.find((d) => d.type === "id" || d.type === "passport") ?? null;
 
-  const onSaveDoc = async (saved: UserDocument) => {
+  const onSaveDoc = (saved: UserDocument) => {
     setDocs((curr) => {
-      const others = (curr ?? []).filter((d) => d.type !== saved.type);
-      return [...others, saved];
+      const withoutSlot =
+        saved.type === "licence"
+          ? (curr ?? []).filter((d) => d.type !== "licence")
+          : (curr ?? []).filter((d) => d.type !== "id" && d.type !== "passport");
+      return [...withoutSlot, saved];
     });
     toast.success(t("documentSaved"));
+  };
+
+  const onDeleteDoc = (deleted: UserDocument) => {
+    setDocs((curr) => (curr ?? []).filter((d) => d.id !== deleted.id));
+    toast.success(t("documentDeleted"));
   };
 
   return (
@@ -78,49 +88,134 @@ export default function DocumentsPage() {
         <p className="body-md text-ink-60 mt-1">{t("subtitle")}</p>
       </header>
 
-      <section aria-labelledby="dv-licence" className="flex flex-col gap-3">
-        <h2 id="dv-licence" className="text-ink-50 overline">
-          {t("licenceSection")}
-        </h2>
-        <DocumentVaultCard
-          title={t("licenceCardTitle")}
-          document={licence}
-          onReplace={() => {
-            // Modal is mounted unconditionally below via the trigger.
-          }}
-        />
-        <UploadDocumentModal docType="licence" existing={licence} onSave={onSaveDoc}>
-          <Button variant="secondary" size="sm" className="self-start">
-            {licence ? t("replaceLicence") : t("uploadLicence")}
-          </Button>
-        </UploadDocumentModal>
-      </section>
+      <DocumentSection
+        docType="licence"
+        title={t("licenceCardTitle")}
+        sectionLabel={t("licenceSection")}
+        sectionId="dv-licence"
+        uploadLabel={t("uploadLicence")}
+        document={licence}
+        onSave={onSaveDoc}
+        onDelete={onDeleteDoc}
+      />
 
-      <section aria-labelledby="dv-id" className="flex flex-col gap-3">
-        <h2 id="dv-id" className="text-ink-50 overline">
-          {t("idSection")}
-        </h2>
-        <DocumentVaultCard title={t("idCardTitle")} document={id} />
-        <UploadDocumentModal docType="id" existing={id} onSave={onSaveDoc}>
-          <Button variant="secondary" size="sm" className="self-start">
-            {id ? t("replaceId") : t("uploadId")}
-          </Button>
-        </UploadDocumentModal>
-      </section>
+      <DocumentSection
+        docType="id"
+        title={t("idCardTitle")}
+        sectionLabel={t("idSection")}
+        sectionId="dv-id"
+        uploadLabel={t("uploadId")}
+        document={id}
+        onSave={onSaveDoc}
+        onDelete={onDeleteDoc}
+      />
     </div>
   );
 }
 
+function DocumentSection({
+  docType,
+  title,
+  sectionLabel,
+  sectionId,
+  uploadLabel,
+  document,
+  onSave,
+  onDelete,
+}: {
+  docType: DocumentType;
+  title: string;
+  sectionLabel: string;
+  sectionId: string;
+  uploadLabel: string;
+  document: UserDocument | null;
+  onSave: (saved: UserDocument) => void;
+  onDelete: (deleted: UserDocument) => void;
+}) {
+  const t = useTranslations("accountDocuments");
+  const [modalOpen, setModalOpen] = React.useState(false);
+  const [mode, setMode] = React.useState<ModalMode>("upload");
+  const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const [deleting, setDeleting] = React.useState(false);
+
+  const openModal = (next: ModalMode) => {
+    setMode(next);
+    setModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!document) return;
+    setDeleting(true);
+    try {
+      await api.delete(endpoints.accountDocumentById(document.id));
+      onDelete(document);
+      setDeleteOpen(false);
+    } catch {
+      toast.error(t("deleteFailed"));
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <section aria-labelledby={sectionId} className="flex flex-col gap-3">
+      <h2 id={sectionId} className="text-ink-50 overline">
+        {sectionLabel}
+      </h2>
+      <DocumentVaultCard
+        title={title}
+        document={document}
+        onEdit={() => openModal("edit")}
+        onReplace={() => openModal("replace")}
+        onDelete={() => setDeleteOpen(true)}
+      />
+      {!document ? (
+        <Button variant="secondary" size="sm" className="self-start" onClick={() => openModal("upload")}>
+          {uploadLabel}
+        </Button>
+      ) : null}
+
+      <UploadDocumentModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        mode={mode}
+        docType={docType}
+        existing={document}
+        onSave={onSave}
+      />
+
+      <Modal open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <ModalContent size="sm">
+          <ModalTitle>{t("deleteTitle")}</ModalTitle>
+          <ModalDescription>{t("deleteDescription")}</ModalDescription>
+          <ModalFooter>
+            <Button variant="secondary" onClick={() => setDeleteOpen(false)}>
+              {t("cancel")}
+            </Button>
+            <Button variant="cta" loading={deleting} onClick={confirmDelete}>
+              {t("delete")}
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </section>
+  );
+}
+
 function UploadDocumentModal({
+  open,
+  onOpenChange,
+  mode,
   docType,
   existing,
   onSave,
-  children,
 }: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  mode: ModalMode;
   docType: DocumentType;
   existing: UserDocument | null;
   onSave: (saved: UserDocument) => void;
-  children: React.ReactNode;
 }) {
   const t = useTranslations("accountDocuments");
   const { session } = useSession();
@@ -131,8 +226,26 @@ function UploadDocumentModal({
   const [country, setCountry] = React.useState(existing?.issuingCountry ?? "LB");
   const [saving, setSaving] = React.useState(false);
 
+  React.useEffect(() => {
+    if (!open) return;
+    setFile(null);
+    setNumber(existing?.number ?? "");
+    setIssueDate(existing?.issueDate ?? "");
+    setExpiryDate(existing?.expiryDate ?? "");
+    setCountry(existing?.issuingCountry ?? "LB");
+  }, [open, existing]);
+
+  const title =
+    mode === "edit" ? t("editDocument") : mode === "replace" ? t("replaceDocument") : t("uploadDocument");
+  const showFile = mode !== "edit";
+  const requireFile = mode === "replace" || mode === "upload";
+
   const onSubmit = async () => {
     if (!session?.user.id) return;
+    if (requireFile && !file) {
+      toast.error(t("fileRequired"));
+      return;
+    }
     setSaving(true);
     try {
       const form = new FormData();
@@ -151,6 +264,7 @@ function UploadDocumentModal({
       if (!res.ok) throw new Error("Save failed");
       const saved = (await res.json()) as UserDocument;
       onSave(saved);
+      onOpenChange(false);
     } catch {
       toast.error(t("saveFailed"));
     } finally {
@@ -159,20 +273,33 @@ function UploadDocumentModal({
   };
 
   return (
-    <Modal>
-      <ModalTrigger asChild>{children}</ModalTrigger>
+    <Modal open={open} onOpenChange={onOpenChange}>
       <ModalContent size="sm">
-        <ModalTitle>{existing ? t("replaceDocument") : t("uploadDocument")}</ModalTitle>
-        <ModalDescription>{t("uploadDescription")}</ModalDescription>
+        <ModalTitle>{title}</ModalTitle>
+        <ModalDescription>
+          {mode === "edit" ? t("editDescription") : t("uploadDescription")}
+        </ModalDescription>
         <div className="mt-4 flex flex-col gap-3">
-          <FileUpload
-            label={t("dragOrBrowse")}
-            accept=".pdf,.jpg,.jpeg,.png"
-            maxSizeBytes={5 * 1024 * 1024}
-            files={file ? [file] : []}
-            onFilesChange={(files) => setFile(files[0] ?? null)}
-            onFileRemove={() => setFile(null)}
-          />
+          {mode === "replace" && existing?.scanUrl ? (
+            <div className="flex flex-col gap-2">
+              <p className="label-md text-ink-80">{t("currentScan")}</p>
+              <DocumentScanPreview
+                scanUrl={existing.scanUrl}
+                alt={t("scanAlt", { title: t("currentScan") })}
+                size="lg"
+              />
+            </div>
+          ) : null}
+          {showFile ? (
+            <FileUpload
+              label={t("dragOrBrowse")}
+              accept=".pdf,.jpg,.jpeg,.png"
+              maxSizeBytes={5 * 1024 * 1024}
+              files={file ? [file] : []}
+              onFilesChange={(files) => setFile(files[0] ?? null)}
+              onFileRemove={() => setFile(null)}
+            />
+          ) : null}
           <div className="grid grid-cols-2 gap-3">
             <Field label={t("documentNumber")} required>
               {({ id }) => (
@@ -213,11 +340,13 @@ function UploadDocumentModal({
           </div>
         </div>
         <ModalFooter>
-          <Button variant="secondary">{t("cancel")}</Button>
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+            {t("cancel")}
+          </Button>
           <Button
             variant="primary"
             loading={saving}
-            disabled={!number || !issueDate || !expiryDate || saving}
+            disabled={!number || !issueDate || !expiryDate || saving || (requireFile && !file)}
             onClick={onSubmit}
           >
             {t("saveDocument")}

@@ -6,11 +6,17 @@ import {
   handleBookingChangeRequest,
 } from "@/lib/server/booking-service";
 
-const ChangeRequestSchema = z.object({
-  email: z.string().email(),
-  requestedPickupDatetime: z.string().min(1),
-  note: z.string().max(500).optional(),
-});
+const ChangeRequestSchema = z
+  .object({
+    email: z.string().email(),
+    requestedPickupDatetime: z.string().min(1),
+    requestedReturnDatetime: z.string().min(1),
+    note: z.string().max(500).optional(),
+  })
+  .refine((data) => data.requestedReturnDatetime > data.requestedPickupDatetime, {
+    message: "Return must be after pickup.",
+    path: ["requestedReturnDatetime"],
+  });
 
 /**
  * Customer modification request. Auth is ref + matching email (verified via
@@ -31,6 +37,7 @@ export async function POST(request: Request, context: { params: Promise<{ ref: s
       ref,
       email: parsed.data.email,
       requestedPickupDatetime: parsed.data.requestedPickupDatetime,
+      requestedReturnDatetime: parsed.data.requestedReturnDatetime,
       note: parsed.data.note,
     });
     return NextResponse.json(result);

@@ -2,24 +2,14 @@
 
 import { FileText, Pencil, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { Badge } from "@/components/ui/Badge";
+import { DocumentScanPreview } from "@/components/account/DocumentScanPreview";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import type { DocumentStatus, UserDocument } from "@/types/domain";
+import type { UserDocument } from "@/types/domain";
 
 /**
  * Document vault card per 12_account.md.
  */
-
-const STATUS_BADGE: Record<
-  DocumentStatus,
-  { labelKey: string; variant: React.ComponentProps<typeof Badge>["variant"] }
-> = {
-  pending: { labelKey: "pendingReview", variant: "pending" },
-  verified: { labelKey: "verified", variant: "new" },
-  expired: { labelKey: "expired", variant: "bestDeal" },
-  rejected: { labelKey: "rejected", variant: "bestDeal" },
-};
 
 export interface DocumentVaultCardProps {
   title: string;
@@ -45,30 +35,36 @@ export function DocumentVaultCard({
           <h3 className="headline-xs text-ink-95">{title}</h3>
           <p className="body-sm text-ink-60">{t("noDocument")}</p>
         </div>
-        <Button variant="primary" size="sm" onClick={onReplace}>
-          {t("upload")} {title.toLowerCase()}
-        </Button>
       </Card>
     );
   }
 
-  const badge = STATUS_BADGE[document.status];
-
   return (
     <Card variant="default" className="flex flex-col gap-3 p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
+      <div className="flex items-start gap-4">
+        {document.scanUrl ? (
+          <DocumentScanPreview
+            scanUrl={document.scanUrl}
+            alt={t("scanAlt", { title })}
+            size="sm"
+            className="shrink-0"
+          />
+        ) : (
+          <div
+            className="border-border bg-ink-10 text-ink-50 flex h-16 w-24 shrink-0 items-center justify-center rounded-lg border"
+            aria-hidden="true"
+          >
+            <FileText className="size-6" />
+          </div>
+        )}
+        <div className="min-w-0 flex-1">
           <h3 className="headline-xs text-ink-95">{title}</h3>
           <p className="mono-md text-ink-60">{document.number}</p>
+          <p className="body-sm text-ink-60 mt-2">
+            {t("issued")} {formatDate(document.issueDate, locale)} · {t("expires")}{" "}
+            {formatDate(document.expiryDate, locale)}
+          </p>
         </div>
-        <Badge variant={badge.variant}>{t(badge.labelKey)}</Badge>
-      </div>
-      <div className="body-sm text-ink-60 flex items-center gap-3">
-        <FileText className="size-4" aria-hidden="true" />
-        <span>
-          {t("issued")} {formatDate(document.issueDate, locale)} · {t("expires")}{" "}
-          {formatDate(document.expiryDate, locale)}
-        </span>
       </div>
       <div className="flex flex-wrap gap-2">
         <Button variant="tertiary" size="sm" onClick={onEdit}>

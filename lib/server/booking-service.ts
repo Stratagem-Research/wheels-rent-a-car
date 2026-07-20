@@ -420,6 +420,7 @@ export async function handleBookingChangeRequest(body: {
   ref: string;
   email: string;
   requestedPickupDatetime: string;
+  requestedReturnDatetime: string;
   note?: string;
 }): Promise<{ requested: true }> {
   const booking = await handleBookingLookup({ ref: body.ref, email: body.email });
@@ -431,7 +432,7 @@ export async function handleBookingChangeRequest(body: {
   try {
     await dispatchWizardSync(body.ref, {
       lifecycleState: "change_requested",
-      message: `Customer requested a booking change via website. Requested pickup: ${body.requestedPickupDatetime}.${body.note ? ` Note: ${body.note}` : ""}`,
+      message: `Customer requested a booking change via website. Requested pickup: ${body.requestedPickupDatetime}; requested return: ${body.requestedReturnDatetime}.${body.note ? ` Note: ${body.note}` : ""}`,
     });
   } catch (err) {
     throw new ChangeRequestSyncError(err);
@@ -441,6 +442,7 @@ export async function handleBookingChangeRequest(body: {
     source: "customer",
     email: body.email,
     requestedPickupDatetime: body.requestedPickupDatetime,
+    requestedReturnDatetime: body.requestedReturnDatetime,
     note: body.note,
   }).catch(() => undefined);
   await enqueueNotification({
@@ -451,7 +453,9 @@ export async function handleBookingChangeRequest(body: {
     payload: {
       ref: body.ref,
       currentPickupDatetime: booking.pickup.datetime,
+      currentReturnDatetime: booking.return.datetime,
       requestedPickupDatetime: body.requestedPickupDatetime,
+      requestedReturnDatetime: body.requestedReturnDatetime,
       vehicle: `${booking.vehicleSnapshot.make} ${booking.vehicleSnapshot.model}`,
     },
   }).catch(() => undefined);

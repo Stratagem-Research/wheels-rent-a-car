@@ -46,17 +46,27 @@ export function ModifyBookingModal({
   const router = useRouter();
   const [pickupDate, setPickupDate] = React.useState(booking.pickup.datetime.slice(0, 10));
   const [pickupTime, setPickupTime] = React.useState(booking.pickup.datetime.slice(11, 16));
+  const [returnDate, setReturnDate] = React.useState(booking.return.datetime.slice(0, 10));
+  const [returnTime, setReturnTime] = React.useState(booking.return.datetime.slice(11, 16));
   const [step, setStep] = React.useState<"form" | "done">("form");
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
   const onConfirm = async () => {
+    const requestedPickupDatetime = `${pickupDate}T${pickupTime}`;
+    const requestedReturnDatetime = `${returnDate}T${returnTime}`;
+    if (requestedReturnDatetime <= requestedPickupDatetime) {
+      setError(t("returnAfterPickup"));
+      return;
+    }
+
     setSubmitting(true);
     setError(null);
     try {
       await api.post(endpoints.bookingChange(booking.ref), {
         email: booking.driver.email,
-        requestedPickupDatetime: `${pickupDate}T${pickupTime}:00.000Z`,
+        requestedPickupDatetime,
+        requestedReturnDatetime,
       });
       track(EVENTS.BOOKING_MODIFIED, { ref: booking.ref });
       toast.success(t("requestedToast"));
@@ -77,19 +87,37 @@ export function ModifyBookingModal({
           <>
             <ModalTitle>{t("title")}</ModalTitle>
             <ModalDescription>{t("description")}</ModalDescription>
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <Input
-                type="date"
-                value={pickupDate}
-                onChange={(e) => setPickupDate(e.target.value)}
-                aria-label={t("newPickupDateAria")}
-              />
-              <Input
-                type="time"
-                value={pickupTime}
-                onChange={(e) => setPickupTime(e.target.value)}
-                aria-label={t("newPickupTimeAria")}
-              />
+            <div className="mt-4 flex flex-col gap-4">
+              <fieldset className="grid grid-cols-2 gap-3">
+                <legend className="label-md text-ink-80 mb-2">{t("pickupLegend")}</legend>
+                <Input
+                  type="date"
+                  value={pickupDate}
+                  onChange={(e) => setPickupDate(e.target.value)}
+                  aria-label={t("newPickupDateAria")}
+                />
+                <Input
+                  type="time"
+                  value={pickupTime}
+                  onChange={(e) => setPickupTime(e.target.value)}
+                  aria-label={t("newPickupTimeAria")}
+                />
+              </fieldset>
+              <fieldset className="grid grid-cols-2 gap-3">
+                <legend className="label-md text-ink-80 mb-2">{t("returnLegend")}</legend>
+                <Input
+                  type="date"
+                  value={returnDate}
+                  onChange={(e) => setReturnDate(e.target.value)}
+                  aria-label={t("newReturnDateAria")}
+                />
+                <Input
+                  type="time"
+                  value={returnTime}
+                  onChange={(e) => setReturnTime(e.target.value)}
+                  aria-label={t("newReturnTimeAria")}
+                />
+              </fieldset>
             </div>
             {error ? <ErrorText className="mt-3">{error}</ErrorText> : null}
             <ModalFooter>
