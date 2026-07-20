@@ -32,6 +32,7 @@ import {
   getAvailability,
   getBookingByReferenceEmail,
   getBookingStatusByToken,
+  getVehicleAvailability,
   toInternalAvailableVehicles,
   toInternalBooking,
   VehicleUnavailableError,
@@ -183,6 +184,41 @@ export async function handleBookingSubmit(
     rateTotalCents: price.totalCents,
     promoDiscountCents: price.discountCents,
   });
+
+  const startBackend = payload.start_date_time;
+  const endBackend = payload.end_date_time;
+
+  const vehicleAvail = await getVehicleAvailability(numericId, {
+    startDateTime: startBackend,
+    endDateTime: endBackend,
+  });
+  if (!vehicleAvail.data.is_available) {
+    if (process.env.NODE_ENV !== "production") {
+      console.info("[booking-submit] pre-check failed", {
+        vehicle_id: numericId,
+        start_date_time: startBackend,
+        end_date_time: endBackend,
+        pickup_address: payload.pickup_address,
+        drop_off_address: payload.drop_off_address,
+        unavailable_reason: vehicleAvail.data.unavailable_reason,
+      });
+    }
+    throw new VehicleUnavailableError("pre-submit-availability-check", {
+      message: "Vehicle is not available for this period.",
+      unavailable_reason: vehicleAvail.data.unavailable_reason,
+    });
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    console.info("[booking-submit] pre-check passed", {
+      vehicle_id: numericId,
+      start_date_time: startBackend,
+      end_date_time: endBackend,
+      pickup_address: payload.pickup_address,
+      drop_off_address: payload.drop_off_address,
+    });
+  }
+
   const response = await createBookingRequest(payload);
   const booking = toInternalBooking(response.data, {
     draft,

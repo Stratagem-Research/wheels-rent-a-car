@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { Stepper } from "@/components/booking/Stepper";
 import { AddOnRow } from "@/components/booking/AddOnRow";
 import { FlowSummaryPanel } from "@/components/booking/FlowSummaryPanel";
-import { useBookingDraft } from "@/hooks/useBookingDraft";
+import { useBookingDraft, seedDraftFromSearchParams } from "@/hooks/useBookingDraft";
 import { useBookingCatalog } from "@/hooks/useBookingCatalog";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
@@ -45,7 +45,7 @@ export default function ExtrasPage() {
   const t = useTranslations("bookingFlow");
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { draft, setVehicle, upsertExtra, ready } = useBookingDraft();
+  const { draft, setVehicle, upsertExtra, ready, setDraft } = useBookingDraft();
   const {
     addOns: ADD_ONS,
     protectionTiers: PROTECTION_TIERS,
@@ -61,6 +61,19 @@ export default function ExtrasPage() {
     firedView.current = true;
     track(EVENTS.EXTRAS_VIEWED);
   }, [ready, draft]);
+
+  // Re-seed pickup/return from URL when the user landed with search params but
+  // an older sessionStorage draft (e.g. skipped /vehicles client sync).
+  React.useEffect(() => {
+    if (!ready || !searchParams.get("pickupAt") || !searchParams.get("returnAt")) return;
+    const seeded = seedDraftFromSearchParams(searchParams);
+    setDraft((prev) => ({
+      ...prev,
+      pickup: { ...prev.pickup, ...seeded.pickup },
+      return: { ...prev.return, ...seeded.return },
+      promoCode: seeded.promoCode ?? prev.promoCode,
+    }));
+  }, [ready, searchParams, setDraft]);
 
   // Prefer draft.vehicle; if missing, re-seed from ?vehicleId= (Next navigation
   // can outrun a prior setVehicle write). No vehicle at all → back to step 1.

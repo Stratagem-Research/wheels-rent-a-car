@@ -20,6 +20,26 @@ export const WHEELS_API_TIMEZONE = "Asia/Beirut";
 
 const BACKEND_DT_RE = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?$/;
 
+/** SearchBar / draft format: `YYYY-MM-DDTHH:mm` with no timezone offset. */
+const FRONTEND_LOCAL_DT_RE = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/;
+
+export function isFrontendLocalDatetime(input: string): boolean {
+  return FRONTEND_LOCAL_DT_RE.test(input.trim());
+}
+
+/**
+ * Parse a SearchBar/draft datetime (`YYYY-MM-DDTHH:mm`, no offset) as
+ * Asia/Beirut wall clock and return ISO UTC.
+ */
+export function parseFrontendDatetime(input: string): string {
+  const match = FRONTEND_LOCAL_DT_RE.exec(input.trim());
+  if (!match) {
+    throw new Error(`Invalid frontend datetime: ${JSON.stringify(input)}`);
+  }
+  const [, y, mo, d, h, mi] = match;
+  return fromBackendDateTime(`${y}-${mo}-${d} ${h}:${mi}`);
+}
+
 interface Wall {
   year: number;
   month: number;
@@ -136,6 +156,15 @@ export function fromBackendDateTime(input: string): string {
  * uniform with what the PDF documents.
  */
 export function toBackendDateTime(iso: string | Date): string {
+  if (typeof iso === "string") {
+    const trimmed = iso.trim();
+    const frontendMatch = FRONTEND_LOCAL_DT_RE.exec(trimmed);
+    if (frontendMatch) {
+      const [, y, mo, d, h, mi] = frontendMatch;
+      return `${y}-${mo}-${d} ${h}:${mi}`;
+    }
+  }
+
   const d = iso instanceof Date ? iso : new Date(iso);
   if (Number.isNaN(d.getTime())) {
     throw new Error(`Invalid datetime: ${JSON.stringify(iso)}`);

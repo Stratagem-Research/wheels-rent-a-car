@@ -19,7 +19,7 @@ import type {
   Rate,
   Vehicle,
 } from "@/types/domain";
-import { resolveWizardAddressId } from "@/lib/booking/wizard-address-id";
+import { resolveWizardAddressForBooking } from "@/lib/booking/wizard-address-id";
 import { fromBackendDateAndTime, fromBackendDateTime, toBackendDateTime } from "./datetime";
 import type { BookingData, BookingRequestPayload, PublicVehicle } from "./schemas";
 import { enrichVehicle, type EnrichVehicleOptions } from "./vehicle-enrichment";
@@ -145,10 +145,8 @@ export function fromBookingDraft(
     vehicle_id: numericId,
     start_date_time: toBackendDateTime(draft.pickup.datetime),
     end_date_time: toBackendDateTime(draft.return.datetime),
-    pickup_address:
-      resolveWizardAddressId(draft.pickup.locationId) ?? draft.pickup.address ?? draft.pickup.locationId,
-    drop_off_address:
-      resolveWizardAddressId(draft.return.locationId) ?? draft.return.address ?? draft.return.locationId,
+    pickup_address: resolveWizardAddressForBooking(draft.pickup),
+    drop_off_address: resolveWizardAddressForBooking(draft.return),
     payment_method: mapPaymentMethod(draft.paymentMethod),
     payment_status:
       draft.paymentMethod === "card" || draft.paymentMethod === "whish-online"

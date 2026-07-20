@@ -777,6 +777,7 @@
       "idlePromptLink": "Discuter avec notre équipe",
       "holdExpired": "Votre réservation provisoire a expiré. Nous revérifierons le prix à la validation.",
       "vehicleTaken": "Ce véhicule vient d'être pris, choisissez-en un autre.",
+      "rateLimited": "Trop de requêtes — veuillez patienter un instant et réessayer.",
       "submitError": "Nous n'avons pas pu valider votre réservation. Réessayez ou contactez-nous sur WhatsApp.",
       "countries": {
         "LB": "Liban",

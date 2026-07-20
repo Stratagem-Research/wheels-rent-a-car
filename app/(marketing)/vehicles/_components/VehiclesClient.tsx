@@ -74,39 +74,56 @@ export function VehiclesClient({
   const isStep1 = searchParams.get("step") === "1";
   const selectedSlug = searchParams.get("selected");
 
-  const { ready, draft, setPickup, setReturn, setVehicle } = useBookingDraft();
+  const { ready, draft, setPickup, setReturn, setVehicle, setDraft } = useBookingDraft();
 
-  // Seed the draft's pickup/return from the URL whenever they carry dates
-  // that differ from what's currently stored — otherwise the draft stays on
-  // its default 3-day window regardless of what the user picked in
-  // SearchBar, and every downstream day-count (VehicleCardExpanded, extras,
-  // ...) is wrong.
+  // Seed / sync draft pickup+return from URL search params (SearchBar → funnel).
   React.useEffect(() => {
     if (!ready || !draft) return;
     const pickupAt = searchParams.get("pickupAt");
     const returnAt = searchParams.get("returnAt");
     if (!pickupAt || !returnAt) return;
-    if (draft.pickup.datetime === pickupAt && draft.return.datetime === returnAt) return;
 
-    const pickupType = searchParams.get("pickupType");
+    const pickupTypeParam = searchParams.get("pickupType");
+    const pickupType =
+      pickupTypeParam === "airport" ||
+      pickupTypeParam === "branch" ||
+      pickupTypeParam === "address-delivery" ||
+      pickupTypeParam === "chauffeur"
+        ? pickupTypeParam
+        : draft.pickup.type;
+    const pickupLoc = searchParams.get("pickupLoc") ?? draft.pickup.locationId;
+    const pickupAddr = searchParams.get("pickupAddr") ?? draft.pickup.address;
+    const returnLoc = searchParams.get("returnLoc") ?? draft.return.locationId;
+    const returnAddr = searchParams.get("returnAddr") ?? draft.return.address;
+    const promo = searchParams.get("promo") ?? draft.promoCode;
+
+    const unchanged =
+      draft.pickup.datetime === pickupAt &&
+      draft.return.datetime === returnAt &&
+      draft.pickup.type === pickupType &&
+      draft.pickup.locationId === pickupLoc &&
+      draft.pickup.address === pickupAddr &&
+      draft.return.locationId === returnLoc &&
+      draft.return.address === returnAddr &&
+      draft.promoCode === promo;
+
+    if (unchanged) return;
+
     setPickup({
-      type:
-        pickupType === "airport" ||
-        pickupType === "branch" ||
-        pickupType === "address-delivery" ||
-        pickupType === "chauffeur"
-          ? pickupType
-          : draft.pickup.type,
-      locationId: searchParams.get("pickupLoc") ?? draft.pickup.locationId,
-      address: searchParams.get("pickupAddr") ?? draft.pickup.address,
+      type: pickupType,
+      locationId: pickupLoc,
+      address: pickupAddr,
       datetime: pickupAt,
     });
     setReturn({
-      locationId: searchParams.get("returnLoc") ?? draft.return.locationId,
-      address: searchParams.get("returnAddr") ?? draft.return.address,
+      locationId: returnLoc,
+      address: returnAddr,
       datetime: returnAt,
     });
-  }, [ready, draft, searchParams, setPickup, setReturn]);
+    if (promo !== draft.promoCode) {
+      setDraft((prev) => ({ ...prev, promoCode: promo }));
+    }
+  }, [ready, draft, searchParams, setPickup, setReturn, setDraft]);
 
   const expandedVehicle: Vehicle | null = React.useMemo(() => {
     if (!selectedSlug) return null;

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import type { SubmitBookingRequest } from "@/types/domain";
+import { WheelsThrottledError } from "@/lib/api/wheels-public";
+import { UnmappedWizardAddressError } from "@/lib/booking/wizard-address-id";
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import {
   handleBookingSubmit,
@@ -20,6 +22,15 @@ export async function POST(request: Request) {
         { message: "Vehicle is not available for this period." },
         { status: 409 },
       );
+    }
+    if (err instanceof WheelsThrottledError) {
+      return NextResponse.json(
+        { message: "Too many booking requests. Please wait a moment and try again." },
+        { status: 429 },
+      );
+    }
+    if (err instanceof UnmappedWizardAddressError) {
+      return NextResponse.json({ message: err.message }, { status: 400 });
     }
     if (err instanceof Error && err.message.includes("3 months")) {
       return NextResponse.json({ message: err.message }, { status: 400 });

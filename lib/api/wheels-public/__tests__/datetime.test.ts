@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fromBackendDateAndTime, fromBackendDateTime, toBackendDateTime } from "../datetime";
+import { fromBackendDateAndTime, fromBackendDateTime, parseFrontendDatetime, toBackendDateTime } from "../datetime";
 
 describe("wheels-public/datetime", () => {
   describe("fromBackendDateTime — Asia/Beirut local → ISO UTC", () => {
@@ -65,6 +65,15 @@ describe("wheels-public/datetime", () => {
       expect(toBackendDateTime("2026-01-15T08:34:56.789Z")).toMatch(
         /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/,
       );
+    });
+
+    it("treats SearchBar YYYY-MM-DDTHH:mm as Beirut wall clock (server-TZ independent)", () => {
+      expect(toBackendDateTime("2026-07-21T10:00")).toBe("2026-07-21 10:00");
+      expect(toBackendDateTime("2026-07-24T14:30")).toBe("2026-07-24 14:30");
+    });
+
+    it("parseFrontendDatetime converts bare T format to ISO UTC", () => {
+      expect(parseFrontendDatetime("2026-07-15T10:00")).toBe("2026-07-15T07:00:00.000Z");
     });
   });
 

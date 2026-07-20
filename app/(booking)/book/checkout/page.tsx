@@ -21,6 +21,7 @@ import { whatsAppHref } from "@/lib/whatsapp";
 import { api, ApiError } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
 import { computePrice, formatUsd } from "@/lib/booking/pricing";
+import { draftToSearchParams } from "@/lib/booking/draft-to-search-params";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
 import type { PaymentMethod, SubmitBookingResponse } from "@/types/domain";
@@ -197,27 +198,31 @@ export default function CheckoutPage() {
     }
 
     setSubmitting(true);
-    try {
-      const completeDraft = {
-        ...draft,
-        driver: {
-          firstName: form.firstName.trim(),
-          lastName: form.lastName.trim(),
-          email: form.email.trim().toLowerCase(),
-          phone: `+${getDial(form.phone.countryIso)}${form.phone.national.replace(/\D/g, "")}`,
-          dob: form.dob,
-          licenceNumber: form.licenceNumber.trim(),
-          licenceIssue: form.licenceIssue,
-          licenceExpiry: form.licenceExpiry,
-          country: form.country,
-        },
-        flightNumber: draft.pickup.type === "airport" ? form.flightNumber.trim() : undefined,
-        paymentMethod: form.paymentMethod ?? undefined,
-        marketingConsent: form.marketing,
-        whatsappOptIn: form.whatsappOptIn,
-        promoCode: form.promoCode.trim() || draft.promoCode,
-      };
+    const completeDraft = {
+      ...draft,
+      pickup:
+        draft.pickup.type === "address-delivery" && form.deliveryAddress.trim()
+          ? { ...draft.pickup, address: form.deliveryAddress.trim() }
+          : draft.pickup,
+      driver: {
+        firstName: form.firstName.trim(),
+        lastName: form.lastName.trim(),
+        email: form.email.trim().toLowerCase(),
+        phone: `+${getDial(form.phone.countryIso)}${form.phone.national.replace(/\D/g, "")}`,
+        dob: form.dob,
+        licenceNumber: form.licenceNumber.trim(),
+        licenceIssue: form.licenceIssue,
+        licenceExpiry: form.licenceExpiry,
+        country: form.country,
+      },
+      flightNumber: draft.pickup.type === "airport" ? form.flightNumber.trim() : undefined,
+      paymentMethod: form.paymentMethod ?? undefined,
+      marketingConsent: form.marketing,
+      whatsappOptIn: form.whatsappOptIn,
+      promoCode: form.promoCode.trim() || draft.promoCode,
+    };
 
+    try {
       // Update the draft so confirmation page reads consistent state.
       setDraft(completeDraft);
 
@@ -264,7 +269,9 @@ export default function CheckoutPage() {
         // Per 04_booking_flow.md edge-case "Vehicle becomes unavailable
         // after step 1", redirect back with an explanatory toast.
         toast.warning(t("vehicleTaken"));
-        router.push("/vehicles?step=1");
+        router.push(`/vehicles?${draftToSearchParams(completeDraft).toString()}`);
+      } else if (err instanceof ApiError && err.status === 429) {
+        toast.warning(t("rateLimited"));
       } else if (err instanceof ApiError && err.status === 503) {
         toast.warning(tPayment("whishUnavailable"));
       } else {

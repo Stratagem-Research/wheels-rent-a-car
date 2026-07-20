@@ -19,8 +19,8 @@ const yaris = VEHICLES.find((v) => v.slug === "toyota-yaris")!;
 
 function draft(overrides: Partial<BookingDraft> = {}): BookingDraft {
   return {
-    pickup: { type: "airport", locationId: "br-bey", datetime: "2027-04-15T07:00:00.000Z" },
-    return: { locationId: "br-bey", datetime: "2027-04-19T07:00:00.000Z" },
+    pickup: { type: "airport", locationId: "br-bey-airport", datetime: "2027-04-15T07:00:00.000Z" },
+    return: { locationId: "br-bey-airport", datetime: "2027-04-19T07:00:00.000Z" },
     vehicle: { vehicleId: yaris.id, rate: { type: "best-price", mileage: "capped-200km" } },
     extras: [],
     protectionTierId: "pt-basic",
@@ -219,6 +219,18 @@ describe("wheels-public/adapters", () => {
       );
       expect(payload.pickup_address).toBe("Hamra St");
       expect(payload.drop_off_address).toBe("BCD parking");
+    });
+
+    it("availability window matches submit payload datetimes (parity contract)", () => {
+      const d = draft({
+        pickup: { type: "branch", locationId: "br-hazmieh", datetime: "2026-07-21T10:00" },
+        return: { locationId: "br-hazmieh", datetime: "2026-07-24T10:00" },
+      });
+      const payload = fromBookingDraft(d, { resolveVehicleId: () => 131 });
+      expect(payload.start_date_time).toBe("2026-07-21 10:00");
+      expect(payload.end_date_time).toBe("2026-07-24 10:00");
+      expect(payload.pickup_address).toBe(1);
+      expect(payload.drop_off_address).toBe(1);
     });
   });
 

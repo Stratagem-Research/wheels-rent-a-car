@@ -210,6 +210,8 @@ export function seedDraftFromSearchParams(params: URLSearchParams): BookingDraft
   if (returnAt) d.return.datetime = returnAt;
   const returnLoc = params.get("returnLoc");
   if (returnLoc) d.return.locationId = returnLoc;
+  const returnAddr = params.get("returnAddr");
+  if (returnAddr) d.return.address = returnAddr;
   const promo = params.get("promo");
   if (promo) d.promoCode = promo;
   return d;

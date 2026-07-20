@@ -777,6 +777,7 @@
       "idlePromptLink": "Chat with our team",
       "holdExpired": "Your booking hold expired. We'll recheck pricing on submit.",
       "vehicleTaken": "That vehicle was just taken, choose another.",
+      "rateLimited": "Too many requests — please wait a moment and try again.",
       "submitError": "We couldn't submit your booking. Please try again or chat with us on WhatsApp.",
       "countries": {
         "LB": "Lebanon",
