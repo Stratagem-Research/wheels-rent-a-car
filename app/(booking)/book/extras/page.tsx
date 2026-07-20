@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -9,11 +8,10 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { Stepper } from "@/components/booking/Stepper";
 import { AddOnRow } from "@/components/booking/AddOnRow";
 import { FlowSummaryPanel } from "@/components/booking/FlowSummaryPanel";
-import { useBookingDraft, seedDraftFromSearchParams } from "@/hooks/useBookingDraft";
-import { useBookingCatalog } from "@/hooks/useBookingCatalog";
+import { useBookingFunnelPage } from "@/hooks/useBookingFunnelPage";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
-import type { AddOnCategory, MileagePlan, RateType } from "@/types/domain";
+import type { AddOnCategory } from "@/types/domain";
 
 const CATEGORY_ORDER: { id: AddOnCategory; titleKey: string }[] = [
   { id: "driver-access", titleKey: "categoryDriverAccess" },
@@ -23,87 +21,27 @@ const CATEGORY_ORDER: { id: AddOnCategory; titleKey: string }[] = [
   { id: "sustainability", titleKey: "categorySustainability" },
 ];
 
-/**
- * Step 2 — /book/extras. Lists all add-ons grouped by category. The right
- * panel total recomputes within 200ms on every toggle (the FlowSummaryPanel
- * subscribes to draft changes via state).
- *
- * Vehicle-gone guard: if the draft has no vehicle (or the selected vehicle
- * is missing from the fixture), bounce back to step 1.
- */
-function parseRateFromSearch(params: URLSearchParams): {
-  type: RateType;
-  mileage: MileagePlan;
-} {
-  const type: RateType = params.get("rate") === "flexible" ? "flexible" : "best-price";
-  const mileage: MileagePlan =
-    params.get("mileage") === "capped-200km" ? "capped-200km" : "unlimited";
-  return { type, mileage };
-}
-
 export default function ExtrasPage() {
   const t = useTranslations("bookingFlow");
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { draft, setVehicle, upsertExtra, ready, setDraft } = useBookingDraft();
   const {
+    draft,
+    upsertExtra,
+    vehicle,
+    showSkeleton,
+    goToStep,
     addOns: ADD_ONS,
     protectionTiers: PROTECTION_TIERS,
-    vehicles: VEHICLES,
     branches: BRANCHES,
-    ready: catalogReady,
-  } = useBookingCatalog();
+  } = useBookingFunnelPage();
   const firedView = React.useRef(false);
 
-  // Fire extras_viewed once per mount.
   React.useEffect(() => {
-    if (!ready || !draft || firedView.current) return;
+    if (!draft || firedView.current) return;
     firedView.current = true;
     track(EVENTS.EXTRAS_VIEWED);
-  }, [ready, draft]);
+  }, [draft]);
 
-  // Re-seed pickup/return from URL when the user landed with search params but
-  // an older sessionStorage draft (e.g. skipped /vehicles client sync).
-  React.useEffect(() => {
-    if (!ready || !searchParams.get("pickupAt") || !searchParams.get("returnAt")) return;
-    const seeded = seedDraftFromSearchParams(searchParams);
-    setDraft((prev) => ({
-      ...prev,
-      pickup: { ...prev.pickup, ...seeded.pickup },
-      return: { ...prev.return, ...seeded.return },
-      promoCode: seeded.promoCode ?? prev.promoCode,
-    }));
-  }, [ready, searchParams, setDraft]);
-
-  // Prefer draft.vehicle; if missing, re-seed from ?vehicleId= (Next navigation
-  // can outrun a prior setVehicle write). No vehicle at all → back to step 1.
-  React.useEffect(() => {
-    if (!ready || !draft) return;
-    if (draft.vehicle) return;
-    const vehicleId = searchParams.get("vehicleId")?.trim();
-    if (vehicleId) {
-      setVehicle(vehicleId, parseRateFromSearch(searchParams));
-      return;
-    }
-    router.replace("/book/select-vehicle");
-  }, [ready, draft, router, searchParams, setVehicle]);
-
-  if (!ready || !draft || !draft.vehicle) {
-    return (
-      <>
-        <Stepper current={2} />
-        <div className="mx-auto max-w-[var(--container-full)] px-5 py-10 sm:px-5">
-          <Skeleton className="h-40 rounded-lg" />
-        </div>
-      </>
-    );
-  }
-
-  const vehicle = VEHICLES.find((v) => v.id === draft.vehicle?.vehicleId);
-
-  // Wait for the live catalog before concluding the vehicle is gone — the
-  // hook starts on fixture data whose ids won't match a DB-backed selection.
-  if (!vehicle && !catalogReady) {
+  if (showSkeleton || !draft) {
     return (
       <>
         <Stepper current={2} />
@@ -170,7 +108,7 @@ export default function ExtrasPage() {
               tiers={PROTECTION_TIERS}
               primary={{
                 label: t("continue"),
-                onClick: () => router.push("/book/protection"),
+                onClick: () => goToStep("/book/protection"),
               }}
             />
           </aside>

@@ -53,6 +53,11 @@ export async function getVehicleBySlug(slug: string): Promise<Vehicle | null> {
   return vehicles.find((v) => v.slug === slug) ?? null;
 }
 
+export async function getVehicleById(id: string): Promise<Vehicle | null> {
+  const vehicles = await getPublicVehicles();
+  return vehicles.find((v) => v.id === id) ?? null;
+}
+
 export async function getLocationVehicles(_slug: string, limit = 6): Promise<Vehicle[]> {
   const vehicles = await getPublicVehicles();
   return vehicles.slice(0, limit);

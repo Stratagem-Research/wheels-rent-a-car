@@ -202,6 +202,8 @@ export interface BookingReturn {
 
 export interface BookingVehicleSelection {
   vehicleId: string;
+  /** Slug for catalog fallback when fleet list is paginated. */
+  vehicleSlug?: string;
   rate: {
     type: RateType;
     mileage: MileagePlan;

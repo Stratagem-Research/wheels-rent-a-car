@@ -52,7 +52,9 @@ async function resolveVehiclesForDates(
       .filter((v): v is Vehicle => v != null);
     return { vehicles, availabilityError: false };
   } catch {
-    return { vehicles: catalog, availabilityError: true };
+    // Do not fall back to the full catalog when dates were provided — that
+    // lets customers pick cars Wizard will reject at submit with 409 booked.
+    return { vehicles: [], availabilityError: true };
   }
 }
 

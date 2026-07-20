@@ -8,6 +8,7 @@ import type {
   QuoteResponse,
   SubmitBookingRequest,
   SubmitBookingResponse,
+  Vehicle,
 } from "@/types/domain";
 import { parseWizardVehicleId } from "@/lib/booking/wizard-vehicle-id";
 import { validatePromoCodeFromRow } from "@/lib/booking/promo";
@@ -41,8 +42,24 @@ import { toBackendDateTime } from "@/lib/api/wheels-public/datetime";
 import { dispatchWizardSync } from "@/lib/server/wizard-sync";
 import { appendBookingState } from "@/lib/server/payment-events";
 import { enqueueNotification } from "@/lib/server/notifications";
+import { getVehicleBySlug, getVehicleById } from "@/lib/server/vehicles-service";
 
 export { VehicleUnavailableError };
+
+async function resolveVehicleForDraft(
+  draft: BookingDraft,
+  vehicles: Vehicle[],
+): Promise<Vehicle | undefined> {
+  const selection = draft.vehicle;
+  if (!selection) return undefined;
+  const byId = vehicles.find((v) => v.id === selection.vehicleId);
+  if (byId) return byId;
+  if (selection.vehicleSlug) {
+    const bySlug = await getVehicleBySlug(selection.vehicleSlug);
+    if (bySlug) return bySlug;
+  }
+  return (await getVehicleById(selection.vehicleId)) ?? undefined;
+}
 
 function assertOnlineBookingWindow(pickupISO: string, returnISO: string) {
   if (!isWithinOnlineBookingWindow(pickupISO, returnISO)) {
@@ -92,11 +109,52 @@ export async function handleBookingAvailability(body: AvailabilityRequest) {
     endDateTime: toBackendDateTime(body.return.datetime),
     includeBooked: false,
   });
-  const items = toInternalAvailableVehicles(response.data.vehicles);
+  const availablePublic = response.data.vehicles.filter((v) => v.is_available);
+  const items = toInternalAvailableVehicles(availablePublic);
   const days =
-    response.data.vehicles[0]?.pricing.days ??
+    availablePublic[0]?.pricing.days ??
     rentalDays(body.pickup.datetime, body.return.datetime);
   return { items, rentalDays: days };
+}
+
+export type VerifyVehicleAvailabilityResult =
+  | { available: true }
+  | { available: false; reason: string | null };
+
+/** Fresh Wizard check for the selected vehicle + window (checkout + funnel). */
+export async function handleVerifyVehicleAvailability(body: {
+  vehicleId: string;
+  pickup: BookingDraft["pickup"];
+  return: BookingDraft["return"];
+}): Promise<VerifyVehicleAvailabilityResult> {
+  assertOnlineBookingWindow(body.pickup.datetime, body.return.datetime);
+  const numericId = await resolveWizardVehicleId(body.vehicleId);
+  if (numericId == null) {
+    return { available: false, reason: "unknown_vehicle" };
+  }
+
+  const startBackend = toBackendDateTime(body.pickup.datetime);
+  const endBackend = toBackendDateTime(body.return.datetime);
+  const vehicleAvail = await getVehicleAvailability(numericId, {
+    startDateTime: startBackend,
+    endDateTime: endBackend,
+  });
+  if (vehicleAvail.data.is_available) return { available: true };
+  return { available: false, reason: vehicleAvail.data.unavailable_reason ?? null };
+}
+
+/** Pre-submit availability gate — single-vehicle `/availability/{id}` is authoritative. */
+async function resolveSubmitAvailability(
+  numericId: number,
+  startBackend: string,
+  endBackend: string,
+): Promise<{ ok: true } | { ok: false; unavailable_reason: string | null }> {
+  const single = await getVehicleAvailability(numericId, {
+    startDateTime: startBackend,
+    endDateTime: endBackend,
+  });
+  if (single.data.is_available) return { ok: true };
+  return { ok: false, unavailable_reason: single.data.unavailable_reason ?? null };
 }
 
 export async function handleBookingRate(body: {
@@ -127,7 +185,7 @@ export async function handleBookingQuote(body: QuoteRequest): Promise<QuoteRespo
   assertOnlineBookingWindow(body.draft.pickup.datetime, body.draft.return.datetime);
   const { addOns, tiers, vehicles } = await getCatalog();
   const vehicle = body.draft.vehicle
-    ? vehicles.find((v) => v.id === body.draft.vehicle?.vehicleId)
+    ? await resolveVehicleForDraft(body.draft, vehicles)
     : undefined;
   const days = rentalDays(body.draft.pickup.datetime, body.draft.return.datetime);
   const promoDiscountPercent = await resolvePromoDiscountPercent(body.draft.promoCode);
@@ -155,7 +213,7 @@ export async function handleBookingSubmit(
   assertOnlineBookingWindow(draft.pickup.datetime, draft.return.datetime);
 
   const { addOns, tiers, vehicles } = await getCatalog();
-  const vehicle = vehicles.find((v) => v.id === draft.vehicle?.vehicleId);
+  const vehicle = await resolveVehicleForDraft(draft, vehicles);
   if (!vehicle) throw new Error("Vehicle gone");
 
   let numericId = await resolveWizardVehicleId(draft.vehicle.vehicleId);
@@ -188,11 +246,8 @@ export async function handleBookingSubmit(
   const startBackend = payload.start_date_time;
   const endBackend = payload.end_date_time;
 
-  const vehicleAvail = await getVehicleAvailability(numericId, {
-    startDateTime: startBackend,
-    endDateTime: endBackend,
-  });
-  if (!vehicleAvail.data.is_available) {
+  const availabilityGate = await resolveSubmitAvailability(numericId, startBackend, endBackend);
+  if (!availabilityGate.ok) {
     if (process.env.NODE_ENV !== "production") {
       console.info("[booking-submit] pre-check failed", {
         vehicle_id: numericId,
@@ -200,12 +255,12 @@ export async function handleBookingSubmit(
         end_date_time: endBackend,
         pickup_address: payload.pickup_address,
         drop_off_address: payload.drop_off_address,
-        unavailable_reason: vehicleAvail.data.unavailable_reason,
+        unavailable_reason: availabilityGate.unavailable_reason,
       });
     }
     throw new VehicleUnavailableError("pre-submit-availability-check", {
       message: "Vehicle is not available for this period.",
-      unavailable_reason: vehicleAvail.data.unavailable_reason,
+      unavailable_reason: availabilityGate.unavailable_reason,
     });
   }
 
@@ -220,6 +275,18 @@ export async function handleBookingSubmit(
   }
 
   const response = await createBookingRequest(payload);
+
+  if (process.env.NODE_ENV !== "production") {
+    console.info("[booking-submit] wizard created", {
+      reference: response.data.reference,
+      booking_id: response.data.booking_id,
+      public_token: response.data.public_token,
+      vehicle_id: numericId,
+      start_date_time: startBackend,
+      end_date_time: endBackend,
+    });
+  }
+
   const booking = toInternalBooking(response.data, {
     draft,
     vehicle,
@@ -228,12 +295,20 @@ export async function handleBookingSubmit(
   });
 
   if (options?.userId) {
-    await addUserBooking({
-      userId: options.userId,
-      bookingReference: booking.ref,
-      publicToken: response.data.public_token,
-      wizardBookingId: response.data.booking_id,
-    });
+    try {
+      await addUserBooking({
+        userId: options.userId,
+        bookingReference: booking.ref,
+        publicToken: response.data.public_token,
+        wizardBookingId: response.data.booking_id,
+        customerEmail: draft.driver.email,
+      });
+    } catch (err) {
+      // Wizard booking already exists — do not fail the customer checkout.
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("[booking-submit] user_bookings link failed (non-fatal)", err);
+      }
+    }
   }
   if (draft.paymentMethod === "cash") {
     await syncCashBookingToWizard(

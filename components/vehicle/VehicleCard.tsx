@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { SaveVehicleButton } from "@/components/vehicle/SaveVehicleButton";
 import { formatUsd, perDayRate, rentalDays } from "@/lib/booking/pricing";
+import { FLEET_PAY_NOW_RATE } from "@/lib/vehicles/fleet-card-rates";
 import type { Vehicle, VehicleBadge } from "@/types/domain";
 
 /*
@@ -111,7 +112,7 @@ export function VehicleCard({
   // carousel, etc.).
   const perDay =
     pickupISO && returnISO
-      ? perDayRate(vehicle, "best-price", "capped-200km")
+      ? perDayRate(vehicle, FLEET_PAY_NOW_RATE.type, FLEET_PAY_NOW_RATE.mileage)
       : vehicle.dailyRateFromCents;
   const days = pickupISO && returnISO ? rentalDays(pickupISO, returnISO) : 1;
   const totalCents = perDay * days;

@@ -2,38 +2,33 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Stepper } from "@/components/booking/Stepper";
 import { ProtectionTierCard } from "@/components/booking/ProtectionTierCard";
 import { FlowSummaryPanel } from "@/components/booking/FlowSummaryPanel";
-import { useBookingDraft } from "@/hooks/useBookingDraft";
-import { useBookingCatalog } from "@/hooks/useBookingCatalog";
+import { useBookingFunnelPage } from "@/hooks/useBookingFunnelPage";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
 
 /**
  * Step 3 — /book/protection. 3-up tier comparison. Continue requires a tier.
- *
- * On mobile, the Smart (popular) tier is rendered first per
- * 04_booking_flow.md ("Smart first on mobile"). We achieve that with a flex
- * order utility rather than a separate render path.
  */
 export default function ProtectionPage() {
   const t = useTranslations("bookingFlow");
-  const router = useRouter();
-  const { draft, setProtection, ready } = useBookingDraft();
-  const { addOns: ADD_ONS, protectionTiers: PROTECTION_TIERS, vehicles: VEHICLES, branches: BRANCHES } =
-    useBookingCatalog();
+  const {
+    draft,
+    setProtection,
+    vehicle,
+    showSkeleton,
+    goToStep,
+    addOns: ADD_ONS,
+    protectionTiers: PROTECTION_TIERS,
+    branches: BRANCHES,
+  } = useBookingFunnelPage();
   const protectionFaqs = t.raw("protection.faqs") as { q: string; a: string }[];
 
-  React.useEffect(() => {
-    if (!ready || !draft) return;
-    if (!draft.vehicle) router.replace("/book/select-vehicle");
-  }, [ready, draft, router]);
-
-  if (!ready || !draft) {
+  if (showSkeleton || !draft) {
     return (
       <>
         <Stepper current={3} />
@@ -44,9 +39,6 @@ export default function ProtectionPage() {
     );
   }
 
-  const vehicle = draft.vehicle
-    ? VEHICLES.find((v) => v.id === draft.vehicle?.vehicleId)
-    : undefined;
   const selectedTierId = draft.protectionTierId;
 
   const onSelect = (tierId: string) => {
@@ -108,7 +100,7 @@ export default function ProtectionPage() {
               tiers={PROTECTION_TIERS}
               primary={{
                 label: t("continue"),
-                onClick: () => router.push("/book/checkout"),
+                onClick: () => goToStep("/book/checkout"),
                 disabled: !selectedTierId,
               }}
             />

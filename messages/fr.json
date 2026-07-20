@@ -519,6 +519,7 @@
     "payLater": "Payer plus tard",
     "payLaterDesc": "Réservez maintenant, réglez au retrait en espèces ou par carte.",
     "perDaySurcharge": "+ {price} / jour",
+    "benefitMileage": "200 km/jour inclus",
     "benefitUnlimited": "Kilométrage illimité",
     "benefitCancellation": "Annulation gratuite jusqu'à 24h avant le retrait",
     "benefitWhatsapp": "Support WhatsApp 24/7",
@@ -766,6 +767,7 @@
       "lastNameRequired": "Le nom est requis.",
       "emailInvalid": "Saisissez un e-mail valide.",
       "mobileRequired": "Le numéro de mobile est requis.",
+      "mobileInvalid": "Entrez un numéro mobile valide (Liban : 8 chiffres, ex. 79 084 321).",
       "dobRequired": "La date de naissance est requise.",
       "licenceNumberRequired": "Le numéro de permis est requis.",
       "issueDateRequired": "La date de délivrance est requise.",
@@ -1132,7 +1134,10 @@
     "fees": "Frais",
     "taxes11": "Taxes (11%)",
     "promoDiscount": "Réduction promo",
-    "depositAtPickup": "Caution remboursable à la prise du véhicule"
+    "depositAtPickup": "Caution remboursable à la prise du véhicule",
+    "baseRateDays": "Tarif de base ({days} jours)",
+    "pricingUnavailable": "Le prix s'affichera une fois le véhicule chargé.",
+    "beirutTimesNote": "Les heures de prise et de retour sont en heure de Beyrouth (GMT+3), où que vous naviguiez."
   },
   "booking": {
     "pendingTitle": "Votre réservation est en attente",

@@ -519,6 +519,7 @@
     "payLater": "ادفع لاحقاً",
     "payLaterDesc": "احجز الآن وادفع عند الاستلام نقداً أو ببطاقة.",
     "perDaySurcharge": "+ {price} / يومياً",
+    "benefitMileage": "200 كم/يوم مشمولة",
     "benefitUnlimited": "كيلومترات غير محدودة",
     "benefitCancellation": "إلغاء مجاني حتى 24 ساعة قبل الاستلام",
     "benefitWhatsapp": "دعم واتساب 24/7",
@@ -766,6 +767,7 @@
       "lastNameRequired": "اسم العائلة مطلوب.",
       "emailInvalid": "أدخل بريداً إلكترونياً صالحاً.",
       "mobileRequired": "رقم الهاتف المحمول مطلوب.",
+      "mobileInvalid": "أدخلي رقمًا محمولًا صالحًا (لبنان: 8 أرقام، مثل 79 084 321).",
       "dobRequired": "تاريخ الميلاد مطلوب.",
       "licenceNumberRequired": "رقم الرخصة مطلوب.",
       "issueDateRequired": "تاريخ الإصدار مطلوب.",
@@ -1132,7 +1134,10 @@
     "fees": "الرسوم",
     "taxes11": "الضرائب (11%)",
     "promoDiscount": "خصم العرض",
-    "depositAtPickup": "التأمين القابل للاسترداد عند الاستلام"
+    "depositAtPickup": "التأمين القابل للاسترداد عند الاستلام",
+    "baseRateDays": "السعر الأساسي ({days} أيام)",
+    "pricingUnavailable": "سيظهر السعر عند تحميل السيارة.",
+    "beirutTimesNote": "أوقات الاستلام والتسليم بتوقيت بيروت (GMT+3) بغض النظر عن موقعك."
   },
   "booking": {
     "pendingTitle": "حجزك قيد الانتظار",

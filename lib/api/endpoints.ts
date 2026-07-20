@@ -13,12 +13,14 @@ export const endpoints = {
   // Vehicles
   vehicles: `${API_BASE}/vehicles`,
   vehicleBySlug: (slug: string) => `${API_BASE}/vehicles/${slug}`,
+  vehicleById: (id: string) => `${API_BASE}/vehicles/by-id/${encodeURIComponent(id)}`,
   vehiclesFeatured: `${API_BASE}/vehicles/featured`,
   vehiclesSimilar: `${API_BASE}/vehicles/similar`,
   vehiclesLongTermPopular: `${API_BASE}/vehicles/long-term-popular`,
 
   // Booking funnel
   bookingAvailability: `${API_BASE}/booking/availability`,
+  bookingVerifyVehicle: `${API_BASE}/booking/verify-vehicle`,
   bookingRate: `${API_BASE}/booking/rate`,
   bookingQuote: `${API_BASE}/booking/quote`,
   bookingSubmit: `${API_BASE}/booking/submit`,

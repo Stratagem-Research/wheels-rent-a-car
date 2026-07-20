@@ -73,7 +73,10 @@ vi.mock("@/lib/supabase/user-bookings-repository", () => ({
   addUserBooking: vi.fn().mockResolvedValue(undefined),
 }));
 
+import { addUserBooking } from "@/lib/supabase/user-bookings-repository";
 import { handleBookingSubmit, VehicleUnavailableError } from "../booking-service";
+
+const mockAddUserBooking = vi.mocked(addUserBooking);
 
 function completeDraft(): BookingDraft {
   return {
@@ -127,6 +130,7 @@ describe("booking-service handleBookingSubmit", () => {
       VehicleUnavailableError,
     );
     expect(mockCreateBookingRequest).not.toHaveBeenCalled();
+    expect(mockGetAvailability).not.toHaveBeenCalled();
   });
 
   it("submits when pre-check passes", async () => {
@@ -136,6 +140,18 @@ describe("booking-service handleBookingSubmit", () => {
       startDateTime: "2026-07-21 10:00",
       endDateTime: "2026-07-24 10:00",
     });
+    expect(mockCreateBookingRequest).toHaveBeenCalled();
+  });
+
+  it("still returns booking when user_bookings link fails (logged-in user)", async () => {
+    mockAddUserBooking.mockRejectedValueOnce(
+      Object.assign(new Error("wizard_booking_id column missing"), { code: "PGRST204" }),
+    );
+    const result = await handleBookingSubmit(
+      { draft: completeDraft() },
+      { userId: "user-123" },
+    );
+    expect(result.booking.ref).toBe("WRC-260721-TEST");
     expect(mockCreateBookingRequest).toHaveBeenCalled();
   });
 });

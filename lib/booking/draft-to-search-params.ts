@@ -1,5 +1,28 @@
 import type { BookingDraft } from "@/types/domain";
 
+/** SearchBar / funnel keys carried across step navigation. */
+export const BOOKING_SEARCH_PARAM_KEYS = [
+  "pickupType",
+  "pickupLoc",
+  "pickupAddr",
+  "pickupAt",
+  "returnAt",
+  "returnLoc",
+  "returnAddr",
+  "promo",
+] as const;
+
+/** Copy search context from one URLSearchParams into another (e.g. /vehicles → /book/extras). */
+export function appendSearchContextFromParams(
+  target: URLSearchParams,
+  source: URLSearchParams,
+): void {
+  for (const key of BOOKING_SEARCH_PARAM_KEYS) {
+    const value = source.get(key);
+    if (value) target.set(key, value);
+  }
+}
+
 /** Rebuild funnel search URL params from a booking draft (409 recovery redirect). */
 export function draftToSearchParams(draft: BookingDraft): URLSearchParams {
   const params = new URLSearchParams();

@@ -259,7 +259,7 @@ function PanelContents({
             {pickupBranch?.name ?? draft.pickup.address ?? "—"}
             <br />
             <span className="label-md text-ink-60">
-              {safeFormat(draft.pickup.datetime, locale)}
+              {formatDraftDatetime(draft.pickup.datetime, locale)}
             </span>
           </>
         }
@@ -271,7 +271,7 @@ function PanelContents({
             {returnBranch?.name ?? draft.return.address ?? pickupBranch?.name ?? "—"}
             <br />
             <span className="label-md text-ink-60">
-              {safeFormat(draft.return.datetime, locale)}
+              {formatDraftDatetime(draft.return.datetime, locale)}
             </span>
           </>
         }
@@ -337,6 +337,8 @@ function PanelContents({
 
       <hr className="border-border" />
 
+      <PriceBreakdownList price={price} days={days} />
+
       <div className="flex items-baseline justify-between">
         <span className="headline-xs text-ink-95">{t("total")}</span>
         <span className="price-lg text-ink-95 transition-all duration-200">
@@ -348,7 +350,7 @@ function PanelContents({
           {days} {days === 1 ? t("day") : t("days")} · {t("taxesIncluded")}
         </div>
       ) : null}
-      <PriceDetailsModal price={price} />
+      <p className="body-sm text-ink-50">{t("beirutTimesNote")}</p>
     </div>
   );
 }
@@ -380,39 +382,32 @@ function EditSearchModal({ children }: { children: React.ReactNode }) {
   );
 }
 
-function PriceDetailsModal({ price }: { price: BookingPriceBreakdown }) {
+function PriceBreakdownList({ price, days }: { price: BookingPriceBreakdown; days: number }) {
   const t = useTranslations("bookingSummary");
+  if (price.totalCents === 0 && price.baseRateCents === 0) {
+    return (
+      <p className="body-sm text-ink-60">{t("pricingUnavailable")}</p>
+    );
+  }
   return (
-    <Modal>
-      <ModalTrigger asChild>
-        <button
-          type="button"
-          className="label-lg text-ink-100 hover:text-ink-80 focus-visible:outline-ink-100 self-start rounded-sm underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2"
-        >
-          {t("priceDetails")}
-        </button>
-      </ModalTrigger>
-      <ModalContent size="sm">
-        <ModalTitle>{t("priceDetailsTitle")}</ModalTitle>
-        <dl className="body-sm text-ink-80 mt-4 flex flex-col gap-2">
-          <PriceRow label={t("baseRate")} value={price.baseRateCents} />
-          {price.extrasCents > 0 ? (
-            <PriceRow label={t("addons")} value={price.extrasCents} />
-          ) : null}
-          {price.protectionCents > 0 ? (
-            <PriceRow label={t("protection")} value={price.protectionCents} />
-          ) : null}
-          {price.feesCents > 0 ? <PriceRow label={t("fees")} value={price.feesCents} /> : null}
-          <PriceRow label={t("taxes11")} value={price.taxesCents} />
-          {price.discountCents > 0 ? (
-            <PriceRow label={t("promoDiscount")} value={-price.discountCents} />
-          ) : null}
-          <hr className="border-border my-1" />
-          <PriceRow label={t("total")} value={price.totalCents} bold />
-          <PriceRow label={t("depositAtPickup")} value={price.depositCents} muted />
-        </dl>
-      </ModalContent>
-    </Modal>
+    <dl className="body-sm text-ink-80 flex flex-col gap-2">
+      <PriceRow
+        label={days > 1 ? t("baseRateDays", { days }) : t("baseRate")}
+        value={price.baseRateCents}
+      />
+      {price.extrasCents > 0 ? <PriceRow label={t("addons")} value={price.extrasCents} /> : null}
+      {price.protectionCents > 0 ? (
+        <PriceRow label={t("protection")} value={price.protectionCents} />
+      ) : null}
+      {price.feesCents > 0 ? <PriceRow label={t("fees")} value={price.feesCents} /> : null}
+      <PriceRow label={t("taxes11")} value={price.taxesCents} />
+      {price.discountCents > 0 ? (
+        <PriceRow label={t("promoDiscount")} value={-price.discountCents} />
+      ) : null}
+      {price.depositCents > 0 ? (
+        <PriceRow label={t("depositAtPickup")} value={price.depositCents} muted />
+      ) : null}
+    </dl>
   );
 }
 
@@ -439,6 +434,27 @@ function PriceRow({
       <dd className="tabular-nums">{formatUsd(Math.abs(value))}</dd>
     </div>
   );
+}
+
+function formatDraftDatetime(value: string, locale: string): string {
+  const local = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value.trim());
+  if (local) {
+    const [, y, mo, d, h, mi] = local;
+    const dt = new Date(Number(y), Number(mo) - 1, Number(d), Number(h), Number(mi));
+    const formatted = new Intl.DateTimeFormat(
+      locale === "ar" ? "ar-LB" : locale === "fr" ? "fr-FR" : "en-US",
+      {
+        weekday: "short",
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: locale !== "fr",
+      },
+    ).format(dt);
+    return formatted;
+  }
+  return safeFormat(value, locale);
 }
 
 function safeFormat(iso: string, locale: string): string {

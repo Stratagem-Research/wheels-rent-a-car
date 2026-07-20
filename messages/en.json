@@ -490,7 +490,7 @@
     "emptyHeading": "No cars match these filters.",
     "emptyBody": "Try clearing a filter or expanding the price range.",
     "resetFilters": "Reset filters",
-    "availabilityErrorBanner": "We couldn't verify live availability for these dates — showing the full fleet instead."
+    "availabilityErrorBanner": "We couldn't verify live availability for these dates. Try refreshing or adjusting your dates — only cars confirmed free for your window are shown."
   },
   "fleet": {
     "orSimilar": "or similar",
@@ -519,6 +519,7 @@
     "payLater": "Pay later",
     "payLaterDesc": "Reserve now, settle at pickup with cash or card.",
     "perDaySurcharge": "+ {price} / day",
+    "benefitMileage": "200 km/day included",
     "benefitUnlimited": "Unlimited mileage",
     "benefitCancellation": "Free cancellation up to 24h before pickup",
     "benefitWhatsapp": "WhatsApp support 24/7",
@@ -766,6 +767,7 @@
       "lastNameRequired": "Last name is required.",
       "emailInvalid": "Enter a valid email.",
       "mobileRequired": "Mobile number is required.",
+      "mobileInvalid": "Enter a valid mobile number (Lebanon: 8 digits, e.g. 79 084 321).",
       "dobRequired": "Date of birth is required.",
       "licenceNumberRequired": "Licence number is required.",
       "issueDateRequired": "Issue date is required.",
@@ -1129,10 +1131,13 @@
     "priceDetails": "Price details",
     "priceDetailsTitle": "Price details",
     "baseRate": "Base rate",
+    "baseRateDays": "Base rate ({days} days)",
     "fees": "Fees",
     "taxes11": "Taxes (11%)",
     "promoDiscount": "Promo discount",
-    "depositAtPickup": "Refundable deposit at pickup"
+    "depositAtPickup": "Refundable deposit at pickup",
+    "pricingUnavailable": "Pricing will appear once the vehicle is loaded.",
+    "beirutTimesNote": "Pickup and return times are Beirut local time (GMT+3), regardless of where you browse from."
   },
   "booking": {
     "pendingTitle": "Your booking is pending",

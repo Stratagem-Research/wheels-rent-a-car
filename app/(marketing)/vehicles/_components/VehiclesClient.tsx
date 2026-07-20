@@ -18,7 +18,8 @@ import {
   parseFiltersFromSearch,
   sortFiltered,
 } from "@/lib/vehicles/filter";
-import { useBookingDraft } from "@/hooks/useBookingDraft";
+import { seedDraftFromSearchParams, useBookingDraft } from "@/hooks/useBookingDraft";
+import { appendSearchContextFromParams, draftToSearchParams } from "@/lib/booking/draft-to-search-params";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
 import type { MileagePlan, RateType, Vehicle, VehicleCategory, Branch } from "@/types/domain";
@@ -74,7 +75,7 @@ export function VehiclesClient({
   const isStep1 = searchParams.get("step") === "1";
   const selectedSlug = searchParams.get("selected");
 
-  const { ready, draft, setPickup, setReturn, setVehicle, setDraft } = useBookingDraft();
+  const { ready, draft, setPickup, setReturn, setDraft } = useBookingDraft();
 
   // Seed / sync draft pickup+return from URL search params (SearchBar → funnel).
   React.useEffect(() => {
@@ -125,6 +126,20 @@ export function VehiclesClient({
     }
   }, [ready, draft, searchParams, setPickup, setReturn, setDraft]);
 
+  // Step 1 must filter against live availability — push draft dates into the
+  // URL when missing so the server re-renders the date-scoped fleet list.
+  React.useEffect(() => {
+    if (!ready || !draft || !isStep1) return;
+    const pickupAt = searchParams.get("pickupAt");
+    const returnAt = searchParams.get("returnAt");
+    if (pickupAt && returnAt) return;
+    if (!draft.pickup.datetime || !draft.return.datetime) return;
+    const next = draftToSearchParams(draft);
+    next.set("step", "1");
+    if (selectedSlug) next.set("selected", selectedSlug);
+    router.replace(`/vehicles?${next.toString()}`, { scroll: false });
+  }, [draft, isStep1, ready, router, searchParams, selectedSlug]);
+
   const expandedVehicle: Vehicle | null = React.useMemo(() => {
     if (!selectedSlug) return null;
     return filtered.find((v) => v.slug === selectedSlug) ?? null;
@@ -153,23 +168,41 @@ export function VehiclesClient({
   }, [setQuery]);
 
   const onConfirm = React.useCallback(
-    (vehicleId: string, choice: { type: RateType; mileage: MileagePlan }) => {
-      setVehicle(vehicleId, choice);
+    (vehicleId: string, vehicleSlug: string, choice: { type: RateType; mileage: MileagePlan }) => {
+      // One synchronous sessionStorage write: merge URL search context + vehicle.
+      // Avoids racing /vehicles' async draft sync when the user clicks Next quickly.
+      setDraft((prev) => {
+        const pickupAt = searchParams.get("pickupAt");
+        const returnAt = searchParams.get("returnAt");
+        const withSearch =
+          pickupAt && returnAt
+            ? (() => {
+                const seeded = seedDraftFromSearchParams(searchParams);
+                return {
+                  ...prev,
+                  pickup: { ...prev.pickup, ...seeded.pickup },
+                  return: { ...prev.return, ...seeded.return },
+                  promoCode: seeded.promoCode ?? prev.promoCode,
+                };
+              })()
+            : prev;
+        return { ...withSearch, vehicle: { vehicleId, vehicleSlug, rate: choice } };
+      });
       track(EVENTS.VEHICLE_SELECTED, {
         vehicleId,
         rate: choice.type,
         mileage: choice.mileage,
       });
-      // Mirror vehicleId (+ rate) in the URL so /book/extras can re-seed the
-      // draft if sessionStorage was empty on first paint.
       const extras = new URLSearchParams({
         vehicleId,
+        vehicleSlug,
         rate: choice.type,
         mileage: choice.mileage,
       });
+      appendSearchContextFromParams(extras, searchParams);
       router.push(`/book/extras?${extras.toString()}`);
     },
-    [router, setVehicle],
+    [router, searchParams, setDraft],
   );
 
   const lowestPriceActive = filters.sort === "price-asc";
@@ -334,7 +367,7 @@ export function VehiclesClient({
                             vehicle={selectedInRow}
                             pickupISO={pickupISO}
                             returnISO={returnISO}
-                            onConfirm={(choice) => onConfirm(selectedInRow.id, choice)}
+                            onConfirm={(choice) => onConfirm(selectedInRow.id, selectedInRow.slug, choice)}
                             onClose={onClose}
                           />
                         </motion.div>

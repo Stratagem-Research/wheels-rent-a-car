@@ -15,11 +15,11 @@ import { Stepper } from "@/components/booking/Stepper";
 import { FlowSummaryPanel } from "@/components/booking/FlowSummaryPanel";
 import { HoldTimer, clearHold } from "@/components/booking/HoldTimer";
 import { PaymentMethodSelector } from "@/components/booking/PaymentMethodSelector";
-import { useBookingDraft } from "@/hooks/useBookingDraft";
-import { useBookingCatalog } from "@/hooks/useBookingCatalog";
+import { useBookingFunnelPage } from "@/hooks/useBookingFunnelPage";
 import { whatsAppHref } from "@/lib/whatsapp";
 import { api, ApiError } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
+import { isValidPhoneNational } from "@/lib/booking/phone";
 import { computePrice, formatUsd } from "@/lib/booking/pricing";
 import { draftToSearchParams } from "@/lib/booking/draft-to-search-params";
 import { track } from "@/lib/analytics/dataLayer";
@@ -80,17 +80,44 @@ export default function CheckoutPage() {
   const tPayment = useTranslations("checkoutPayment");
   const t = useTranslations("bookingFlow.checkout");
   const router = useRouter();
-  const { draft, setDraft, ready } = useBookingDraft();
   const {
+    draft,
+    setDraft,
+    ready,
+    vehicle,
+    showSkeleton,
     addOns: ADD_ONS,
     protectionTiers: PROTECTION_TIERS,
-    vehicles: VEHICLES,
     branches: BRANCHES,
-  } = useBookingCatalog();
+  } = useBookingFunnelPage({ requireProtection: true });
   const [form, setForm] = React.useState<CheckoutFormState>(emptyForm);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [submitting, setSubmitting] = React.useState(false);
   const firedStarted = React.useRef(false);
+  const verifiedAvailability = React.useRef(false);
+
+  // Re-check Wizard availability before the customer fills the form.
+  React.useEffect(() => {
+    if (!ready || !draft?.vehicle?.vehicleId || verifiedAvailability.current) return;
+    verifiedAvailability.current = true;
+    void api
+      .post<{ available: boolean; reason?: string | null }>(endpoints.bookingVerifyVehicle, {
+        vehicleId: draft.vehicle.vehicleId,
+        pickup: draft.pickup,
+        return: draft.return,
+      })
+      .then((result) => {
+        if (result.available) return;
+        const detail = result.reason ? ` (${result.reason})` : "";
+        toast.warning(`${t("vehicleTaken")}${detail}`);
+        const params = draftToSearchParams(draft);
+        params.set("step", "1");
+        router.replace(`/vehicles?${params.toString()}`);
+      })
+      .catch(() => {
+        // Non-blocking — submit path re-checks anyway.
+      });
+  }, [draft, ready, router, t]);
 
   // Fire checkout_started once.
   React.useEffect(() => {
@@ -98,13 +125,6 @@ export default function CheckoutPage() {
     firedStarted.current = true;
     track(EVENTS.CHECKOUT_STARTED);
   }, [ready, draft]);
-
-  // Guard: vehicle or protection missing → bounce back.
-  React.useEffect(() => {
-    if (!ready || !draft) return;
-    if (!draft.vehicle) router.replace("/book/select-vehicle");
-    else if (!draft.protectionTierId) router.replace("/book/protection");
-  }, [ready, draft, router]);
 
   // Idle WhatsApp prompt at 30s on checkout (00_global.md §6 hide rules).
   React.useEffect(() => {
@@ -138,7 +158,7 @@ export default function CheckoutPage() {
     };
   }, [t]);
 
-  if (!ready || !draft || !draft.vehicle) {
+  if (showSkeleton || !draft || !draft.vehicle) {
     return (
       <>
         <Stepper current={4} />
@@ -149,7 +169,6 @@ export default function CheckoutPage() {
     );
   }
 
-  const vehicle = VEHICLES.find((v) => v.id === draft.vehicle?.vehicleId);
   const price = computePrice({
     draft,
     vehicle,
@@ -168,6 +187,9 @@ export default function CheckoutPage() {
     if (!form.lastName.trim()) e.lastName = t("lastNameRequired");
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) e.email = t("emailInvalid");
     if (!form.phone.national.trim()) e.phone = t("mobileRequired");
+    else if (!isValidPhoneNational(form.phone.countryIso, form.phone.national)) {
+      e.phone = t("mobileInvalid");
+    }
     if (!form.dob) e.dob = t("dobRequired");
     if (!form.licenceNumber.trim()) e.licenceNumber = t("licenceNumberRequired");
     if (!form.licenceIssue) e.licenceIssue = t("issueDateRequired");
@@ -265,15 +287,22 @@ export default function CheckoutPage() {
     } catch (err) {
       console.error(err);
       if (err instanceof ApiError && err.status === 409) {
-        // Vehicle was booked under us between availability and submit.
-        // Per 04_booking_flow.md edge-case "Vehicle becomes unavailable
-        // after step 1", redirect back with an explanatory toast.
-        toast.warning(t("vehicleTaken"));
-        router.push(`/vehicles?${draftToSearchParams(completeDraft).toString()}`);
+        const errBody = err.body as { reason?: string; message?: string } | null;
+        const detail = errBody?.reason ?? errBody?.message;
+        toast.warning(detail ? `${t("vehicleTaken")} (${detail})` : t("vehicleTaken"));
+        router.push(`/vehicles?${(() => {
+          const params = draftToSearchParams(completeDraft);
+          params.set("step", "1");
+          return params.toString();
+        })()}`);
       } else if (err instanceof ApiError && err.status === 429) {
         toast.warning(t("rateLimited"));
       } else if (err instanceof ApiError && err.status === 503) {
         toast.warning(tPayment("whishUnavailable"));
+      } else if (err instanceof ApiError) {
+        const errBody = err.body as { message?: string; reason?: string } | null;
+        const detail = errBody?.reason ?? errBody?.message;
+        toast.error(detail ?? t("submitError"));
       } else {
         toast.error(t("submitError"));
       }

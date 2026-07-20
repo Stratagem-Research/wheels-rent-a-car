@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/Button";
 import { SaveVehicleButton } from "@/components/vehicle/SaveVehicleButton";
 import { RadioGroup, RadioItem } from "@/components/ui/RadioGroup";
 import { formatUsd, perDayRate, rentalDays } from "@/lib/booking/pricing";
+import { FLEET_PAY_LATER_RATE, FLEET_PAY_NOW_RATE } from "@/lib/vehicles/fleet-card-rates";
 import { whatsAppHref } from "@/lib/whatsapp";
 import type { MileagePlan, RateType, Vehicle, VehicleBadge } from "@/types/domain";
 
@@ -82,10 +83,8 @@ export interface VehicleCardExpandedProps {
 type PaymentTiming = "pay-now" | "pay-later";
 
 const PAYMENT_TIMING_TO_BOOKING: Record<PaymentTiming, { type: RateType; mileage: MileagePlan }> = {
-  // Mileage defaults to "unlimited" so the "Unlimited kilometers available"
-  // promise on the collapsed VehicleCard is honored when the user expands.
-  "pay-now": { type: "best-price", mileage: "unlimited" },
-  "pay-later": { type: "flexible", mileage: "unlimited" },
+  "pay-now": FLEET_PAY_NOW_RATE,
+  "pay-later": FLEET_PAY_LATER_RATE,
 };
 
 export function VehicleCardExpanded({
@@ -102,11 +101,17 @@ export function VehicleCardExpanded({
   const days = rentalDays(pickupISO, returnISO);
   const image = vehicle.images[0];
 
-  // Compute both prices so the radio row can display the delta without
-  // re-deriving on every render. Mileage is "unlimited" in both — same
-  // default the collapsed card advertises.
-  const payNowPerDay = perDayRate(vehicle, "best-price", "unlimited");
-  const payLaterPerDay = perDayRate(vehicle, "flexible", "unlimited");
+  // Same bundles as the collapsed card (best-price + 200 km/day vs flexible).
+  const payNowPerDay = perDayRate(
+    vehicle,
+    FLEET_PAY_NOW_RATE.type,
+    FLEET_PAY_NOW_RATE.mileage,
+  );
+  const payLaterPerDay = perDayRate(
+    vehicle,
+    FLEET_PAY_LATER_RATE.type,
+    FLEET_PAY_LATER_RATE.mileage,
+  );
   const payLaterSurchargeCents = payLaterPerDay - payNowPerDay;
 
   const perDay = paymentTiming === "pay-now" ? payNowPerDay : payLaterPerDay;
@@ -235,12 +240,9 @@ export function VehicleCardExpanded({
           </RadioGroup>
         </Panel>
 
-        {/* What's included — surface the "unlimited mileage" promise from
-         * the collapsed card so users don't have to take it on faith when
-         * they expand. The success-green check matches the same affordance
-         * on VehicleCard. */}
+        {/* What's included — matches the 200 km/day plan shown on the card. */}
         <ul className="flex flex-col gap-2">
-          <Benefit text={t("benefitUnlimited")} />
+          <Benefit text={t("benefitMileage")} />
           <Benefit text={t("benefitCancellation")} />
           <Benefit text={t("benefitWhatsapp")} />
         </ul>

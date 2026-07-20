@@ -27,6 +27,11 @@ function draft(overrides: Partial<BookingDraft> = {}): BookingDraft {
 }
 
 describe("booking/pricing", () => {
+  it("rentalDays uses calendar dates for SearchBar datetimes (timezone-safe)", () => {
+    expect(rentalDays("2026-07-23T10:00", "2026-07-24T10:00")).toBe(1);
+    expect(rentalDays("2026-07-23T10:00", "2026-07-25T10:00")).toBe(2);
+  });
+
   it("computes a 5-day base rate at the from-price for best-price + capped", () => {
     const price = computePrice({
       draft: draft(),

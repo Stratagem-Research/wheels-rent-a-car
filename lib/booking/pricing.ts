@@ -1,4 +1,5 @@
 import { differenceInCalendarDays, parseISO } from "date-fns";
+import { isFrontendLocalDatetime } from "@/lib/api/wheels-public/datetime";
 import type {
   AddOn,
   BookingDraft,
@@ -42,8 +43,22 @@ export function isWithinOnlineBookingWindow(pickupISO: string, returnISO: string
   return days >= 1 && days <= MAX_ONLINE_RENTAL_DAYS;
 }
 
+/** Calendar dates from SearchBar datetimes (`YYYY-MM-DDTHH:mm`, Beirut wall clock). */
+function calendarDateFromDraftDatetime(value: string): Date | null {
+  if (!isFrontendLocalDatetime(value)) return null;
+  const parts = value.slice(0, 10).split("-").map(Number);
+  if (parts.length !== 3 || parts.some((n) => Number.isNaN(n))) return null;
+  const [y, mo, d] = parts as [number, number, number];
+  return new Date(y, mo - 1, d);
+}
+
 export function rentalDays(pickupISO: string, returnISO: string): number {
   try {
+    const pickupCal = calendarDateFromDraftDatetime(pickupISO);
+    const returnCal = calendarDateFromDraftDatetime(returnISO);
+    if (pickupCal && returnCal) {
+      return Math.max(1, differenceInCalendarDays(returnCal, pickupCal));
+    }
     return Math.max(1, differenceInCalendarDays(parseISO(returnISO), parseISO(pickupISO)));
   } catch {
     return 1;

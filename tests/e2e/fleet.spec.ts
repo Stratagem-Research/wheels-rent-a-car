@@ -22,10 +22,14 @@ test.describe("fleet — inline expansion replaces the PDP", () => {
     await expect(page.getByRole("link", { name: /Ask on WhatsApp/i })).toBeVisible();
   });
 
-  test("Next on an expanded card routes to /book/extras", async ({ page }) => {
-    await page.goto("/vehicles?selected=kia-cerato");
+  test("Next on an expanded card routes to /book/extras with search context", async ({ page }) => {
+    await page.goto(
+      "/vehicles?step=1&pickupType=branch&pickupLoc=br-hazmieh&pickupAt=2027-06-01T10%3A00&returnAt=2027-06-04T10%3A00&selected=kia-cerato",
+    );
     await page.getByRole("button", { name: /^Next/i }).click();
     await expect(page).toHaveURL(/\/book\/extras\?.*vehicleId=/);
+    await expect(page).toHaveURL(/vehicleSlug=kia-cerato/);
+    await expect(page).toHaveURL(/pickupAt=2027-06-01T10%3A00/);
   });
 
   test("/book/select-vehicle redirects to /vehicles?step=1", async ({ page }) => {
