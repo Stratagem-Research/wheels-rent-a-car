@@ -4,7 +4,8 @@ Status: Open
 Owner: Marc  
 Last updated: 2026-07-27
 
-**Master go-live order:** [Production_Go_Live_Checklist.md](./Production_Go_Live_Checklist.md)
+**Master go-live order:** [Production_Go_Live_Checklist.md](./Production_Go_Live_Checklist.md)  
+**Elie / content tracker:** [Elie_Response_Tracker.md](./Elie_Response_Tracker.md)
 
 Track external answers needed for production go-live. Update this file when Adam or Wheels business replies.
 

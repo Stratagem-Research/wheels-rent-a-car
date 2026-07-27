@@ -1,42 +1,77 @@
-# Production Go-Live — Ordered Checklist
+# Production Go-Live — Master Checklist
 
-Status: Active  
-Owner: Marc (Website Team)  
+Status: **Active — source of truth**  
+Owners: Marc (coordination) · Fatema (lead engineer) · Elie (Wheels owner / content)  
 Last updated: 2026-07-27
 
-Work through in order. Each step links to the detailed runbook. **Do not test production Wizard until step 10.**
+Work top-to-bottom. Phases **0** and **E** can run in parallel with engineering. **Do not test production Wizard until step 32.**
 
 ---
 
-## Phase A — You (Marc) — this week
+## Team roles
+
+| Person | Role | Owns |
+| --- | --- | --- |
+| **Fatema** | Lead engineer | Supabase, deploy, env, migrations, RLS, automated tests, QA execution, CMS uploads, implementing feedback, cutover technical steps |
+| **Marc** | Coordination & client comms | Emails to Adam/Elie, stakeholder follow-up, DNS/domain requests, Go/No-Go facilitation, credential handover |
+| **Elie** | Owner / business | Content review, assets (photos), IBAN, promo rules, pricing copy, payment merchant relationships, final owner sign-off |
+| **Adam** | Wizard / integration | API token, deploy-path answer, notification policy, staging sign-off |
+
+Track external replies: [Adam_Response_Tracker.md](./Adam_Response_Tracker.md) · [Elie_Response_Tracker.md](./Elie_Response_Tracker.md)
+
+---
+
+## Phase 0 — Elie (parallel, start now)
+
+*Requested in [Email_to_Adam_Status_Update.md](./Email_to_Adam_Status_Update.md) (Jul 8) and Revision 1 walkthrough. Can happen while engineering provisions infra.*
+
+| # | Action | Owner | Notes / source | Done? |
+| --- | --- | --- | --- | --- |
+| E1 | **Team photos** for About page (`TeamCard` section) | Elie → Fatema uploads | Jul 8 email: "make progress on team photos" | [ ] |
+| E2 | **Full site review** — copy, layout, content, UX | Elie | Jul 8 email: feedback in a shared doc | [ ] |
+| E3 | **Hero / Lebanon photography** (cinematic full-bleed) | Elie → Fatema | Walkthrough: placeholders in code; client supplies finals | [ ] |
+| E4 | **Vehicle marketing photos** in CMS (`vehicle_metadata`) | Elie → Fatema | Wizard sync = ops data; website owns photos/slugs/badges | [ ] |
+| E5 | **Corporate tier real numbers** (replace placeholders) | Elie | Walkthrough open item | [ ] |
+| E6 | **Promo code rules** — confirm launch promos + discount logic | Elie | Adam confirmed website-side validation; Elie owns business rules | [ ] |
+| E7 | **Bank transfer IBAN** + transfer instructions copy | Elie | Placeholder in checkout today; also in Adam follow-up | [ ] |
+| E8 | **Whish merchant credentials** (`WHISH_CHANNEL`, `WHISH_SECRET`) | Elie | Blocks online payments; code ready | [ ] |
+| E9 | **Bank Audi NEO** — confirm go-live intent + obtain API credentials | Elie | Elie raised NEO; sandbox scaffold in code | [ ] |
+| E10 | **Trip / destination photos** if replacing stock assets | Elie → Fatema | CMS trips use `public/images/Trips Images/` | [ ] |
+
+**When Elie delivers E2:** Fatema triages items → implements in codebase → Marc schedules re-review on staging.
+
+---
+
+## Phase A — Engineering (Fatema leads)
 
 | # | Action | Owner | Doc / command | Done? |
 | --- | --- | --- | --- | --- |
-| 1 | **Send Adam follow-up email** | Marc | [Email_to_Adam_Production_Followup.md](./Email_to_Adam_Production_Followup.md) — mark `SENT` when sent | [ ] |
-| 2 | **Create production Supabase** (eu-central-1) | Marc | [Supabase_Production_Setup.md](./Supabase_Production_Setup.md) §1 | [ ] |
-| 3 | **Apply migrations + RLS** on new prod project | Marc | `pnpm supabase:production-preflight` | [ ] |
-| 4 | **Configure Auth** (redirect URLs, SMTP, confirmations) | Marc | [Supabase_Production_Setup.md](./Supabase_Production_Setup.md) §3 | [ ] |
-| 5 | **Set up Resend** domain + API key | Marc | Verify domain `wheelsrentacar.com.lb` | [ ] |
-| 6 | **Deploy staging** (Vercel recommended) | Marc | [Staging_Deploy_Checklist.md](./Staging_Deploy_Checklist.md) | [ ] |
-| 7 | **Post-deploy smoke** on staging URL | Marc | `curl …/api/health`, `pnpm notifications:validate $URL` | [ ] |
-| 8 | **Manual QA** on staging | Marc + Fatema | [Manual_QA_Checklist.md](./Manual_QA_Checklist.md) | [ ] |
-| 9 | **Share staging URL + Supabase creds** with Adam (secure channel) | Marc | Per follow-up email | [ ] |
+| 1 | **Send Adam follow-up email** | Marc | [Email_to_Adam_Production_Followup.md](./Email_to_Adam_Production_Followup.md) — mark `SENT` | [ ] |
+| 2 | **Create production Supabase** (eu-central-1) | Fatema | [Supabase_Production_Setup.md](./Supabase_Production_Setup.md) §1 | [ ] |
+| 3 | **Apply migrations + RLS** on new prod project | Fatema | `pnpm supabase:production-preflight` | [ ] |
+| 4 | **Configure Auth** (redirect URLs, SMTP, confirmations) | Fatema | Supabase dashboard §3 | [ ] |
+| 5 | **Set up Resend** — domain DNS + API key on Vercel | Fatema (DNS: Marc if needed) | `NOTIFICATION_*` in `.env.staging.example` | [ ] |
+| 6 | **Deploy staging** (Vercel recommended) | Fatema | [Staging_Deploy_Checklist.md](./Staging_Deploy_Checklist.md) | [ ] |
+| 7 | **Post-deploy automated smoke** | Fatema | `curl …/api/health`, `pnpm notifications:validate $URL` | [ ] |
+| 8 | **Run automated gate suite on staging** | Fatema | See [Quick reference](#quick-reference) below | [ ] |
+| 9 | **Manual QA on staging** | Fatema (lead) · Marc (spot-check) | [Manual_QA_Checklist.md](./Manual_QA_Checklist.md) | [ ] |
+| 10 | **Upload Elie assets** (E1, E3, E4, E10) when received | Fatema | Admin CMS + `vehicle_metadata` | [ ] |
+| 11 | **Implement Elie feedback doc** (from E2) | Fatema | Track items in Elie tracker | [ ] |
+| 12 | **Update IBAN in i18n** when Elie provides E7 | Fatema | `messages/en.json`, `ar.json`, `fr.json` | [ ] |
+| 13 | **Share staging URL + Supabase creds** with Adam | Marc | Secure channel; Cc Elie for content review | [ ] |
 
 ---
 
-## Phase B — Await Adam / business
+## Phase B — Await Adam (Wizard)
 
-Track replies in [Adam_Response_Tracker.md](./Adam_Response_Tracker.md).
+| # | Waiting for | Blocks | Owner to chase |
+| --- | --- | --- | --- |
+| 14 | Deploy path (Vercel vs SSH) | Step 6 if SSH | Marc → Adam |
+| 15 | Notification answers (Resend OK? WhatsApp? Wizard duplicates?) | Notification copy + channels | Marc → Adam |
+| 16 | Staging integration sign-off | Prod token request | Marc → Adam |
+| 17 | Production `WIZARD_API_TOKEN` | Cutover only | Marc → Adam (after staging OK) |
 
-| # | Waiting for | Blocks |
-| --- | --- | --- |
-| 10 | Deploy path confirmation (Vercel vs SSH) | Step 6 if SSH |
-| 11 | Notification answers (Resend OK? WhatsApp? Wizard duplicates?) | Notification copy + channels |
-| 12 | Real bank transfer **IBAN** | Checkout transfer instructions |
-| 13 | Whish `WHISH_CHANNEL` / `WHISH_SECRET` | Whish sandbox E2E |
-| 14 | Bank Audi NEO API docs + credentials | NEO go-live |
-| 15 | Staging sign-off | Production Wizard token request |
-| 16 | Production `WIZARD_API_TOKEN` | Cutover only |
+Full tracker: [Adam_Response_Tracker.md](./Adam_Response_Tracker.md)
 
 ---
 
@@ -44,34 +79,58 @@ Track replies in [Adam_Response_Tracker.md](./Adam_Response_Tracker.md).
 
 | # | Action | Owner | Doc |
 | --- | --- | --- | --- |
-| 17 | Configure **Sentry** alerts (5xx on booking, payments, notifications) | Marc | [LaunchGate_Operations_Report.md](./LaunchGate_Operations_Report.md) |
-| 18 | **Backup/restore drill** on prod Supabase | Marc | Supabase dashboard |
-| 19 | **Rollback drill** (redeploy previous Vercel build) | Marc | [Production_Cutover_Runbook.md](./Production_Cutover_Runbook.md) |
-| 20 | Re-run **RLS negative** on prod project | Marc | `pnpm security:rls:negative` |
+| 18 | Configure **Sentry** alerts (5xx booking, payments, notifications) | Fatema | [LaunchGate_Operations_Report.md](./LaunchGate_Operations_Report.md) |
+| 19 | **Backup/restore drill** on prod Supabase | Fatema | Supabase dashboard |
+| 20 | **Rollback drill** (redeploy previous Vercel build) | Fatema | [Production_Cutover_Runbook.md](./Production_Cutover_Runbook.md) |
+| 21 | Re-run **RLS negative** on prod project | Fatema | `pnpm security:rls:negative` |
 
 ---
 
-## Phase D — Go-live (Adam approval required)
+## Phase D — Sign-off (before cutover)
+
+| # | Action | Owner | Done? |
+| --- | --- | --- | --- |
+| 22 | **Elie content sign-off** on staging (copy, photos, pricing, IBAN) | Elie | [ ] |
+| 23 | **Elie owner Go/No-Go** for payment-deferred launch | Elie | [ ] |
+| 24 | **Adam staging sign-off** | Adam | [ ] |
+| 25 | Final **Go/No-Go memo** | Marc + Fatema + Elie + Adam | [Launch_Go_NoGo_Memo.md](./Launch_Go_NoGo_Memo.md) | [ ] |
+
+Payment-deferred launch = cash + transfer + OMT live. Whish/NEO flip on when E8/E9 credentials arrive.
+
+---
+
+## Phase E — Production cutover (Adam + Elie approval required)
 
 | # | Action | Owner | Doc |
 | --- | --- | --- | --- |
-| 21 | Final **Go/No-Go** review | Marc + Adam | [Launch_Go_NoGo_Memo.md](./Launch_Go_NoGo_Memo.md) |
-| 22 | Switch env to **production Wizard** URLs + token | Marc | [Production_Cutover_Runbook.md](./Production_Cutover_Runbook.md) |
-| 23 | Deploy production + **minimal smoke** (health, site-config, vehicle sync — no test bookings) | Marc | Cutover runbook §2 |
-| 24 | **24h monitoring** (Sentry, notification outbox, sync failures) | Marc | Cutover runbook §3 |
-| 25 | **Supabase handover** to Wheels | Marc → Wheels | [Supabase_Production_Setup.md](./Supabase_Production_Setup.md) §7 |
+| 26 | Switch env to **production Wizard** URLs + token | Fatema | [Production_Cutover_Runbook.md](./Production_Cutover_Runbook.md) |
+| 27 | Deploy production + **minimal smoke** (no test bookings on prod Wizard) | Fatema | Cutover runbook §2 |
+| 28 | **24h monitoring** (Sentry, notification outbox, sync failures) | Fatema · Marc on-call | Cutover runbook §3 |
+| 29 | **Supabase handover** to Wheels | Marc → Elie | [Supabase_Production_Setup.md](./Supabase_Production_Setup.md) §7 |
+| 30 | Enable **Whish/NEO** env flags individually when E8/E9 ready | Fatema | `PAYMENT_METHOD_*` on Vercel |
 
 ---
 
-## Quick reference — automated gates (re-run anytime)
+## Quick reference — automated gates (Fatema re-runs)
 
 ```bash
 pnpm typecheck && pnpm test && pnpm build
 pnpm test:e2e:smoke --project=chromium
 source .env && RUN_LIVE_API_TESTS=1 pnpm test -- tests/integration/wheels-public.live.test.ts
 source .env && ./scripts/wheels-api-smoke.sh --no-write
-# Live checkout (creates demo bookings; 45s pause between methods):
+# Live checkout on demo Wizard (creates bookings; serial, 45s pause):
 source .env && RUN_LIVE_E2E=1 pnpm exec playwright test tests/e2e/checkout.spec.ts --project=chromium
 ```
 
-Payment-deferred launch = steps **1–9 + 17–21** with cash/transfer/OMT only. Whish/NEO can follow when credentials arrive.
+---
+
+## Email history cross-check (what we asked whom)
+
+| Date | Email | Asked of Elie | Asked of Adam |
+| --- | --- | --- | --- |
+| Jul 8 | [Status update](./Email_to_Adam_Status_Update.md) | Team photos; full site review doc | Token, staging access, API revision |
+| Jul 19 | [Production handoff](./Email_to_Adam_Production_Handoff.md) | (Cc) NEO mentioned as Elie's preference | Supabase, payments, notifications, prod API |
+| Jul 25 | Adam reply | — | We create Supabase; all 5 payment modules; no prod Wizard testing |
+| Jul 27 | [Production follow-up](./Email_to_Adam_Production_Followup.md) (draft) | (Cc) | Resend/WhatsApp, deploy path, credentials follow-up |
+
+**Still open from Elie (never received):** team photos, site feedback doc, hero photography, corporate pricing, IBAN, Whish/NEO credentials.
