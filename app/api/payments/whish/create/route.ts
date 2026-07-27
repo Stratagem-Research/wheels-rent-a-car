@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getWhishClient } from "@/lib/payments/whish";
 import { getWhishEnv } from "@/lib/server/env";
+import { isPaymentMethodAvailable } from "@/lib/server/payment-methods";
 import { appendBookingState, recordPaymentEvent } from "@/lib/server/payment-events";
 
 const CreateWhishPaymentSchema = z.object({
@@ -13,6 +14,16 @@ const CreateWhishPaymentSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  if (!isPaymentMethodAvailable("whish-online")) {
+    return NextResponse.json(
+      {
+        message:
+          "Whish online payment is not enabled or configured in this environment. Choose cash, bank transfer, or OMT for local testing.",
+      },
+      { status: 503 },
+    );
+  }
+
   const body = await request.json().catch(() => null);
   const parsed = CreateWhishPaymentSchema.safeParse(body);
   if (!parsed.success) {

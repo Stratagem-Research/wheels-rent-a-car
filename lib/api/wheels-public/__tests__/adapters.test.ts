@@ -174,6 +174,7 @@ describe("wheels-public/adapters", () => {
       const map: Record<NonNullable<BookingDraft["paymentMethod"]>, string> = {
         card: "online_payment",
         "whish-online": "online_payment",
+        neo: "online_payment",
         cash: "cash_on_pickup",
         transfer: "bank_transfer",
         omt: "omt",

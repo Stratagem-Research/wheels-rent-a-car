@@ -2,8 +2,8 @@ import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export interface RecordPaymentEventInput {
   bookingReference: string;
-  provider: "whish" | "manual";
-  externalId?: number;
+  provider: "whish" | "neo" | "manual";
+  externalId?: number | string;
   status: string;
   currency?: string;
   amount?: number;
@@ -12,15 +12,22 @@ export interface RecordPaymentEventInput {
 
 export async function recordPaymentEvent(input: RecordPaymentEventInput): Promise<void> {
   const supabase = getSupabaseAdminClient();
+  const externalId =
+    typeof input.externalId === "string"
+      ? Number.parseInt(input.externalId.replace(/\D/g, "").slice(-15), 10) || Date.now()
+      : input.externalId;
   const { error } = await supabase.from("payment_events").upsert(
     {
       booking_reference: input.bookingReference,
       provider: input.provider,
-      external_id: input.externalId,
+      external_id: externalId,
       status: input.status,
       currency: input.currency ?? "USD",
       amount: input.amount ?? null,
-      payload: input.payload ?? {},
+      payload: {
+        ...(input.payload ?? {}),
+        ...(typeof input.externalId === "string" ? { externalIdLabel: input.externalId } : {}),
+      },
       processed_at:
         input.status === "success" || input.status === "paid" ? new Date().toISOString() : null,
     },
@@ -44,12 +51,16 @@ export async function appendBookingState(
   if (error) throw error;
 }
 
-export async function getPaymentEventByExternalId(externalId: number) {
+export async function getPaymentEventByExternalId(externalId: number | string) {
   const supabase = getSupabaseAdminClient();
+  const numericId =
+    typeof externalId === "string"
+      ? Number.parseInt(externalId.replace(/\D/g, "").slice(-15), 10)
+      : externalId;
   const { data, error } = await supabase
     .from("payment_events")
     .select("booking_reference, currency, amount, status, payload")
-    .eq("external_id", externalId)
+    .eq("external_id", numericId)
     .limit(1)
     .maybeSingle();
   if (error) throw error;

@@ -57,4 +57,5 @@ export const SITE_CONFIG: SiteConfig = {
     href: "/vehicles?promo=SUMMER15",
   },
   maintenance: false,
+  paymentMethods: [],
 };

@@ -1,4 +1,4 @@
-> **Status: DRAFT — ready to send by Marc.**
+> **Status: SENT by Marc (2026-07-19).** Adam replied 2026-07-25 — see [Email_to_Adam_Production_Followup.md](./Email_to_Adam_Production_Followup.md).
 
 # Email to Adam — production handoff items
 

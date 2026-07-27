@@ -63,7 +63,7 @@ test.describe("checkout — supported payment methods", () => {
     await continueToProtection(page);
     await pickSmartTier(page);
     await fillDriverInfo(page, `e2e-omt-${Date.now()}@wheels.test`);
-    await page.getByLabel(/OMT \/ Whish \/ Bob/i).click();
+    await page.getByLabel(/^OMT$/i).click();
     await acceptTerms(page);
     await submitCheckout(page, /Submit booking/i);
     await waitForConfirmationHeading(page, /Your booking is pending/i);

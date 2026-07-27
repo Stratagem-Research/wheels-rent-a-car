@@ -1,11 +1,23 @@
 import { NextResponse } from "next/server";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
+import { dispatchNotificationJob } from "@/lib/server/notification-provider";
+
+function isAuthorized(request: Request): boolean {
+  const secret = process.env.NOTIFICATION_CRON_SECRET?.trim();
+  if (!secret) return true;
+  const header = request.headers.get("authorization");
+  return header === `Bearer ${secret}`;
+}
 
 /**
- * Minimal outbox worker endpoint.
- * Intended for scheduled invocation from cron/queue runners.
+ * Outbox worker endpoint.
+ * Intended for scheduled invocation from Vercel Cron or another queue runner.
  */
-export async function POST() {
+export async function POST(request: Request) {
+  if (!isAuthorized(request)) {
+    return NextResponse.json({ message: "Unauthorized." }, { status: 401 });
+  }
+
   const supabase = getSupabaseAdminClient();
   const nowIso = new Date().toISOString();
   const { data, error } = await supabase
@@ -18,6 +30,22 @@ export async function POST() {
 
   for (const job of data ?? []) {
     try {
+      const result = await dispatchNotificationJob({
+        channel: job.channel,
+        template: job.template,
+        recipient: job.recipient,
+        payload: job.payload,
+      });
+
+      if (result.provider === "skipped" && job.channel === "whatsapp") {
+        await dispatchNotificationJob({
+          channel: "email",
+          template: job.template,
+          recipient: job.recipient,
+          payload: job.payload,
+        });
+      }
+
       await supabase.from("notification_logs").insert({
         outbox_id: job.id,
         booking_reference: job.booking_reference,
@@ -27,6 +55,7 @@ export async function POST() {
           template: job.template,
           recipient: job.recipient,
           payload: job.payload,
+          dispatch: result,
         },
       });
       await supabase

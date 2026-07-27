@@ -367,6 +367,10 @@ function labelForMethod(
       return t("methodOmt");
     case "whish-online":
       return t("methodWhish");
+    case "neo":
+      return t("methodNeo");
+    default:
+      return method;
   }
 }
 

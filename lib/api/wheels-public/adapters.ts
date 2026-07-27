@@ -149,7 +149,9 @@ export function fromBookingDraft(
     drop_off_address: resolveWizardAddressForBooking(draft.return),
     payment_method: mapPaymentMethod(draft.paymentMethod),
     payment_status:
-      draft.paymentMethod === "card" || draft.paymentMethod === "whish-online"
+      draft.paymentMethod === "card" ||
+      draft.paymentMethod === "whish-online" ||
+      draft.paymentMethod === "neo"
         ? "online_pending"
         : "unpaid",
     customer: {
@@ -215,6 +217,7 @@ function mapPaymentMethod(method: BookingDraft["paymentMethod"]): string {
   switch (method) {
     case "card":
     case "whish-online":
+    case "neo":
       return "online_payment";
     case "cash":
       return "cash_on_pickup";
@@ -363,7 +366,10 @@ export function toInternalBooking(data: BookingData, options: ToInternalBookingO
       ? "confirmed"
       : data.status === "cancelled" || data.status === "canceled"
         ? "cancelled"
-        : draft.paymentMethod === "card" || draft.paymentMethod === "cash"
+        : draft.paymentMethod === "card" ||
+            draft.paymentMethod === "cash" ||
+            draft.paymentMethod === "whish-online" ||
+            draft.paymentMethod === "neo"
           ? "confirmed"
           : "pending";
 

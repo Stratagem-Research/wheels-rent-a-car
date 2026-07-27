@@ -42,6 +42,7 @@ import { toBackendDateTime } from "@/lib/api/wheels-public/datetime";
 import { dispatchWizardSync } from "@/lib/server/wizard-sync";
 import { appendBookingState } from "@/lib/server/payment-events";
 import { enqueueNotification } from "@/lib/server/notifications";
+import { assertPaymentMethodSelectable } from "@/lib/server/payment-methods";
 import { getVehicleBySlug, getVehicleById } from "@/lib/server/vehicles-service";
 
 export { VehicleUnavailableError };
@@ -210,6 +211,7 @@ export async function handleBookingSubmit(
   if (!draft.vehicle || !draft.driver || !draft.paymentMethod) {
     throw new Error("Incomplete booking");
   }
+  assertPaymentMethodSelectable(draft.paymentMethod);
   assertOnlineBookingWindow(draft.pickup.datetime, draft.return.datetime);
 
   const { addOns, tiers, vehicles } = await getCatalog();
@@ -328,6 +330,22 @@ export async function handleBookingSubmit(
       Math.round(booking.price.totalCents / 100),
     );
   }
+
+  await enqueueNotification({
+    bookingReference: booking.ref,
+    channel: "email",
+    template: "booking_confirmation",
+    recipient: draft.driver.email,
+    payload: {
+      ref: booking.ref,
+      vehicle: `${vehicle.make} ${vehicle.model}`,
+      pickupDatetime: draft.pickup.datetime,
+      returnDatetime: draft.return.datetime,
+      state: booking.state,
+      paymentMethod: draft.paymentMethod,
+    },
+  }).catch(() => undefined);
+
   return { booking };
 }
 

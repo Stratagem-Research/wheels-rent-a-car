@@ -228,7 +228,7 @@ export interface BookingDriver {
   country: CountryCode;
 }
 
-export type PaymentMethod = "card" | "cash" | "transfer" | "omt" | "whish-online";
+export type PaymentMethod = "card" | "cash" | "transfer" | "omt" | "whish-online" | "neo";
 
 export interface BookingDraft {
   pickup: BookingPickup;
@@ -489,6 +489,13 @@ export interface Itinerary {
   updatedAt: ISODateTime;
 }
 
+export interface PaymentMethodPublicConfig {
+  method: PaymentMethod;
+  enabled: boolean;
+  available: boolean;
+  environment?: "sandbox" | "production";
+}
+
 export interface SiteConfig {
   /** Active promo strip; null = no campaign running. */
   promo: {
@@ -497,6 +504,8 @@ export interface SiteConfig {
   } | null;
   /** Maintenance mode flag. */
   maintenance: boolean;
+  /** Checkout payment modules — individually activatable via env. */
+  paymentMethods: PaymentMethodPublicConfig[];
 }
 
 export interface AvailabilityRequest {

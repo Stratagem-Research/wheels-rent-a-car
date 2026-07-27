@@ -84,6 +84,9 @@ export const endpoints = {
   paymentsWhishStatus: `${API_BASE}/payments/whish/status`,
   paymentsWhishCallbackSuccess: `${API_BASE}/payments/whish/callback/success`,
   paymentsWhishCallbackFailure: `${API_BASE}/payments/whish/callback/failure`,
+  paymentsNeoCreate: `${API_BASE}/payments/neo/create`,
+  paymentsNeoCallbackSuccess: `${API_BASE}/payments/neo/callback/success`,
+  paymentsNeoCallbackFailure: `${API_BASE}/payments/neo/callback/failure`,
 } as const;
 
 export type Endpoints = typeof endpoints;

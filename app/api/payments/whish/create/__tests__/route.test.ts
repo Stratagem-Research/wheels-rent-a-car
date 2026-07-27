@@ -26,6 +26,7 @@ describe("POST /api/payments/whish/create", () => {
     vi.stubEnv("DATABASE_URL", "postgres://postgres:pw@localhost:5432/postgres");
     vi.stubEnv("WHISH_CHANNEL", "channel");
     vi.stubEnv("WHISH_SECRET", "secret");
+    vi.stubEnv("PAYMENT_METHOD_WHISH_ONLINE", "true");
     vi.stubEnv("WEBSITE_URL", "https://wheels.com.lb");
     vi.stubEnv("WHEELS_INTERNAL_API_BASE_URL", "https://api.wheels.com.lb/api/v1");
     vi.stubEnv("WHEELS_INTERNAL_API_TOKEN", "token");

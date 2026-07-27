@@ -21,8 +21,19 @@
 - `ADMIN_CONTENT_EDITOR_USERNAMES`
 - `WHISH_CHANNEL`
 - `WHISH_SECRET`
+- `WHISH_ENVIRONMENT` (`sandbox` | `production`)
+- `NEO_MERCHANT_ID`
+- `NEO_API_KEY`
+- `NEO_ENVIRONMENT` (`sandbox` | `production`)
+- `PAYMENT_METHOD_CASH` (`true` | `false`, default `true`)
+- `PAYMENT_METHOD_TRANSFER` (default `true`)
+- `PAYMENT_METHOD_OMT` (default `true`)
+- `PAYMENT_METHOD_WHISH_ONLINE` (default `false`)
+- `PAYMENT_METHOD_NEO` (default `false`)
 - `WEBSITE_URL`
-- `NOTIFICATION_PROVIDER_KEY`
+- `NOTIFICATION_PROVIDER_KEY` (Resend API key; `RESEND_API_KEY` alias supported)
+- `NOTIFICATION_FROM_EMAIL`
+- `NOTIFICATION_CRON_SECRET` (optional bearer for `/api/notifications/process`)
 - `SENTRY_DSN`
 - `SENTRY_AUTH_TOKEN`
 

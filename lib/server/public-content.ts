@@ -12,6 +12,7 @@ import {
   toVehicleWithMetadata,
 } from "@/lib/supabase/admin-repository";
 import { getSyncedPublicVehicles } from "@/lib/server/wizard-catalog";
+import { getCheckoutPaymentMethods } from "@/lib/server/payment-methods";
 
 export async function getPublicBranches(): Promise<Branch[]> {
   try {
@@ -21,6 +22,13 @@ export async function getPublicBranches(): Promise<Branch[]> {
     // Ignore and fallback to fixtures.
   }
   return FALLBACK_BRANCHES;
+}
+
+function withPaymentMethods(config: SiteConfig): SiteConfig {
+  return {
+    ...config,
+    paymentMethods: getCheckoutPaymentMethods(),
+  };
 }
 
 export async function getPublicSiteConfig(): Promise<SiteConfig> {
@@ -36,20 +44,20 @@ export async function getPublicSiteConfig(): Promise<SiteConfig> {
       return true;
     });
     if (active) {
-      return {
+      return withPaymentMethods({
         ...FALLBACK_SITE_CONFIG,
         promo: {
           message: active.message,
           href: active.href ?? undefined,
         },
-      };
+      });
     }
-    return {
+    return withPaymentMethods({
       ...FALLBACK_SITE_CONFIG,
       promo: null,
-    };
+    });
   } catch {
-    return FALLBACK_SITE_CONFIG;
+    return withPaymentMethods(FALLBACK_SITE_CONFIG);
   }
 }
 

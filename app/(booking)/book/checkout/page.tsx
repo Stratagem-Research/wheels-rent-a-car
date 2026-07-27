@@ -272,6 +272,26 @@ export default function CheckoutPage() {
         return;
       }
 
+      if (form.paymentMethod === "neo") {
+        const neo = await api.post<{ collectUrl: string; externalId: string }>(
+          endpoints.paymentsNeoCreate,
+          {
+            bookingReference: response.booking.ref,
+            customerEmail: completeDraft.driver.email,
+            amount: Number((price.totalCents / 100).toFixed(2)),
+            currency: "USD",
+            invoice: `Wheels booking ${response.booking.ref}`,
+          },
+        );
+        track(EVENTS.PAYMENT_METHOD_SELECTED, {
+          method: "neo",
+          bookingRef: response.booking.ref,
+        });
+        clearHold();
+        window.location.href = neo.collectUrl;
+        return;
+      }
+
       track(EVENTS.BOOKING_COMPLETED, {
         ref: response.booking.ref,
         state: response.booking.state,
@@ -320,6 +340,8 @@ export default function CheckoutPage() {
         return tPayment("confirmReservation");
       case "whish-online":
         return `${tPayment("continueToWhish")} ${formatUsd(price.totalCents)}`;
+      case "neo":
+        return `${tPayment("continueToNeo")} ${formatUsd(price.totalCents)}`;
       case "transfer":
       case "omt":
         return tPayment("submitPendingVerification");

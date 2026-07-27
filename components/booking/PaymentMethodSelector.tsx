@@ -2,69 +2,82 @@
 
 import * as React from "react";
 import { useTranslations } from "next-intl";
-import { Wallet, Building2, Coins, Copy, Smartphone } from "lucide-react";
+import { Wallet, Building2, Coins, Copy, Smartphone, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { Label } from "@/components/ui/FormAtoms";
 import { RadioGroup, RadioItem } from "@/components/ui/RadioGroup";
 import { toast } from "@/components/ui/Toast";
-import type { PaymentMethod } from "@/types/domain";
+import { api } from "@/lib/api/client";
+import { endpoints } from "@/lib/api/endpoints";
+import type { PaymentMethod, PaymentMethodPublicConfig, SiteConfig } from "@/types/domain";
 
-/*
- * Payment method selector per 04_booking_flow.md step 4.
- *
- * - Card        — hidden until an Areeba-hosted/tokenized form is integrated.
- * - Cash        — info copy only; no extra inputs.
- * - Bank        — transfer instructions; verification happens operationally.
- * - OMT/Whish   — reference code display.
- *
- * The selector keeps its own value state via the parent (controlled) so
- * the parent can derive the CTA label and final submit payload.
- */
-
-const OPTIONS: {
+const OPTION_META: {
   value: PaymentMethod;
   icon: React.ComponentType<{ className?: string }>;
   labelKey: string;
   taglineKey: string;
 }[] = [
+  { value: "cash", icon: Wallet, labelKey: "cashLabel", taglineKey: "cashTagline" },
+  { value: "transfer", icon: Building2, labelKey: "transferLabel", taglineKey: "transferTagline" },
+  { value: "omt", icon: Coins, labelKey: "omtLabel", taglineKey: "omtTagline" },
   {
     value: "whish-online",
     icon: Smartphone,
     labelKey: "whishOnlineLabel",
     taglineKey: "whishOnlineTagline",
   },
-  {
-    value: "cash",
-    icon: Wallet,
-    labelKey: "cashLabel",
-    taglineKey: "cashTagline",
-  },
-  {
-    value: "transfer",
-    icon: Building2,
-    labelKey: "transferLabel",
-    taglineKey: "transferTagline",
-  },
-  {
-    value: "omt",
-    icon: Coins,
-    labelKey: "omtLabel",
-    taglineKey: "omtTagline",
-  },
+  { value: "neo", icon: CreditCard, labelKey: "neoLabel", taglineKey: "neoTagline" },
 ];
 
 export interface PaymentMethodSelectorProps {
   value: PaymentMethod | null;
   onValueChange: (next: PaymentMethod) => void;
-
-  /** Booking reference if available, used in the bank/OMT instructions. */
   pendingRef?: string;
+}
+
+function isSelectable(config: PaymentMethodPublicConfig): boolean {
+  return config.enabled && config.available;
 }
 
 export function PaymentMethodSelector(props: PaymentMethodSelectorProps) {
   const t = useTranslations("checkoutPayment");
   const { value, onValueChange } = props;
+  const [methods, setMethods] = React.useState<PaymentMethodPublicConfig[]>([]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    void api
+      .get<SiteConfig>(endpoints.siteConfig)
+      .then((config) => {
+        if (!cancelled) setMethods(config.paymentMethods ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setMethods([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const visibleOptions = OPTION_META.filter((opt) => {
+    const config = methods.find((item) => item.method === opt.value);
+    return config ? isSelectable(config) : false;
+  });
+
+  React.useEffect(() => {
+    if (!value && visibleOptions.length > 0) {
+      onValueChange(visibleOptions[0]!.value);
+    }
+  }, [onValueChange, value, visibleOptions]);
+
+  if (visibleOptions.length === 0) {
+    return (
+      <Card variant="tint" className="p-4">
+        <p className="body-sm text-ink-80">{t("noPaymentMethods")}</p>
+      </Card>
+    );
+  }
 
   return (
     <RadioGroup
@@ -73,8 +86,9 @@ export function PaymentMethodSelector(props: PaymentMethodSelectorProps) {
       aria-label={t("paymentMethodAria")}
       className="gap-3"
     >
-      {OPTIONS.map((opt) => {
+      {visibleOptions.map((opt) => {
         const selected = value === opt.value;
+        const config = methods.find((item) => item.method === opt.value);
         return (
           <div
             key={opt.value}
@@ -85,13 +99,7 @@ export function PaymentMethodSelector(props: PaymentMethodSelectorProps) {
           >
             <label className="flex cursor-pointer items-start gap-3">
               <RadioItem value={opt.value} className="mt-1" />
-              <div className="flex flex-1 items-start gap-3">
-                <opt.icon className="text-ink-100 mt-0.5 size-5" aria-hidden="true" />
-                <div className="min-w-0 flex-1">
-                  <div className="headline-xs text-ink-95">{t(opt.labelKey)}</div>
-                  <div className="body-sm text-ink-60">{t(opt.taglineKey)}</div>
-                </div>
-              </div>
+              <OptionCopy opt={opt} config={config} t={t} />
             </label>
             {selected ? <MethodPanel method={opt.value} {...props} /> : null}
           </div>
@@ -101,12 +109,37 @@ export function PaymentMethodSelector(props: PaymentMethodSelectorProps) {
   );
 }
 
+function OptionCopy({
+  opt,
+  config,
+  t,
+}: {
+  opt: (typeof OPTION_META)[number];
+  config?: PaymentMethodPublicConfig;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  return (
+    <div className="flex flex-1 items-start gap-3">
+      <opt.icon className="text-ink-100 mt-0.5 size-5" aria-hidden="true" />
+      <div className="min-w-0 flex-1">
+        <div className="headline-xs text-ink-95">{t(opt.labelKey)}</div>
+        <div className="body-sm text-ink-60">{t(opt.taglineKey)}</div>
+        {config?.environment === "sandbox" ? (
+          <div className="label-sm text-ink-60 mt-1">{t("sandboxBadge")}</div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 function MethodPanel(props: PaymentMethodSelectorProps & { method: PaymentMethod }) {
   switch (props.method) {
     case "card":
       return null;
     case "whish-online":
       return <WhishOnlinePanel />;
+    case "neo":
+      return <NeoPanel />;
     case "cash":
       return <CashPanel />;
     case "transfer":
@@ -121,6 +154,15 @@ function WhishOnlinePanel() {
   return (
     <Card variant="tint" className="p-4">
       <p className="body-sm text-ink-80">{t("whishOnlineBody")}</p>
+    </Card>
+  );
+}
+
+function NeoPanel() {
+  const t = useTranslations("checkoutPayment");
+  return (
+    <Card variant="tint" className="p-4">
+      <p className="body-sm text-ink-80">{t("neoBody")}</p>
     </Card>
   );
 }
@@ -155,7 +197,7 @@ function OmtPanel({ pendingRef }: Pick<PaymentMethodSelectorProps, "pendingRef">
   const t = useTranslations("checkoutPayment");
   const referenceLine = pendingRef ?? t("pendingReferenceFallback");
   return (
-    <Card variant="tint" className="flex flex-col gap-3 p-4">
+    <Card variant="tint" className="p-4">
       <ul className="body-sm text-ink-80 flex flex-col gap-1">
         <li>· {t("omtBranchLine")}</li>
         <li>· {t("omtCodeLine")}</li>
@@ -190,6 +232,4 @@ function CopyableRef({ text, children }: { text: string; children: React.ReactNo
   );
 }
 
-// Unused Label import — keep the symbol for downstream consumers that
-// re-export Field along with Label.
 void Label;
