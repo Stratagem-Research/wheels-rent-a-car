@@ -1,5 +1,22 @@
 # Handoff — Staging Runbook
 
+## Local pre-staging evidence (2026-07-27)
+
+Executed against `localhost:3000` before staging URL exists:
+
+| Step | Result |
+| --- | --- |
+| `pnpm env:check:payment-deferred` | Pass |
+| `pnpm typecheck` / `pnpm test` | Pass (211 tests) |
+| `pnpm test:e2e:smoke --project=chromium` | 28/28 pass |
+| `./scripts/wheels-api-smoke.sh --no-write` | 7/7 pass |
+| `RUN_LIVE_API_TESTS=1` integration | 5/5 pass |
+| `RUN_LIVE_E2E=1` checkout + account | Pass (lookup skips on rate-limit) |
+| `pnpm security:rls:negative` | Pass |
+| `pnpm notifications:validate` | Pass |
+
+**Re-run steps 1–8 below on the staging URL after deploy.**
+
 ## Goal
 
 Validate full website + Wizard integration in staging before production cutover.

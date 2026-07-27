@@ -25,10 +25,12 @@ vi.mock("@/lib/api/wheels-public", () => ({
       phone_number: draft.driver!.phone,
     },
   })),
-  toInternalBooking: vi.fn((data) => ({
+  toInternalBooking: vi.fn((data, opts) => ({
     ref: data.reference,
     state: "confirmed",
     price: { totalCents: 10000 },
+    pickup: opts.draft.pickup,
+    return: opts.draft.return,
   })),
   VehicleUnavailableError: class VehicleUnavailableError extends Error {
     status = 409;
@@ -48,9 +50,11 @@ vi.mock("@/lib/supabase/catalog-repository", () => ({
 }));
 
 vi.mock("@/lib/server/public-content", () => ({
-  getPublicVehicles: vi.fn().mockResolvedValue([
-    { id: "wiz-131", slug: "test", make: "T", model: "T", dailyRateFromCents: 2500 },
-  ]),
+  getPublicVehicles: vi
+    .fn()
+    .mockResolvedValue([
+      { id: "wiz-131", slug: "test", make: "T", model: "T", dailyRateFromCents: 2500 },
+    ]),
 }));
 
 vi.mock("@/lib/supabase/admin-repository", () => ({
@@ -72,6 +76,11 @@ vi.mock("@/lib/server/payment-events", () => ({
 vi.mock("@/lib/supabase/user-bookings-repository", () => ({
   addUserBooking: vi.fn().mockResolvedValue(undefined),
   indexGuestBooking: vi.fn().mockResolvedValue(undefined),
+}));
+
+const mockEnqueueNotification = vi.fn().mockResolvedValue(undefined);
+vi.mock("@/lib/server/notifications", () => ({
+  enqueueNotification: (...args: unknown[]) => mockEnqueueNotification(...args),
 }));
 
 import { addUserBooking, indexGuestBooking } from "@/lib/supabase/user-bookings-repository";
@@ -149,6 +158,14 @@ describe("booking-service handleBookingSubmit", () => {
       wizardBookingId: 1,
     });
     expect(addUserBooking).not.toHaveBeenCalled();
+    expect(mockEnqueueNotification).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bookingReference: "WRC-260721-TEST",
+        channel: "email",
+        template: "booking_confirmation",
+        recipient: "test@example.com",
+      }),
+    );
   });
 
   it("links booking to user when userId is provided", async () => {
@@ -167,10 +184,7 @@ describe("booking-service handleBookingSubmit", () => {
     mockAddUserBooking.mockRejectedValueOnce(
       Object.assign(new Error("wizard_booking_id column missing"), { code: "PGRST204" }),
     );
-    const result = await handleBookingSubmit(
-      { draft: completeDraft() },
-      { userId: "user-123" },
-    );
+    const result = await handleBookingSubmit({ draft: completeDraft() }, { userId: "user-123" });
     expect(result.booking.ref).toBe("WRC-260721-TEST");
     expect(mockCreateBookingRequest).toHaveBeenCalled();
   });

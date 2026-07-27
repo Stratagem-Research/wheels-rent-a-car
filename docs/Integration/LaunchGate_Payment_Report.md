@@ -1,65 +1,33 @@
 # Launch Gate — Payment Report
 
-Status: Deferred for current launch scope (tracked separately)
+Status: Payment-deferred **Pass**; payment-enabled **Partial** (Whish hardening progressed)
 Owner: Website Team
-Last updated: 2026-06-06
+Last updated: 2026-07-27
 
-## Implemented controls
+## Payment modules (Adam requirement)
 
-1. **Authoritative status verification**
-   - Whish callback success route verifies payment status via `getPaymentStatus` before settlement:
-     - `app/api/payments/whish/callback/success/route.ts`
+| Module | Code | Env toggle | Launch default |
+| --- | --- | --- | --- |
+| Cash | Yes | `PAYMENT_METHOD_CASH` | On |
+| Bank transfer | Yes | `PAYMENT_METHOD_TRANSFER` | On |
+| OMT | Yes (standalone) | `PAYMENT_METHOD_OMT` | On |
+| Whish online | Yes | `PAYMENT_METHOD_WHISH_ONLINE` + creds | Off |
+| Bank Audi NEO | Yes (sandbox) | `PAYMENT_METHOD_NEO` + creds | Off |
 
-2. **Hybrid method support**
-   - Supported methods:
-     - `cash`
-     - `transfer`
-     - `omt`
-     - `whish-online`
-   - Checkout integration:
-     - `components/booking/PaymentMethodSelector.tsx`
-     - `app/(booking)/book/checkout/page.tsx`
-     - `types/domain.ts`
+Config: `lib/server/payment-methods.ts` exposed via `/api/site-config`.
 
-3. **Idempotency baseline**
-   - `payment_events.external_id` unique in DB migration.
-   - Upsert by `external_id` in payment event recorder:
-     - `lib/server/payment-events.ts`
+## Completed (2026-07-27)
 
-4. **Sync dispatch after confirmed payment**
-   - Success callback dispatches Wizard sync:
-     - `lib/server/wizard-sync.ts`
-     - `app/api/payments/whish/callback/success/route.ts`
+- [x] Per-method env toggles
+- [x] Whish callback **idempotency** (duplicate success → no double sync)
+- [x] Whish callback **amount mismatch** rejection
+- [x] Unit tests: Whish create, Whish callback, NEO create, NEO callback
+- [x] E2E scaffold: `tests/e2e/checkout-neo.spec.ts` (gated `RUN_LIVE_E2E=1`)
 
-## Executed verification
+## Pending (payment-enabled launch)
 
-- Unit/integration suite passes:
-  - `pnpm test`
-- Build and runtime compile pass:
-  - `pnpm typecheck`
-  - `pnpm build`
+- [ ] Whish sandbox E2E with real `WHISH_CHANNEL` / `WHISH_SECRET`
+- [ ] NEO production API wiring when Bank Audi credentials arrive
+- [ ] Operational alerting on callback failures
 
-## Pending payment gate checks (staging)
-
-- Callback replay test:
-  - send duplicate success callback for same `external_id` and verify single terminal transition.
-- Amount/currency mismatch test:
-  - verify mismatch is rejected and logged.
-- Full Whish sandbox end-to-end:
-  - create payment -> redirect -> callback -> status verify -> sync dispatch.
-- Manual method validation:
-  - `cash`, `transfer`, `omt` pending/verification paths against DB records.
-
-## Deferred execution note
-
-Payment gate items above are intentionally deferred from the current non-payment launch.  
-Execution plan + exit criteria now live in:
-
-- `docs/Integration/Payment_Deferred_Track.md`
-
-## Evidence references
-
-- Whish client wrapper: `lib/payments/whish.ts`
-- Payment event persistence: `lib/server/payment-events.ts`
-- Whish API routes: `app/api/payments/whish/*`
-- Checkout flow: `app/(booking)/book/checkout/page.tsx`
+See `Payment_Deferred_Track.md` for exit criteria.

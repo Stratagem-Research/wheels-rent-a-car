@@ -2,7 +2,7 @@
 
 Status: In progress
 Owner: Website Team + Wizard Team (Adam)
-Last updated: 2026-07-11
+Last updated: 2026-07-27
 
 ## Ownership boundaries (confirmed by Adam, 2026-06-22)
 

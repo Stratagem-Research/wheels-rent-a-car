@@ -1,44 +1,39 @@
 # Launch Go/No-Go Memo
 
-Date: 2026-07-11 (updated; originally 2026-06-06)
+Date: 2026-07-27 (updated; originally 2026-06-06)
 Prepared by: Website Team
-Decision status: **Go for payment-deferred launch. No-Go for payment-enabled launch (Whish credentials pending).**
+Decision status: **Go for payment-deferred launch pending staging deploy + Adam sign-off. No-Go for payment-enabled launch (Whish credentials pending).**
 
 ## Scope
 
-This memo evaluates launch readiness for the non-payment launch scope (payment hardening intentionally deferred, tracked separately in `Payment_Deferred_Track.md`).
+Payment-deferred launch: cash, bank transfer, OMT. Online modules (Whish, NEO) built but env-disabled until merchant credentials. See `Payment_Deferred_Track.md`.
 
 ## Checklist summary
 
 | Area | Status | Notes |
 | --- | --- | --- |
-| Core implementation streams | Complete | Proxy migration, admin auth hardening, smoke stabilization, docs alignment, Wizard booking + vehicle sync all landed |
-| Quality checks (`typecheck`/`lint`/`test`/`build`) | **Complete — fully green** | `typecheck`, `lint`, `build`, `test` (157/157) all pass |
-| External Wizard sign-off | **Done for booking + vehicle sync.** | Token delivered and verified 2026-07-11 — vehicle sync (65 vehicles) and booking sync-status both work live against the demo. See `Vehicle_Sync_Live_Verification.md`. Staging server access still pending from Adam (not blocking). |
-| Security gate | **RLS checks pass.** | RLS negative tests executed and passing against live Supabase (2026-07-11); a test-logic bug that produced false failures was fixed. Alerting + prod-project RLS re-verification still pending (needs staging/prod project access). |
-| Payment gate | Deferred | Whish code is complete (`lib/payments/whish.ts`, checkout, callbacks) but `WHISH_CHANNEL`/`WHISH_SECRET` are still placeholder values — **this is the only remaining launch blocker.** |
-| Operations gate | Partial | Rollback env-toggle path verified; backup/restore drill and alerting setup require Supabase/Sentry project access not available in this environment |
+| Core implementation | **Complete** | All 5 payment modules, notifications queue + Resend provider, NEO sandbox scaffold |
+| Quality checks | **Complete** | `typecheck`, `build`, `test` (211 pass), `test:e2e:smoke` (28/28 pass) as of 2026-07-27 |
+| Wizard demo integration | **Complete** | `wheels-api-smoke.sh` 7/7; `RUN_LIVE_API_TESTS=1` integration suite pass (retry after 429) |
+| Live checkout E2E | **Partial** | Cash + transfer pass; OMT selector fixed; account/self-service `@live` need isolated re-run |
+| Security gate | **Pass (dev/staging DB)** | RLS negative tests pass 2026-07-27; dedicated prod project RLS via `pnpm supabase:production-preflight` |
+| Payment gate | **Partial** | Whish idempotency + amount mismatch implemented + unit tested; sandbox E2E blocked on creds |
+| Operations gate | **Partial** | Cron in `vercel.json`; staging deploy + Sentry/backup drills pending |
+| Production Supabase | **Ready to provision** | Runbook + `scripts/supabase-production-preflight.mjs` |
+| Adam external sign-off | **Pending** | Follow-up email draft ready; tracker in `Adam_Response_Tracker.md` |
 
 ## Residual risks
 
-1. Whish merchant credentials not yet provided — blocks real online payments (cash/transfer/OMT manual methods work today).
-2. Backup/restore and alerting drills need staging/production infra access (Supabase CLI + Sentry dashboard) to execute.
-3. Staging server SSH/deploy access still pending from Adam — needed for a true staging (not demo) rehearsal.
-4. Local e2e smoke run showed flakiness under `pnpm dev` (Turbopack cold-compile timing vs 15s assertion timeout) — not observed against the production build; recommend running `pnpm build && pnpm start` for e2e in CI/staging rather than `pnpm dev`.
-
-## Required owners and actions
-
-| Action | Owner | Status |
-| --- | --- | --- |
-| Confirm Wizard external contract items (booking + vehicle sync) | Adam / Wizard Team | **Done 2026-07-11** |
-| Run and document RLS negative tests | Website Team | **Done 2026-07-11** |
-| Provide Whish merchant credentials | Website/Business stakeholder | Pending |
-| Configure alerts + run restore/rollback drills | Website Team / DevOps | Pending — needs staging infra access |
-| Staging server access | Adam / Wizard Team | Pending |
-| Populate required non-payment env set (`env:check:payment-deferred`) | Website Team | **Done** — `pnpm env:check` passes |
+1. Whish / NEO merchant credentials not provided — online payments remain disabled at launch.
+2. Notifications depend on Resend domain verification in production Vercel project.
+3. Production Wizard must not be tested until Adam issues prod token and grants go-live approval.
+4. Real bank transfer IBAN still placeholder in checkout copy.
 
 ## Recommendation
 
-**Go** for a payment-deferred launch (cash/transfer/OMT manual payment methods): all Wizard integration, vehicle sync, and non-payment quality/security gates are now satisfied.
+**Go** for payment-deferred launch after:
+1. Dedicated production Supabase provisioned (`Supabase_Production_Setup.md`)
+2. Staging deploy + `Manual_QA_Checklist.md` pass
+3. Adam follow-up sent and staging URL shared
 
-**No-Go** for payment-enabled launch until Whish merchant credentials (`WHISH_CHANNEL`, `WHISH_SECRET`) are supplied and the sandbox end-to-end flow is verified (see `Payment_Deferred_Track.md`).
+**No-Go** for payment-enabled launch until Whish sandbox E2E passes with real credentials.

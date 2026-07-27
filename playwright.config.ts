@@ -1,4 +1,7 @@
 import { defineConfig, devices } from "@playwright/test";
+import { loadEnvFile } from "./scripts/load-env";
+
+loadEnvFile();
 
 const PORT = 3000;
 const baseURL = `http://localhost:${PORT}`;

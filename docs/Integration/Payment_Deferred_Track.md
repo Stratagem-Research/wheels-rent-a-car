@@ -2,7 +2,7 @@
 
 Status: Deferred (not in current launch scope)  
 Owner: Website Team  
-Last updated: 2026-06-06
+Last updated: 2026-07-27
 
 ## Purpose
 
@@ -12,11 +12,11 @@ Track the payment hardening work that is intentionally excluded from the current
 
 1. **Replay/idempotency**
    - Duplicate callback for same `external_id` must not create duplicate terminal transitions.
-   - Verify idempotency behavior in `lib/server/payment-events.ts`.
+   - **Done 2026-07-27** — `app/api/payments/whish/callback/success/route.ts` + unit tests.
 
 2. **Amount/currency mismatch rejection**
    - Callback payload mismatch versus expected order totals must be rejected and logged.
-   - Validate rejection path in `app/api/payments/whish/callback/success/route.ts`.
+   - **Done 2026-07-27** — amount/currency checks in Whish success callback + unit tests.
 
 3. **End-to-end sandbox flow**
    - Create payment -> redirect -> callback -> authoritative status check -> sync dispatch.

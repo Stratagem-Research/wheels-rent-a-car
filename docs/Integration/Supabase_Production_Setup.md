@@ -2,7 +2,19 @@
 
 Status: Ready to execute  
 Owner: Website Team  
-Last updated: 2026-07-26
+Last updated: 2026-07-27
+
+## Automated preflight
+
+After creating a **new** production project (empty database):
+
+```bash
+pnpm supabase:production-preflight
+```
+
+This runs `pnpm db:migrate` and `pnpm security:rls:negative`. Re-running migrations on an already-migrated database will fail — that is expected on dev/staging.
+
+**RLS verification (2026-07-27):** `pnpm security:rls:negative` passes against the current shared dev/staging project. Re-run on the dedicated production project after step 1.
 
 Adam confirmed (2026-07-25) that the website team creates the initial production Supabase project, shares credentials, and ensures full transfer to Wheels at handover.
 

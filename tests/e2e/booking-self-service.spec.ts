@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import {
   completeCashCheckout,
   loginWithCredentials,
+  waitForBookingRefVisible,
 } from "./helpers/booking-flow";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -38,7 +39,7 @@ test.afterAll(async () => {
 });
 
 test.describe("booking self-service", () => {
-  test.describe.configure({ timeout: 90_000 });
+  test.describe.configure({ timeout: 180_000 });
 
   test("lookup form prefills ref and email from URL without nested helper paragraphs", async ({
     page,
@@ -178,7 +179,7 @@ test.describe("booking self-service", () => {
       `/manage-booking?ref=${encodeURIComponent(ref)}&email=${encodeURIComponent(email)}`,
     );
     await page.getByRole("button", { name: /Find my booking/i }).click();
-    await expect(page.getByText(ref)).toBeVisible({ timeout: 15_000 });
+    await waitForBookingRefVisible(page, ref);
     await expect(page.getByRole("button", { name: /Modify/i })).toBeVisible();
   });
 });

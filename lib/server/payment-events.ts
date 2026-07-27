@@ -66,3 +66,8 @@ export async function getPaymentEventByExternalId(externalId: number | string) {
   if (error) throw error;
   return data;
 }
+
+/** True when this external_id already reached a terminal success state (idempotent replay). */
+export function isTerminalPaymentSuccess(status: string | null | undefined): boolean {
+  return status === "success" || status === "paid";
+}

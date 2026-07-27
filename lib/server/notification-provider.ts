@@ -20,7 +20,10 @@ function getResendApiKey(): string | null {
   return key;
 }
 
-function renderTemplate(template: string, payload: Record<string, unknown>): { subject: string; html: string; text: string } {
+function renderTemplate(
+  template: string,
+  payload: Record<string, unknown>,
+): { subject: string; html: string; text: string } {
   const ref = String(payload.ref ?? payload.bookingReference ?? "");
   const vehicle = String(payload.vehicle ?? "");
   switch (template) {

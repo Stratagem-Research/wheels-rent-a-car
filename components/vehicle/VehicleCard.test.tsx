@@ -1,8 +1,7 @@
 import type { ReactElement } from "react";
 import { describe, expect, it, vi } from "vitest";
 import { screen } from "@testing-library/react";
-import { renderWithIntl } from "@/tests/utils/render-with-intl";
-import { SavedVehiclesProvider } from "@/components/providers/SavedVehiclesProvider";
+import { renderWithProviders } from "@/tests/utils/render-with-intl";
 import { VehicleCard } from "./VehicleCard";
 import type { Vehicle } from "@/types/domain";
 
@@ -13,8 +12,15 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/vehicles",
 }));
 
+vi.mock("@/lib/api/client", () => ({
+  api: {
+    get: vi.fn().mockRejectedValue(new Error("unauthorized")),
+    post: vi.fn().mockResolvedValue({}),
+  },
+}));
+
 function renderCard(ui: ReactElement) {
-  return renderWithIntl(<SavedVehiclesProvider>{ui}</SavedVehiclesProvider>);
+  return renderWithProviders(ui);
 }
 
 const fixture: Vehicle = {

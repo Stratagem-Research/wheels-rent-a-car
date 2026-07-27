@@ -3,9 +3,12 @@ import { getWhishClient, parseCallbackUrl } from "@/lib/payments/whish";
 import {
   appendBookingState,
   getPaymentEventByExternalId,
+  isTerminalPaymentSuccess,
   recordPaymentEvent,
 } from "@/lib/server/payment-events";
 import { dispatchWizardSync } from "@/lib/server/wizard-sync";
+
+const AMOUNT_TOLERANCE = 0.01;
 
 export async function GET(request: Request) {
   const callback = parseCallbackUrl(request.url);
@@ -18,11 +21,39 @@ export async function GET(request: Request) {
     return NextResponse.json({ message: "Unknown payment external id." }, { status: 404 });
   }
 
+  if (isTerminalPaymentSuccess(payment.status)) {
+    return NextResponse.json({ ok: true, idempotent: true });
+  }
+
   const whish = getWhishClient();
   const status = await whish.getPaymentStatus(callback.currency, callback.externalId);
   if (status.collectStatus !== "success") {
     return NextResponse.json(
       { message: "Payment not confirmed.", status: status.collectStatus },
+      { status: 400 },
+    );
+  }
+
+  if (payment.currency && callback.currency !== payment.currency) {
+    return NextResponse.json({ message: "Currency mismatch." }, { status: 400 });
+  }
+
+  const expectedAmount =
+    payment.amount != null && payment.amount !== "" ? Number(payment.amount) : null;
+  const receivedAmount = status.amount;
+  if (
+    expectedAmount != null &&
+    Number.isFinite(expectedAmount) &&
+    receivedAmount != null &&
+    Number.isFinite(receivedAmount) &&
+    Math.abs(receivedAmount - expectedAmount) > AMOUNT_TOLERANCE
+  ) {
+    return NextResponse.json(
+      {
+        message: "Amount mismatch.",
+        expected: expectedAmount,
+        received: receivedAmount,
+      },
       { status: 400 },
     );
   }

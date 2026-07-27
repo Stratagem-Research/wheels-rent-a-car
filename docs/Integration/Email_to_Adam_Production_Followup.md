@@ -1,4 +1,4 @@
-> **Status: DRAFT — ready to send by Marc.**
+> **Status: REVIEWED — ready for Marc to send (2026-07-27).**
 
 # Email to Adam — production follow-up
 

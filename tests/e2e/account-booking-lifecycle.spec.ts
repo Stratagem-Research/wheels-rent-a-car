@@ -7,6 +7,10 @@ import {
   continueToProtection,
   pickSmartTier,
   fillDriverInfo,
+  waitForPaymentMethods,
+  submitCheckout,
+  waitForConfirmationHeading,
+  waitForBookingRefVisible,
 } from "./helpers/booking-flow";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -42,7 +46,7 @@ test.afterAll(async () => {
 });
 
 test.describe("account booking lifecycle", () => {
-  test.describe.configure({ timeout: 90_000 });
+  test.describe.configure({ timeout: 180_000 });
 
   test("@live logged-in checkout links booking to account list", async ({ page }) => {
     test.skip(!canProvisionUser, "Supabase credentials required.");
@@ -54,20 +58,18 @@ test.describe("account booking lifecycle", () => {
     await continueToProtection(page);
     await pickSmartTier(page);
     await fillDriverInfo(page, uniqueEmail);
+    await waitForPaymentMethods(page);
     await page.getByLabel(/Cash on pickup/i).click();
     await page.getByLabel(/I agree to the Terms/i).check();
-    await page
-      .getByRole("button", { name: /Confirm reservation/i })
-      .first()
-      .click();
-    await expect(page).toHaveURL(/\/book\/confirmation\/WRC-/, { timeout: 30_000 });
+    await submitCheckout(page, /Confirm reservation/i);
+    await waitForConfirmationHeading(page, /Your booking is (confirmed|pending)/i);
 
     const refMatch = page.url().match(/\/book\/confirmation\/(WRC-[A-Z0-9-]+)/);
     const ref = refMatch?.[1] ?? "";
     test.skip(!ref, "No booking reference captured.");
 
     await page.goto("/account/bookings");
-    await expect(page.getByText(ref)).toBeVisible({ timeout: 15_000 });
+    await waitForBookingRefVisible(page, ref, { timeout: 90_000 });
   });
 
   test("@live guest checkout then login claims booking into account", async ({ page }) => {
@@ -79,7 +81,7 @@ test.describe("account booking lifecycle", () => {
 
     await loginWithCredentials(page, guestEmail, ACCOUNT_PASSWORD);
     await page.goto("/account/bookings");
-    await expect(page.getByText(ref)).toBeVisible({ timeout: 15_000 });
+    await waitForBookingRefVisible(page, ref, { timeout: 90_000 });
   });
 
   test("account detail modify modal opens and view invoice stays on page", async ({ page }) => {

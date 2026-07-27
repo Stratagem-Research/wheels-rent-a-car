@@ -7,6 +7,7 @@ import {
   acceptTerms,
   waitForConfirmationHeading,
   submitCheckout,
+  waitForPaymentMethods,
 } from "./helpers/booking-flow";
 
 const runLiveE2e = process.env.RUN_LIVE_E2E === "1";
@@ -41,6 +42,7 @@ test.describe("checkout — supported payment methods", () => {
     await continueToProtection(page);
     await pickSmartTier(page);
     await fillDriverInfo(page, `e2e-cash-${Date.now()}@wheels.test`);
+    await waitForPaymentMethods(page);
     await page.getByLabel(/Cash on pickup/i).click();
     await acceptTerms(page);
     await submitCheckout(page, /Confirm reservation/i);
@@ -52,6 +54,7 @@ test.describe("checkout — supported payment methods", () => {
     await continueToProtection(page);
     await pickSmartTier(page);
     await fillDriverInfo(page, `e2e-transfer-${Date.now()}@wheels.test`);
+    await waitForPaymentMethods(page);
     await page.getByLabel(/Bank transfer/i).click();
     await acceptTerms(page);
     await submitCheckout(page, /Submit booking/i);
@@ -63,7 +66,8 @@ test.describe("checkout — supported payment methods", () => {
     await continueToProtection(page);
     await pickSmartTier(page);
     await fillDriverInfo(page, `e2e-omt-${Date.now()}@wheels.test`);
-    await page.getByLabel(/^OMT$/i).click();
+    await waitForPaymentMethods(page);
+    await page.getByLabel(/OMT/i).click();
     await acceptTerms(page);
     await submitCheckout(page, /Submit booking/i);
     await waitForConfirmationHeading(page, /Your booking is pending/i);
