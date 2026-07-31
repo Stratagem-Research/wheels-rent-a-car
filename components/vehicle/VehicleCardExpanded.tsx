@@ -97,6 +97,30 @@ export function VehicleCardExpanded({
 }: VehicleCardExpandedProps) {
   const t = useTranslations("fleet");
   const [paymentTiming, setPaymentTiming] = React.useState<PaymentTiming>("pay-now");
+  const panelRef = React.useRef<HTMLElement>(null);
+
+  // Focus + pin the panel under sticky chrome. Instant scroll only — smooth
+  // scrollIntoView raced layout when switching cars and landed at the bottom.
+  React.useLayoutEffect(() => {
+    const node = panelRef.current;
+    if (!node) return;
+    node.focus({ preventScroll: true });
+
+    const headerBottom = document.querySelector("header")?.getBoundingClientRect().bottom ?? 0;
+    const searchBottom =
+      document.querySelector<HTMLElement>("[data-vehicles-sticky-search]")?.getBoundingClientRect()
+        .bottom ?? 0;
+    const clearance = Math.max(headerBottom, searchBottom) + 12;
+    const rect = node.getBoundingClientRect();
+    // Skip scroll when the panel already sits comfortably under sticky chrome
+    // (same-row switches). Otherwise pin its top under the sticky band.
+    if (rect.top >= clearance - 8 && rect.top <= window.innerHeight * 0.45) return;
+
+    window.scrollTo({
+      top: Math.max(0, rect.top + window.scrollY - clearance),
+      behavior: "auto",
+    });
+  }, [vehicle.id]);
 
   const days = rentalDays(pickupISO, returnISO);
   const image = vehicle.images[0];
@@ -126,9 +150,13 @@ export function VehicleCardExpanded({
 
   return (
     <article
+      ref={panelRef}
+      tabIndex={-1}
+      aria-label={t("expandedAria", { vehicle: `${vehicle.make} ${vehicle.model}` })}
       className={cn(
-        "text-paper relative grid overflow-hidden rounded-xl",
+        "text-paper relative grid overflow-hidden rounded-xl outline-none",
         "lg:grid-cols-[1.15fr_1fr]",
+        "focus-visible:outline-paper focus-visible:outline-2 focus-visible:outline-offset-2",
         className,
       )}
       style={{ backgroundImage: CARD_GRADIENT_DARK }}

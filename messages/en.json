@@ -512,6 +512,7 @@
     "classSevenSeater": "7-Seater",
     "classConvertible": "Convertible",
     "closeAria": "Close selected vehicle",
+    "expandedAria": "Selected vehicle: {vehicle}",
     "paymentOption": "Payment option",
     "payNow": "Pay now",
     "payNowDesc": "Pay upfront and lock in the lower rate.",

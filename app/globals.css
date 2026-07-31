@@ -13,6 +13,21 @@
   color-scheme: light;
 }
 
+/*
+ * Pointer cursor on every clickable control, platform-wide. Native <button>
+ * elements default to `cursor: default` in Chrome/Firefox unless styled —
+ * this closes that gap for every button, submit/reset input, and ARIA
+ * role="button" element (Radix triggers render as div/span with that role)
+ * in one place instead of per-component.
+ */
+button:not(:disabled),
+[type="button"]:not(:disabled),
+[type="submit"]:not(:disabled),
+[type="reset"]:not(:disabled),
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
 html,
 body {
   height: 100%;

@@ -512,6 +512,7 @@
     "classSevenSeater": "7 places",
     "classConvertible": "Cabriolet",
     "closeAria": "Fermer le véhicule sélectionné",
+    "expandedAria": "Véhicule sélectionné : {vehicle}",
     "paymentOption": "Option de paiement",
     "payNow": "Payer maintenant",
     "payNowDesc": "Payez d'avance et bloquez le tarif le plus bas.",

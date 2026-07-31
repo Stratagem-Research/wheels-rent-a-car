@@ -3,7 +3,7 @@
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
+import { motion } from "framer-motion";
 import { staggerContainer, staggerItem } from "@/lib/motion/variants";
 import { useMotionGate } from "@/lib/motion/useMotionGate";
 import { Button } from "@/components/ui/Button";
@@ -251,7 +251,10 @@ export function VehiclesClient({
       {isStep1 ? <Stepper current={1} /> : null}
 
       {/* Sticky search summary band */}
-      <section className="bg-paper border-border sticky top-0 z-20 border-b">
+      <section
+        data-vehicles-sticky-search
+        className="bg-paper border-border sticky top-0 z-20 border-b"
+      >
         <div className="mx-auto max-w-[var(--container-full)] px-5 py-3 sm:px-5">
           <SearchBar branches={branches} variant="compact" />
         </div>
@@ -310,74 +313,63 @@ export function VehiclesClient({
             reset={t("resetFilters")}
           />
         ) : (
-          <LayoutGroup>
-            <motion.div
-              variants={reduce ? undefined : staggerContainer}
-              initial={reduce ? false : "hidden"}
-              animate="visible"
-              className="mt-6 flex flex-col gap-4 sm:gap-6 lg:mt-8"
-              aria-label={t("resultsAria")}
-              role="list"
-            >
-              {chunkRows(filtered, ROW_SIZE).map((rowVehicles, rowIdx) => {
-                const selectedInRow =
-                  expandedVehicle && rowVehicles.some((v) => v.id === expandedVehicle.id)
-                    ? expandedVehicle
-                    : null;
-                return (
-                  <React.Fragment key={`row-${rowIdx}`}>
-                    <ul
-                      className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3"
-                      role="presentation"
-                    >
-                      {rowVehicles.map((v) => {
-                        const isExpanded = expandedVehicle?.id === v.id;
-                        return (
-                          <motion.li
-                            key={v.id}
-                            layout
-                            variants={reduce ? undefined : staggerItem}
-                            transition={reduce ? { duration: 0 } : undefined}
-                            role="listitem"
-                          >
-                            <VehicleCard
-                              vehicle={v}
-                              selected={isExpanded}
-                              href={`/vehicles?${withSelected(searchParams, v.slug)}`}
-                              pickupISO={pickupISO}
-                              returnISO={returnISO}
-                              scrollOnClick={false}
-                            />
-                          </motion.li>
-                        );
-                      })}
-                    </ul>
-
-                    <AnimatePresence initial={false}>
-                      {selectedInRow && ready && draft ? (
-                        <motion.div
-                          key={`expanded-${selectedInRow.id}`}
-                          layout
-                          initial={reduce ? false : { opacity: 0, y: -12 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={reduce ? { opacity: 0 } : { opacity: 0, y: -12 }}
-                          transition={{ duration: reduce ? 0 : 0.22 }}
+          <motion.div
+            variants={reduce ? undefined : staggerContainer}
+            initial={reduce ? false : "hidden"}
+            animate="visible"
+            className="mt-6 flex flex-col gap-4 sm:gap-6 lg:mt-8"
+            aria-label={t("resultsAria")}
+            role="list"
+          >
+            {chunkRows(filtered, ROW_SIZE).map((rowVehicles, rowIdx) => {
+              const selectedInRow =
+                expandedVehicle && rowVehicles.some((v) => v.id === expandedVehicle.id)
+                  ? expandedVehicle
+                  : null;
+              return (
+                <React.Fragment key={`row-${rowIdx}`}>
+                  <ul
+                    className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3"
+                    role="presentation"
+                  >
+                    {rowVehicles.map((v) => {
+                      const isExpanded = expandedVehicle?.id === v.id;
+                      return (
+                        <motion.li
+                          key={v.id}
+                          variants={reduce ? undefined : staggerItem}
+                          role="listitem"
                         >
-                          <VehicleCardExpanded
-                            vehicle={selectedInRow}
+                          <VehicleCard
+                            vehicle={v}
+                            selected={isExpanded}
+                            href={`/vehicles?${withSelected(searchParams, v.slug)}`}
                             pickupISO={pickupISO}
                             returnISO={returnISO}
-                            onConfirm={(choice) => onConfirm(selectedInRow.id, selectedInRow.slug, choice)}
-                            onClose={onClose}
+                            scrollOnClick={false}
                           />
-                        </motion.div>
-                      ) : null}
-                    </AnimatePresence>
-                  </React.Fragment>
-                );
-              })}
-            </motion.div>
-          </LayoutGroup>
+                        </motion.li>
+                      );
+                    })}
+                  </ul>
+
+                  {/* Instant mount/unmount — no exit animation. AnimatePresence
+                   * left two panels mounted during row switches, which shoved
+                   * scroll to the page bottom and felt sluggish. */}
+                  {selectedInRow && ready && draft ? (
+                    <VehicleCardExpanded
+                      key={selectedInRow.id}
+                      vehicle={selectedInRow}
+                      pickupISO={pickupISO}
+                      returnISO={returnISO}
+                      onConfirm={(choice) => onConfirm(selectedInRow.id, selectedInRow.slug, choice)}
+                      onClose={onClose}
+                    />
+                  ) : null}
+                </React.Fragment>
+              );
+            })}
+          </motion.div>
         )}
       </section>
     </>

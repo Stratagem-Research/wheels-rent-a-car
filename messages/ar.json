@@ -512,6 +512,7 @@
     "classSevenSeater": "7 مقاعد",
     "classConvertible": "مكشوفة",
     "closeAria": "إغلاق السيارة المحدّدة",
+    "expandedAria": "السيارة المحدّدة: {vehicle}",
     "paymentOption": "خيار الدفع",
     "payNow": "ادفع الآن",
     "payNowDesc": "ادفع مقدماً واحجز السعر الأقل.",
