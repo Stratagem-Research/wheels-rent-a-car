@@ -2,7 +2,7 @@
 
 Customer-facing Next.js application for [Wheels Rent A Car (Lebanon)](https://wheelsrentacar.com.lb). Phase 1, English-only, backend.
 
-> **Specs are the contract.** Before changing anything UI, read `/docs/Implementation/00_global.md` and the matching module file. Tokens come from `/docs/Design/DESIGN.md`. The sprint plan that built this codebase lives at `/docs/Plan/PLAN.md`. 
+> **Specs are the contract.** Before changing anything UI, read `/docs/Implementation/00_global.md` and the matching module file. Tokens come from `/docs/Design/DESIGN.md`. The sprint plan that built this codebase lives at `/docs/Plan/PLAN.md`
 
 ## Stack
 
