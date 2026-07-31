@@ -44,7 +44,6 @@ import type { MileagePlan, RateType, Vehicle, VehicleCategory, Branch } from "@/
  *   ?sort=price-asc         toolbar "Lowest price" toggle
  *   ?transmission=automatic toolbar "Auto only" toggle
  *   ?category=<slug>        category lock (also driven by FilterSidebar)
- *   ?guaranteed=1           "Guaranteed model" toggle (Phase-1 stub)
  */
 
 export function VehiclesClient({

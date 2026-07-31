@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { getPublicBranches, getPublicVehicles } from "@/lib/server/public-content";
 import { handleBookingAvailability } from "@/lib/server/booking-service";
@@ -69,8 +68,6 @@ export default async function VehiclesPage({ searchParams }: PageProps) {
   ]);
 
   return (
-    <Suspense fallback={null}>
-      <VehiclesClient vehicles={vehicles} branches={branches} availabilityError={availabilityError} />
-    </Suspense>
+    <VehiclesClient vehicles={vehicles} branches={branches} availabilityError={availabilityError} />
   );
 }
