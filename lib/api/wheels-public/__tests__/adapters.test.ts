@@ -274,9 +274,29 @@ describe("wheels-public/adapters", () => {
         clock: () => new Date("2026-05-20T10:00:00.000Z"),
       });
       expect(result.ref).toBe(successData.reference);
-      expect(result.state).toBe("confirmed");
+      // Cash/offline stay pending until Wizard approval (Adam Aug 9).
+      expect(result.state).toBe("pending");
       expect(result.price.totalCents).toBe(successData.amount * 100);
       expect(result.vehicleSnapshot.slug).toBe(yaris.slug);
+    });
+
+    it("maps card/whish/neo drafts to confirmed when Wizard status is not cancelled", () => {
+      const result = toInternalBooking(successData, {
+        draft: draft({ paymentMethod: "whish-online" }),
+        vehicle: yaris,
+        price: {
+          baseRateCents: 8000,
+          extrasCents: 0,
+          protectionCents: 0,
+          taxesCents: 0,
+          feesCents: 0,
+          discountCents: 0,
+          totalCents: 0,
+          depositCents: 30000,
+        },
+        clock: () => new Date("2026-05-20T10:00:00.000Z"),
+      });
+      expect(result.state).toBe("confirmed");
     });
 
     it("returns pending state for transfer/omt", () => {

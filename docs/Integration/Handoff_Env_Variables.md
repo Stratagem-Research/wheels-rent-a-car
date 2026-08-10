@@ -31,8 +31,9 @@
 - `PAYMENT_METHOD_WHISH_ONLINE` (default `false`)
 - `PAYMENT_METHOD_NEO` (default `false`)
 - `WEBSITE_URL`
-- `NOTIFICATION_PROVIDER_KEY` (Resend API key; `RESEND_API_KEY` alias supported)
-- `NOTIFICATION_FROM_EMAIL`
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_ENCRYPTION` (`tls` | `ssl` | `none`) — **preferred** (Adam Aug 9: Wheels domain SMTP)
+- `NOTIFICATION_FROM_EMAIL`, `NOTIFICATION_FROM_NAME`
+- `NOTIFICATION_PROVIDER_KEY` / `RESEND_API_KEY` — optional fallback only (not required for launch)
 - `NOTIFICATION_CRON_SECRET` (optional bearer for `/api/notifications/process`)
 - `SENTRY_DSN`
 - `SENTRY_AUTH_TOKEN`

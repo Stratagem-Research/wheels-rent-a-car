@@ -2,7 +2,7 @@
 
 Status: In progress
 Owner: Website Team + Wizard Team (Adam)
-Last updated: 2026-07-27
+Last updated: 2026-08-10
 
 ## Ownership boundaries (confirmed by Adam, 2026-06-22)
 
@@ -16,6 +16,11 @@ Last updated: 2026-07-27
 | Configurable domains/CORS | Wizard settings/API section; not hardcoded | `NEXT_PUBLIC_SITE_URL`, `WEBSITE_URL` env-driven | Confirmed (website); Wizard config TBD in next revision |
 | Promo codes | Website-side validation at launch | Supabase promotions + payload pass-through | Confirmed (2026-06-22) |
 | Vehicle catalog | Wizard sync API, not manual map | `wizard_vehicles` + `vehicle_metadata` enrichment | Agreed architecture |
+| Vehicle images | Website-managed; Wizard provides none (2026-08-09) | CMS add/replace/assign/gallery on `vehicle_metadata` | Confirmed |
+| Offline payments | No receipt / payment-review workflow (2026-08-09) | Request created; pay at handover; store method → Wizard | Confirmed |
+| Fleet display | Keep individual physical vehicles (no model grouping) | One card per Wizard vehicle | Confirmed |
+| Customer email | Website SMTP (Wheels domain); confirm after approval | No Resend/SendGrid; no Wizard duplicate emails | Confirmed |
+| WhatsApp launch | Contact link only; no outbound API | FAB / `wa.me`; bridge optional later | Confirmed |
 
 Archives: [Adam_Response_System_Boundaries.md](./Adam_Response_System_Boundaries.md), [Adam_Response_Demo_And_Vehicle_Sync.md](./Adam_Response_Demo_And_Vehicle_Sync.md)
 
@@ -60,7 +65,10 @@ Archives: [Adam_Response_System_Boundaries.md](./Adam_Response_System_Boundaries
 - 2026-07-08: Status update sent while awaiting token ([Email_to_Adam_Status_Update.md](./Email_to_Adam_Status_Update.md)).
 - 2026-07-09: Staging token received; `sync-status` works but `vehicles/sync` returns 401 — draft follow-up ([Email_to_Adam_Vehicle_Sync_401.md](./Email_to_Adam_Vehicle_Sync_401.md)).
 - 2026-07-11: Adam fixed `vehicles/sync` auth. Live verification: `pnpm wizard:sync-vehicles` fetched 65 vehicles, upserted 65 into Supabase; full public + internal smoke suite (7/7 steps) passes. See [Vehicle_Sync_Live_Verification.md](./Vehicle_Sync_Live_Verification.md).
-- Next: await staging server access, Elie's team photos, and Adam's site polish feedback doc. Whish payment credentials remain the only launch blocker on the website side.
+- 2026-07-27: Production follow-up sent ([Email_to_Adam_Production_Followup.md](./Email_to_Adam_Production_Followup.md)).
+- 2026-07-31: Offline payments / fleet / images questions sent.
+- 2026-08-09: Adam answered offline payments, fleet display, images, SMTP, WhatsApp, confirmation timing — [Adam_Response_Offline_Payments_Vehicles_Images.md](./Adam_Response_Offline_Payments_Vehicles_Images.md), [Adam_Response_Notifications_And_SMTP.md](./Adam_Response_Notifications_And_SMTP.md). Requested staging link for Monday night Lebanon.
+- Next: ship staging URL + checklist to Adam/Elie; await deploy-path answer + prod SMTP credentials.
 
 ## Exit criteria
 

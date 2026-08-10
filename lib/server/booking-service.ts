@@ -70,30 +70,6 @@ function assertOnlineBookingWindow(pickupISO: string, returnISO: string) {
   }
 }
 
-async function syncCashBookingToWizard(
-  booking: Booking,
-  wizardBookingId: number | undefined,
-  paidAmount: number,
-) {
-  try {
-    await dispatchWizardSync(booking.ref, {
-      lifecycleState: "confirmed",
-      paymentStatus: "paid",
-      paidAmount,
-      paymentMethod: "website_payment",
-      paymentDate: new Date().toISOString().slice(0, 10),
-      wizardBookingId,
-      message: "Cash booking confirmed at checkout.",
-    });
-    await appendBookingState(booking.ref, "confirmed", {
-      paymentStatus: "paid",
-      source: "cash_submit",
-    });
-  } catch {
-    // Sync failures are logged in wizard-sync; booking still stands locally.
-  }
-}
-
 async function getCatalog() {
   const [addOns, tiers, vehicles] = await Promise.all([
     listAddOnsFromDb(),
@@ -323,18 +299,12 @@ export async function handleBookingSubmit(
   } catch (err) {
     console.error("[guest-booking-index] failed", err);
   }
-  if (draft.paymentMethod === "cash") {
-    await syncCashBookingToWizard(
-      booking,
-      response.data.booking_id,
-      Math.round(booking.price.totalCents / 100),
-    );
-  }
-
+  // Adam Aug 9: formal confirmation email only after Wizard approval (webhook).
+  // At submit we acknowledge receipt of the booking request for all methods.
   await enqueueNotification({
     bookingReference: booking.ref,
     channel: "email",
-    template: "booking_confirmation",
+    template: "booking_request_received",
     recipient: draft.driver.email,
     payload: {
       ref: booking.ref,

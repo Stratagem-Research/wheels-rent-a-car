@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
+import { AdminImageUpload } from "@/components/admin/AdminImageUpload";
 import type { CmsLocale } from "@/lib/i18n/localized";
 import {
   getLocalizedString,
@@ -337,13 +338,23 @@ export default function AdminAboutPage() {
                         />
                       )}
                     </Field>
-                    <Field label="Photo path" helper="e.g. /images/Team/marc.jpg">
-                      {({ id }) => (
-                        <Input
-                          id={id}
-                          value={member.photo}
-                          onChange={(e) => updateMember(i, { photo: e.target.value })}
-                        />
+                    <Field label="Photo" helper="Upload to Supabase Storage, or paste a path below.">
+                      {() => (
+                        <div className="flex flex-col gap-3">
+                          <AdminImageUpload
+                            kind="team"
+                            entityId={member.name.trim() || `member-${i + 1}`}
+                            currentUrl={member.photo || undefined}
+                            onUploaded={(result) => updateMember(i, { photo: result.url })}
+                            onRemoved={() => updateMember(i, { photo: "" })}
+                          />
+                          <Input
+                            aria-label={`Photo path for ${member.name || `member ${i + 1}`}`}
+                            value={member.photo}
+                            placeholder="/images/Team/name.jpg or Storage URL"
+                            onChange={(e) => updateMember(i, { photo: e.target.value })}
+                          />
+                        </div>
                       )}
                     </Field>
                     <Field label="Role">

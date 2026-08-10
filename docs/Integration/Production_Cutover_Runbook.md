@@ -11,7 +11,7 @@ Adam policy: no test bookings or unrestricted testing against production Wizard 
 - [ ] Staging sign-off complete ([Manual_QA_Checklist.md](./Manual_QA_Checklist.md))
 - [ ] Launch gates Pass ([Launch_Go_NoGo_Memo.md](./Launch_Go_NoGo_Memo.md))
 - [ ] Production `WIZARD_API_TOKEN` received via secure channel
-- [ ] Resend domain verified; `NOTIFICATION_PROVIDER_KEY` set on production Vercel project
+- [ ] Wheels SMTP credentials set (`SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASS`/`SMTP_ENCRYPTION`, `NOTIFICATION_FROM_EMAIL`/`NOTIFICATION_FROM_NAME`); Resend not required
 - [ ] Real bank transfer IBAN updated in `messages/en.json` (and ar/fr)
 
 ## Cutover window (T-0)

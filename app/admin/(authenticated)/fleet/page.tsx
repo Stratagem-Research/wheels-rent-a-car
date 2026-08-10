@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
+import { AdminImageUpload } from "@/components/admin/AdminImageUpload";
 
 /**
  * /admin/fleet — structured editor for website-owned vehicle copy/media
@@ -67,6 +68,42 @@ function toDraft(item: MetadataItem): MetaDraft {
     mediaText: JSON.stringify(item.media ?? [], null, 2),
     updated_at: item.updated_at,
   };
+}
+
+function parseMediaText(mediaText: string): Array<Record<string, unknown>> {
+  try {
+    const parsed = JSON.parse(mediaText.trim() || "[]");
+    return Array.isArray(parsed) ? (parsed as Array<Record<string, unknown>>) : [];
+  } catch {
+    return [];
+  }
+}
+
+function primaryMediaUrl(mediaText: string): string | undefined {
+  const media = parseMediaText(mediaText);
+  const first = media[0];
+  return typeof first?.url === "string" ? first.url : undefined;
+}
+
+function setPrimaryMedia(
+  mediaText: string,
+  next: { url: string; alt?: string; width?: number; height?: number } | null,
+): string {
+  const rest = parseMediaText(mediaText).slice(1);
+  if (!next) return JSON.stringify(rest, null, 2);
+  return JSON.stringify(
+    [
+      {
+        url: next.url,
+        alt: next.alt ?? "Vehicle",
+        width: next.width ?? 1600,
+        height: next.height ?? 900,
+      },
+      ...rest,
+    ],
+    null,
+    2,
+  );
 }
 
 export default function AdminFleetPage() {
@@ -270,13 +307,35 @@ export default function AdminFleetPage() {
                 </Field>
               </div>
               <Field
+                label="Primary image"
+                helper="Upload stores the file in Supabase Storage and sets media[0]. Save all to publish."
+              >
+                {() => (
+                  <AdminImageUpload
+                    kind="vehicle"
+                    entityId={draft.frontend_vehicle_id || draft.slug || `row-${i + 1}`}
+                    currentUrl={primaryMediaUrl(draft.mediaText)}
+                    onUploaded={(result) =>
+                      updateDraft(i, {
+                        mediaText: setPrimaryMedia(draft.mediaText, result),
+                      })
+                    }
+                    onRemoved={() =>
+                      updateDraft(i, {
+                        mediaText: setPrimaryMedia(draft.mediaText, null),
+                      })
+                    }
+                  />
+                )}
+              </Field>
+              <Field
                 label="Media (JSON array)"
-                helper="Freeform array of media objects. Must be valid JSON."
+                helper="Advanced: freeform media objects. Upload above edits media[0]."
               >
                 {({ id }) => (
                   <Textarea
                     id={id}
-                    rows={5}
+                    rows={4}
                     className="font-mono text-xs"
                     spellCheck={false}
                     value={draft.mediaText}

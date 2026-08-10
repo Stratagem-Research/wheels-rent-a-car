@@ -2,7 +2,9 @@
 
 Status: **Active — source of truth**  
 Owners: Marc (coordination) · Fatema (lead engineer) · Elie (Wheels owner / content)  
-Last updated: 2026-07-27
+Last updated: 2026-08-10
+
+**Post–Adam Aug 9 working checklist (SMTP, confirmation timing, Storage uploads, staging QA):** [Next_Steps_Checklist_Aug10.md](./Next_Steps_Checklist_Aug10.md) · [Adam_Elie_Staging_Tester_Checklist.md](./Adam_Elie_Staging_Tester_Checklist.md)
 
 Work top-to-bottom. Phases **0** and **E** can run in parallel with engineering. **Do not test production Wizard until step 32.**
 
@@ -46,11 +48,11 @@ Track external replies: [Adam_Response_Tracker.md](./Adam_Response_Tracker.md) �
 
 | # | Action | Owner | Doc / command | Done? |
 | --- | --- | --- | --- | --- |
-| 1 | **Send Adam follow-up email** | Marc | [Email_to_Adam_Production_Followup.md](./Email_to_Adam_Production_Followup.md) — mark `SENT` | [ ] |
+| 1 | **Send Adam follow-up email** | Marc | [Email_to_Adam_Production_Followup.md](./Email_to_Adam_Production_Followup.md) — mark `SENT` | [x] SENT 2026-07-27; answered Aug 9 |
 | 2 | **Create production Supabase** (eu-central-1) | Fatema | [Supabase_Production_Setup.md](./Supabase_Production_Setup.md) §1 | [ ] |
 | 3 | **Apply migrations + RLS** on new prod project | Fatema | `pnpm supabase:production-preflight` | [ ] |
 | 4 | **Configure Auth** (redirect URLs, SMTP, confirmations) | Fatema | Supabase dashboard §3 | [ ] |
-| 5 | **Set up Resend** — domain DNS + API key on Vercel | Fatema (DNS: Marc if needed) | `NOTIFICATION_*` in `.env.staging.example` | [ ] |
+| 5 | **Configure SMTP notifications** (Wheels domain — not Resend) | Fatema | Adam Aug 9: SMTP env (host/port/user/pass/encryption/from); await prod SMTP creds | [ ] |
 | 6 | **Deploy staging** (Vercel recommended) | Fatema | [Staging_Deploy_Checklist.md](./Staging_Deploy_Checklist.md) | [ ] |
 | 7 | **Post-deploy automated smoke** | Fatema | `curl …/api/health`, `pnpm notifications:validate $URL` | [ ] |
 | 8 | **Run automated gate suite on staging** | Fatema | See [Quick reference](#quick-reference) below | [ ] |
@@ -66,9 +68,10 @@ Track external replies: [Adam_Response_Tracker.md](./Adam_Response_Tracker.md) �
 
 | # | Waiting for | Blocks | Owner to chase |
 | --- | --- | --- | --- |
-| 14 | Deploy path (Vercel vs SSH) | Step 6 if SSH | Marc → Adam |
-| 15 | Notification answers (Resend OK? WhatsApp? Wizard duplicates?) | Notification copy + channels | Marc → Adam |
-| 16 | Staging integration sign-off | Prod token request | Marc → Adam |
+| 14 | Deploy path (Vercel vs SSH) | Step 6 if SSH | Marc → Adam (still open) |
+| 15 | Notification answers (SMTP / WhatsApp / confirmations) | — | **Answered Aug 9** — see [Adam_Response_Notifications_And_SMTP.md](./Adam_Response_Notifications_And_SMTP.md) |
+| 15a | Production SMTP credentials | Email at go-live | Marc → Adam |
+| 16 | Staging integration sign-off | Prod token request | Marc → Adam (Adam asked for link Aug 9) |
 | 17 | Production `WIZARD_API_TOKEN` | Cutover only | Marc → Adam (after staging OK) |
 
 Full tracker: [Adam_Response_Tracker.md](./Adam_Response_Tracker.md)
@@ -131,6 +134,10 @@ source .env && RUN_LIVE_E2E=1 pnpm exec playwright test tests/e2e/checkout.spec.
 | Jul 8 | [Status update](./Email_to_Adam_Status_Update.md) | Team photos; full site review doc | Token, staging access, API revision |
 | Jul 19 | [Production handoff](./Email_to_Adam_Production_Handoff.md) | (Cc) NEO mentioned as Elie's preference | Supabase, payments, notifications, prod API |
 | Jul 25 | Adam reply | — | We create Supabase; all 5 payment modules; no prod Wizard testing |
-| Jul 27 | [Production follow-up](./Email_to_Adam_Production_Followup.md) (draft) | (Cc) | Resend/WhatsApp, deploy path, credentials follow-up |
+| Jul 27 | [Production follow-up](./Email_to_Adam_Production_Followup.md) (**SENT**) | (Cc) | SMTP/WhatsApp/confirmations, deploy path |
+| Jul 31 | [Offline payments / fleet / images](./Email_to_Adam_Offline_Payments_Vehicles_Images.md) (**SENT**) | (Cc) | Receipt workflow, duplicate cars, image source |
+| Aug 9 | Adam replies (archived) | — | Offline = no receipt workflow; keep individual cars; website images; SMTP not Resend; WhatsApp link only; confirm after approval |
+| Aug 9 | Adam | — | Wants staging link Monday night Lebanon + WhatsApp Bridge note (future) |
 
-**Still open from Elie (never received):** team photos, site feedback doc, hero photography, corporate pricing, IBAN, Whish/NEO credentials.
+**Still open from Adam:** deploy path; prod SMTP credentials; staging URL (blocked on us).  
+**Still open from Elie:** team photos, site feedback doc, hero photography, corporate pricing, IBAN, Whish/NEO credentials.

@@ -1,4 +1,4 @@
-> **Status: REVIEWED — ready for Marc to send (2026-07-27).**
+> **Status: SENT by Marc (2026-07-27, 4:02 AM).** Notifications / SMTP / WhatsApp answered 2026-08-09 — see [Adam_Response_Notifications_And_SMTP.md](./Adam_Response_Notifications_And_SMTP.md). Deploy path still open.
 
 # Email to Adam — production follow-up
 

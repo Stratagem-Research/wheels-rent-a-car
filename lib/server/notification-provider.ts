@@ -1,3 +1,5 @@
+import nodemailer from "nodemailer";
+
 export interface SendEmailInput {
   to: string;
   subject: string;
@@ -6,12 +8,16 @@ export interface SendEmailInput {
 }
 
 export interface SendEmailResult {
-  provider: "resend" | "log";
+  provider: "smtp" | "resend" | "log";
   id?: string;
 }
 
 function getNotificationFromEmail(): string {
   return process.env.NOTIFICATION_FROM_EMAIL?.trim() || "bookings@wheelsrentacar.com.lb";
+}
+
+function getNotificationFromName(): string {
+  return process.env.NOTIFICATION_FROM_NAME?.trim() || "Wheels Rent A Car";
 }
 
 function getResendApiKey(): string | null {
@@ -20,13 +26,45 @@ function getResendApiKey(): string | null {
   return key;
 }
 
-function renderTemplate(
+type SmtpConfig = {
+  host: string;
+  port: number;
+  user: string;
+  pass: string;
+  encryption: "tls" | "ssl" | "none";
+};
+
+function getSmtpConfig(): SmtpConfig | null {
+  const host = process.env.SMTP_HOST?.trim();
+  const portRaw = process.env.SMTP_PORT?.trim();
+  const user = process.env.SMTP_USER?.trim();
+  const pass = process.env.SMTP_PASS?.trim();
+  if (!host || !portRaw || !user || !pass) return null;
+  if (pass.startsWith("replace-with")) return null;
+  const port = Number.parseInt(portRaw, 10);
+  if (!Number.isFinite(port) || port <= 0) return null;
+  const encRaw = (process.env.SMTP_ENCRYPTION?.trim() || "tls").toLowerCase();
+  const encryption: SmtpConfig["encryption"] =
+    encRaw === "ssl" || encRaw === "none" ? encRaw : "tls";
+  return { host, port, user, pass, encryption };
+}
+
+/** Exported for unit tests. */
+export function renderNotificationTemplate(
   template: string,
   payload: Record<string, unknown>,
 ): { subject: string; html: string; text: string } {
   const ref = String(payload.ref ?? payload.bookingReference ?? "");
   const vehicle = String(payload.vehicle ?? "");
   switch (template) {
+    case "booking_request_received":
+      return {
+        subject: ref
+          ? `We received your booking request — ${ref}`
+          : "We received your booking request",
+        html: `<p>Thank you — we have received your booking request${ref ? ` (<strong>${ref}</strong>)` : ""}.</p>${vehicle ? `<p>Vehicle: ${vehicle}</p>` : ""}<p>Our team will review it and email you once it is approved. This message confirms receipt of your request, not that payment has been verified.</p>`,
+        text: `Thank you — we have received your booking request${ref ? ` (${ref})` : ""}.${vehicle ? ` Vehicle: ${vehicle}.` : ""} Our team will review it and email you once it is approved.`,
+      };
     case "booking_confirmation":
       return {
         subject: ref ? `Wheels booking confirmed — ${ref}` : "Wheels booking confirmed",
@@ -54,26 +92,37 @@ function renderTemplate(
   }
 }
 
-export async function sendEmailNotification(input: {
-  template: string;
-  recipient: string;
-  payload?: Record<string, unknown>;
-}): Promise<SendEmailResult> {
-  const content = renderTemplate(input.template, input.payload ?? {});
-  const apiKey = getResendApiKey();
+async function sendViaSmtp(
+  smtp: SmtpConfig,
+  content: { subject: string; html: string; text: string },
+  to: string,
+): Promise<SendEmailResult> {
+  const secure = smtp.encryption === "ssl";
+  const requireTLS = smtp.encryption === "tls";
+  const transporter = nodemailer.createTransport({
+    host: smtp.host,
+    port: smtp.port,
+    secure,
+    requireTLS: requireTLS || undefined,
+    auth: { user: smtp.user, pass: smtp.pass },
+  });
 
-  if (!apiKey) {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("NOTIFICATION_PROVIDER_KEY is not configured.");
-    }
-    console.info("[notification-provider] log-only send", {
-      to: input.recipient,
-      subject: content.subject,
-      template: input.template,
-    });
-    return { provider: "log" };
-  }
+  const info = await transporter.sendMail({
+    from: `"${getNotificationFromName()}" <${getNotificationFromEmail()}>`,
+    to,
+    subject: content.subject,
+    html: content.html,
+    text: content.text,
+  });
 
+  return { provider: "smtp", id: typeof info.messageId === "string" ? info.messageId : undefined };
+}
+
+async function sendViaResend(
+  apiKey: string,
+  content: { subject: string; html: string; text: string },
+  to: string,
+): Promise<SendEmailResult> {
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -81,8 +130,8 @@ export async function sendEmailNotification(input: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      from: getNotificationFromEmail(),
-      to: [input.recipient],
+      from: `${getNotificationFromName()} <${getNotificationFromEmail()}>`,
+      to: [to],
       subject: content.subject,
       html: content.html,
       text: content.text,
@@ -98,6 +147,36 @@ export async function sendEmailNotification(input: {
   return { provider: "resend", id: data.id };
 }
 
+export async function sendEmailNotification(input: {
+  template: string;
+  recipient: string;
+  payload?: Record<string, unknown>;
+}): Promise<SendEmailResult> {
+  const content = renderNotificationTemplate(input.template, input.payload ?? {});
+  const smtp = getSmtpConfig();
+  if (smtp) {
+    return sendViaSmtp(smtp, content, input.recipient);
+  }
+
+  const apiKey = getResendApiKey();
+  if (apiKey) {
+    return sendViaResend(apiKey, content, input.recipient);
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "Email is not configured. Set SMTP_HOST/SMTP_PORT/SMTP_USER/SMTP_PASS (preferred) or NOTIFICATION_PROVIDER_KEY.",
+    );
+  }
+
+  console.info("[notification-provider] log-only send", {
+    to: input.recipient,
+    subject: content.subject,
+    template: input.template,
+  });
+  return { provider: "log" };
+}
+
 export async function dispatchNotificationJob(job: {
   channel: string;
   template: string;
@@ -105,7 +184,7 @@ export async function dispatchNotificationJob(job: {
   payload?: Record<string, unknown> | null;
 }): Promise<SendEmailResult | { provider: "skipped"; reason: string }> {
   if (job.channel === "whatsapp") {
-    // WhatsApp API integration is pending Meta/Twilio setup — email fallback at enqueue time.
+    // Launch: WhatsApp is customer-initiated wa.me only — no outbound API.
     return { provider: "skipped", reason: "whatsapp_not_configured" };
   }
   return sendEmailNotification({

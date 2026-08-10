@@ -162,7 +162,7 @@ describe("booking-service handleBookingSubmit", () => {
       expect.objectContaining({
         bookingReference: "WRC-260721-TEST",
         channel: "email",
-        template: "booking_confirmation",
+        template: "booking_request_received",
         recipient: "test@example.com",
       }),
     );

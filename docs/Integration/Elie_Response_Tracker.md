@@ -2,7 +2,7 @@
 
 Status: Open  
 Owner: Marc (follow-up) · Fatema (implements deliverables)  
-Last updated: 2026-07-27
+Last updated: 2026-08-10
 
 **Master checklist:** [Production_Go_Live_Checklist.md](./Production_Go_Live_Checklist.md) (Phase 0 + sign-off)
 
@@ -13,7 +13,7 @@ Track what we need from Elie (owner) before launch. Update when Elie replies or 
 | E1 | **Team photos** (About page) | [Email_to_Adam_Status_Update.md](./Email_to_Adam_Status_Update.md) Jul 8 | **Pending** | High-res headshots; Fatema uploads via admin/CMS |
 | E2 | **Site review doc** (copy, layout, content, UX) | Same Jul 8 email | **Pending** | Any format; Fatema implements items |
 | E3 | **Hero / cinematic Lebanon photography** | Revision 1 walkthrough | **Pending** | Replaces placeholder hero; full-bleed + gradient |
-| E4 | **Vehicle marketing photos** (CMS enrichment) | System boundaries doc | **Pending** | Per-vehicle images in `vehicle_metadata` |
+| E4 | **Vehicle marketing photos** (CMS enrichment) | System boundaries doc | **Pending** | Adam confirmed 2026-08-09: Wizard has **no** images — website CMS owns add/replace/assign. Fatema can seed from manufacturer/media; Elie can supply brand shots when ready |
 | E5 | **Corporate tier real pricing** | Revision 1 walkthrough | **Pending** | Replace placeholder tier numbers |
 | E6 | **Promo code rules** for launch | Adam launch blockers email | **Partial** | Adam confirmed website-side validation; Elie confirms which promos |
 | E7 | **Bank transfer IBAN** + instructions | Launch gates / checkout copy | **Pending** | Blocks accurate transfer checkout copy |
