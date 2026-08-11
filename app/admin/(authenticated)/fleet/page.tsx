@@ -308,7 +308,6 @@ export default function AdminFleetPage() {
               </div>
               <Field
                 label="Primary image"
-                helper="Upload stores the file in Supabase Storage and sets media[0]. Save all to publish."
               >
                 {() => (
                   <AdminImageUpload
@@ -330,7 +329,6 @@ export default function AdminFleetPage() {
               </Field>
               <Field
                 label="Media (JSON array)"
-                helper="Advanced: freeform media objects. Upload above edits media[0]."
               >
                 {({ id }) => (
                   <Textarea

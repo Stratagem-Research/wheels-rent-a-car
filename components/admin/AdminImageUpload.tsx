@@ -96,12 +96,12 @@ export function AdminImageUpload({
     <div className={className}>
       <div className="flex flex-wrap items-start gap-3">
         {currentUrl ? (
-          <div className="border-border relative size-24 overflow-hidden rounded-lg border bg-ink-5">
+          <div className="border-border relative size-36 overflow-hidden rounded-lg border bg-ink-5">
             <Image
               src={currentUrl}
               alt=""
               fill
-              className="object-cover"
+              className="object-contain"
               unoptimized={currentUrl.startsWith("http")}
             />
           </div>
