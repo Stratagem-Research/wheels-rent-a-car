@@ -6,6 +6,7 @@ import {
   replaceVehicleWizardMap,
   writeAdminAuditLog,
 } from "@/lib/supabase/admin-repository";
+import { listWizardVehicles } from "@/lib/supabase/wizard-vehicles-repository";
 import { requireAdminCsrf, requireAdminSession } from "@/lib/server/admin-api";
 
 const MapItemSchema = z.object({
@@ -18,8 +19,16 @@ export async function GET(request: Request) {
   const auth = requireAdminSession(request, ["content-editor", "ops-admin"]);
   if (!auth.ok) return auth.response;
   try {
-    const items = await listVehicleWizardMap();
-    return NextResponse.json({ items });
+    const [items, wizardRows] = await Promise.all([
+      listVehicleWizardMap(),
+      listWizardVehicles().catch(() => []),
+    ]);
+    const byWizardId = new Map(wizardRows.map((row) => [row.wizard_vehicle_id, row.display_name]));
+    const enriched = items.map((item) => ({
+      ...item,
+      wizard_display_name: byWizardId.get(item.wizard_vehicle_id) ?? null,
+    }));
+    return NextResponse.json({ items: enriched });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to load wizard map.";
     return NextResponse.json({ message }, { status: 500 });

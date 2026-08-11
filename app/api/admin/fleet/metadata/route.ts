@@ -1,10 +1,16 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import {
+  frontendVehicleIdFromWizard,
+  slugifyVehicleName,
+} from "@/lib/booking/wizard-vehicle-id";
+import {
   listVehicleMetadata,
   replaceVehicleMetadata,
   writeAdminAuditLog,
+  type VehicleMetadataRow,
 } from "@/lib/supabase/admin-repository";
+import { listWebsiteEnabledWizardVehicles } from "@/lib/supabase/wizard-vehicles-repository";
 import { requireAdminCsrf, requireAdminSession } from "@/lib/server/admin-api";
 
 const MetadataItemSchema = z.object({
@@ -20,12 +26,55 @@ const MetadataItemSchema = z.object({
 
 const PayloadSchema = z.object({ items: z.array(MetadataItemSchema) });
 
+/**
+ * Fleet admin list is driven by website-enabled Wizard vehicles (sync mirror),
+ * not every historical `vehicle_metadata` row — that inflated count past the
+ * 65 synced from Wizard.
+ */
 export async function GET(request: Request) {
   const auth = requireAdminSession(request, ["content-editor", "ops-admin"]);
   if (!auth.ok) return auth.response;
   try {
-    const items = await listVehicleMetadata();
-    return NextResponse.json({ items });
+    const [wizardRows, metadataRows] = await Promise.all([
+      listWebsiteEnabledWizardVehicles(),
+      listVehicleMetadata(),
+    ]);
+
+    const metaById = new Map(
+      metadataRows.map((row) => [row.frontend_vehicle_id, row] as const),
+    );
+
+    const items = wizardRows.map((wiz) => {
+      const frontendId = frontendVehicleIdFromWizard(wiz.wizard_vehicle_id);
+      const meta: VehicleMetadataRow | undefined = metaById.get(frontendId);
+      const operational = wiz.operational ?? {};
+      const defaultSlug = slugifyVehicleName(wiz.display_name) || frontendId;
+      const wizardName =
+        (typeof operational.name === "string" && operational.name.trim()) ||
+        wiz.display_name?.trim() ||
+        null;
+
+      return {
+        frontend_vehicle_id: frontendId,
+        slug: meta?.slug ?? defaultSlug,
+        tagline: meta?.tagline ?? null,
+        description: meta?.description ?? null,
+        features: meta?.features ?? [],
+        badges: meta?.badges ?? [],
+        media: meta?.media ?? [],
+        updated_at: meta?.updated_at,
+        wizard_vehicle_id: wiz.wizard_vehicle_id,
+        wizard_display_name: wizardName,
+        wizard_brand: wiz.brand,
+        wizard_model: wiz.model,
+      };
+    });
+
+    return NextResponse.json({
+      items,
+      total: items.length,
+      source: "wizard_vehicles_website_enabled",
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to load vehicle metadata.";
     return NextResponse.json({ message }, { status: 500 });

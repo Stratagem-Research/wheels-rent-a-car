@@ -24,6 +24,16 @@ export async function countWizardVehicles(): Promise<number> {
   return count ?? 0;
 }
 
+export async function listWizardVehicles(): Promise<WizardVehicleRow[]> {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("wizard_vehicles")
+    .select("*")
+    .order("display_name");
+  if (error) throw new Error(error.message);
+  return (data ?? []) as WizardVehicleRow[];
+}
+
 export async function listWebsiteEnabledWizardVehicles(): Promise<WizardVehicleRow[]> {
   const supabase = getSupabaseAdminClient();
   const { data, error } = await supabase
@@ -48,6 +58,50 @@ export async function upsertWizardVehicles(items: UpsertWizardVehicleInput[]): P
   );
   if (error) throw new Error(error.message);
   return items.length;
+}
+
+/**
+ * Full-sync prune: drop mirror rows whose Wizard ids are no longer in the payload.
+ * No-op when `keepIds` is empty (guards against a bad empty API response wiping the fleet).
+ */
+export async function deleteWizardVehiclesNotIn(keepIds: number[]): Promise<number> {
+  if (keepIds.length === 0) return 0;
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("wizard_vehicles")
+    .delete()
+    .not("wizard_vehicle_id", "in", `(${keepIds.join(",")})`)
+    .select("wizard_vehicle_id");
+  if (error) throw new Error(error.message);
+  return data?.length ?? 0;
+}
+
+/**
+ * Drop website metadata for cars no longer returned by vehicles/sync.
+ * Keeps only `frontend_vehicle_id`s in `keepFrontendIds`. Empty keep list is a no-op.
+ */
+export async function deleteVehicleMetadataNotIn(keepFrontendIds: string[]): Promise<number> {
+  if (keepFrontendIds.length === 0) return 0;
+  const supabase = getSupabaseAdminClient();
+  // Supabase `.in` max is fine for ~hundreds of fleet ids; delete everything not in keep set.
+  const { data: existing, error: listError } = await supabase
+    .from("vehicle_metadata")
+    .select("frontend_vehicle_id");
+  if (listError) throw new Error(listError.message);
+
+  const keep = new Set(keepFrontendIds);
+  const toDelete = (existing ?? [])
+    .map((row) => row.frontend_vehicle_id as string)
+    .filter((id) => !keep.has(id));
+
+  if (toDelete.length === 0) return 0;
+
+  const { error } = await supabase
+    .from("vehicle_metadata")
+    .delete()
+    .in("frontend_vehicle_id", toDelete);
+  if (error) throw new Error(error.message);
+  return toDelete.length;
 }
 
 export async function ensureVehicleMetadataStub(input: {

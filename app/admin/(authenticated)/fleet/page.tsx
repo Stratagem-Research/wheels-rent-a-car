@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Plus, RefreshCcw, Trash2 } from "lucide-react";
+import { CloudDownload, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/FormAtoms";
 import { Input } from "@/components/ui/Input";
@@ -9,15 +9,11 @@ import { Textarea } from "@/components/ui/Textarea";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
 import { AdminImageUpload } from "@/components/admin/AdminImageUpload";
+import { parseWizardVehicleId, slugifyVehicleName } from "@/lib/booking/wizard-vehicle-id";
 
 /**
- * /admin/fleet — structured editor for website-owned vehicle copy/media
- * plus the frontend-to-Wizard ID mapping.
- *
- * Replaces the two raw-JSON textareas with per-vehicle metadata cards and a
- * two-column map repeater. The freeform `media` array stays as a small JSON
- * field (arbitrary shapes), validated on save. Load/save still use
- * GET/PUT /api/admin/fleet/metadata and /api/admin/fleet/map unchanged.
+ * /admin/fleet — website-owned vehicle copy/media for Wizard inventory.
+ * Vehicles appear via "Sync from Wizard"; ids are Wizard-owned and not edited here.
  */
 
 type MetadataItem = {
@@ -29,11 +25,11 @@ type MetadataItem = {
   badges: string[];
   media: Array<Record<string, unknown>>;
   updated_at?: string;
-};
-
-type MapItem = {
-  frontend_vehicle_id: string;
-  wizard_vehicle_id: number;
+  /** From Wizard internal vehicles/sync mirror (`wizard_vehicles`). */
+  wizard_vehicle_id?: number | null;
+  wizard_display_name?: string | null;
+  wizard_brand?: string | null;
+  wizard_model?: string | null;
 };
 
 /** Editor draft — raw text fields parsed into a MetadataItem on save. */
@@ -46,6 +42,19 @@ type MetaDraft = {
   badgesText: string;
   mediaText: string;
   updated_at?: string;
+  wizard_vehicle_id?: number | null;
+  wizard_display_name?: string | null;
+  wizard_brand?: string | null;
+  wizard_model?: string | null;
+};
+
+type SyncResult = {
+  source: string;
+  fetched: number;
+  upserted: number;
+  websiteEnabled?: number;
+  prunedWizard?: number;
+  prunedMetadata?: number;
 };
 
 async function readJson<T>(path: string): Promise<T> {
@@ -67,7 +76,73 @@ function toDraft(item: MetadataItem): MetaDraft {
     badgesText: (item.badges ?? []).join(", "),
     mediaText: JSON.stringify(item.media ?? [], null, 2),
     updated_at: item.updated_at,
+    wizard_vehicle_id: item.wizard_vehicle_id ?? null,
+    wizard_display_name: item.wizard_display_name ?? null,
+    wizard_brand: item.wizard_brand ?? null,
+    wizard_model: item.wizard_model ?? null,
   };
+}
+
+/** Card headline — brand + Wizard name (or brand + model fallback). */
+function vehicleCardTitle(draft: MetaDraft): string {
+  const brand = draft.wizard_brand?.trim();
+  const name = draft.wizard_display_name?.trim();
+  const model = draft.wizard_model?.trim();
+
+  if (brand && name) return `${brand} ${name}`;
+  if (name) return name;
+  if (brand && model) return `${brand} ${model}`;
+  if (brand) return brand;
+  if (model) return model;
+
+  const wizardId = resolveWizardId(draft);
+  if (wizardId != null) return `Wizard vehicle ${wizardId}`;
+  return draft.slug.trim() || "Vehicle";
+}
+
+function vehicleCardHelper(draft: MetaDraft): string {
+  const wizardId = resolveWizardId(draft);
+  const brand = draft.wizard_brand?.trim();
+  const model = draft.wizard_model?.trim();
+  const bits: string[] = [];
+
+  if (brand) bits.push(`Brand: ${brand}`);
+  if (model) bits.push(`Model: ${model}`);
+  if (wizardId != null) bits.push(`Wizard ID ${wizardId}`);
+  else bits.push("Unknown Wizard ID — re-sync to refresh this vehicle.");
+
+  return bits.join(" · ");
+}
+
+function matchesSearch(draft: MetaDraft, query: string): boolean {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  const wizardId = resolveWizardId(draft);
+  const haystack = [
+    draft.wizard_display_name,
+    draft.wizard_brand,
+    draft.wizard_model,
+    draft.slug,
+    draft.tagline,
+    draft.frontend_vehicle_id,
+    wizardId != null ? String(wizardId) : "",
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  return haystack.includes(q);
+}
+
+function resolveWizardId(draft: MetaDraft): number | null {
+  return draft.wizard_vehicle_id ?? parseWizardVehicleId(draft.frontend_vehicle_id);
+}
+
+function resolveSlug(draft: MetaDraft): string {
+  if (draft.slug.trim()) return draft.slug.trim();
+  if (draft.wizard_display_name?.trim()) {
+    return slugifyVehicleName(draft.wizard_display_name) || draft.frontend_vehicle_id;
+  }
+  return draft.frontend_vehicle_id;
 }
 
 function parseMediaText(mediaText: string): Array<Record<string, unknown>> {
@@ -108,22 +183,28 @@ function setPrimaryMedia(
 
 export default function AdminFleetPage() {
   const [drafts, setDrafts] = React.useState<MetaDraft[]>([]);
-  const [map, setMap] = React.useState<MapItem[]>([]);
+  const [search, setSearch] = React.useState("");
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
+  const [syncing, setSyncing] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [syncMessage, setSyncMessage] = React.useState<string | null>(null);
+
+  const visibleDrafts = React.useMemo(
+    () =>
+      drafts
+        .map((draft, index) => ({ draft, index }))
+        .filter(({ draft }) => matchesSearch(draft, search)),
+    [drafts, search],
+  );
 
   const refresh = React.useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [metadataRes, mapping] = await Promise.all([
-        readJson<{ items: MetadataItem[] }>("/api/admin/fleet/metadata"),
-        readJson<{ items: MapItem[] }>("/api/admin/fleet/map"),
-      ]);
+      const metadataRes = await readJson<{ items: MetadataItem[] }>("/api/admin/fleet/metadata");
       const items = Array.isArray(metadataRes.items) ? metadataRes.items : [];
       setDrafts(items.map(toDraft));
-      setMap(Array.isArray(mapping.items) ? mapping.items : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load fleet admin data.");
     } finally {
@@ -140,31 +221,45 @@ export default function AdminFleetPage() {
   const updateDraft = (index: number, patch: Partial<MetaDraft>) =>
     setDrafts((list) => list.map((m, i) => (i === index ? { ...m, ...patch } : m)));
 
-  const addDraft = () =>
-    setDrafts((list) => [
-      ...list,
-      {
-        frontend_vehicle_id: "",
-        slug: "",
-        tagline: "",
-        description: "",
-        featuresText: "",
-        badgesText: "",
-        mediaText: "[]",
-      },
-    ]);
-
   const removeDraft = (index: number) => {
-    if (!confirm("Remove this vehicle's metadata?")) return;
+    if (!confirm("Remove this vehicle's website metadata?")) return;
     setDrafts((list) => list.filter((_, i) => i !== index));
   };
 
-  const updateMapRow = (index: number, patch: Partial<MapItem>) =>
-    setMap((list) => list.map((m, i) => (i === index ? { ...m, ...patch } : m)));
+  const syncFromWizard = async () => {
+    setSyncing(true);
+    setError(null);
+    setSyncMessage(null);
+    try {
+      const res = await fetch("/api/admin/fleet/sync", {
+        method: "POST",
+        headers: { ...csrfHeader() },
+      });
+      const body = (await res.json().catch(() => ({}))) as SyncResult & { message?: string };
+      if (!res.ok) {
+        throw new Error(body.message ?? "Wizard vehicle sync failed.");
+      }
+      const prunedBits = [
+        body.prunedWizard ? `${body.prunedWizard} old mirror rows` : null,
+        body.prunedMetadata ? `${body.prunedMetadata} orphan metadata` : null,
+      ]
+        .filter(Boolean)
+        .join(", ");
+      setSyncMessage(
+        `Synced from Wizard: fetched ${body.fetched ?? 0}, mirror updated ${body.upserted ?? 0}, website-enabled ${body.websiteEnabled ?? body.upserted ?? 0}.${prunedBits ? ` Removed ${prunedBits}.` : ""}`,
+      );
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to sync from Wizard.");
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const saveAll = async () => {
     setSaving(true);
     setError(null);
+    setSyncMessage(null);
     try {
       const metadataItems: MetadataItem[] = drafts.map((draft, i) => {
         let media: Array<Record<string, unknown>>;
@@ -174,12 +269,12 @@ export default function AdminFleetPage() {
           media = parsed as Array<Record<string, unknown>>;
         } catch {
           throw new Error(
-            `Media JSON for "${draft.slug || draft.frontend_vehicle_id || `row ${i + 1}`}" is invalid. Expected a JSON array.`,
+            `Media JSON for "${vehicleCardTitle(draft)}" is invalid. Expected a JSON array.`,
           );
         }
         return {
           frontend_vehicle_id: draft.frontend_vehicle_id.trim(),
-          slug: draft.slug.trim(),
+          slug: resolveSlug(draft),
           tagline: draft.tagline.trim() ? draft.tagline.trim() : null,
           description: draft.description.trim() ? draft.description.trim() : null,
           features: splitList(draft.featuresText),
@@ -189,22 +284,13 @@ export default function AdminFleetPage() {
         };
       });
 
-      const [metadataRes, mapRes] = await Promise.all([
-        fetch("/api/admin/fleet/metadata", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json", ...csrfHeader() },
-          body: JSON.stringify({ items: metadataItems }),
-        }),
-        fetch("/api/admin/fleet/map", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json", ...csrfHeader() },
-          body: JSON.stringify({ items: map }),
-        }),
-      ]);
-      if (!metadataRes.ok || !mapRes.ok) {
-        const details = !metadataRes.ok
-          ? await metadataRes.json().catch(() => ({}))
-          : await mapRes.json().catch(() => ({}));
+      const metadataRes = await fetch("/api/admin/fleet/metadata", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...csrfHeader() },
+        body: JSON.stringify({ items: metadataItems }),
+      });
+      if (!metadataRes.ok) {
+        const details = await metadataRes.json().catch(() => ({}));
         throw new Error((details as { message?: string }).message ?? "Save failed.");
       }
       await refresh();
@@ -218,53 +304,71 @@ export default function AdminFleetPage() {
   return (
     <AdminPageShell
       eyebrow="Fleet"
-      title="Vehicle metadata and Wizard mapping"
-      description="Manage website-owned vehicle copy/media and frontend-to-Wizard ID mapping."
+      title="Vehicle metadata"
+      description="Sync fleet from Wizard, then edit website copy, badges, and photos. Wizard vehicle IDs are read-only."
       actions={
         <>
-          <Button variant="tertiary" onClick={() => void refresh()}>
-            <RefreshCcw className="size-4" aria-hidden="true" />
-            Refresh
+          <Button
+            variant="secondary"
+            onClick={() => void syncFromWizard()}
+            loading={syncing}
+            disabled={loading || saving}
+          >
+            <CloudDownload className="size-4" aria-hidden="true" />
+            Sync from Wizard
           </Button>
-          <Button onClick={() => void saveAll()} loading={saving} disabled={loading}>
+          <Button onClick={() => void saveAll()} loading={saving} disabled={loading || syncing}>
             Save all
           </Button>
         </>
       }
     >
       {error ? <p className="body-md text-danger mb-4">{error}</p> : null}
+      {syncMessage ? <p className="body-md text-ink-80 mb-4">{syncMessage}</p> : null}
 
-      <div className="flex flex-col gap-8">
-        <section className="flex flex-col gap-4">
-          <h2 className="headline-md text-ink-100">Vehicle metadata</h2>
-          {drafts.length === 0 && !loading ? (
-            <p className="body-md text-ink-60">No vehicle metadata yet.</p>
-          ) : null}
-          {drafts.map((draft, i) => (
+      <section className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="headline-md text-ink-100">Vehicle metadata</h2>
+            <p className="body-sm text-ink-60 mt-1">
+              {loading
+                ? "Loading…"
+                : search.trim()
+                  ? `Showing ${visibleDrafts.length} of ${drafts.length} website-enabled Wizard vehicles`
+                  : `${drafts.length} website-enabled Wizard vehicles`}
+            </p>
+          </div>
+          <div className="w-full sm:max-w-sm">
+            <Field label="Search">
+              {({ id }) => (
+                <Input
+                  id={id}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Name or Wizard ID"
+                  autoComplete="off"
+                />
+              )}
+            </Field>
+          </div>
+        </div>
+        {drafts.length === 0 && !loading ? (
+          <p className="body-md text-ink-60">
+            No website-enabled vehicles in the Wizard mirror yet. Use{" "}
+            <strong>Sync from Wizard</strong> (requires internal API token).
+          </p>
+        ) : null}
+        {drafts.length > 0 && visibleDrafts.length === 0 && !loading ? (
+          <p className="body-md text-ink-60">No vehicles match “{search.trim()}”.</p>
+        ) : null}
+        {visibleDrafts.map(({ draft, index: i }) => {
+          const wizardId = resolveWizardId(draft);
+          return (
             <AdminFormShell
-              key={i}
-              title={draft.slug.trim() || draft.frontend_vehicle_id.trim() || "New vehicle"}
+              key={draft.frontend_vehicle_id || i}
+              title={vehicleCardTitle(draft)}
+              helper={vehicleCardHelper(draft)}
             >
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field label="Frontend vehicle ID" required>
-                  {({ id }) => (
-                    <Input
-                      id={id}
-                      value={draft.frontend_vehicle_id}
-                      onChange={(e) => updateDraft(i, { frontend_vehicle_id: e.target.value })}
-                    />
-                  )}
-                </Field>
-                <Field label="Slug" required>
-                  {({ id }) => (
-                    <Input
-                      id={id}
-                      value={draft.slug}
-                      onChange={(e) => updateDraft(i, { slug: e.target.value })}
-                    />
-                  )}
-                </Field>
-              </div>
               <Field label="Tagline">
                 {({ id }) => (
                   <Input
@@ -306,13 +410,15 @@ export default function AdminFleetPage() {
                   )}
                 </Field>
               </div>
-              <Field
-                label="Primary image"
-              >
+              <Field label="Primary image">
                 {() => (
                   <AdminImageUpload
                     kind="vehicle"
-                    entityId={draft.frontend_vehicle_id || draft.slug || `row-${i + 1}`}
+                    entityId={
+                      wizardId != null
+                        ? String(wizardId)
+                        : draft.frontend_vehicle_id || draft.slug || `row-${i + 1}`
+                    }
                     currentUrl={primaryMediaUrl(draft.mediaText)}
                     onUploaded={(result) =>
                       updateDraft(i, {
@@ -327,9 +433,7 @@ export default function AdminFleetPage() {
                   />
                 )}
               </Field>
-              <Field
-                label="Media (JSON array)"
-              >
+              <Field label="Media (JSON array)">
                 {({ id }) => (
                   <Textarea
                     id={id}
@@ -348,77 +452,9 @@ export default function AdminFleetPage() {
                 </Button>
               </div>
             </AdminFormShell>
-          ))}
-          <div>
-            <Button variant="secondary" size="sm" onClick={addDraft}>
-              <Plus className="size-4" aria-hidden="true" />
-              Add vehicle metadata
-            </Button>
-          </div>
-        </section>
-
-        <section className="flex flex-col gap-4">
-          <h2 className="headline-md text-ink-100">Wizard map</h2>
-          <p className="body-sm text-ink-60">
-            Links each frontend vehicle ID to its Wizard (internal) vehicle ID.
-          </p>
-          <AdminFormShell title="Frontend → Wizard IDs">
-            <div className="flex flex-col gap-2">
-              {map.map((row, i) => (
-                <div
-                  key={i}
-                  className="border-border grid items-end gap-2 rounded-lg border p-3 sm:grid-cols-[2fr_1fr_auto]"
-                >
-                  <Field label="Frontend vehicle ID">
-                    {({ id }) => (
-                      <Input
-                        id={id}
-                        value={row.frontend_vehicle_id}
-                        onChange={(e) => updateMapRow(i, { frontend_vehicle_id: e.target.value })}
-                      />
-                    )}
-                  </Field>
-                  <Field label="Wizard vehicle ID">
-                    {({ id }) => (
-                      <Input
-                        id={id}
-                        type="number"
-                        min={1}
-                        value={row.wizard_vehicle_id ? String(row.wizard_vehicle_id) : ""}
-                        onChange={(e) =>
-                          updateMapRow(i, { wizard_vehicle_id: Number(e.target.value) })
-                        }
-                      />
-                    )}
-                  </Field>
-                  <div className="flex items-center pb-1">
-                    <Button
-                      type="button"
-                      variant="tertiary"
-                      onClick={() => setMap((list) => list.filter((_, idx) => idx !== i))}
-                      aria-label="Remove map row"
-                    >
-                      <Trash2 className="size-4" aria-hidden="true" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-              <div>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() =>
-                    setMap((list) => [...list, { frontend_vehicle_id: "", wizard_vehicle_id: 0 }])
-                  }
-                >
-                  <Plus className="size-4" aria-hidden="true" />
-                  Add mapping
-                </Button>
-              </div>
-            </div>
-          </AdminFormShell>
-        </section>
-      </div>
+          );
+        })}
+      </section>
     </AdminPageShell>
   );
 }

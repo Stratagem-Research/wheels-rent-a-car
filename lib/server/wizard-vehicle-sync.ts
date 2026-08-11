@@ -6,6 +6,8 @@ import {
   slugifyVehicleName,
 } from "@/lib/booking/wizard-vehicle-id";
 import {
+  deleteVehicleMetadataNotIn,
+  deleteWizardVehiclesNotIn,
   ensureVehicleMetadataStub,
   upsertWizardVehicles,
   type UpsertWizardVehicleInput,
@@ -15,6 +17,12 @@ export type WizardVehicleSyncResult = {
   source: "vehicles_sync_endpoint";
   fetched: number;
   upserted: number;
+  /** Count of vehicles with website_enabled after filters. */
+  websiteEnabled: number;
+  /** Rows removed from `wizard_vehicles` (full sync only). */
+  prunedWizard: number;
+  /** Rows removed from `vehicle_metadata` (full sync only). */
+  prunedMetadata: number;
   updatedSince?: string;
 };
 
@@ -47,24 +55,30 @@ function isWebsiteEnabled(vehicle: WizardVehicle): boolean {
   return vehicle.website_enabled === true || vehicle.is_publicly_bookable === true;
 }
 
-function wizardVehicleToRow(vehicle: WizardVehicle, id: number): UpsertWizardVehicleInput {
-  const displayName =
-    vehicle.display_name?.trim() ||
+function resolveDisplayName(vehicle: WizardVehicle, id: number): string {
+  return (
     vehicle.name?.trim() ||
+    vehicle.display_name?.trim() ||
     [vehicle.brand, vehicle.model].filter(Boolean).join(" ").trim() ||
-    `Vehicle ${id}`;
+    `Vehicle ${id}`
+  );
+}
 
+function wizardVehicleToRow(vehicle: WizardVehicle, id: number): UpsertWizardVehicleInput {
   return {
     wizard_vehicle_id: id,
     vehicle_type_id: vehicle.vehicle_type_id ?? null,
     brand: vehicle.brand ?? null,
     model: vehicle.model ?? null,
-    display_name: displayName,
+    // Prefer Wizard `name` (human label), then display_name, then brand+model.
+    display_name: resolveDisplayName(vehicle, id),
     category: vehicle.category?.trim() ? vehicle.category.toLowerCase() : null,
     website_enabled: isWebsiteEnabled(vehicle),
     wizard_updated_at: vehicle.updated_at ?? null,
     operational: {
       public_vehicle_key: vehicle.public_vehicle_key ?? null,
+      name: vehicle.name ?? null,
+      display_name: vehicle.display_name ?? null,
       gearbox: vehicle.gearbox ?? vehicle.transmission ?? null,
       transmission: vehicle.transmission ?? vehicle.gearbox ?? null,
       fuel_type: vehicle.fuel_type ?? null,
@@ -78,9 +92,12 @@ function wizardVehicleToRow(vehicle: WizardVehicle, id: number): UpsertWizardVeh
 }
 
 /**
- * Sync website-enabled vehicles from Wizard's internal
- * `GET /api/v1/vehicles/sync` endpoint into Supabase. Server-to-server only
- * (bearer token). Pass `updatedSince` for incremental sync.
+ * Sync vehicles from Wizard's internal `GET /api/v1/vehicles/sync` into Supabase.
+ * Upserts every payload row (so disabled ones clear `website_enabled`); metadata
+ * stubs are created only for website-enabled vehicles.
+ *
+ * Full sync (no `updatedSince`): deletes local mirror + metadata rows whose
+ * Wizard ids are not in the payload. Incremental sync never prunes.
  */
 export async function syncWizardVehiclesFromApi(
   options: SyncWizardVehiclesOptions = {},
@@ -93,18 +110,19 @@ export async function syncWizardVehiclesFromApi(
 
   const response = await client.syncVehicles({ updatedSince: options.updatedSince });
   const vehicles = response.data.vehicles;
+  const isFullSync = !options.updatedSince?.trim();
 
   const rows: UpsertWizardVehicleInput[] = [];
   for (const vehicle of vehicles) {
     const id = wizardVehicleId(vehicle);
     if (id == null) continue;
-    const row = wizardVehicleToRow(vehicle, id);
-    if (row.website_enabled) rows.push(row);
+    rows.push(wizardVehicleToRow(vehicle, id));
   }
 
-  const upserted = await upsertWizardVehicles(rows);
+  const totalUpserted = await upsertWizardVehicles(rows);
+  const websiteRows = rows.filter((row) => row.website_enabled);
 
-  for (const row of rows) {
+  for (const row of websiteRows) {
     const frontendId = frontendVehicleIdFromWizard(row.wizard_vehicle_id);
     await ensureVehicleMetadataStub({
       frontendVehicleId: frontendId,
@@ -113,10 +131,25 @@ export async function syncWizardVehiclesFromApi(
     });
   }
 
+  let prunedWizard = 0;
+  let prunedMetadata = 0;
+  if (isFullSync && rows.length > 0) {
+    const keepWizardIds = rows.map((r) => r.wizard_vehicle_id);
+    // Keep marketing rows for every vehicle still returned (enabled or not) so a
+    // temporary disable does not wipe photos/copy. Drop everything else (legacy
+    // seed ids, removed Wizard stock).
+    const keepFrontendIds = keepWizardIds.map((id) => frontendVehicleIdFromWizard(id));
+    prunedWizard = await deleteWizardVehiclesNotIn(keepWizardIds);
+    prunedMetadata = await deleteVehicleMetadataNotIn(keepFrontendIds);
+  }
+
   return {
     source: "vehicles_sync_endpoint",
     fetched: vehicles.length,
-    upserted,
+    upserted: totalUpserted,
+    websiteEnabled: websiteRows.length,
+    prunedWizard,
+    prunedMetadata,
     updatedSince: options.updatedSince,
   };
 }

@@ -79,51 +79,83 @@ export const VehicleAvailabilityResponseSchema = z.object({
 //
 // Server-to-server, bearer-authenticated. Returns only non-sensitive vehicle
 // data (no license plates, notes, or customer/operational private fields).
+// Live payloads may use locale maps for text fields, e.g. name: { en: "…" }.
+
+/** Pull a display string from either a plain string or a locale object. */
+export function coerceWizardText(value: unknown): string | null {
+  if (value == null) return null;
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (typeof value === "object" && !Array.isArray(value)) {
+    const obj = value as Record<string, unknown>;
+    for (const key of ["en", "en_US", "en-US", "name", "label", "value", "ar", "fr"]) {
+      const nested = obj[key];
+      if (typeof nested === "string" && nested.trim()) return nested;
+    }
+    for (const nested of Object.values(obj)) {
+      if (typeof nested === "string" && nested.trim()) return nested;
+    }
+  }
+  return null;
+}
+
+/** string | locale-map | null → normalized string | null */
+export const WizardTextSchema = z.unknown().transform(coerceWizardText);
+
+function optionalWizardBool() {
+  return z
+    .union([z.boolean(), z.literal(0), z.literal(1), z.literal("0"), z.literal("1"), z.null()])
+    .optional()
+    .transform((v) => {
+      if (v === undefined || v === null) return undefined;
+      return v === true || v === 1 || v === "1";
+    });
+}
 
 export const WizardVehiclePricingSchema = z
   .object({
-    daily_rate: z.number().nonnegative().nullable().optional(),
-    standard_price: z.number().nonnegative().nullable().optional(),
-    currency: z.string().nullable().optional(),
+    daily_rate: z.coerce.number().nonnegative().nullable().optional(),
+    standard_price: z.coerce.number().nonnegative().nullable().optional(),
+    currency: WizardTextSchema.optional(),
   })
   .passthrough();
 
 export const WizardVehicleSchema = z
   .object({
-    vehicle_id: z.number().int().positive().optional(),
-    id: z.number().int().positive().optional(),
-    public_vehicle_key: z.string().optional(),
-    vehicle_type_id: z.number().int().positive().optional(),
-    brand: z.string().nullable().optional(),
-    model: z.string().nullable().optional(),
-    name: z.string().nullable().optional(),
-    display_name: z.string().nullable().optional(),
-    category: z.string().nullable().optional(),
-    gearbox: z.string().nullable().optional(),
-    transmission: z.string().nullable().optional(),
-    fuel_type: z.string().nullable().optional(),
-    number_of_seats: z.number().int().nonnegative().nullable().optional(),
-    number_of_doors: z.number().int().nonnegative().nullable().optional(),
-    status: z.string().nullable().optional(),
-    website_enabled: z.boolean().optional(),
-    is_sold: z.boolean().optional(),
-    is_publicly_bookable: z.boolean().optional(),
+    vehicle_id: z.coerce.number().int().positive().optional(),
+    id: z.coerce.number().int().positive().optional(),
+    public_vehicle_key: WizardTextSchema.optional(),
+    vehicle_type_id: z.coerce.number().int().positive().optional(),
+    brand: WizardTextSchema.optional(),
+    model: WizardTextSchema.optional(),
+    name: WizardTextSchema.optional(),
+    display_name: WizardTextSchema.optional(),
+    category: WizardTextSchema.optional(),
+    gearbox: WizardTextSchema.optional(),
+    transmission: WizardTextSchema.optional(),
+    fuel_type: WizardTextSchema.optional(),
+    number_of_seats: z.coerce.number().int().nonnegative().nullable().optional(),
+    number_of_doors: z.coerce.number().int().nonnegative().nullable().optional(),
+    status: WizardTextSchema.optional(),
+    website_enabled: optionalWizardBool(),
+    is_sold: optionalWizardBool(),
+    is_publicly_bookable: optionalWizardBool(),
     pricing: WizardVehiclePricingSchema.optional(),
-    updated_at: BackendDateTimeSchema.optional(),
-    created_at: BackendDateTimeSchema.optional(),
-    timezone: z.string().optional(),
+    updated_at: WizardTextSchema.optional(),
+    created_at: WizardTextSchema.optional(),
+    timezone: WizardTextSchema.optional(),
   })
   .passthrough();
 
 export const WizardVehicleSyncResponseSchema = z.object({
-  success: z.literal(true),
+  success: z.union([z.literal(true), z.literal(1), z.literal("true")]).transform(() => true as const),
   data: z
     .object({
       sync_type: z.string().optional(),
-      parent_id: z.number().int().optional(),
+      parent_id: z.coerce.number().int().optional(),
       timezone: z.string().optional(),
       updated_since: z.string().nullable().optional(),
-      count: z.number().int().nonnegative().optional(),
+      count: z.coerce.number().int().nonnegative().optional(),
       vehicles: z.array(WizardVehicleSchema),
     })
     .passthrough(),

@@ -101,6 +101,7 @@ export function AdminImageUpload({
               src={currentUrl}
               alt=""
               fill
+              sizes="144px"
               className="object-contain"
               unoptimized={currentUrl.startsWith("http")}
             />
