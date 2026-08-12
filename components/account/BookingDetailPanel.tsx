@@ -159,9 +159,9 @@ function PendingNextSteps({ booking }: { booking: Booking }) {
   if (booking.paymentMethod === "omt") {
     lines.push(t("nextStepsOmt"));
   }
-  if (lines.length === 0) {
-    lines.push(t("nextStepsDefault"));
-  }
+  // No generic “we'll WhatsApp you” line — outbound WhatsApp is not implemented.
+  if (lines.length === 0) return null;
+
   return (
     <div className="bg-warning-bg text-warning flex flex-col gap-1 rounded-lg p-4">
       <div className="headline-xs">{t("nextSteps")}</div>

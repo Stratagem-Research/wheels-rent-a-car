@@ -116,7 +116,7 @@ function DesktopPanel({
         fullWidth
         onClick={primary.onClick}
         disabled={primary.disabled}
-        className="mt-5"
+        className="mt-5 h-auto min-h-14 whitespace-normal text-balance text-center leading-snug py-3"
       >
         {primary.label}
       </Button>
@@ -181,13 +181,19 @@ function MobilePanel({
               {secondary ? <div className="mt-3">{secondary}</div> : null}
             </SheetContent>
           </Sheet>
-          <Button variant="cta" size="md" onClick={primary.onClick} disabled={primary.disabled}>
+          <Button
+            variant="cta"
+            size="md"
+            onClick={primary.onClick}
+            disabled={primary.disabled}
+            className="h-auto min-h-14 whitespace-normal text-balance text-center leading-snug py-3"
+          >
             {primary.label}
           </Button>
         </div>
       </div>
-      {/* Spacer so the sticky bar doesn't cover content. */}
-      <div aria-hidden="true" className="h-20" />
+      {/* Spacer so the sticky bar doesn't cover content (allows 2-line CTA). */}
+      <div aria-hidden="true" className="h-24" />
     </div>
   );
 }

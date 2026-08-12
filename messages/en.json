@@ -1107,8 +1107,7 @@
     "cancellationPolicy": "Cancellation policy",
     "nextSteps": "Next steps",
     "nextStepsTransfer": "Send your bank transfer if you haven't yet. We confirm within 24h.",
-    "nextStepsOmt": "Pay at any OMT, Whish, or Bob Finance branch using your reference.",
-    "nextStepsDefault": "We'll WhatsApp you once payment is verified."
+    "nextStepsOmt": "Pay at any OMT, Whish, or Bob Finance branch using your reference."
   },
   "bookingSummary": {
     "ariaLabel": "Booking summary",
@@ -1167,12 +1166,8 @@
     "cashBody": "Bring your payment in USD or LBP at pickup. A refundable security deposit is required at the counter. Submitting creates a booking request — we'll email you once it's approved. Message us on WhatsApp anytime if you need help.",
     "transferBank": "Bank: Bank of Beirut SAL",
     "transferIban": "IBAN: LB00 0000 0000 0000 0000 0000 0000",
-    "transferReference": "Reference",
     "omtBranchLine": "Pay in cash at any OMT branch, or settle at handover if arranged with our team.",
     "omtCodeLine": "Code: ALWHEELS",
-    "copied": "Copied to clipboard",
-    "copyError": "Couldn't copy, please copy manually.",
-    "pendingReferenceFallback": "(your booking ref appears here on submit)",
     "choosePaymentMethod": "Choose a payment method.",
     "whishUnavailable": "Whish online payment isn't configured locally. Choose cash, bank transfer, or OMT to test checkout.",
     "neoUnavailable": "Bank Audi NEO isn't configured in this environment. Choose another payment method.",

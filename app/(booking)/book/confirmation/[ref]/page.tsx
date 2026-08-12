@@ -20,6 +20,7 @@ import { endpoints } from "@/lib/api/endpoints";
 import { formatUsd } from "@/lib/booking/pricing";
 import { clearBookingDraft } from "@/hooks/useBookingDraft";
 import { useBookingCatalog } from "@/hooks/useBookingCatalog";
+import { useSession } from "@/hooks/useSession";
 import type { Booking, BookingState } from "@/types/domain";
 
 /**
@@ -120,8 +121,8 @@ export default function ConfirmationPage() {
       <ConfirmationStatusBlock state={booking.state} bookingRef={booking.ref} />
 
       <section className="mx-auto max-w-[var(--container-full)] px-5 py-12 sm:px-5 sm:py-16">
-        <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
-          <Card variant="elevated" className="flex flex-col gap-5">
+        <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)]">
+          <Card variant="elevated" className="flex min-w-0 flex-col gap-5">
             <h2 className="headline-md text-ink-95">{t("yourCar")}</h2>
             <div className="flex items-center gap-4">
               {heroImage ? (
@@ -197,8 +198,8 @@ export default function ConfirmationPage() {
             ) : null}
           </Card>
 
-          <aside className="flex flex-col gap-5">
-            <Card variant="elevated" className="flex flex-col gap-3">
+          <aside className="flex min-w-0 flex-col gap-5">
+            <Card variant="elevated" className="flex min-w-0 flex-col gap-3">
               <div id="booking-payment">
                 <span className="text-ink-50 overline">{t("total")}</span>
                 <div className="price-lg text-ink-95">{formatUsd(booking.price.totalCents)}</div>
@@ -231,6 +232,7 @@ export default function ConfirmationPage() {
         <AccountUpsell email={booking.driver.email} />
 
         <CrossSell />
+
       </section>
 
       <div aria-hidden="true">
@@ -304,17 +306,24 @@ function NextSteps({
 
 function AccountUpsell({ email }: { email: string }) {
   const t = useTranslations("bookingFlow.confirmation");
+  const { session, ready } = useSession();
+
+  // Guest-only CTA — skip while session hydrates and whenever already signed in.
+  if (!ready || session) return null;
+
   return (
     <section className="mt-10">
       <Card
         variant="inverse"
-        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
       >
-        <div>
+        <div className="min-w-0">
           <h2 className="headline-sm">{t("upsellHeading")}</h2>
-          <p className="body-sm text-paper/85">{t("upsellBody", { email })}</p>
+          <p className="body-sm text-paper/85 break-words">
+            {t("upsellBody", { email })}
+          </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex shrink-0 flex-wrap gap-3">
           <Button asChild variant="cta" size="md">
             <Link href={`/register?email=${encodeURIComponent(email)}`}>{t("createAccount")}</Link>
           </Button>

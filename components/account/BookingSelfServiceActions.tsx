@@ -81,22 +81,40 @@ export function BookingSelfServiceActions({
 
   const primaryActions = (
     <>
-      <Button variant="primary" size="md" onClick={onAddToCalendar}>
-        <CalendarIcon className="size-4" aria-hidden="true" /> {labels.addToCalendar}
+      <Button
+        variant="primary"
+        size="md"
+        className="w-full justify-center sm:w-auto"
+        onClick={onAddToCalendar}
+      >
+        <CalendarIcon className="size-4 shrink-0" aria-hidden="true" /> {labels.addToCalendar}
       </Button>
-      <Button variant="secondary" size="md" onClick={onViewInvoice}>
-        <FileText className="size-4" aria-hidden="true" /> {labels.viewInvoice}
+      <Button
+        variant="secondary"
+        size="md"
+        className="w-full justify-center sm:w-auto"
+        onClick={onViewInvoice}
+      >
+        <FileText className="size-4 shrink-0" aria-hidden="true" /> {labels.viewInvoice}
       </Button>
       {cancellable ? (
         <>
           <ModifyBookingModal booking={booking}>
-            <Button variant="tertiary" size={context === "confirmation" ? "sm" : "md"}>
-              <Edit3 className="size-4" aria-hidden="true" /> {labels.modify}
+            <Button
+              variant="tertiary"
+              size={context === "confirmation" ? "sm" : "md"}
+              className="w-full justify-center sm:w-auto"
+            >
+              <Edit3 className="size-4 shrink-0" aria-hidden="true" /> {labels.modify}
             </Button>
           </ModifyBookingModal>
           <CancelBookingModal booking={booking}>
-            <Button variant="tertiary" size={context === "confirmation" ? "sm" : "md"}>
-              <X className="size-4" aria-hidden="true" /> {labels.cancel}
+            <Button
+              variant="tertiary"
+              size={context === "confirmation" ? "sm" : "md"}
+              className="w-full justify-center sm:w-auto"
+            >
+              <X className="size-4 shrink-0" aria-hidden="true" /> {labels.cancel}
             </Button>
           </CancelBookingModal>
         </>
@@ -127,14 +145,18 @@ export function BookingSelfServiceActions({
 
   if (!showCard) {
     return (
-      <div className="flex flex-col gap-3">
+      <div className="flex min-w-0 flex-col gap-3">
         {labels.needChange ? (
-          <div className="flex flex-col gap-2">
+          <div className="flex min-w-0 flex-col gap-2">
             <span className="label-md text-ink-60">{labels.needChange}</span>
-            <div className="flex flex-col gap-2 sm:flex-row">{primaryActions}</div>
+            {/*
+              Wrap on all widths — four actions (calendar / invoice / modify / cancel)
+              overflow a 360px confirmation aside when forced into one row.
+            */}
+            <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap">{primaryActions}</div>
           </div>
         ) : (
-          <div className="flex flex-col gap-2">{primaryActions}</div>
+          <div className="flex min-w-0 flex-col gap-2">{primaryActions}</div>
         )}
         {whatsAppCard}
       </div>

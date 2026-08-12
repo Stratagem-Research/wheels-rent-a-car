@@ -5,6 +5,7 @@ import { RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
+import { getAdminCsrfHeader } from "@/lib/admin/csrf";
 
 type OpsResponse = {
   paymentEvents: Array<Record<string, unknown>>;
@@ -44,7 +45,7 @@ export default function AdminOpsPage() {
   const retryOutbox = async (id: string) => {
     const res = await fetch("/api/admin/ops/retry-notification", {
       method: "POST",
-      headers: { "Content-Type": "application/json", ...csrfHeader() },
+      headers: { "Content-Type": "application/json", ...getAdminCsrfHeader() },
       body: JSON.stringify({ id }),
     });
     if (!res.ok) {
@@ -170,11 +171,4 @@ export default function AdminOpsPage() {
       ) : null}
     </AdminPageShell>
   );
-}
-
-function csrfHeader(): Record<string, string> {
-  if (typeof document === "undefined") return {};
-  const match = document.cookie.match(/(?:^|;\s*)wheels\.admin\.csrf=([^;]+)/);
-  if (!match) return {};
-  return { "x-admin-csrf": decodeURIComponent(match[1] ?? "") };
 }

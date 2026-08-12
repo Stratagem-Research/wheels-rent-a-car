@@ -2,12 +2,11 @@
 
 import * as React from "react";
 import { useTranslations } from "next-intl";
-import { Wallet, Building2, Coins, Copy, Smartphone, CreditCard } from "lucide-react";
+import { Wallet, Building2, Coins, Smartphone, CreditCard } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
 import { Label } from "@/components/ui/FormAtoms";
 import { RadioGroup, RadioItem } from "@/components/ui/RadioGroup";
-import { toast } from "@/components/ui/Toast";
 import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
 import type { PaymentMethod, PaymentMethodPublicConfig, SiteConfig } from "@/types/domain";
@@ -33,7 +32,6 @@ const OPTION_META: {
 export interface PaymentMethodSelectorProps {
   value: PaymentMethod | null;
   onValueChange: (next: PaymentMethod) => void;
-  pendingRef?: string;
 }
 
 function isSelectable(config: PaymentMethodPublicConfig): boolean {
@@ -101,7 +99,7 @@ export function PaymentMethodSelector(props: PaymentMethodSelectorProps) {
               <RadioItem value={opt.value} className="mt-1" />
               <OptionCopy opt={opt} config={config} t={t} />
             </label>
-            {selected ? <MethodPanel method={opt.value} {...props} /> : null}
+            {selected ? <MethodPanel method={opt.value} /> : null}
           </div>
         );
       })}
@@ -132,8 +130,8 @@ function OptionCopy({
   );
 }
 
-function MethodPanel(props: PaymentMethodSelectorProps & { method: PaymentMethod }) {
-  switch (props.method) {
+function MethodPanel({ method }: { method: PaymentMethod }) {
+  switch (method) {
     case "card":
       return null;
     case "whish-online":
@@ -143,9 +141,9 @@ function MethodPanel(props: PaymentMethodSelectorProps & { method: PaymentMethod
     case "cash":
       return <CashPanel />;
     case "transfer":
-      return <TransferPanel pendingRef={props.pendingRef} />;
+      return <TransferPanel />;
     case "omt":
-      return <OmtPanel pendingRef={props.pendingRef} />;
+      return <OmtPanel />;
   }
 }
 
@@ -176,59 +174,27 @@ function CashPanel() {
   );
 }
 
-function TransferPanel({ pendingRef }: Pick<PaymentMethodSelectorProps, "pendingRef">) {
+function TransferPanel() {
   const t = useTranslations("checkoutPayment");
-  const referenceLine = pendingRef ?? t("pendingReferenceFallback");
   return (
     <Card variant="tint" className="flex flex-col gap-3 p-4">
       <ul className="body-sm text-ink-80 flex flex-col gap-1">
         <li>· {t("transferBank")}</li>
         <li>· {t("transferIban")}</li>
-        <li className="inline-flex items-center gap-2">
-          · {t("transferReference")}:{" "}
-          <CopyableRef text={referenceLine}>{referenceLine}</CopyableRef>
-        </li>
       </ul>
     </Card>
   );
 }
 
-function OmtPanel({ pendingRef }: Pick<PaymentMethodSelectorProps, "pendingRef">) {
+function OmtPanel() {
   const t = useTranslations("checkoutPayment");
-  const referenceLine = pendingRef ?? t("pendingReferenceFallback");
   return (
     <Card variant="tint" className="p-4">
       <ul className="body-sm text-ink-80 flex flex-col gap-1">
         <li>· {t("omtBranchLine")}</li>
         <li>· {t("omtCodeLine")}</li>
-        <li className="inline-flex items-center gap-2">
-          · {t("transferReference")}:{" "}
-          <CopyableRef text={referenceLine}>{referenceLine}</CopyableRef>
-        </li>
       </ul>
     </Card>
-  );
-}
-
-function CopyableRef({ text, children }: { text: string; children: React.ReactNode }) {
-  const t = useTranslations("checkoutPayment");
-  const onCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success(t("copied"));
-    } catch {
-      toast.error(t("copyError"));
-    }
-  };
-  return (
-    <button
-      type="button"
-      onClick={onCopy}
-      className="mono-md text-ink-95 hover:text-ink-100 focus-visible:outline-ink-100 inline-flex items-center gap-1.5 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2"
-    >
-      {children}
-      <Copy className="size-3.5" aria-hidden="true" />
-    </button>
   );
 }
 

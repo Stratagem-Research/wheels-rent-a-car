@@ -16,15 +16,16 @@ import { FlowSummaryPanel } from "@/components/booking/FlowSummaryPanel";
 import { HoldTimer, clearHold } from "@/components/booking/HoldTimer";
 import { PaymentMethodSelector } from "@/components/booking/PaymentMethodSelector";
 import { useBookingFunnelPage } from "@/hooks/useBookingFunnelPage";
+import { useSession } from "@/hooks/useSession";
 import { whatsAppHref } from "@/lib/whatsapp";
 import { api, ApiError } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
-import { isValidPhoneNational } from "@/lib/booking/phone";
+import { getDialCode, isValidPhoneNational, phoneValueFromStored } from "@/lib/booking/phone";
 import { computePrice, formatUsd } from "@/lib/booking/pricing";
 import { draftToSearchParams } from "@/lib/booking/draft-to-search-params";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
-import type { PaymentMethod, SubmitBookingResponse } from "@/types/domain";
+import type { BookingDriver, PaymentMethod, SubmitBookingResponse, User, UserDocument } from "@/types/domain";
 import { Link } from "@/i18n/navigation";
 
 const COUNTRY_CODES = ["LB", "US", "GB", "FR", "DE", "AE", "SA", "OTHER"] as const;
@@ -62,7 +63,7 @@ const emptyForm = (): CheckoutFormState => ({
   phone: { countryIso: "LB", national: "" },
   dob: "",
   country: "LB",
-  whatsappOptIn: true,
+  whatsappOptIn: false, // Outbound WhatsApp not implemented; opt-in UI removed at checkout.
   licenceNumber: "",
   licenceIssue: "",
   licenceExpiry: "",
@@ -90,11 +91,48 @@ export default function CheckoutPage() {
     protectionTiers: PROTECTION_TIERS,
     branches: BRANCHES,
   } = useBookingFunnelPage({ requireProtection: true });
+  const { session, ready: sessionReady } = useSession();
   const [form, setForm] = React.useState<CheckoutFormState>(emptyForm);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [submitting, setSubmitting] = React.useState(false);
   const firedStarted = React.useRef(false);
   const verifiedAvailability = React.useRef(false);
+
+  // Prefill empty fields from draft.driver and/or logged-in profile + licence vault.
+  // Safe to re-run: only fills blanks (won’t clobber typed values). No “done” ref —
+  // React Strict Mode remounts wipe state but leave refs, which would skip fill.
+  React.useEffect(() => {
+    if (!ready || !sessionReady) return;
+
+    const driver = draft?.driver;
+    const user = session?.user;
+
+    setForm((prev) => {
+      let next = prev;
+      if (driver) next = applyDriverToForm(next, driver);
+      if (user) next = applyProfileToForm(next, user);
+      return next;
+    });
+
+    if (!user) return;
+
+    let cancelled = false;
+    void api
+      .get<{ items: UserDocument[] }>(endpoints.accountDocuments)
+      .then((res) => {
+        if (cancelled) return;
+        const licence = res.items.find((d) => d.type === "licence");
+        if (!licence) return;
+        setForm((prev) => applyLicenceToForm(prev, licence));
+      })
+      .catch(() => {
+        // Vault optional — leave licence fields empty if unavailable.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, sessionReady, session?.user?.id, draft?.driver]);
 
   // Re-check Wizard availability before the customer fills the form.
   React.useEffect(() => {
@@ -230,7 +268,8 @@ export default function CheckoutPage() {
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         email: form.email.trim().toLowerCase(),
-        phone: `+${getDial(form.phone.countryIso)}${form.phone.national.replace(/\D/g, "")}`,
+        phone: `+${getDialCode(form.phone.countryIso)}${form.phone.national.replace(/\D/g, "")}`,
+
         dob: form.dob,
         licenceNumber: form.licenceNumber.trim(),
         licenceIssue: form.licenceIssue,
@@ -423,7 +462,7 @@ export default function CheckoutPage() {
               size="lg"
               loading={submitting}
               fullWidth
-              className="sm:w-auto sm:self-start"
+              className="h-auto min-h-14 whitespace-normal text-balance text-center leading-snug py-3 sm:w-auto sm:self-start"
             >
               {ctaLabel}
             </Button>
@@ -542,11 +581,6 @@ function DriverInfoSection({
           )}
         </Field>
       </div>
-      <Checkbox
-        checked={form.whatsappOptIn}
-        onCheckedChange={(c) => setForm((f) => ({ ...f, whatsappOptIn: c === true }))}
-        label={t("whatsappOptIn")}
-      />
     </section>
   );
 }
@@ -717,16 +751,55 @@ function PromoSection({
   );
 }
 
-/** Lookup helper for phone country dial codes used at submit time. */
-function getDial(iso: string): string {
-  const codes: Record<string, string> = {
-    LB: "961",
-    US: "1",
-    GB: "44",
-    FR: "33",
-    DE: "49",
-    AE: "971",
-    SA: "966",
+function applyDriverToForm(form: CheckoutFormState, driver: BookingDriver): CheckoutFormState {
+  const country = normalizeCountryCode(driver.country) ?? form.country;
+  return {
+    ...form,
+    firstName: form.firstName || driver.firstName,
+    lastName: form.lastName || driver.lastName,
+    email: form.email || driver.email,
+    phone: form.phone.national ? form.phone : phoneValueFromStored(driver.phone, country),
+    dob: form.dob || driver.dob,
+    country: form.country !== "LB" || !driver.country ? form.country || country : country,
+    licenceNumber: form.licenceNumber || driver.licenceNumber,
+    licenceIssue: form.licenceIssue || driver.licenceIssue,
+    licenceExpiry: form.licenceExpiry || driver.licenceExpiry,
   };
-  return codes[iso] ?? "1";
+}
+
+function applyProfileToForm(form: CheckoutFormState, user: User): CheckoutFormState {
+  const country = normalizeCountryCode(user.country) ?? form.country;
+  return {
+    ...form,
+    firstName: form.firstName || user.firstName,
+    lastName: form.lastName || user.lastName,
+    email: form.email || user.email,
+    phone: form.phone.national
+      ? form.phone
+      : phoneValueFromStored(user.phone, country),
+    dob: form.dob || user.dob || "",
+    country: form.country === "LB" && user.country ? country : form.country || country,
+    marketing: form.marketing || user.preferences.marketing,
+  };
+}
+
+function applyLicenceToForm(form: CheckoutFormState, licence: UserDocument): CheckoutFormState {
+  return {
+    ...form,
+    licenceNumber: form.licenceNumber || licence.number,
+    licenceIssue: form.licenceIssue || licence.issueDate,
+    licenceExpiry: form.licenceExpiry || licence.expiryDate,
+    licenceCountry:
+      form.licenceCountry !== "LB" || !licence.issuingCountry
+        ? form.licenceCountry
+        : normalizeCountryCode(licence.issuingCountry) ?? form.licenceCountry,
+  };
+}
+
+function normalizeCountryCode(code: string | undefined | null): string | null {
+  if (!code) return null;
+  const upper = code.trim().toUpperCase();
+  if ((COUNTRY_CODES as readonly string[]).includes(upper)) return upper;
+  if (upper === "OTHER") return "OTHER";
+  return null;
 }

@@ -1107,8 +1107,7 @@
     "cancellationPolicy": "Politique d'annulation",
     "nextSteps": "Prochaines étapes",
     "nextStepsTransfer": "Envoyez votre virement bancaire si ce n'est pas encore fait. Nous confirmons sous 24h.",
-    "nextStepsOmt": "Payez dans une agence OMT, Whish ou Bob Finance avec votre référence.",
-    "nextStepsDefault": "Nous vous écrirons sur WhatsApp dès que le paiement est vérifié."
+    "nextStepsOmt": "Payez dans une agence OMT, Whish ou Bob Finance avec votre référence."
   },
   "bookingSummary": {
     "ariaLabel": "Récapitulatif de réservation",
@@ -1167,12 +1166,8 @@
     "cashBody": "Apportez votre paiement en USD ou en LBP au retrait. Une caution remboursable est requise au comptoir. L'envoi crée une demande — nous vous e-mailerons une fois approuvée. WhatsApp pour toute aide.",
     "transferBank": "Banque : Bank of Beirut SAL",
     "transferIban": "IBAN : LB00 0000 0000 0000 0000 0000 0000",
-    "transferReference": "Référence",
     "omtBranchLine": "Payez en espèces dans une agence OMT, ou au retrait si convenu avec notre équipe.",
     "omtCodeLine": "Code : ALWHEELS",
-    "copied": "Copié dans le presse-papiers",
-    "copyError": "Impossible de copier, veuillez copier manuellement.",
-    "pendingReferenceFallback": "(votre référence de réservation s'affichera ici à l'envoi)",
     "choosePaymentMethod": "Choisissez un mode de paiement.",
     "whishUnavailable": "Le paiement en ligne Whish n'est pas configuré localement. Pour tester, choisissez espèces, virement bancaire ou OMT.",
     "neoUnavailable": "Bank Audi NEO n'est pas configuré dans cet environnement. Choisissez un autre mode de paiement.",

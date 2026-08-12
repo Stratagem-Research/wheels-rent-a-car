@@ -12,12 +12,23 @@ export interface SendEmailResult {
   id?: string;
 }
 
-function getNotificationFromEmail(): string {
-  return process.env.NOTIFICATION_FROM_EMAIL?.trim() || "bookings@wheelsrentacar.com.lb";
-}
-
 function getNotificationFromName(): string {
   return process.env.NOTIFICATION_FROM_NAME?.trim() || "Wheels Rent A Car";
+}
+
+/**
+ * Prefer explicit FROM; otherwise SMTP auth user (required for Gmail/Workspace);
+ * last resort the production Wheels mailbox.
+ */
+function resolveFromAddress(smtpUser?: string): string {
+  const explicit = process.env.NOTIFICATION_FROM_EMAIL?.trim();
+  if (explicit) return explicit;
+  if (smtpUser?.trim()) return smtpUser.trim();
+  return "bookings@wheelsrentacar.com.lb";
+}
+
+function getNotificationFromEmail(): string {
+  return resolveFromAddress();
 }
 
 function getResendApiKey(): string | null {
@@ -107,15 +118,33 @@ async function sendViaSmtp(
     auth: { user: smtp.user, pass: smtp.pass },
   });
 
-  const info = await transporter.sendMail({
-    from: `"${getNotificationFromName()}" <${getNotificationFromEmail()}>`,
-    to,
-    subject: content.subject,
-    html: content.html,
-    text: content.text,
-  });
+  // Gmail requires From to match the authenticated mailbox (or a allowed alias).
+  const fromAddress = resolveFromAddress(smtp.user);
+  try {
+    const info = await transporter.sendMail({
+      from: `"${getNotificationFromName()}" <${fromAddress}>`,
+      to,
+      subject: content.subject,
+      html: content.html,
+      text: content.text,
+    });
 
-  return { provider: "smtp", id: typeof info.messageId === "string" ? info.messageId : undefined };
+    return {
+      provider: "smtp",
+      id: typeof info.messageId === "string" ? info.messageId : undefined,
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("[notification-provider] SMTP send failed", {
+      host: smtp.host,
+      port: smtp.port,
+      user: smtp.user,
+      from: fromAddress,
+      to,
+      error: message,
+    });
+    throw err;
+  }
 }
 
 async function sendViaResend(
