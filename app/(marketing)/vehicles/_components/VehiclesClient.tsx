@@ -75,6 +75,7 @@ export function VehiclesClient({
   const selectedSlug = searchParams.get("selected");
 
   const { ready, draft, setPickup, setReturn, setDraft } = useBookingDraft();
+  const rowSize = useFleetGridColumns();
 
   // Seed / sync draft pickup+return from URL search params (SearchBar → funnel).
   React.useEffect(() => {
@@ -301,10 +302,9 @@ export function VehiclesClient({
           <span className="label-md text-ink-50 ml-auto">{t("carsCount", { count: filtered.length })}</span>
         </div>
 
-        {/* Grid — dark VehicleCards rendered in logical rows of 3. When a card
-         * is selected, the expanded panel renders BELOW its row (full width)
-         * instead of widening the card inline. This keeps every adjacent
-         * card in its original position — clicking never reflows the grid. */}
+        {/* Grid — cards in rows matching the column count. When a card is
+         * selected, the expanded panel renders BELOW its row (full width)
+         * so adjacent cards never shift. */}
         {filtered.length === 0 ? (
           <EmptyState
             heading={t("emptyHeading")}
@@ -320,7 +320,7 @@ export function VehiclesClient({
             aria-label={t("resultsAria")}
             role="list"
           >
-            {chunkRows(filtered, ROW_SIZE).map((rowVehicles, rowIdx) => {
+            {chunkRows(filtered, rowSize).map((rowVehicles, rowIdx) => {
               const selectedInRow =
                 expandedVehicle && rowVehicles.some((v) => v.id === expandedVehicle.id)
                   ? expandedVehicle
@@ -375,10 +375,27 @@ export function VehiclesClient({
   );
 }
 
-/** Logical row size — matches the lg-viewport grid (3 columns). On smaller
- * viewports the row wraps naturally, but the expanded panel always renders
- * below the row group so adjacent cards never shift horizontally. */
-const ROW_SIZE = 3;
+/** Match `sm:grid-cols-2` / `lg:grid-cols-3` so expand-below-row chunks fill each row. */
+function useFleetGridColumns(): number {
+  const [columns, setColumns] = React.useState(1);
+
+  React.useEffect(() => {
+    const lg = window.matchMedia("(min-width: 1024px)");
+    const sm = window.matchMedia("(min-width: 640px)");
+    const update = () => {
+      setColumns(lg.matches ? 3 : sm.matches ? 2 : 1);
+    };
+    update();
+    lg.addEventListener("change", update);
+    sm.addEventListener("change", update);
+    return () => {
+      lg.removeEventListener("change", update);
+      sm.removeEventListener("change", update);
+    };
+  }, []);
+
+  return columns;
+}
 
 function chunkRows<T>(items: T[], size: number): T[][] {
   const rows: T[][] = [];

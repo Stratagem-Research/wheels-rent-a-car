@@ -12,7 +12,10 @@ import type {
 } from "@/types/domain";
 import { parseWizardVehicleId } from "@/lib/booking/wizard-vehicle-id";
 import { validatePromoCodeFromRow } from "@/lib/booking/promo";
-import { toBookingFromLookup } from "@/lib/booking/lookup-adapter";
+import {
+  applyWebsiteVehicleToLookup,
+  toBookingFromLookup,
+} from "@/lib/booking/lookup-adapter";
 import { findPromoCode } from "@/lib/supabase/promo-codes-repository";
 import {
   computePrice,
@@ -321,7 +324,20 @@ export async function handleBookingSubmit(
 
 export async function handleBookingLookup(body: LookupBookingRequest): Promise<Booking> {
   const response = await getBookingByReferenceEmail(body.ref, body.email);
-  return toBookingFromLookup(response.data);
+  return hydrateLookupVehicle(toBookingFromLookup(response.data), response.data.vehicle.id);
+}
+
+/** Prefer website catalog (`wiz-{id}`) over fixture fallback for lookup UIs. */
+export async function hydrateLookupVehicle(
+  booking: Booking,
+  wizardVehicleId: number,
+): Promise<Booking> {
+  try {
+    const { vehicles } = await getCatalog();
+    return applyWebsiteVehicleToLookup(booking, wizardVehicleId, vehicles);
+  } catch {
+    return booking;
+  }
 }
 
 export async function handleBookingStatusByToken(publicToken: string) {

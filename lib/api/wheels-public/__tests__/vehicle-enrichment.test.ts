@@ -78,13 +78,15 @@ describe("wheels-public/vehicle-enrichment", () => {
       expect(onMiss).toHaveBeenCalledWith(expect.objectContaining({ id: 999 }), "model");
     });
 
-    it("strategy 3: falls back to category when name doesn't match", () => {
+    it("strategy 3: keeps Wizard name when falling back to category photos", () => {
       const onMiss = vi.fn();
       const result = enrichVehicle(publicVehicle({ name: "NoSuchModel", vehicle_type: "small" }), {
         onMiss,
       });
-      // First "economy" fixture is the Yaris.
       expect(result.category).toBe("economy");
+      expect(result.make).toBe("Nosuchmodel");
+      expect(result.make).not.toBe("Toyota");
+      expect(result.model).not.toBe("Yaris");
       expect(onMiss).toHaveBeenCalledWith(expect.anything(), "category");
     });
 

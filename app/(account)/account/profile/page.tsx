@@ -160,11 +160,7 @@ export default function ProfilePage() {
 
         <Card variant="default" className="flex flex-col gap-4">
           <h2 className="headline-md text-ink-100">{t("preferences")}</h2>
-          <Checkbox
-            checked={whatsappOptIn}
-            onCheckedChange={(c) => setWhatsappOptIn(c === true)}
-            label={t("whatsappUpdates")}
-          />
+   
           <Checkbox
             checked={marketing}
             onCheckedChange={(c) => setMarketing(c === true)}

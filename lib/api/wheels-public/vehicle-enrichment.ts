@@ -24,6 +24,8 @@
 
 import type { Vehicle, VehicleCategory } from "@/types/domain";
 import { VEHICLES } from "@/lib/api/fixtures/vehicles";
+import { displayNameFromLookupVehicle } from "@/lib/booking/lookup-adapter";
+import { frontendVehicleIdFromWizard, slugifyVehicleName } from "@/lib/booking/wizard-vehicle-id";
 import type { PublicVehicle } from "./schemas";
 
 export type BackendIdToSlugMap = Readonly<Record<number, string>>;
@@ -94,17 +96,35 @@ export function enrichVehicle(backend: PublicVehicle, options: EnrichVehicleOpti
     const byModel = VEHICLES.find((v) => v.model.toLowerCase() === nameKey);
     if (byModel) {
       onMiss?.(backend, "model");
-      return { ...byModel, id: `wiz-${backend.id}` };
+      return { ...byModel, id: frontendVehicleIdFromWizard(backend.id) };
+    }
+    const byFullName = VEHICLES.find(
+      (v) => `${v.make} ${v.model}`.toLowerCase() === nameKey,
+    );
+    if (byFullName) {
+      onMiss?.(backend, "model");
+      return { ...byFullName, id: frontendVehicleIdFromWizard(backend.id) };
     }
   }
 
-  // Strategy 3: category fallback.
+  // Strategy 3: category fallback for photos only — keep Wizard name.
   const category = mapVehicleTypeToCategory(backend.vehicle_type);
   if (category) {
     const byCategory = VEHICLES.find((v) => v.category === category);
     if (byCategory) {
       onMiss?.(backend, "category");
-      return { ...byCategory, id: `wiz-${backend.id}` };
+      const wizardName = displayNameFromLookupVehicle({
+        name: backend.name,
+        model: backend.model,
+      });
+      return {
+        ...byCategory,
+        id: frontendVehicleIdFromWizard(backend.id),
+        slug: slugifyVehicleName(backend.name) || byCategory.slug,
+        make: wizardName.make,
+        model: wizardName.model,
+        tagline: undefined,
+      };
     }
   }
 

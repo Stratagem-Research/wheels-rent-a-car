@@ -2,6 +2,7 @@ import { toBookingFromLookup } from "@/lib/booking/lookup-adapter";
 import {
   handleBookingLookup,
   handleBookingStatusByToken,
+  hydrateLookupVehicle,
 } from "@/lib/server/booking-service";
 import type { UserBookingRow } from "@/lib/supabase/user-bookings-repository";
 import type { Booking } from "@/types/domain";
@@ -44,7 +45,7 @@ export async function resolveAccountBooking(
   try {
     const status = await handleBookingStatusByToken(row.publicToken);
     if (!status.customer) return null;
-    return toBookingFromLookup({
+    const booking = toBookingFromLookup({
       reference: status.reference,
       status: status.status,
       start_date_time: status.start_date_time,
@@ -53,6 +54,7 @@ export async function resolveAccountBooking(
       vehicle: status.vehicle,
       amount: status.amount,
     });
+    return hydrateLookupVehicle(booking, status.vehicle.id);
   } catch (err) {
     if (process.env.NODE_ENV !== "production") {
       console.warn("[account-bookings] status-by-token failed", {
