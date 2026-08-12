@@ -257,11 +257,10 @@ export default function AdminFleetPage() {
     const key = brandModelKey(source);
     if (!key) return;
     const primary = parseMediaText(source.mediaText)[0];
-    const url = typeof primary?.url === "string" ? primary.url : undefined;
-    if (!url) return;
+    if (!primary || typeof primary.url !== "string") return;
 
     const next = {
-      url,
+      url: primary.url,
       alt: typeof primary.alt === "string" ? primary.alt : undefined,
       width: typeof primary.width === "number" ? primary.width : undefined,
       height: typeof primary.height === "number" ? primary.height : undefined,
