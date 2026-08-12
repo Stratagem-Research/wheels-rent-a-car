@@ -83,6 +83,42 @@ export async function deleteCmsMedia(input: {
   if (error) throw new Error(error.message);
 }
 
+const IMAGE_EXT = /\.(jpe?g|png|webp|avif)$/i;
+
+async function listStoragePaths(bucket: string, prefix: string): Promise<string[]> {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase.storage.from(bucket).list(prefix, {
+    limit: 1000,
+    sortBy: { column: "created_at", order: "desc" },
+  });
+  if (error) throw new Error(error.message);
+  if (!data?.length) return [];
+
+  const paths: string[] = [];
+  for (const item of data) {
+    const itemPath = prefix ? `${prefix}/${item.name}` : item.name;
+    if (item.id === null) {
+      paths.push(...(await listStoragePaths(bucket, itemPath)));
+    } else if (IMAGE_EXT.test(item.name)) {
+      paths.push(itemPath);
+    }
+  }
+  return paths;
+}
+
+export async function listCmsMedia(
+  kind: CmsMediaKind,
+): Promise<Array<{ url: string; path: string }>> {
+  const bucket = BUCKET_BY_KIND[kind];
+  const prefix = kind === "vehicle" ? "vehicles" : "team";
+  const supabase = getSupabaseAdminClient();
+  const paths = (await listStoragePaths(bucket, prefix)).sort((a, b) => b.localeCompare(a));
+  return paths.map((path) => {
+    const { data } = supabase.storage.from(bucket).getPublicUrl(path);
+    return { url: data.publicUrl, path };
+  });
+}
+
 /** Extract storage path from a public Supabase URL for this project's buckets. */
 export function storagePathFromPublicUrl(url: string, kind: CmsMediaKind): string | null {
   const bucket = BUCKET_BY_KIND[kind];

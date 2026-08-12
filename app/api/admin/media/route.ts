@@ -3,15 +3,37 @@ import { z } from "zod";
 import { requireAdminCsrf, requireAdminSession } from "@/lib/server/admin-api";
 import {
   deleteCmsMedia,
+  listCmsMedia,
   storagePathFromPublicUrl,
   type CmsMediaKind,
 } from "@/lib/supabase/cms-media-storage";
+
+const KindSchema = z.enum(["vehicle", "team"]);
 
 const BodySchema = z.object({
   kind: z.enum(["vehicle", "team"]),
   url: z.string().url().optional(),
   path: z.string().min(1).optional(),
 });
+
+export async function GET(request: Request) {
+  const auth = requireAdminSession(request, ["content-editor", "ops-admin"]);
+  if (!auth.ok) return auth.response;
+
+  const url = new URL(request.url);
+  const parsed = KindSchema.safeParse(url.searchParams.get("kind") ?? "");
+  if (!parsed.success) {
+    return NextResponse.json({ message: "kind must be vehicle or team." }, { status: 400 });
+  }
+
+  try {
+    const items = await listCmsMedia(parsed.data as CmsMediaKind);
+    return NextResponse.json({ items });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to list media.";
+    return NextResponse.json({ message }, { status: 500 });
+  }
+}
 
 export async function DELETE(request: Request) {
   const auth = requireAdminSession(request, ["content-editor", "ops-admin"]);

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CloudDownload, Trash2 } from "lucide-react";
+import { Check, CloudDownload, Images, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/FormAtoms";
 import { Input } from "@/components/ui/Input";
@@ -181,6 +181,36 @@ function setPrimaryMedia(
   );
 }
 
+/** Group key for applying one photo across the same Wizard brand + model. */
+function brandModelKey(draft: MetaDraft): string | null {
+  const brand = (draft.wizard_brand ?? "").trim().toLowerCase();
+  const model = (draft.wizard_model ?? "").trim().toLowerCase();
+  if (!model) return null;
+  return `${brand}|${model}`;
+}
+
+function brandModelLabel(draft: MetaDraft): string {
+  const brand = draft.wizard_brand?.trim();
+  const model = draft.wizard_model?.trim();
+  if (brand && model) return `${brand} ${model}`;
+  return model || "this model";
+}
+
+function sameBrandModelSiblings(drafts: MetaDraft[], sourceIndex: number): MetaDraft[] {
+  const source = drafts[sourceIndex];
+  const key = source ? brandModelKey(source) : null;
+  if (!key) return [];
+  return drafts.filter((d, i) => i !== sourceIndex && brandModelKey(d) === key);
+}
+
+function siblingsSharePrimaryImage(drafts: MetaDraft[], sourceIndex: number): boolean {
+  const source = drafts[sourceIndex];
+  const url = source ? primaryMediaUrl(source.mediaText) : undefined;
+  if (!url) return false;
+  const siblings = sameBrandModelSiblings(drafts, sourceIndex);
+  return siblings.length > 0 && siblings.every((d) => primaryMediaUrl(d.mediaText) === url);
+}
+
 export default function AdminFleetPage() {
   const [drafts, setDrafts] = React.useState<MetaDraft[]>([]);
   const [search, setSearch] = React.useState("");
@@ -220,6 +250,36 @@ export default function AdminFleetPage() {
 
   const updateDraft = (index: number, patch: Partial<MetaDraft>) =>
     setDrafts((list) => list.map((m, i) => (i === index ? { ...m, ...patch } : m)));
+
+  const applyPrimaryImageToSameModel = (sourceIndex: number) => {
+    const source = drafts[sourceIndex];
+    if (!source) return;
+    const key = brandModelKey(source);
+    if (!key) return;
+    const primary = parseMediaText(source.mediaText)[0];
+    const url = typeof primary?.url === "string" ? primary.url : undefined;
+    if (!url) return;
+
+    const next = {
+      url,
+      alt: typeof primary.alt === "string" ? primary.alt : undefined,
+      width: typeof primary.width === "number" ? primary.width : undefined,
+      height: typeof primary.height === "number" ? primary.height : undefined,
+    };
+    const siblingCount = sameBrandModelSiblings(drafts, sourceIndex).length;
+    if (siblingCount === 0) return;
+
+    setDrafts((list) =>
+      list.map((d, i) => {
+        if (i === sourceIndex || brandModelKey(d) !== key) return d;
+        return { ...d, mediaText: setPrimaryMedia(d.mediaText, next) };
+      }),
+    );
+    setError(null);
+    setSyncMessage(
+      `Copied this image to ${siblingCount} other ${brandModelLabel(source)}. Click Save all to persist.`,
+    );
+  };
 
   const removeDraft = (index: number) => {
     if (!confirm("Remove this vehicle's website metadata?")) return;
@@ -411,29 +471,53 @@ export default function AdminFleetPage() {
                 </Field>
               </div>
               <Field label="Primary image">
-                {() => (
-                  <AdminImageUpload
-                    kind="vehicle"
-                    entityId={
-                      wizardId != null
-                        ? String(wizardId)
-                        : draft.frontend_vehicle_id || draft.slug || `row-${i + 1}`
-                    }
-                    currentUrl={primaryMediaUrl(draft.mediaText)}
-                    onUploaded={(result) =>
-                      updateDraft(i, {
-                        mediaText: setPrimaryMedia(draft.mediaText, result),
-                      })
-                    }
-                    onRemoved={() =>
-                      updateDraft(i, {
-                        mediaText: setPrimaryMedia(draft.mediaText, null),
-                      })
-                    }
-                  />
-                )}
+                {() => {
+                  const siblingCount = sameBrandModelSiblings(drafts, i).length;
+                  const hasImage = Boolean(primaryMediaUrl(draft.mediaText));
+                  const applied = siblingsSharePrimaryImage(drafts, i);
+                  return (
+                    <div className="flex flex-col gap-3">
+                      <AdminImageUpload
+                        kind="vehicle"
+                        entityId={
+                          wizardId != null
+                            ? String(wizardId)
+                            : draft.frontend_vehicle_id || draft.slug || `row-${i + 1}`
+                        }
+                        currentUrl={primaryMediaUrl(draft.mediaText)}
+                        onUploaded={(result) =>
+                          updateDraft(i, {
+                            mediaText: setPrimaryMedia(draft.mediaText, result),
+                          })
+                        }
+                        onRemoved={() =>
+                          updateDraft(i, {
+                            mediaText: setPrimaryMedia(draft.mediaText, null),
+                          })
+                        }
+                      />
+                      {hasImage && siblingCount > 0 ? (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          disabled={applied}
+                          onClick={() => applyPrimaryImageToSameModel(i)}
+                        >
+                          {applied ? (
+                            <Check className="size-4" aria-hidden="true" />
+                          ) : (
+                            <Images className="size-4" aria-hidden="true" />
+                          )}
+                          {applied
+                            ? "Applied"
+                            : `Apply this image to ${siblingCount} other ${brandModelLabel(draft)}`}
+                        </Button>
+                      ) : null}
+                    </div>
+                  );
+                }}
               </Field>
-              <Field label="Media (JSON array)">
+              {/* <Field label="Media (JSON array)">
                 {({ id }) => (
                   <Textarea
                     id={id}
@@ -444,7 +528,7 @@ export default function AdminFleetPage() {
                     onChange={(e) => updateDraft(i, { mediaText: e.target.value })}
                   />
                 )}
-              </Field>
+              </Field> */}
               <div className="border-border flex justify-end border-t pt-4">
                 <Button type="button" variant="tertiary" onClick={() => removeDraft(i)}>
                   <Trash2 className="size-4" aria-hidden="true" />
