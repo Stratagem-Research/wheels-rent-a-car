@@ -1196,6 +1196,7 @@
     "pendingVerification": "Vérification en attente",
     "mobile": "Mobile",
     "mobileHelper": "Utilisé pour les mises à jour WhatsApp.",
+    "mobileInvalid": "Entrez un numéro mobile valide (Liban : 8 chiffres, ex. 79 084 321).",
     "dateOfBirth": "Date de naissance",
     "dobLockedHelper": "Verrouillée après le premier enregistrement, utilisée pour vérifier l'âge du conducteur.",
     "countryOfResidence": "Pays de résidence",
@@ -1221,7 +1222,8 @@
     "emailPlaceholder": "you@example.com",
     "confirmEmailAria": "Confirmer en saisissant votre e-mail",
     "keepAccount": "Conserver le compte",
-    "profileSaved": "Profil enregistré."
+    "profileSaved": "Profil enregistré.",
+    "profileSaveFailed": "Impossible d'enregistrer votre profil. Veuillez réessayer."
   },
   "accountDocuments": {
     "documentSaved": "Document enregistré.",

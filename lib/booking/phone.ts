@@ -68,10 +68,16 @@ export function phoneValueFromStored(
   return { countryIso: preferredIso, national: digits };
 }
 
+/** Drop the local trunk 0 (03… / 070…) so +961 uses the NSN only. */
+function lebanonNsn(digits: string): string {
+  return digits.startsWith("0") ? digits.slice(1) : digits;
+}
+
 export function isValidLebanonMobile(nationalDigits: string): boolean {
-  const digits = nationalDigits.replace(/\D/g, "");
-  // Lebanese mobile: 8 digits, typically 3/7/8/9 prefix (03, 70, 71, 76, 78, 79, 81, …).
-  return /^[3789]\d{7}$/.test(digits) || /^0[37]\d{6,7}$/.test(digits);
+  const nsn = lebanonNsn(nationalDigits.replace(/\D/g, ""));
+  // Local 03 / 70 / 81 include a trunk 0; international +961 omits it.
+  // 03 → 7 digits (3xxxxxx). 70/71/76/78/79/81 → 8 digits.
+  return /^3\d{6}$/.test(nsn) || /^[3789]\d{7}$/.test(nsn);
 }
 
 export function isValidPhoneNational(countryIso: string, nationalDigits: string): boolean {
@@ -79,4 +85,11 @@ export function isValidPhoneNational(countryIso: string, nationalDigits: string)
   if (!digits) return false;
   if (countryIso === "LB") return isValidLebanonMobile(digits);
   return digits.length >= 7 && digits.length <= 15;
+}
+
+/** E.164 from country + national digits. Lebanese trunk 0 is not included after +961. */
+export function toE164(countryIso: string, national: string): string {
+  let digits = national.replace(/\D/g, "");
+  if (countryIso === "LB") digits = lebanonNsn(digits);
+  return `+${getDialCode(countryIso)}${digits}`;
 }

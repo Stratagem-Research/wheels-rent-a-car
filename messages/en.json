@@ -1379,6 +1379,7 @@
     "pendingVerification": "Pending verification",
     "mobile": "Mobile",
     "mobileHelper": "Used for WhatsApp updates.",
+    "mobileInvalid": "Enter a valid mobile number (Lebanon: 8 digits, e.g. 79 084 321).",
     "dateOfBirth": "Date of birth",
     "dobLockedHelper": "Locked after first save, used for driver-age validation.",
     "countryOfResidence": "Country of residence",
@@ -1404,7 +1405,8 @@
     "emailPlaceholder": "you@example.com",
     "confirmEmailAria": "Confirm by typing your email",
     "keepAccount": "Keep account",
-    "profileSaved": "Profile saved."
+    "profileSaved": "Profile saved.",
+    "profileSaveFailed": "Couldn't save your profile. Please try again."
   },
   "accountDocuments": {
     "documentSaved": "Document saved.",

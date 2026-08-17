@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/Card";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/FormAtoms";
 import { Input } from "@/components/ui/Input";
+import { PhoneInput } from "@/components/ui/PhoneInput";
 import { Select } from "@/components/ui/Select";
 import { Skeleton } from "@/components/ui/Skeleton";
 import {
@@ -20,6 +21,7 @@ import {
 import { toast } from "@/components/ui/Toast";
 import { useSession } from "@/hooks/useSession";
 import { Link } from "@/i18n/navigation";
+import { isValidPhoneNational, phoneValueFromStored, toE164 } from "@/lib/booking/phone";
 
 const COUNTRIES = [
   { code: "LB", name: "Lebanon" },
@@ -33,12 +35,14 @@ const COUNTRIES = [
 
 export default function ProfilePage() {
   const t = useTranslations("accountProfile");
-  const { session, ready, signOut } = useSession();
+  const { session, ready, signOut, updateProfile } = useSession();
 
   const [firstName, setFirstName] = React.useState("");
   const [lastName, setLastName] = React.useState("");
   const [email, setEmail] = React.useState("");
-  const [mobile, setMobile] = React.useState("");
+  const [phone, setPhone] = React.useState({ countryIso: "LB", national: "" });
+  const [phoneError, setPhoneError] = React.useState<string | undefined>();
+  const [dob, setDob] = React.useState("");
   const [country, setCountry] = React.useState("LB");
   const [marketing, setMarketing] = React.useState(false);
   const [whatsappOptIn, setWhatsappOptIn] = React.useState(true);
@@ -53,7 +57,8 @@ export default function ProfilePage() {
     setFirstName(session.user.firstName);
     setLastName(session.user.lastName);
     setEmail(session.user.email);
-    setMobile(session.user.phone ?? "");
+    setPhone(phoneValueFromStored(session.user.phone, session.user.country ?? "LB"));
+    setDob(session.user.dob ?? "");
     setCountry(session.user.country ?? "LB");
     setMarketing(session.user.preferences.marketing);
     setWhatsappOptIn(session.user.preferences.whatsappUpdates);
@@ -72,11 +77,29 @@ export default function ProfilePage() {
 
   const onSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Mobile is optional here, but must be a valid number if provided.
+    if (phone.national.trim() && !isValidPhoneNational(phone.countryIso, phone.national)) {
+      setPhoneError(t("mobileInvalid"));
+      return;
+    }
+    setPhoneError(undefined);
     setSaving(true);
-    // Real backend: PATCH /api/account. Phase 1: optimistic local update only.
-    await new Promise((r) => setTimeout(r, 400));
-    toast.success(t("profileSaved"));
-    setSaving(false);
+    try {
+      await updateProfile({
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        phone: phone.national.trim() ? toE164(phone.countryIso, phone.national) : "",
+        country,
+        dob: dobLocked ? undefined : dob || undefined,
+        marketing,
+        whatsappUpdates: whatsappOptIn,
+      });
+      toast.success(t("profileSaved"));
+    } catch {
+      toast.error(t("profileSaveFailed"));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const dobLocked = Boolean(session.user.dob);
@@ -119,29 +142,32 @@ export default function ProfilePage() {
               helper={session.user.emailVerified ? t("verified") : t("pendingVerification")}
             >
               {({ id }) => (
-                <Input
-                  id={id}
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
-                />
+                <Input id={id} type="email" value={email} autoComplete="email" disabled />
               )}
             </Field>
-            <Field label={t("mobile")} helper={t("mobileHelper")}>
-              {({ id }) => (
-                <Input
+            <Field label={t("mobile")} error={phoneError}>
+              {({ id, describedBy, invalid }) => (
+                <PhoneInput
                   id={id}
-                  type="tel"
-                  value={mobile}
-                  onChange={(e) => setMobile(e.target.value)}
-                  autoComplete="tel"
+                  aria-describedby={describedBy}
+                  invalid={invalid}
+                  value={phone}
+                  onValueChange={(next) => {
+                    setPhone(next);
+                    if (phoneError) setPhoneError(undefined);
+                  }}
                 />
               )}
             </Field>
             <Field label={t("dateOfBirth")} helper={dobLocked ? t("dobLockedHelper") : undefined}>
               {({ id }) => (
-                <Input id={id} type="date" defaultValue={session.user.dob} disabled={dobLocked} />
+                <Input
+                  id={id}
+                  type="date"
+                  value={dob}
+                  onChange={(e) => setDob(e.target.value)}
+                  disabled={dobLocked}
+                />
               )}
             </Field>
             <Field label={t("countryOfResidence")}>
@@ -160,7 +186,7 @@ export default function ProfilePage() {
 
         <Card variant="default" className="flex flex-col gap-4">
           <h2 className="headline-md text-ink-100">{t("preferences")}</h2>
-   
+
           <Checkbox
             checked={marketing}
             onCheckedChange={(c) => setMarketing(c === true)}

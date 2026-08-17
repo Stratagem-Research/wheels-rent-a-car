@@ -32,6 +32,15 @@ export interface SessionStore {
   }) => Promise<SignUpResult>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (password: string) => Promise<Session>;
+  updateProfile: (input: {
+    firstName: string;
+    lastName: string;
+    phone?: string;
+    country?: string;
+    dob?: string;
+    marketing?: boolean;
+    whatsappUpdates?: boolean;
+  }) => Promise<Session>;
   signOut: () => Promise<void>;
 }
 
@@ -124,6 +133,25 @@ function useSessionStore(): SessionStore {
     return next;
   }, []);
 
+  const updateProfile = React.useCallback(
+    async (input: {
+      firstName: string;
+      lastName: string;
+      phone?: string;
+      country?: string;
+      dob?: string;
+      marketing?: boolean;
+      whatsappUpdates?: boolean;
+    }) => {
+      const result = await api.patch<{ user: User }>(endpoints.accountProfile, input);
+      const next: Session = { user: result.user };
+      writeSession(next);
+      setSession(next);
+      return next;
+    },
+    [],
+  );
+
   const signOut = React.useCallback(async () => {
     try {
       await api.post(endpoints.authLogout, {});
@@ -134,5 +162,14 @@ function useSessionStore(): SessionStore {
     setSession(null);
   }, []);
 
-  return { session, ready, signIn, signUp, forgotPassword, resetPassword, signOut };
+  return {
+    session,
+    ready,
+    signIn,
+    signUp,
+    forgotPassword,
+    resetPassword,
+    updateProfile,
+    signOut,
+  };
 }

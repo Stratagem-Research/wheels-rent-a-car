@@ -1196,6 +1196,7 @@
     "pendingVerification": "بانتظار التحقق",
     "mobile": "رقم الموبايل",
     "mobileHelper": "نستخدمه لتحديثات واتساب.",
+    "mobileInvalid": "أدخلي رقمًا محمولًا صالحًا (لبنان: 8 أرقام، مثل 79 084 321).",
     "dateOfBirth": "تاريخ الولادة",
     "dobLockedHelper": "يُقفل بعد أول حفظ, ويُستخدم للتحقق من عمر السائق.",
     "countryOfResidence": "بلد الإقامة",
@@ -1221,7 +1222,8 @@
     "emailPlaceholder": "you@example.com",
     "confirmEmailAria": "أكّد عبر كتابة بريدك الإلكتروني",
     "keepAccount": "الاحتفاظ بالحساب",
-    "profileSaved": "تم حفظ الملف الشخصي."
+    "profileSaved": "تم حفظ الملف الشخصي.",
+    "profileSaveFailed": "تعذّر حفظ ملفك الشخصي. حاول مرة أخرى."
   },
   "accountDocuments": {
     "documentSaved": "تم حفظ المستند.",
