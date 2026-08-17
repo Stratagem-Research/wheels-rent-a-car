@@ -20,7 +20,7 @@ import { useSession } from "@/hooks/useSession";
 import { whatsAppHref } from "@/lib/whatsapp";
 import { api, ApiError } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
-import { getDialCode, isValidPhoneNational, phoneValueFromStored } from "@/lib/booking/phone";
+import { isValidPhoneNational, phoneValueFromStored, toE164 } from "@/lib/booking/phone";
 import { computePrice, formatUsd } from "@/lib/booking/pricing";
 import { draftToSearchParams } from "@/lib/booking/draft-to-search-params";
 import { track } from "@/lib/analytics/dataLayer";
@@ -268,7 +268,7 @@ export default function CheckoutPage() {
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),
         email: form.email.trim().toLowerCase(),
-        phone: `+${getDialCode(form.phone.countryIso)}${form.phone.national.replace(/\D/g, "")}`,
+        phone: toE164(form.phone.countryIso, form.phone.national),
 
         dob: form.dob,
         licenceNumber: form.licenceNumber.trim(),
