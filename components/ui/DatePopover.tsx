@@ -2,6 +2,8 @@
 
 import * as React from "react";
 import * as Popover from "@radix-ui/react-popover";
+import * as Dialog from "@radix-ui/react-dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { DayPicker } from "react-day-picker";
 import { addMonths, format, isAfter, isBefore } from "date-fns";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
@@ -13,12 +15,10 @@ import "react-day-picker/dist/style.css";
 /*
  * Date popover — Sixt-aesthetic rewrite (Phase 2 of redesign).
  *
- * - Range mode: 3 months side-by-side; ranges select first-click start,
- *   second-click end. Selected = black filled, in-range = ink-10.
- * - Single mode: 1 month, still used for the checkout DOB field and
- *   long-form date inputs.
- * - Today: 1px black ring (matches Sixt).
- * - Past dates: muted grey, disabled.
+ * - Range mode: both pickup and return dates are picked from one calendar —
+ *   first click sets the start, second click sets the end. 2 months
+ *   side-by-side on desktop, 1 month on mobile (viewport <= 640px).
+ *   Selected = black filled, in-range = ink-10.
  */
 
 export interface DatePopoverProps {
@@ -45,15 +45,20 @@ export interface DatePopoverProps {
   /** Controlled open state (used by the new SearchBar to chain time-after-date). */
   open?: boolean;
   onOpenChange?: (next: boolean) => void;
-  /**
-   * Which end of the range this trigger edits, when a complete range
-   * already exists and the user clicks a new date. "start" (default)
-   * restarts a fresh two-click pick from that date — used by the pickup
-   * field. "end" instead keeps `from` anchored and only moves `to` — used
-   * by the return field, so clicking a new return date doesn't silently
-   * overwrite the pickup date.
-   */
-  anchor?: "start" | "end";
+}
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const mql = window.matchMedia("(max-width: 640px)");
+    const update = () => setIsMobile(mql.matches);
+    update();
+    mql.addEventListener("change", update);
+    return () => mql.removeEventListener("change", update);
+  }, []);
+
+  return isMobile;
 }
 
 function defaultMin() {
@@ -86,11 +91,11 @@ export function DatePopover({
   renderTrigger,
   open,
   onOpenChange,
-  anchor = "start",
   ...aria
 }: DatePopoverProps) {
   const t = useTranslations("searchUi");
-  const monthCount = numberOfMonths ?? (mode === "range" ? 3 : 1);
+  const isMobile = useIsMobile();
+  const monthCount = numberOfMonths ?? (mode === "single" ? 1 : isMobile ? 1 : 2);
   const ph = placeholder ?? t("dateSelect");
 
   const display =
@@ -106,68 +111,107 @@ export function DatePopover({
 
   const isPlaceholder = (mode === "single" && !value) || (mode === "range" && !rangeValue?.from);
 
-  return (
-    <Popover.Root open={open} onOpenChange={onOpenChange}>
-      <Popover.Trigger asChild>
-        {renderTrigger ? (
-          (renderTrigger(display, isPlaceholder) as React.ReactElement)
-        ) : (
-          <button
-            id={id}
-            type="button"
-            disabled={disabled}
-            data-invalid={invalid || undefined}
-            aria-describedby={aria["aria-describedby"]}
+  const triggerButton = renderTrigger ? (
+    (renderTrigger(display, isPlaceholder) as React.ReactElement)
+  ) : (
+    <button
+      id={id}
+      type="button"
+      disabled={disabled}
+      data-invalid={invalid || undefined}
+      aria-describedby={aria["aria-describedby"]}
+      className={cn(
+        "bg-surface flex h-13 w-full items-center gap-3 rounded-md px-4 text-left",
+        "border transition-colors duration-150 ease-out",
+        "focus-visible:outline-ink-100 focus-visible:outline-2 focus-visible:outline-offset-0",
+        "focus-visible:shadow-[0_0_0_4px_var(--color-signal-blue-bg)]",
+        invalid
+          ? "border-error border-[1.5px]"
+          : "border-border hover:border-border-strong border",
+        disabled && "bg-ink-10 cursor-not-allowed",
+        className,
+      )}
+    >
+      <Calendar aria-hidden="true" className="text-ink-60 size-4 shrink-0" />
+      <span className={cn("body-md flex-1", isPlaceholder ? "text-ink-50" : "text-ink-95")}>
+        {display}
+      </span>
+    </button>
+  );
+
+  const calendarBody =
+    mode === "single" ? (
+      <DayPicker
+        mode="single"
+        selected={value}
+        onSelect={onValueChange}
+        disabled={(d) => isBefore(d, min) || isAfter(d, max)}
+        numberOfMonths={monthCount}
+        showOutsideDays={false}
+        classNames={dayPickerClasses}
+        components={dayPickerComponents}
+      />
+    ) : (
+      <RangeView
+        rangeValue={rangeValue}
+        onRangeChange={onRangeChange}
+        min={min}
+        max={max}
+        monthCount={monthCount}
+      />
+    );
+
+  // Mobile: a Popover anchored/flipped relative to the trigger can still
+  // clip against the (address-bar-shrunk) viewport when the trigger sits
+  // high on the page. Use a bottom sheet instead — same pattern as the
+  // rest of the app (components/ui/Sheet.tsx) — since its `fixed`
+  // positioning is applied directly, not nested inside a transformed
+  // floating-ui wrapper the way Popover.Content is.
+  if (isMobile) {
+    return (
+      <Dialog.Root open={open} onOpenChange={onOpenChange}>
+        <Dialog.Trigger asChild>{triggerButton}</Dialog.Trigger>
+        <Dialog.Portal>
+          <Dialog.Overlay
             className={cn(
-              "bg-surface flex h-13 w-full items-center gap-3 rounded-md px-4 text-left",
-              "border transition-colors duration-150 ease-out",
-              "focus-visible:outline-ink-100 focus-visible:outline-2 focus-visible:outline-offset-0",
-              "focus-visible:shadow-[0_0_0_4px_var(--color-signal-blue-bg)]",
-              invalid
-                ? "border-error border-[1.5px]"
-                : "border-border hover:border-border-strong border",
-              disabled && "bg-ink-10 cursor-not-allowed",
+              "fixed inset-0 z-50 bg-[rgba(0,0,0,0.72)]",
+              "transition-opacity duration-300 ease-out",
+              "data-[state=closed]:opacity-0 data-[state=open]:opacity-100",
+            )}
+          />
+          <Dialog.Content
+            className={cn(
+              "bg-surface fixed inset-x-0 bottom-0 z-50 max-h-[85dvh] w-full overflow-y-auto rounded-t-3xl p-4",
+              "transition-transform duration-300 ease-out focus:outline-none",
+              "data-[state=closed]:translate-y-full data-[state=open]:translate-y-0",
               className,
             )}
           >
-            <Calendar aria-hidden="true" className="text-ink-60 size-4 shrink-0" />
-            <span className={cn("body-md flex-1", isPlaceholder ? "text-ink-50" : "text-ink-95")}>
-              {display}
-            </span>
-          </button>
-        )}
-      </Popover.Trigger>
+            <Dialog.Title asChild>
+              <VisuallyHidden>{ph}</VisuallyHidden>
+            </Dialog.Title>
+            <div aria-hidden="true" className="bg-ink-20 mx-auto mb-4 h-1 w-12 rounded-full" />
+            {calendarBody}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+    );
+  }
+
+  return (
+    <Popover.Root open={open} onOpenChange={onOpenChange}>
+      <Popover.Trigger asChild>{triggerButton}</Popover.Trigger>
       <Popover.Portal>
         <Popover.Content
           align="start"
           sideOffset={8}
+          collisionPadding={16}
           className={cn(
-            "bg-surface border-ink-20 z-50 rounded-xl border p-4",
-            // The 3-month range view needs horizontal scrolling at smaller widths.
+            "bg-surface border-ink-20 z-50 max-h-[85vh] overflow-y-auto rounded-xl border p-4",
             mode === "range" && "max-w-[calc(100vw-2rem)] overflow-x-auto",
           )}
         >
-          {mode === "single" ? (
-            <DayPicker
-              mode="single"
-              selected={value}
-              onSelect={onValueChange}
-              disabled={(d) => isBefore(d, min) || isAfter(d, max)}
-              numberOfMonths={monthCount}
-              showOutsideDays={false}
-              classNames={dayPickerClasses}
-              components={dayPickerComponents}
-            />
-          ) : (
-            <RangeView
-              rangeValue={rangeValue}
-              onRangeChange={onRangeChange}
-              min={min}
-              max={max}
-              monthCount={monthCount}
-              anchor={anchor}
-            />
-          )}
+          {calendarBody}
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>
@@ -176,20 +220,20 @@ export function DatePopover({
 
 /**
  * Range view — own component so it can hold the controlled "current month"
- * state that drives the custom top-right nav arrows.
+ * state that drives the custom top-right nav arrows, plus the click-sequence
+ * state described below.
  *
- * Click behavior override: when the popover opens with a complete range
- * (from + to both set) and the user clicks a new date, react-day-picker's
- * default range-mode behavior is to complete/replace the existing range —
- * which our flow interpreted as "both dates picked, close calendar and
- * auto-open the time picker". That was wrong UX: the user expected the
- * click to set the NEW pickup date and keep the calendar open for them
- * to pick the return.
- *
- * We use react-day-picker's `onSelect(selected, triggerDate)` signature to
- * intercept: if a complete range existed before this click, we reset to
- * `{ from: triggerDate, to: undefined }` instead. The user's NEXT click
- * then sets `to`, and only then does SearchBar close + advance to time.
+ * So the two-click sequence is tracked with its own local state,
+ * `localRange`, independent of the parent's props:
+ * - `null` → nothing local yet; show the parent's last committed pair as-is.
+ * - `{ from, to: undefined }` → first click anchored here, second click
+ *   still pending. Shown instead of the parent's (possibly stale) pair.
+ * - `{}` (both undefined) → the user hit Reset; show nothing selected and
+ *   wait for a fresh first click.
+ * The second click always completes the range, sorted so the earlier of
+ * the two dates becomes `from` (pickup) and the later becomes `to` (return)
+ * regardless of click order, then commits the pair up via `onRangeChange`
+ * and clears back to `null`.
  */
 function RangeView({
   rangeValue,
@@ -197,44 +241,44 @@ function RangeView({
   min,
   max,
   monthCount,
-  anchor = "start",
 }: {
   rangeValue?: { from?: Date; to?: Date };
   onRangeChange?: (next: { from?: Date; to?: Date }) => void;
   min: Date;
   max: Date;
   monthCount: number;
-  anchor?: "start" | "end";
 }) {
   // Controlled month state — drives our custom top-right nav.
   const [currentMonth, setCurrentMonth] = React.useState<Date>(
     () => rangeValue?.from ?? new Date(),
   );
+  const [localRange, setLocalRange] = React.useState<{ from?: Date; to?: Date } | null>(null);
+
+  // What the calendar actually shows: any local override (in-progress pick
+  // or a Reset-cleared blank) always wins over the parent's committed pair.
+  const displayed = localRange ?? rangeValue;
 
   const handleSelect = (_selected: { from?: Date; to?: Date } | undefined, triggerDate: Date) => {
-    const hadCompleteRange = !!(rangeValue?.from && rangeValue?.to);
-    if (hadCompleteRange && triggerDate) {
-      // Editing the return field: keep the pickup date anchored and only
-      // move the return date, as long as the new date is still after it.
-      if (anchor === "end" && rangeValue?.from && isAfter(triggerDate, rangeValue.from)) {
-        onRangeChange?.({ from: rangeValue.from, to: triggerDate });
-        return;
-      }
-      // Pickup field (or an "end" click that can't be a valid return date,
-      // e.g. on/before the current pickup) — start a NEW range from here.
-      // Keep the calendar open for the second click.
-      onRangeChange?.({ from: triggerDate, to: undefined });
+    if (!triggerDate) return;
+    if (localRange?.from && !localRange.to) {
+      // Second click completes the range.
+      const [from, to] = isBefore(triggerDate, localRange.from)
+        ? [triggerDate, localRange.from]
+        : [localRange.from, triggerDate];
+      setLocalRange(null);
+      onRangeChange?.({ from, to });
       return;
     }
-    onRangeChange?.({ from: _selected?.from, to: _selected?.to });
+    // First click of a fresh pick (nothing local yet, or a Reset-cleared blank).
+    setLocalRange({ from: triggerDate, to: undefined });
   };
 
   return (
     <>
       <RangeHeader
-        from={rangeValue?.from}
-        to={rangeValue?.to}
-        onReset={() => onRangeChange?.({ from: undefined, to: undefined })}
+        from={displayed?.from}
+        to={displayed?.to}
+        onReset={() => setLocalRange({})}
         onPrevMonth={() => setCurrentMonth((d) => addMonths(d, -1))}
         onNextMonth={() => setCurrentMonth((d) => addMonths(d, 1))}
       />
@@ -243,7 +287,7 @@ function RangeView({
         month={currentMonth}
         onMonthChange={setCurrentMonth}
         hideNavigation
-        selected={rangeValue?.from ? { from: rangeValue.from, to: rangeValue.to } : undefined}
+        selected={displayed?.from ? { from: displayed.from, to: displayed.to } : undefined}
         onSelect={handleSelect}
         disabled={(d) => isBefore(d, min) || isAfter(d, max)}
         numberOfMonths={monthCount}
@@ -346,9 +390,9 @@ const dayPickerClasses = {
     "inline-flex size-8 items-center justify-center rounded-md text-ink-60 hover:bg-ink-10 hover:text-ink-95 focus-visible:outline-2 focus-visible:outline-ink-100",
   month_grid: "w-full border-collapse",
   weekdays: "flex",
-  weekday: "w-9 label-sm text-ink-50 font-normal py-1",
+  weekday: "flex-1 text-center label-sm text-ink-50 font-normal py-1",
   week: "flex w-full mt-1",
-  day: "size-9 text-center p-0 relative",
+  day: "flex-1 flex items-center justify-center p-0 relative",
   day_button:
     "inline-flex size-9 items-center justify-center rounded-full body-sm text-ink-95 hover:bg-ink-10 focus-visible:outline-2 focus-visible:outline-ink-100",
   selected: "[&_button]:bg-ink-95 [&_button]:text-paper [&_button]:hover:bg-ink-90",

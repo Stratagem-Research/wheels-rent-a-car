@@ -1055,6 +1055,7 @@
     "differentReturnLocation": "Lieu de retour différent",
     "sameAsPickup": "Identique au départ",
     "returnLocation": "Lieu de retour",
+    "dates": "Dates de départ et de retour",
     "pickupDate": "Date de départ",
     "pickupTime": "Heure de départ",
     "returnDate": "Date de retour",

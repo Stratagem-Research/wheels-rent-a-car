@@ -191,9 +191,18 @@
     "howEyebrow": "From quote to keys",
     "howHeading": "How it works.",
     "howSteps": [
-      { "title": "Tell us what you need", "body": "Fill the enquiry form. Takes 30 seconds." },
-      { "title": "We send you a tailored quote", "body": "Within 24 hours. Vehicles, included km, terms." },
-      { "title": "We deliver the car to you", "body": "Free delivery anywhere in Greater Beirut." }
+      {
+        "title": "Tell us what you need",
+        "body": "Fill the enquiry form. Takes 30 seconds."
+      },
+      {
+        "title": "We send you a tailored quote",
+        "body": "Within 24 hours. Vehicles, included km, terms."
+      },
+      {
+        "title": "We deliver the car to you",
+        "body": "Free delivery anywhere in Greater Beirut."
+      }
     ],
     "whatEyebrow": "What you get",
     "whatHeading": "Everything included.",
@@ -212,12 +221,30 @@
     "faqEyebrow": "FAQ",
     "faqHeading": "Common questions.",
     "faqs": [
-      { "q": "What's the minimum commitment?", "a": "One month is the minimum. Below that, our daily / weekly rentals are a better fit." },
-      { "q": "Can I cancel early?", "a": "Yes. Early termination incurs the difference between the tier rate you chose and the next-shorter tier rate, calculated against the days you actually drove." },
-      { "q": "What happens to maintenance?", "a": "Wheels handles all servicing. Drop the car off; we hand you a replacement; you pick it back up." },
-      { "q": "Can I swap to a different car?", "a": "Yes, once per quarter for free on tiers ≥ 3 months. Same category swaps are easy; category upgrades adjust the daily rate." },
-      { "q": "Is the deposit different for long-term?", "a": "Same deposit by category as a day rental. It's released after the final return." },
-      { "q": "How is monthly billing handled?", "a": "First month at start; subsequent months on the same date by card or transfer. A single statement at the end of each calendar month." }
+      {
+        "q": "What's the minimum commitment?",
+        "a": "One month is the minimum. Below that, our daily / weekly rentals are a better fit."
+      },
+      {
+        "q": "Can I cancel early?",
+        "a": "Yes. Early termination incurs the difference between the tier rate you chose and the next-shorter tier rate, calculated against the days you actually drove."
+      },
+      {
+        "q": "What happens to maintenance?",
+        "a": "Wheels handles all servicing. Drop the car off; we hand you a replacement; you pick it back up."
+      },
+      {
+        "q": "Can I swap to a different car?",
+        "a": "Yes, once per quarter for free on tiers ≥ 3 months. Same category swaps are easy; category upgrades adjust the daily rate."
+      },
+      {
+        "q": "Is the deposit different for long-term?",
+        "a": "Same deposit by category as a day rental. It's released after the final return."
+      },
+      {
+        "q": "How is monthly billing handled?",
+        "a": "First month at start; subsequent months on the same date by card or transfer. A single statement at the end of each calendar month."
+      }
     ],
     "formHeading": "Get a quote",
     "formSubtitle": "We'll come back to you within 24 hours.",
@@ -263,24 +290,54 @@
     "categoriesHeading": "Three ways to ride.",
     "categoriesSubtitle": "Pick the format that matches your trip. We'll handle the rest.",
     "categories": [
-      { "title": "Airport transfer", "body": "Beirut Airport ↔ hotel, day or night. Driver waits up to 90 minutes for delayed flights, no extra charge.", "from": "from $45" },
-      { "title": "Day trip", "body": "Cedars, Baalbek, Byblos, Tyre, full-day itineraries with admissions and lunch stops sorted.", "from": "from $180" },
-      { "title": "By the hour", "body": "Minimum 4 hours. Sedan, SUV, or van. Perfect for meetings, weddings, or city exploration.", "from": "from $35 / hour" }
+      {
+        "title": "Airport transfer",
+        "body": "Beirut Airport ↔ hotel, day or night. Driver waits up to 90 minutes for delayed flights, no extra charge.",
+        "from": "from $45"
+      },
+      {
+        "title": "Day trip",
+        "body": "Cedars, Baalbek, Byblos, Tyre, full-day itineraries with admissions and lunch stops sorted.",
+        "from": "from $180"
+      },
+      {
+        "title": "By the hour",
+        "body": "Minimum 4 hours. Sedan, SUV, or van. Perfect for meetings, weddings, or city exploration.",
+        "from": "from $35 / hour"
+      }
     ],
     "vehiclesEyebrow": "The fleet",
     "vehiclesHeading": "Vehicle classes.",
     "vehiclesSubtitle": "All vehicles under 3 years old. Detailed before every trip.",
     "vehicleClasses": [
-      { "title": "Sedan", "body": "Mercedes E-Class or similar, 2 to 3 passengers, executive comfort." },
-      { "title": "SUV", "body": "Mercedes GLE or similar, 4 to 5 passengers, generous boot." },
-      { "title": "Van", "body": "Mercedes V-Class or similar, up to 7 passengers, family-ready." }
+      {
+        "title": "Sedan",
+        "body": "Mercedes E-Class or similar, 2 to 3 passengers, executive comfort."
+      },
+      {
+        "title": "SUV",
+        "body": "Mercedes GLE or similar, 4 to 5 passengers, generous boot."
+      },
+      {
+        "title": "Van",
+        "body": "Mercedes V-Class or similar, up to 7 passengers, family-ready."
+      }
     ],
     "howEyebrow": "Booking flow",
     "howHeading": "How it works.",
     "howSteps": [
-      { "title": "Tell us the trip", "body": "Pickup, drop-off, and date. 30 seconds." },
-      { "title": "We assign a driver", "body": "Within 24 hours we send the driver bio + final quote." },
-      { "title": "Sit back", "body": "Driver picks you up at the agreed time. Pay in cash or by card." }
+      {
+        "title": "Tell us the trip",
+        "body": "Pickup, drop-off, and date. 30 seconds."
+      },
+      {
+        "title": "We assign a driver",
+        "body": "Within 24 hours we send the driver bio + final quote."
+      },
+      {
+        "title": "Sit back",
+        "body": "Driver picks you up at the agreed time. Pay in cash or by card."
+      }
     ],
     "itinerariesEyebrow": "Most-requested",
     "itinerariesHeading": "Sample itineraries.",
@@ -289,18 +346,42 @@
     "driversEyebrow": "The team",
     "driversHeading": "About our drivers.",
     "trust": [
-      { "title": "Hand-picked", "body": "Every driver is vetted, licensed, and trained in customer service." },
-      { "title": "Background checked", "body": "Police certificate and driving record verified annually." },
-      { "title": "Local expertise", "body": "They know every Beirut shortcut and the best lunch on every itinerary." }
+      {
+        "title": "Hand-picked",
+        "body": "Every driver is vetted, licensed, and trained in customer service."
+      },
+      {
+        "title": "Background checked",
+        "body": "Police certificate and driving record verified annually."
+      },
+      {
+        "title": "Local expertise",
+        "body": "They know every Beirut shortcut and the best lunch on every itinerary."
+      }
     ],
     "faqEyebrow": "FAQ",
     "faqHeading": "Common questions.",
     "faqs": [
-      { "q": "Can I book same-day?", "a": "Subject to availability. Message us on WhatsApp for same-day requests and we'll confirm within 15 minutes." },
-      { "q": "Is the tip included?", "a": "No, gratuity is at your discretion. The driver appreciates the courtesy but does not expect it." },
-      { "q": "Do drivers speak English?", "a": "Yes. Arabic and French are widely available too, note your preference in the booking." },
-      { "q": "What if my flight is delayed?", "a": "Airport drivers wait up to 90 minutes past your scheduled landing at no extra charge. We track the flight live." },
-      { "q": "How much luggage fits?", "a": "Sedan: 2 large + 2 cabin. SUV: 4 large + 4 cabin. Van: 7 large + handhelds. Tell us if you're carrying extras." }
+      {
+        "q": "Can I book same-day?",
+        "a": "Subject to availability. Message us on WhatsApp for same-day requests and we'll confirm within 15 minutes."
+      },
+      {
+        "q": "Is the tip included?",
+        "a": "No, gratuity is at your discretion. The driver appreciates the courtesy but does not expect it."
+      },
+      {
+        "q": "Do drivers speak English?",
+        "a": "Yes. Arabic and French are widely available too, note your preference in the booking."
+      },
+      {
+        "q": "What if my flight is delayed?",
+        "a": "Airport drivers wait up to 90 minutes past your scheduled landing at no extra charge. We track the flight live."
+      },
+      {
+        "q": "How much luggage fits?",
+        "a": "Sedan: 2 large + 2 cabin. SUV: 4 large + 4 cabin. Van: 7 large + handhelds. Tell us if you're carrying extras."
+      }
     ],
     "formHeading": "Request a driver",
     "formSubtitle": "Share the basics, we'll reply within one business day with a quote and driver assignment.",
@@ -323,10 +404,22 @@
     "valuePropsHeading": "The fleet, on terms that suit you.",
     "valuePropsSubtitle": "Built for teams that need cars regularly, with the predictability of a corporate agreement.",
     "valueProps": [
-      { "title": "Dedicated fleet", "body": "Reserved cars sized to your monthly demand. No more last-minute scrambles." },
-      { "title": "Single monthly invoice", "body": "VAT-ready statements consolidated by employee, project, or cost centre." },
-      { "title": "Account manager", "body": "One named contact on WhatsApp + email. Same person every time you book." },
-      { "title": "Maintenance handled", "body": "Service, swaps, and replacement vehicles included. Zero downtime for your team." }
+      {
+        "title": "Dedicated fleet",
+        "body": "Reserved cars sized to your monthly demand. No more last-minute scrambles."
+      },
+      {
+        "title": "Single monthly invoice",
+        "body": "VAT-ready statements consolidated by employee, project, or cost centre."
+      },
+      {
+        "title": "Account manager",
+        "body": "One named contact on WhatsApp + email. Same person every time you book."
+      },
+      {
+        "title": "Maintenance handled",
+        "body": "Service, swaps, and replacement vehicles included. Zero downtime for your team."
+      }
     ],
     "tiersEyebrow": "Tiers",
     "tiersHeading": "Three sizes. One way to drive.",
@@ -334,9 +427,18 @@
     "howEyebrow": "Getting started",
     "howHeading": "How it works.",
     "howSteps": [
-      { "title": "Tell us your needs", "body": "Fleet size, vehicle classes, contract length. 60 seconds." },
-      { "title": "We send a custom quote", "body": "Within one business day. Includes terms and an SLA." },
-      { "title": "Onboard & drive", "body": "Account set up in 48h. Book through portal or WhatsApp." }
+      {
+        "title": "Tell us your needs",
+        "body": "Fleet size, vehicle classes, contract length. 60 seconds."
+      },
+      {
+        "title": "We send a custom quote",
+        "body": "Within one business day. Includes terms and an SLA."
+      },
+      {
+        "title": "Onboard & drive",
+        "body": "Account set up in 48h. Book through portal or WhatsApp."
+      }
     ],
     "includedEyebrow": "What's included",
     "includedHeading": "Built around how teams actually work.",
@@ -353,12 +455,30 @@
     "faqEyebrow": "FAQ",
     "faqHeading": "Common questions.",
     "faqs": [
-      { "q": "Is there a minimum contract?", "a": "Starter requires no contract, month-to-month billing. Growth typically runs on a 6-month agreement. Enterprise terms are custom." },
-      { "q": "How does billing work?", "a": "A single monthly invoice consolidated by employee, project, or cost centre. Payment by bank transfer (Lebanese or international) or card. Net-15 by default; Net-30 for Enterprise." },
-      { "q": "Who can drive our corporate vehicles?", "a": "Any of your employees with a valid licence and our standard age requirement (25+). Driver documents stored once in your portal and re-used across bookings." },
-      { "q": "Can we change vehicle classes mid-contract?", "a": "Yes. Growth and Enterprise tiers include free swaps once per quarter; same-category swaps are immediate, class upgrades adjust the daily rate proportionally." },
-      { "q": "Do you deliver to our office?", "a": "Free delivery anywhere in Greater Beirut for Growth and Enterprise. Starter delivery is at standard zone-based rates." },
-      { "q": "Can our visiting executives use the account?", "a": "Yes. International licences in Latin script are accepted; for non-Latin licences, an International Driving Permit is required. We can pre-authorise drivers ahead of arrival." }
+      {
+        "q": "Is there a minimum contract?",
+        "a": "Starter requires no contract, month-to-month billing. Growth typically runs on a 6-month agreement. Enterprise terms are custom."
+      },
+      {
+        "q": "How does billing work?",
+        "a": "A single monthly invoice consolidated by employee, project, or cost centre. Payment by bank transfer (Lebanese or international) or card. Net-15 by default; Net-30 for Enterprise."
+      },
+      {
+        "q": "Who can drive our corporate vehicles?",
+        "a": "Any of your employees with a valid licence and our standard age requirement (25+). Driver documents stored once in your portal and re-used across bookings."
+      },
+      {
+        "q": "Can we change vehicle classes mid-contract?",
+        "a": "Yes. Growth and Enterprise tiers include free swaps once per quarter; same-category swaps are immediate, class upgrades adjust the daily rate proportionally."
+      },
+      {
+        "q": "Do you deliver to our office?",
+        "a": "Free delivery anywhere in Greater Beirut for Growth and Enterprise. Starter delivery is at standard zone-based rates."
+      },
+      {
+        "q": "Can our visiting executives use the account?",
+        "a": "Yes. International licences in Latin script are accepted; for non-Latin licences, an International Driving Permit is required. We can pre-authorise drivers ahead of arrival."
+      }
     ],
     "formHeading": "Talk to corporate sales",
     "formSubtitle": "Share a few details, we'll reply within one business day with a tailored quote and account-manager intro.",
@@ -385,25 +505,58 @@
     "howEyebrow": "Booking flow",
     "howHeading": "How it works.",
     "howSteps": [
-      { "title": "Choose a package", "body": "Pick the wash or detail level that fits your car." },
-      { "title": "Pick a date", "body": "Tell us when you'd like to drop off or arrive." },
-      { "title": "We confirm", "body": "Our team confirms timing and final price on WhatsApp or phone." }
+      {
+        "title": "Choose a package",
+        "body": "Pick the wash or detail level that fits your car."
+      },
+      {
+        "title": "Pick a date",
+        "body": "Tell us when you'd like to drop off or arrive."
+      },
+      {
+        "title": "We confirm",
+        "body": "Our team confirms timing and final price on WhatsApp or phone."
+      }
     ],
     "trustEyebrow": "Our team",
     "trustHeading": "30+ years of vehicle care.",
     "trust": [
-      { "title": "Hand-finished", "body": "Every vehicle is prepared by our in-house care team before handoff." },
-      { "title": "Fleet-grade standards", "body": "The same standards we apply to our rental fleet, on your car too." },
-      { "title": "Trusted locally", "body": "Jawdat and the shop team have cared for Lebanese vehicles for decades." }
+      {
+        "title": "Hand-finished",
+        "body": "Every vehicle is prepared by our in-house care team before handoff."
+      },
+      {
+        "title": "Fleet-grade standards",
+        "body": "The same standards we apply to our rental fleet, on your car too."
+      },
+      {
+        "title": "Trusted locally",
+        "body": "Jawdat and the shop team have cared for Lebanese vehicles for decades."
+      }
     ],
     "faqEyebrow": "FAQ",
     "faqHeading": "Common questions.",
     "faqs": [
-      { "q": "Do I need to book ahead?", "a": "Yes, submit the form or message us on WhatsApp so we can reserve a bay and confirm timing." },
-      { "q": "Can I wait while my car is washed?", "a": "Normal and special washes are same-day. Deep interior cleaning requires the car to stay up to 36 hours." },
-      { "q": "What payment do you accept?", "a": "USD and LBP at the shop. The price shown is indicative. We'll confirm on booking." },
-      { "q": "Where is the shop?", "a": "At our Wheels Hazmieh hub, Gallery Semaan, opposite Sea Sweet." },
-      { "q": "Do you wash rental fleet cars only?", "a": "No, we welcome private vehicles and walk-in customers too." }
+      {
+        "q": "Do I need to book ahead?",
+        "a": "Yes, submit the form or message us on WhatsApp so we can reserve a bay and confirm timing."
+      },
+      {
+        "q": "Can I wait while my car is washed?",
+        "a": "Normal and special washes are same-day. Deep interior cleaning requires the car to stay up to 36 hours."
+      },
+      {
+        "q": "What payment do you accept?",
+        "a": "USD and LBP at the shop. The price shown is indicative. We'll confirm on booking."
+      },
+      {
+        "q": "Where is the shop?",
+        "a": "At our Wheels Hazmieh hub, Gallery Semaan, opposite Sea Sweet."
+      },
+      {
+        "q": "Do you wash rental fleet cars only?",
+        "a": "No, we welcome private vehicles and walk-in customers too."
+      }
     ],
     "deepCleanWarning": "This service requires your vehicle to stay at the shop for up to {hours} hours so interiors can dry properly.",
     "formHeading": "Request a wash",
@@ -443,11 +596,28 @@
     "browseCars": "Browse cars",
     "fleetHeading": "Cars usually at our branch",
     "faqHeading": "Common questions",
-    "days": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "days": [
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat"
+    ],
     "faqs": [
-      { "q": "Can I pick up after hours?", "a": "We're open Monday–Saturday 08:00–20:00 and Sunday 10:00–16:00. For pickups outside those hours, message us on WhatsApp and we'll arrange." },
-      { "q": "Can you deliver the car to my hotel or the airport?", "a": "Yes, we can drop off and collect anywhere in Greater Beirut. WhatsApp us to arrange and we'll confirm any small distance fee before pickup." },
-      { "q": "Where do I park to pick up?", "a": "There's short-term parking right outside Gallery Semaan. Look for the Wheels signage and our agent will help." }
+      {
+        "q": "Can I pick up after hours?",
+        "a": "We're open Monday–Saturday 08:00–20:00 and Sunday 10:00–16:00. For pickups outside those hours, message us on WhatsApp and we'll arrange."
+      },
+      {
+        "q": "Can you deliver the car to my hotel or the airport?",
+        "a": "Yes, we can drop off and collect anywhere in Greater Beirut. WhatsApp us to arrange and we'll confirm any small distance fee before pickup."
+      },
+      {
+        "q": "Where do I park to pick up?",
+        "a": "There's short-term parking right outside Gallery Semaan. Look for the Wheels signage and our agent will help."
+      }
     ]
   },
   "manageBooking": {
@@ -556,8 +726,8 @@
     "dateReset": "Reset",
     "datePrevMonth": "Previous month",
     "dateNextMonth": "Next month",
-    "dateHeadingPickup": "Pick your pickup date",
-    "dateHeadingReturn": "Now pick your return date",
+    "dateHeadingPickup": "Pick pickup date",
+    "dateHeadingReturn": "Now pick return date",
     "dateHeadingSet": "Dates set",
     "dateStep1": "Step 1 of 2",
     "datePickupMeta": "Pickup: {date}",
@@ -623,7 +793,11 @@
     "moreRoutesEyebrow": "More routes",
     "otherItineraries": "Other itineraries.",
     "seeAll": "See all",
-    "vehicleClassLabels": { "sedan": "Sedan", "suv": "SUV", "van": "Van" },
+    "vehicleClassLabels": {
+      "sedan": "Sedan",
+      "suv": "SUV",
+      "van": "Van"
+    },
     "vehicleClassBlurbs": {
       "sedan": "Mercedes E-Class or similar, executive comfort for 2-3 passengers.",
       "suv": "Mercedes GLE or similar, 4-5 passengers with a generous boot.",
@@ -731,9 +905,18 @@
       "selected": "Selected",
       "faqHeading": "Common questions",
       "faqs": [
-        { "q": "What does the deductible cover?", "a": "It's the most you'd pay out of pocket for damages. Basic protection has an $800 deductible; Smart drops it to $250; All-inclusive sets it to zero." },
-        { "q": "Can I change this at the counter?", "a": "Yes. You can upgrade your protection when you pick up the car, but you can't downgrade once the rental has started." },
-        { "q": "Are tyre and windscreen damage covered?", "a": "From the Smart tier and up. Basic doesn't include tyre or windscreen cover, so you'd pay for those repairs yourself." }
+        {
+          "q": "What does the deductible cover?",
+          "a": "It's the most you'd pay out of pocket for damages. Basic protection has an $800 deductible; Smart drops it to $250; All-inclusive sets it to zero."
+        },
+        {
+          "q": "Can I change this at the counter?",
+          "a": "Yes. You can upgrade your protection when you pick up the car, but you can't downgrade once the rental has started."
+        },
+        {
+          "q": "Are tyre and windscreen damage covered?",
+          "a": "From the Smart tier and up. Basic doesn't include tyre or windscreen cover, so you'd pay for those repairs yourself."
+        }
       ],
       "readTerms": "Read full insurance terms"
     },
@@ -1055,6 +1238,7 @@
     "differentReturnLocation": "Different return location",
     "sameAsPickup": "Same as pickup",
     "returnLocation": "Return location",
+    "dates": "Pickup & return dates",
     "pickupDate": "Pickup date",
     "pickupTime": "Pickup time",
     "returnDate": "Return date",

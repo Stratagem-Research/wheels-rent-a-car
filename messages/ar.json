@@ -1055,6 +1055,7 @@
     "differentReturnLocation": "مكان تسليم مختلف",
     "sameAsPickup": "نفس مكان الاستلام",
     "returnLocation": "مكان التسليم",
+    "dates": "تواريخ الاستلام والتسليم",
     "pickupDate": "تاريخ الاستلام",
     "pickupTime": "وقت الاستلام",
     "returnDate": "تاريخ التسليم",

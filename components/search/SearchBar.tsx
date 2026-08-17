@@ -187,10 +187,9 @@ function ExpandedLayout({
   t,
   framed = true,
 }: SharedProps) {
-  // Chain pickup-date → pickup-time so picking both dates closes the calendar
+  // Chain dates → pickup-time so picking both dates closes the calendar
   // and opens the time picker — smooth one-after-the-other flow.
-  const [pickupDateOpen, setPickupDateOpen] = React.useState(false);
-  const [returnDateOpen, setReturnDateOpen] = React.useState(false);
+  const [datesOpen, setDatesOpen] = React.useState(false);
   const [pickupTimeOpen, setPickupTimeOpen] = React.useState(false);
   const [returnTimeOpen, setReturnTimeOpen] = React.useState(false);
 
@@ -283,13 +282,13 @@ function ExpandedLayout({
           </Field>
         ) : null}
 
-        {/* Row 2 — date range + time pair. */}
+        {/* Row 2 — one date field (picks both pickup + return) + time pair. */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Field label={t("pickupDate")}>
+          <Field label={t("dates")} className="col-span-2">
             <DatePopover
               mode="range"
-              open={pickupDateOpen}
-              onOpenChange={setPickupDateOpen}
+              open={datesOpen}
+              onOpenChange={setDatesOpen}
               rangeValue={{
                 from: parseISO(criteria.pickupDate),
                 to: parseISO(criteria.returnDate),
@@ -301,15 +300,16 @@ function ExpandedLayout({
                   returnDate: r.to ? format(r.to, "yyyy-MM-dd") : p.returnDate,
                 }));
                 if (r.from && r.to) {
-                  // Smooth hand-off: close the calendar, open the time picker.
-                  setPickupDateOpen(false);
+                  // Both dates picked from the same calendar — close it and
+                  // hand off to the pickup-time picker.
+                  setDatesOpen(false);
                   setPickupTimeOpen(true);
                 }
               }}
               renderTrigger={(_display, _isPlaceholder) => (
                 <FieldTrigger
                   icon={<Calendar className="text-ink-60 size-4 shrink-0" aria-hidden="true" />}
-                  value={formatDateShortByLocale(criteria.pickupDate, locale)}
+                  value={`${formatDateShortByLocale(criteria.pickupDate, locale)} – ${formatDateShortByLocale(criteria.returnDate, locale)}`}
                   placeholder={false}
                 />
               )}
@@ -328,37 +328,6 @@ function ExpandedLayout({
                   icon={<Clock className="text-ink-60 size-4 shrink-0" aria-hidden="true" />}
                   value={display}
                   placeholder={isPlaceholder}
-                />
-              )}
-            />
-          </Field>
-
-          <Field label={t("returnDate")}>
-            <DatePopover
-              mode="range"
-              anchor="end"
-              open={returnDateOpen}
-              onOpenChange={setReturnDateOpen}
-              rangeValue={{
-                from: parseISO(criteria.pickupDate),
-                to: parseISO(criteria.returnDate),
-              }}
-              onRangeChange={(r) => {
-                setCriteria((p) => ({
-                  ...p,
-                  pickupDate: r.from ? format(r.from, "yyyy-MM-dd") : p.pickupDate,
-                  returnDate: r.to ? format(r.to, "yyyy-MM-dd") : p.returnDate,
-                }));
-                if (r.from && r.to) {
-                  setReturnDateOpen(false);
-                  setReturnTimeOpen(true);
-                }
-              }}
-              renderTrigger={(_display, _isPlaceholder) => (
-                <FieldTrigger
-                  icon={<Calendar className="text-ink-60 size-4 shrink-0" aria-hidden="true" />}
-                  value={formatDateShortByLocale(criteria.returnDate, locale)}
-                  placeholder={false}
                 />
               )}
             />
@@ -485,13 +454,15 @@ function Field({
   label,
   action,
   children,
+  className,
 }: {
   label: string;
   action?: React.ReactNode;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1.5">
+    <div className={cn("flex min-w-0 flex-col gap-1.5", className)}>
       <div className="flex items-baseline justify-between gap-2">
         <span className="field-label text-ink-60">{label}</span>
         {action}
