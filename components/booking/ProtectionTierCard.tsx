@@ -62,7 +62,7 @@ export function ProtectionTierCard({ tier, selected, onSelect }: ProtectionTierC
         ))}
       </ul>
       <Button
-        variant={selected ? "secondary" : "primary"}
+        variant={selected ? "primary" : "secondary"}
         size="md"
         fullWidth
         onClick={onSelect}

@@ -8,25 +8,16 @@ import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/FormAtoms";
 import { Input } from "@/components/ui/Input";
-import { trimInclusions, useAdminReplaceList } from "@/hooks/useAdminReplaceList";
-import { fetchAdminProtectionTiers, writeAdminProtectionTiers } from "@/lib/admin/catalog-store";
+import type { AdminReplaceListControls } from "@/hooks/useAdminReplaceList";
 import type { ProtectionTier } from "@/types/domain";
 
-export function ProtectionTiersEditor() {
-  const editor = useAdminReplaceList<ProtectionTier>({
-    fetch: fetchAdminProtectionTiers,
-    write: writeAdminProtectionTiers,
-    loadError: "Failed to load protection tiers.",
-    saveError: "Failed to save protection tiers.",
-    beforeSave: trimInclusions,
-  });
-
+export function ProtectionTiersEditor({
+  editor,
+}: {
+  editor: AdminReplaceListControls<ProtectionTier>;
+}) {
   return (
-    <AdminReplaceListEditor
-      editor={editor}
-      loadingMessage="Loading protection tiers…"
-      saveLabel="Save protection tiers"
-    >
+    <AdminReplaceListEditor editor={editor} loadingMessage="Loading protection tiers…">
       {({ items, update, remove, append }) => (
         <>
           {items.map((item, index) => (

@@ -51,7 +51,10 @@ export interface AddOnRowProps {
 export function AddOnRow({ addOn, qty, onQtyChange }: AddOnRowProps) {
   const Icon = ICON_BY_NAME[addOn.icon] ?? Sparkles;
   const active = qty > 0;
-  const priceLabel = `${formatUsd(addOn.priceCents)}${addOn.pricing === "per-day" ? "/day" : ""}`;
+  const priceLabel =
+    addOn.priceCents === 0
+      ? "Free"
+      : `${formatUsd(addOn.priceCents)}${addOn.pricing === "per-day" ? "/day" : ""}`;
 
   return (
     <div

@@ -9,27 +9,18 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/FormAtoms";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { trimInclusions, useAdminReplaceList } from "@/hooks/useAdminReplaceList";
-import { fetchAdminLongTermTiers, writeAdminLongTermTiers } from "@/lib/admin/catalog-store";
+import type { AdminReplaceListControls } from "@/hooks/useAdminReplaceList";
 import type { LongTermTier } from "@/types/domain";
 
 const DURATIONS: LongTermTier["durationMonths"][] = [1, 3, 6, 12];
 
-export function LongTermTiersEditor() {
-  const editor = useAdminReplaceList<LongTermTier>({
-    fetch: fetchAdminLongTermTiers,
-    write: writeAdminLongTermTiers,
-    loadError: "Failed to load long-term tiers.",
-    saveError: "Failed to save long-term tiers.",
-    beforeSave: trimInclusions,
-  });
-
+export function LongTermTiersEditor({
+  editor,
+}: {
+  editor: AdminReplaceListControls<LongTermTier>;
+}) {
   return (
-    <AdminReplaceListEditor
-      editor={editor}
-      loadingMessage="Loading long-term tiers…"
-      saveLabel="Save long-term tiers"
-    >
+    <AdminReplaceListEditor editor={editor} loadingMessage="Loading long-term tiers…">
       {({ items, update, remove, append }) => (
         <>
           {items.map((item, index) => (

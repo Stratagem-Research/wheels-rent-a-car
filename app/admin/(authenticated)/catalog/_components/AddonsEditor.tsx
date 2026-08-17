@@ -8,8 +8,7 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/FormAtoms";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { useAdminReplaceList } from "@/hooks/useAdminReplaceList";
-import { fetchAdminAddons, writeAdminAddons } from "@/lib/admin/catalog-store";
+import type { AdminReplaceListControls } from "@/hooks/useAdminReplaceList";
 import type { AddOn, AddOnCategory } from "@/types/domain";
 
 const CATEGORIES: AddOnCategory[] = [
@@ -20,20 +19,9 @@ const CATEGORIES: AddOnCategory[] = [
   "sustainability",
 ];
 
-export function AddonsEditor() {
-  const editor = useAdminReplaceList<AddOn>({
-    fetch: fetchAdminAddons,
-    write: writeAdminAddons,
-    loadError: "Failed to load add-ons.",
-    saveError: "Failed to save add-ons.",
-  });
-
+export function AddonsEditor({ editor }: { editor: AdminReplaceListControls<AddOn> }) {
   return (
-    <AdminReplaceListEditor
-      editor={editor}
-      loadingMessage="Loading add-ons…"
-      saveLabel="Save add-ons"
-    >
+    <AdminReplaceListEditor editor={editor} loadingMessage="Loading add-ons…">
       {({ items, update, remove, append }) => (
         <>
           {items.map((item, index) => (
