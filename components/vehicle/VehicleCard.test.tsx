@@ -50,10 +50,9 @@ const fixture: Vehicle = {
 };
 
 describe("VehicleCard", () => {
-  it("renders make, model, and 'or similar' caveat", () => {
-    renderCard(<VehicleCard vehicle={fixture} />);
-    expect(screen.getByRole("heading", { name: /Toyota Yaris/i })).toBeInTheDocument();
-    expect(screen.getByText(/or similar/i)).toBeInTheDocument();
+  it("shows how many units of the model are available", () => {
+    renderCard(<VehicleCard vehicle={fixture} availableCount={4} />);
+    expect(screen.getByText(/4 available/i)).toBeInTheDocument();
   });
 
   it("renders the from-price in dollars", () => {

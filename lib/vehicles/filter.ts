@@ -4,8 +4,8 @@ import type { Cents, FuelType, Transmission, Vehicle, VehicleCategory } from "@/
  * Fleet-browse filter logic per 02_fleet_browse.md §4. Shared by the listing
  * page and unit tests.
  *
- * Pagination is fixed at 24/page in the spec; we accept it as an input so
- * tests can use smaller windows.
+ * Pagination defaults to 9/page (three rows of three). `perPage` is accepted
+ * as an input so catalog fetches can request a larger window.
  */
 
 export type SortKey = "recommended" | "price-asc" | "price-desc" | "newest" | "largest";
@@ -39,7 +39,7 @@ export const DEFAULT_FILTERS: FleetFilters = {
   features: [],
   sort: "recommended",
   page: 1,
-  perPage: 24,
+  perPage: 9,
 };
 
 /** Parse filters out of URL searchParams. Unknown values fall back to defaults. */
@@ -84,9 +84,15 @@ export function parseFiltersFromSearch(
       const allowed: SortKey[] = ["recommended", "price-asc", "price-desc", "newest", "largest"];
       return allowed.includes(v as SortKey) ? (v as SortKey) : defaults.sort;
     })(),
-    page: Math.max(1, Number(get("page") ?? defaults.page)),
-    perPage: defaults.perPage,
+    page: Math.max(1, Number(get("page") ?? defaults.page) || defaults.page),
+    perPage: parsePerPage(get("perPage"), defaults.perPage),
   };
+}
+
+function parsePerPage(raw: string | undefined, fallback: number): number {
+  const n = Number(raw ?? fallback);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(100, Math.max(1, Math.trunc(n)));
 }
 
 /** Build a URLSearchParams from filters, omitting defaults so URLs stay short. */
@@ -106,6 +112,7 @@ export function filtersToSearch(
   if (filters.features.length) params.set("features", filters.features.join(","));
   if (filters.sort !== defaults.sort) params.set("sort", filters.sort);
   if (filters.page !== defaults.page) params.set("page", String(filters.page));
+  if (filters.perPage !== defaults.perPage) params.set("perPage", String(filters.perPage));
   return params;
 }
 

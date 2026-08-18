@@ -655,15 +655,20 @@
     "title": "Which car do you want to drive?",
     "lowestPrice": "Lowest price",
     "autoOnly": "Auto only",
-    "carsCount": "{count, plural, one {# car} other {# cars}}",
+    "carsCount": "{cars, plural, one {# car} other {# cars}} of {models, plural, one {# model} other {# models}}",
     "resultsAria": "Vehicle results",
     "emptyHeading": "No cars match these filters.",
     "emptyBody": "Try clearing a filter or expanding the price range.",
     "resetFilters": "Reset filters",
-    "availabilityErrorBanner": "We couldn't verify live availability for these dates. Try refreshing or adjusting your dates — only cars confirmed free for your window are shown."
+    "availabilityErrorBanner": "We couldn't verify live availability for these dates. Try refreshing or adjusting your dates — only cars confirmed free for your window are shown.",
+    "paginationAria": "Fleet pagination",
+    "prevPage": "Previous",
+    "nextPage": "Next",
+    "pageOf": "Page {current} of {total}"
   },
   "fleet": {
     "orSimilar": "or similar",
+    "availableCount": "{count, plural, one {# available} other {# available}}",
     "perDay": "/day",
     "total": "{price} total",
     "payLaterAvailable": "Pay later available",

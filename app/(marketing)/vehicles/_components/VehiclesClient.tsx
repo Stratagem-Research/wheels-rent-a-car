@@ -16,8 +16,10 @@ import {
   applyFilters,
   computeFacets,
   parseFiltersFromSearch,
+  paginate,
   sortFiltered,
 } from "@/lib/vehicles/filter";
+import { groupFleetModels, groupVehiclesByModel } from "@/lib/vehicles/group-by-model";
 import { seedDraftFromSearchParams, useBookingDraft } from "@/hooks/useBookingDraft";
 import { appendSearchContextFromParams, draftToSearchParams } from "@/lib/booking/draft-to-search-params";
 import { track } from "@/lib/analytics/dataLayer";
@@ -65,10 +67,25 @@ export function VehiclesClient({
   );
 
   const filters = parseFiltersFromSearch(searchParams);
-  const facets = React.useMemo(() => computeFacets(vehicles), [vehicles]);
-  const filtered = React.useMemo(
-    () => sortFiltered(applyFilters(vehicles, filters), filters.sort),
-    [vehicles, filters],
+  const facets = React.useMemo(
+    () => computeFacets(groupVehiclesByModel(vehicles)),
+    [vehicles],
+  );
+  const matched = React.useMemo(() => applyFilters(vehicles, filters), [vehicles, filters]);
+  const grouped = React.useMemo(() => {
+    const groups = groupFleetModels(matched);
+    const countById = new Map(groups.map((g) => [g.vehicle.id, g.unitCount]));
+    return sortFiltered(
+      groups.map((g) => g.vehicle),
+      filters.sort,
+    ).map((vehicle) => ({ vehicle, unitCount: countById.get(vehicle.id) ?? 1 }));
+  }, [matched, filters.sort]);
+  const filtered = React.useMemo(() => grouped.map((g) => g.vehicle), [grouped]);
+  const totalPages = Math.max(1, Math.ceil(grouped.length / filters.perPage));
+  const page = Math.min(Math.max(filters.page, 1), totalPages);
+  const pageItems = React.useMemo(
+    () => paginate(grouped, page, filters.perPage),
+    [grouped, page, filters.perPage],
   );
 
   const isStep1 = searchParams.get("step") === "1";
@@ -146,9 +163,10 @@ export function VehiclesClient({
   }, [filtered, selectedSlug]);
 
   const setQuery = React.useCallback(
-    (mutate: (next: URLSearchParams) => void) => {
+    (mutate: (next: URLSearchParams) => void, keepPage = false) => {
       const next = new URLSearchParams(searchParams.toString());
       mutate(next);
+      if (!keepPage) next.delete("page");
       router.replace(next.toString() ? `/vehicles?${next.toString()}` : "/vehicles", {
         scroll: false,
       });
@@ -156,16 +174,32 @@ export function VehiclesClient({
     [router, searchParams],
   );
 
-  const onCardClick = React.useCallback(
-    (slug: string) => {
-      setQuery((next) => next.set("selected", slug));
+  const onClose = React.useCallback(() => {
+    setQuery((next) => next.delete("selected"), true);
+  }, [setQuery]);
+
+  const goToPage = React.useCallback(
+    (nextPage: number) => {
+      setQuery((next) => {
+        next.delete("selected");
+        if (nextPage <= 1) next.delete("page");
+        else next.set("page", String(nextPage));
+      }, true);
     },
     [setQuery],
   );
 
-  const onClose = React.useCallback(() => {
-    setQuery((next) => next.delete("selected"));
-  }, [setQuery]);
+  React.useEffect(() => {
+    if (!selectedSlug) return;
+    const idx = filtered.findIndex((v) => v.slug === selectedSlug);
+    if (idx < 0) return;
+    const selectedPage = Math.floor(idx / filters.perPage) + 1;
+    if (selectedPage === page) return;
+    setQuery((next) => {
+      if (selectedPage <= 1) next.delete("page");
+      else next.set("page", String(selectedPage));
+    }, true);
+  }, [filtered, filters.perPage, page, selectedSlug, setQuery]);
 
   const onConfirm = React.useCallback(
     (vehicleId: string, vehicleSlug: string, choice: { type: RateType; mileage: MileagePlan }) => {
@@ -299,7 +333,9 @@ export function VehiclesClient({
               {tCat(cat)}
             </Chip>
           ))}
-          <span className="label-md text-ink-50 ml-auto">{t("carsCount", { count: filtered.length })}</span>
+          <span className="label-md text-ink-50 ml-auto">
+            {t("carsCount", { cars: matched.length, models: grouped.length })}
+          </span>
         </div>
 
         {/* Grid — cards in rows matching the column count. When a card is
@@ -312,6 +348,7 @@ export function VehiclesClient({
             reset={t("resetFilters")}
           />
         ) : (
+          <>
           <motion.div
             variants={reduce ? undefined : staggerContainer}
             initial={reduce ? false : "hidden"}
@@ -320,9 +357,9 @@ export function VehiclesClient({
             aria-label={t("resultsAria")}
             role="list"
           >
-            {chunkRows(filtered, rowSize).map((rowVehicles, rowIdx) => {
+            {chunkRows(pageItems, rowSize).map((rowGroups, rowIdx) => {
               const selectedInRow =
-                expandedVehicle && rowVehicles.some((v) => v.id === expandedVehicle.id)
+                expandedVehicle && rowGroups.some((g) => g.vehicle.id === expandedVehicle.id)
                   ? expandedVehicle
                   : null;
               return (
@@ -331,7 +368,7 @@ export function VehiclesClient({
                     className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3"
                     role="presentation"
                   >
-                    {rowVehicles.map((v) => {
+                    {rowGroups.map(({ vehicle: v, unitCount }) => {
                       const isExpanded = expandedVehicle?.id === v.id;
                       return (
                         <motion.li
@@ -341,6 +378,7 @@ export function VehiclesClient({
                         >
                           <VehicleCard
                             vehicle={v}
+                            availableCount={unitCount}
                             selected={isExpanded}
                             href={`/vehicles?${withSelected(searchParams, v.slug)}`}
                             pickupISO={pickupISO}
@@ -369,6 +407,14 @@ export function VehiclesClient({
               );
             })}
           </motion.div>
+          {totalPages > 1 ? (
+            <FleetPagination
+              current={page}
+              total={totalPages}
+              onChange={goToPage}
+            />
+          ) : null}
+          </>
         )}
       </section>
     </>
@@ -409,6 +455,39 @@ function withSelected(params: URLSearchParams, slug: string): string {
   const next = new URLSearchParams(params.toString());
   next.set("selected", slug);
   return next.toString();
+}
+
+function FleetPagination({
+  current,
+  total,
+  onChange,
+}: {
+  current: number;
+  total: number;
+  onChange: (page: number) => void;
+}) {
+  const t = useTranslations("vehicles");
+  return (
+    <nav aria-label={t("paginationAria")} className="mt-8 flex items-center justify-center gap-2">
+      <button
+        type="button"
+        disabled={current <= 1}
+        onClick={() => onChange(current - 1)}
+        className="label-md text-ink-80 hover:bg-ink-10 rounded-pill px-4 py-2 disabled:opacity-40"
+      >
+        {t("prevPage")}
+      </button>
+      <span className="label-md text-ink-50">{t("pageOf", { current, total })}</span>
+      <button
+        type="button"
+        disabled={current >= total}
+        onClick={() => onChange(current + 1)}
+        className="label-md text-ink-80 hover:bg-ink-10 rounded-pill px-4 py-2 disabled:opacity-40"
+      >
+        {t("nextPage")}
+      </button>
+    </nav>
+  );
 }
 
 function EmptyState({ heading, body, reset }: { heading: string; body: string; reset: string }) {

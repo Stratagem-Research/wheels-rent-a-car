@@ -485,15 +485,20 @@
     "title": "Quelle voiture voulez-vous conduire ?",
     "lowestPrice": "Prix le plus bas",
     "autoOnly": "Automatique uniquement",
-    "carsCount": "{count, plural, one {# voiture} other {# voitures}}",
+    "carsCount": "{cars, plural, one {# voiture} other {# voitures}} · {models, plural, one {# modèle} other {# modèles}}",
     "resultsAria": "Résultats de véhicules",
     "emptyHeading": "Aucune voiture ne correspond à ces filtres.",
     "emptyBody": "Essayez de retirer un filtre ou d'élargir la fourchette de prix.",
     "resetFilters": "Réinitialiser les filtres",
-    "availabilityErrorBanner": "Nous n'avons pas pu vérifier la disponibilité réelle pour ces dates — la flotte complète est affichée à la place."
+    "availabilityErrorBanner": "Nous n'avons pas pu vérifier la disponibilité réelle pour ces dates — la flotte complète est affichée à la place.",
+    "paginationAria": "Pagination de la flotte",
+    "prevPage": "Précédent",
+    "nextPage": "Suivant",
+    "pageOf": "Page {current} sur {total}"
   },
   "fleet": {
     "orSimilar": "ou similaire",
+    "availableCount": "{count, plural, one {# disponible} other {# disponibles}}",
     "perDay": "/jour",
     "total": "{price} au total",
     "payLaterAvailable": "Paiement différé disponible",

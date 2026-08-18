@@ -485,15 +485,20 @@
     "title": "أيّ سيارة تريد أن تقود؟",
     "lowestPrice": "الأقل سعراً",
     "autoOnly": "أوتوماتيك فقط",
-    "carsCount": "{count, plural, zero {# سيارة} one {سيارة واحدة} two {سيارتان} few {# سيارات} many {# سيارة} other {# سيارة}}",
+    "carsCount": "{cars, plural, zero {# سيارة} one {سيارة واحدة} two {سيارتان} few {# سيارات} many {# سيارة} other {# سيارة}} من {models, plural, zero {# طراز} one {طراز واحد} two {طرازان} few {# طرازات} many {# طرازاً} other {# طراز}}",
     "resultsAria": "نتائج السيارات",
     "emptyHeading": "لا توجد سيارات تطابق هذه الفلاتر.",
     "emptyBody": "جرّب إزالة فلتر أو توسيع نطاق السعر.",
     "resetFilters": "إعادة ضبط الفلاتر",
-    "availabilityErrorBanner": "تعذّر التحقق من التوفر الفعلي لهذه التواريخ — يتم عرض الأسطول بالكامل بدلاً من ذلك."
+    "availabilityErrorBanner": "تعذّر التحقق من التوفر الفعلي لهذه التواريخ — يتم عرض الأسطول بالكامل بدلاً من ذلك.",
+    "paginationAria": "ترقيم الأسطول",
+    "prevPage": "السابق",
+    "nextPage": "التالي",
+    "pageOf": "صفحة {current} من {total}"
   },
   "fleet": {
     "orSimilar": "أو ما يماثلها",
+    "availableCount": "{count, plural, zero {# متاحة} one {واحدة متاحة} two {اثنتان متاحتان} few {# متاحة} many {# متاحة} other {# متاحة}}",
     "perDay": "/ يومياً",
     "total": "{price} الإجمالي",
     "payLaterAvailable": "الدفع لاحقاً متاح",

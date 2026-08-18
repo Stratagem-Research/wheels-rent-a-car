@@ -29,6 +29,10 @@ describe("vehicles/filter", () => {
       expect(f.categories).toEqual(["luxury"]);
     });
 
+    it("reads perPage from the query string", () => {
+      expect(parseFiltersFromSearch(new URLSearchParams("perPage=100")).perPage).toBe(100);
+    });
+
     it("clamps invalid sort to default", () => {
       expect(parseFiltersFromSearch(new URLSearchParams("sort=bogus")).sort).toBe("recommended");
     });

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, CloudDownload, Images, Trash2 } from "lucide-react";
+import { CloudDownload, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/FormAtoms";
 import { Input } from "@/components/ui/Input";
@@ -10,6 +10,7 @@ import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
 import { AdminImageUpload } from "@/components/admin/AdminImageUpload";
 import { parseWizardVehicleId, slugifyVehicleName } from "@/lib/booking/wizard-vehicle-id";
+import { modelGroupKey } from "@/lib/vehicles/group-by-model";
 
 /**
  * /admin/fleet — website-owned vehicle copy/media for Wizard inventory.
@@ -100,17 +101,40 @@ function vehicleCardTitle(draft: MetaDraft): string {
   return draft.slug.trim() || "Vehicle";
 }
 
-function vehicleCardHelper(draft: MetaDraft): string {
-  const wizardId = resolveWizardId(draft);
-  const brand = draft.wizard_brand?.trim();
-  const model = draft.wizard_model?.trim();
-  const bits: string[] = [];
+function groupKeyForDraft(draft: MetaDraft): string {
+  return modelGroupKey(draft.wizard_brand ?? "", draft.wizard_model ?? "", draft.frontend_vehicle_id);
+}
 
+type IndexedDraft = { draft: MetaDraft; index: number };
+
+function groupDraftsByModel(items: IndexedDraft[]): IndexedDraft[][] {
+  const groups: IndexedDraft[][] = [];
+  const indexByKey = new Map<string, number>();
+  for (const item of items) {
+    const key = groupKeyForDraft(item.draft);
+    const existing = indexByKey.get(key);
+    if (existing == null) {
+      indexByKey.set(key, groups.length);
+      groups.push([item]);
+    } else {
+      groups[existing]!.push(item);
+    }
+  }
+  return groups;
+}
+
+function groupHelper(members: MetaDraft[]): string {
+  const first = members[0];
+  if (!first) return "";
+  const brand = first.wizard_brand?.trim();
+  const model = first.wizard_model?.trim();
+  const ids = members.map(resolveWizardId).filter((id): id is number => id != null);
+  const bits: string[] = [];
   if (brand) bits.push(`Brand: ${brand}`);
   if (model) bits.push(`Model: ${model}`);
-  if (wizardId != null) bits.push(`Wizard ID ${wizardId}`);
+  if (members.length > 1) bits.push(`${members.length} units`);
+  if (ids.length) bits.push(`Wizard ID${ids.length > 1 ? "s" : ""} ${ids.join(", ")}`);
   else bits.push("Unknown Wizard ID — re-sync to refresh this vehicle.");
-
   return bits.join(" · ");
 }
 
@@ -181,36 +205,6 @@ function setPrimaryMedia(
   );
 }
 
-/** Group key for applying one photo across the same Wizard brand + model. */
-function brandModelKey(draft: MetaDraft): string | null {
-  const brand = (draft.wizard_brand ?? "").trim().toLowerCase();
-  const model = (draft.wizard_model ?? "").trim().toLowerCase();
-  if (!model) return null;
-  return `${brand}|${model}`;
-}
-
-function brandModelLabel(draft: MetaDraft): string {
-  const brand = draft.wizard_brand?.trim();
-  const model = draft.wizard_model?.trim();
-  if (brand && model) return `${brand} ${model}`;
-  return model || "this model";
-}
-
-function sameBrandModelSiblings(drafts: MetaDraft[], sourceIndex: number): MetaDraft[] {
-  const source = drafts[sourceIndex];
-  const key = source ? brandModelKey(source) : null;
-  if (!key) return [];
-  return drafts.filter((d, i) => i !== sourceIndex && brandModelKey(d) === key);
-}
-
-function siblingsSharePrimaryImage(drafts: MetaDraft[], sourceIndex: number): boolean {
-  const source = drafts[sourceIndex];
-  const url = source ? primaryMediaUrl(source.mediaText) : undefined;
-  if (!url) return false;
-  const siblings = sameBrandModelSiblings(drafts, sourceIndex);
-  return siblings.length > 0 && siblings.every((d) => primaryMediaUrl(d.mediaText) === url);
-}
-
 export default function AdminFleetPage() {
   const [drafts, setDrafts] = React.useState<MetaDraft[]>([]);
   const [search, setSearch] = React.useState("");
@@ -220,12 +214,13 @@ export default function AdminFleetPage() {
   const [error, setError] = React.useState<string | null>(null);
   const [syncMessage, setSyncMessage] = React.useState<string | null>(null);
 
-  const visibleDrafts = React.useMemo(
-    () =>
-      drafts
-        .map((draft, index) => ({ draft, index }))
-        .filter(({ draft }) => matchesSearch(draft, search)),
-    [drafts, search],
+  const allGroups = React.useMemo(
+    () => groupDraftsByModel(drafts.map((draft, index) => ({ draft, index }))),
+    [drafts],
+  );
+  const visibleGroups = React.useMemo(
+    () => allGroups.filter((group) => group.some(({ draft }) => matchesSearch(draft, search))),
+    [allGroups, search],
   );
 
   const refresh = React.useCallback(async () => {
@@ -248,41 +243,19 @@ export default function AdminFleetPage() {
   }, [refresh]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  const updateDraft = (index: number, patch: Partial<MetaDraft>) =>
-    setDrafts((list) => list.map((m, i) => (i === index ? { ...m, ...patch } : m)));
-
-  const applyPrimaryImageToSameModel = (sourceIndex: number) => {
-    const source = drafts[sourceIndex];
-    if (!source) return;
-    const key = brandModelKey(source);
-    if (!key) return;
-    const primary = parseMediaText(source.mediaText)[0];
-    if (!primary || typeof primary.url !== "string") return;
-
-    const next = {
-      url: primary.url,
-      alt: typeof primary.alt === "string" ? primary.alt : undefined,
-      width: typeof primary.width === "number" ? primary.width : undefined,
-      height: typeof primary.height === "number" ? primary.height : undefined,
-    };
-    const siblingCount = sameBrandModelSiblings(drafts, sourceIndex).length;
-    if (siblingCount === 0) return;
-
-    setDrafts((list) =>
-      list.map((d, i) => {
-        if (i === sourceIndex || brandModelKey(d) !== key) return d;
-        return { ...d, mediaText: setPrimaryMedia(d.mediaText, next) };
-      }),
-    );
-    setError(null);
-    setSyncMessage(
-      `Copied this image to ${siblingCount} other ${brandModelLabel(source)}. Click Save all to persist.`,
-    );
+  const updateGroup = (indices: number[], patch: Partial<MetaDraft>) => {
+    const ids = new Set(indices);
+    setDrafts((list) => list.map((m, i) => (ids.has(i) ? { ...m, ...patch } : m)));
   };
 
-  const removeDraft = (index: number) => {
-    if (!confirm("Remove this vehicle's website metadata?")) return;
-    setDrafts((list) => list.filter((_, i) => i !== index));
+  const removeGroup = (indices: number[]) => {
+    const first = drafts[indices[0]!];
+    const n = indices.length;
+    const label = first ? vehicleCardTitle(first) : "this model";
+    const unitLabel = n === 1 ? "unit" : "units";
+    if (!confirm(`Remove website metadata for ${n} ${label} ${unitLabel}?`)) return;
+    const drop = new Set(indices);
+    setDrafts((list) => list.filter((_, i) => !drop.has(i)));
   };
 
   const syncFromWizard = async () => {
@@ -320,7 +293,25 @@ export default function AdminFleetPage() {
     setError(null);
     setSyncMessage(null);
     try {
-      const metadataItems: MetadataItem[] = drafts.map((draft, i) => {
+      const merged = drafts.map((draft) => ({ ...draft }));
+      for (const group of allGroups) {
+        const source = group[0]?.draft;
+        if (!source || group.length < 2) continue;
+        for (const { index } of group.slice(1)) {
+          const target = merged[index];
+          if (!target) continue;
+          merged[index] = {
+            ...target,
+            tagline: source.tagline,
+            description: source.description,
+            featuresText: source.featuresText,
+            badgesText: source.badgesText,
+            mediaText: source.mediaText,
+          };
+        }
+      }
+
+      const metadataItems: MetadataItem[] = merged.map((draft) => {
         let media: Array<Record<string, unknown>>;
         try {
           const parsed = JSON.parse(draft.mediaText.trim() || "[]");
@@ -364,7 +355,7 @@ export default function AdminFleetPage() {
     <AdminPageShell
       eyebrow="Fleet"
       title="Vehicle metadata"
-      description="Sync fleet from Wizard, then edit website copy, badges, and photos. Wizard vehicle IDs are read-only."
+      description="Sync fleet from Wizard, then edit website copy, badges, and photos. Duplicate inventory is grouped by model — edits apply to every unit of that model."
       actions={
         <>
           <Button
@@ -393,8 +384,8 @@ export default function AdminFleetPage() {
               {loading
                 ? "Loading…"
                 : search.trim()
-                  ? `Showing ${visibleDrafts.length} of ${drafts.length} website-enabled Wizard vehicles`
-                  : `${drafts.length} website-enabled Wizard vehicles`}
+                  ? `Showing ${visibleGroups.length} of ${allGroups.length} models`
+                  : `${allGroups.length} models`}
             </p>
           </div>
           <div className="w-full sm:max-w-sm">
@@ -417,23 +408,31 @@ export default function AdminFleetPage() {
             <strong>Sync from Wizard</strong> (requires internal API token).
           </p>
         ) : null}
-        {drafts.length > 0 && visibleDrafts.length === 0 && !loading ? (
-          <p className="body-md text-ink-60">No vehicles match “{search.trim()}”.</p>
+        {drafts.length > 0 && visibleGroups.length === 0 && !loading ? (
+          <p className="body-md text-ink-60">No models match “{search.trim()}”.</p>
         ) : null}
-        {visibleDrafts.map(({ draft, index: i }) => {
+        {visibleGroups.map((group) => {
+          const representative = group[0]!;
+          const draft = representative.draft;
+          const indices = group.map((item) => item.index);
           const wizardId = resolveWizardId(draft);
+          const unitCount = group.length;
           return (
             <AdminFormShell
-              key={draft.frontend_vehicle_id || i}
-              title={vehicleCardTitle(draft)}
-              helper={vehicleCardHelper(draft)}
+              key={groupKeyForDraft(draft)}
+              title={
+                unitCount > 1
+                  ? `${vehicleCardTitle(draft)} · ${unitCount} units`
+                  : vehicleCardTitle(draft)
+              }
+              helper={groupHelper(group.map((item) => item.draft))}
             >
               <Field label="Tagline">
                 {({ id }) => (
                   <Input
                     id={id}
                     value={draft.tagline}
-                    onChange={(e) => updateDraft(i, { tagline: e.target.value })}
+                    onChange={(e) => updateGroup(indices, { tagline: e.target.value })}
                   />
                 )}
               </Field>
@@ -443,7 +442,7 @@ export default function AdminFleetPage() {
                     id={id}
                     rows={3}
                     value={draft.description}
-                    onChange={(e) => updateDraft(i, { description: e.target.value })}
+                    onChange={(e) => updateGroup(indices, { description: e.target.value })}
                   />
                 )}
               </Field>
@@ -454,7 +453,7 @@ export default function AdminFleetPage() {
                       id={id}
                       value={draft.featuresText}
                       placeholder="Bluetooth, Apple CarPlay, Reverse camera"
-                      onChange={(e) => updateDraft(i, { featuresText: e.target.value })}
+                      onChange={(e) => updateGroup(indices, { featuresText: e.target.value })}
                     />
                   )}
                 </Field>
@@ -464,72 +463,36 @@ export default function AdminFleetPage() {
                       id={id}
                       value={draft.badgesText}
                       placeholder="Popular, New"
-                      onChange={(e) => updateDraft(i, { badgesText: e.target.value })}
+                      onChange={(e) => updateGroup(indices, { badgesText: e.target.value })}
                     />
                   )}
                 </Field>
               </div>
               <Field label="Primary image">
-                {() => {
-                  const siblingCount = sameBrandModelSiblings(drafts, i).length;
-                  const hasImage = Boolean(primaryMediaUrl(draft.mediaText));
-                  const applied = siblingsSharePrimaryImage(drafts, i);
-                  return (
-                    <div className="flex flex-col gap-3">
-                      <AdminImageUpload
-                        kind="vehicle"
-                        entityId={
-                          wizardId != null
-                            ? String(wizardId)
-                            : draft.frontend_vehicle_id || draft.slug || `row-${i + 1}`
-                        }
-                        currentUrl={primaryMediaUrl(draft.mediaText)}
-                        onUploaded={(result) =>
-                          updateDraft(i, {
-                            mediaText: setPrimaryMedia(draft.mediaText, result),
-                          })
-                        }
-                        onRemoved={() =>
-                          updateDraft(i, {
-                            mediaText: setPrimaryMedia(draft.mediaText, null),
-                          })
-                        }
-                      />
-                      {hasImage && siblingCount > 0 ? (
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          disabled={applied}
-                          onClick={() => applyPrimaryImageToSameModel(i)}
-                        >
-                          {applied ? (
-                            <Check className="size-4" aria-hidden="true" />
-                          ) : (
-                            <Images className="size-4" aria-hidden="true" />
-                          )}
-                          {applied
-                            ? "Applied"
-                            : `Apply this image to ${siblingCount} other ${brandModelLabel(draft)}`}
-                        </Button>
-                      ) : null}
-                    </div>
-                  );
-                }}
-              </Field>
-              {/* <Field label="Media (JSON array)">
-                {({ id }) => (
-                  <Textarea
-                    id={id}
-                    rows={4}
-                    className="font-mono text-xs"
-                    spellCheck={false}
-                    value={draft.mediaText}
-                    onChange={(e) => updateDraft(i, { mediaText: e.target.value })}
+                {() => (
+                  <AdminImageUpload
+                    kind="vehicle"
+                    entityId={
+                      wizardId != null
+                        ? String(wizardId)
+                        : draft.frontend_vehicle_id || draft.slug || `row-${representative.index + 1}`
+                    }
+                    currentUrl={primaryMediaUrl(draft.mediaText)}
+                    onUploaded={(result) =>
+                      updateGroup(indices, {
+                        mediaText: setPrimaryMedia(draft.mediaText, result),
+                      })
+                    }
+                    onRemoved={() =>
+                      updateGroup(indices, {
+                        mediaText: setPrimaryMedia(draft.mediaText, null),
+                      })
+                    }
                   />
                 )}
-              </Field> */}
+              </Field>
               <div className="border-border flex justify-end border-t pt-4">
-                <Button type="button" variant="tertiary" onClick={() => removeDraft(i)}>
+                <Button type="button" variant="tertiary" onClick={() => removeGroup(indices)}>
                   <Trash2 className="size-4" aria-hidden="true" />
                   Remove
                 </Button>

@@ -88,6 +88,8 @@ export interface VehicleCardProps {
    * navigation. Set this when the card is staying on the same page (the
    * /vehicles results grid), so clicking to expand doesn't jump scroll. */
   scrollOnClick?: boolean;
+  /** Inventory units of this model currently available (fleet listing). */
+  availableCount?: number;
   className?: string;
 }
 
@@ -99,6 +101,7 @@ export function VehicleCard({
   pickupISO,
   returnISO,
   scrollOnClick = true,
+  availableCount,
   className,
 }: VehicleCardProps) {
   const t = useTranslations("fleet");
@@ -176,6 +179,11 @@ export function VehicleCard({
           >
             {classChip}
           </span>
+          {availableCount != null ? (
+            <span className={cn("body-sm mt-1", dark ? "text-paper/75" : "text-ink-60")}>
+              {t("availableCount", { count: availableCount })}
+            </span>
+          ) : null}
         </header>
 
         {/* Compact chip row — Sixt-style: just icon + value, no label noise. */}

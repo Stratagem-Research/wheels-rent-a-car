@@ -7,14 +7,18 @@ import {
   parseFiltersFromSearch,
   sortFiltered,
 } from "@/lib/vehicles/filter";
+import { groupVehiclesByModel } from "@/lib/vehicles/group-by-model";
 
 export async function listVehiclesFromQuery(searchParams: URLSearchParams) {
   const vehicles = await getPublicVehicles();
   const filters = parseFiltersFromSearch(searchParams, DEFAULT_FILTERS);
-  const filtered = sortFiltered(applyFilters(vehicles, filters), filters.sort);
+  const filtered = sortFiltered(
+    groupVehiclesByModel(applyFilters(vehicles, filters)),
+    filters.sort,
+  );
   const start = (filters.page - 1) * filters.perPage;
   const items = filtered.slice(start, start + filters.perPage);
-  const facets = computeFacets(vehicles);
+  const facets = computeFacets(groupVehiclesByModel(vehicles));
 
   return {
     items,
@@ -31,11 +35,11 @@ export async function listVehiclesFromQuery(searchParams: URLSearchParams) {
 
 export async function getFeaturedVehicles(limit = 8): Promise<Vehicle[]> {
   const vehicles = await getPublicVehicles();
-  return vehicles.slice(0, limit);
+  return groupVehiclesByModel(vehicles).slice(0, limit);
 }
 
 export async function getSimilarVehicles(slug: string, limit = 6): Promise<Vehicle[]> {
-  const vehicles = await getPublicVehicles();
+  const vehicles = groupVehiclesByModel(await getPublicVehicles());
   const seed = vehicles.find((v) => v.slug === slug);
   const items = (
     seed ? vehicles.filter((v) => v.category === seed.category && v.slug !== slug) : vehicles.slice(0, 6)
@@ -44,7 +48,7 @@ export async function getSimilarVehicles(slug: string, limit = 6): Promise<Vehic
 }
 
 export async function getLongTermPopularVehicles(limit = 6): Promise<Vehicle[]> {
-  const vehicles = await getPublicVehicles();
+  const vehicles = groupVehiclesByModel(await getPublicVehicles());
   return vehicles.filter((v) => ["sedan", "suv"].includes(v.category)).slice(0, limit);
 }
 
@@ -59,6 +63,6 @@ export async function getVehicleById(id: string): Promise<Vehicle | null> {
 }
 
 export async function getLocationVehicles(_slug: string, limit = 6): Promise<Vehicle[]> {
-  const vehicles = await getPublicVehicles();
+  const vehicles = groupVehiclesByModel(await getPublicVehicles());
   return vehicles.slice(0, limit);
 }
