@@ -3,9 +3,11 @@
 import * as React from "react";
 import Link from "next/link";
 import {
+  BookOpen,
   Building2,
   HelpCircle,
   Info,
+  MapIcon,
   MapPinned,
   Megaphone,
   Package,
@@ -51,7 +53,7 @@ export default function AdminDashboardPage() {
     },
     {
       href: "/admin/itineraries",
-      icon: <MapPinned className="size-5" aria-hidden="true" />,
+      icon: <MapIcon className="size-5" aria-hidden="true" />,
       eyebrow: "Chauffeur tours",
       title: "Itineraries",
       count: `${itineraries.length} ${itineraries.length === 1 ? "itinerary" : "itineraries"}`,
@@ -88,6 +90,14 @@ export default function AdminDashboardPage() {
       title: "Leads",
       count: `${leadCounts.total} total · ${leadCounts.new} new`,
       body: "Long-term, corporate, and chauffeur enquiries.",
+    },
+    {
+      href: "/admin/bookings",
+      icon: <BookOpen className="size-5" aria-hidden="true" />,
+      eyebrow: "Operations",
+      title: "Bookings",
+      count: "Guest + account",
+      body: "Website bookings, hold status, and fleet count reductions.",
     },
     {
       href: "/admin/fleet",

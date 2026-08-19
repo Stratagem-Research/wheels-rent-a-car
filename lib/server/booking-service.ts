@@ -10,7 +10,7 @@ import type {
   SubmitBookingResponse,
   Vehicle,
 } from "@/types/domain";
-import { parseWizardVehicleId } from "@/lib/booking/wizard-vehicle-id";
+import { frontendVehicleIdFromWizard, parseWizardVehicleId } from "@/lib/booking/wizard-vehicle-id";
 import { validatePromoCodeFromRow } from "@/lib/booking/promo";
 import {
   applyWebsiteVehicleToLookup,
@@ -30,6 +30,11 @@ import {
 } from "@/lib/supabase/catalog-repository";
 import { listVehicleWizardMap } from "@/lib/supabase/admin-repository";
 import { addUserBooking, claimGuestBookingsForUser, indexGuestBooking } from "@/lib/supabase/user-bookings-repository";
+import {
+  addVehicleBookingHold,
+  isVehicleHeld,
+  listHeldFrontendVehicleIds,
+} from "@/lib/supabase/vehicle-booking-holds-repository";
 import {
   createBookingRequest,
   fromBookingDraft,
@@ -90,7 +95,13 @@ export async function handleBookingAvailability(body: AvailabilityRequest) {
     includeBooked: false,
   });
   const availablePublic = response.data.vehicles.filter((v) => v.is_available);
-  const items = toInternalAvailableVehicles(availablePublic);
+  const heldIds = await listHeldFrontendVehicleIds({
+    from: body.pickup.datetime,
+    to: body.return.datetime,
+  });
+  const items = toInternalAvailableVehicles(availablePublic).filter(
+    (item) => !heldIds.has(item.vehicle.id),
+  );
   const days =
     availablePublic[0]?.pricing.days ??
     rentalDays(body.pickup.datetime, body.return.datetime);
@@ -115,20 +126,20 @@ export async function handleVerifyVehicleAvailability(body: {
 
   const startBackend = toBackendDateTime(body.pickup.datetime);
   const endBackend = toBackendDateTime(body.return.datetime);
-  const vehicleAvail = await getVehicleAvailability(numericId, {
-    startDateTime: startBackend,
-    endDateTime: endBackend,
-  });
-  if (vehicleAvail.data.is_available) return { available: true };
-  return { available: false, reason: vehicleAvail.data.unavailable_reason ?? null };
+  const gate = await resolveSubmitAvailability(numericId, startBackend, endBackend);
+  if (gate.ok) return { available: true };
+  return { available: false, reason: gate.unavailable_reason };
 }
 
-/** Pre-submit availability gate — single-vehicle `/availability/{id}` is authoritative. */
+/** Pre-submit availability gate — website holds first, then Wizard `/availability/{id}`. */
 async function resolveSubmitAvailability(
   numericId: number,
   startBackend: string,
   endBackend: string,
 ): Promise<{ ok: true } | { ok: false; unavailable_reason: string | null }> {
+  if (await isVehicleHeld(frontendVehicleIdFromWizard(numericId), startBackend, endBackend)) {
+    return { ok: false, unavailable_reason: "booked" };
+  }
   const single = await getVehicleAvailability(numericId, {
     startDateTime: startBackend,
     endDateTime: endBackend,
@@ -226,6 +237,7 @@ export async function handleBookingSubmit(
 
   const startBackend = payload.start_date_time;
   const endBackend = payload.end_date_time;
+  const frontendVehicleId = frontendVehicleIdFromWizard(numericId);
 
   const availabilityGate = await resolveSubmitAvailability(numericId, startBackend, endBackend);
   if (!availabilityGate.ok) {
@@ -275,6 +287,25 @@ export async function handleBookingSubmit(
     publicToken: response.data.public_token,
   });
 
+  try {
+    await addVehicleBookingHold({
+      bookingReference: booking.ref,
+      wizardVehicleId: numericId,
+      frontendVehicleId,
+      pickupAt: draft.pickup.datetime,
+      returnAt: draft.return.datetime,
+    });
+  } catch (err) {
+    console.error("[booking-submit] vehicle hold failed (non-fatal)", err);
+  }
+
+  const rentalWindow = {
+    pickupAt: draft.pickup.datetime,
+    returnAt: draft.return.datetime,
+    frontendVehicleId,
+    wizardVehicleId: numericId,
+  };
+
   if (options?.userId) {
     try {
       await addUserBooking({
@@ -283,6 +314,7 @@ export async function handleBookingSubmit(
         publicToken: response.data.public_token,
         wizardBookingId: response.data.booking_id,
         customerEmail: draft.driver.email,
+        ...rentalWindow,
       });
     } catch (err) {
       // Wizard booking already exists — do not fail the customer checkout.
@@ -298,6 +330,7 @@ export async function handleBookingSubmit(
       bookingReference: booking.ref,
       publicToken: response.data.public_token,
       wizardBookingId: response.data.booking_id,
+      ...rentalWindow,
     });
   } catch (err) {
     console.error("[guest-booking-index] failed", err);

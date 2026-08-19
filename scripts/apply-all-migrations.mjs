@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Apply all SQL migrations in supabase/migrations/ in filename order.
+ * Apply dated SQL migrations in supabase/migrations/ in filename order.
+ * Records applied files in public.schema_migrations so re-runs are safe.
  * Uses DATABASE_URL or Supabase pooler settings (IPv4-friendly).
  */
 import { existsSync, readFileSync } from "node:fs";
@@ -59,20 +60,36 @@ function buildClientConfig() {
 }
 
 const files = (await readdir(migrationsDir))
-  .filter((f) => f.endsWith(".sql"))
+  .filter((f) => /^\d.+\.sql$/.test(f))
   .sort();
 
 const client = new pg.Client(buildClientConfig());
 await client.connect();
 
 try {
+  await client.query(`
+    create table if not exists public.schema_migrations (
+      filename text primary key,
+      applied_at timestamptz not null default now()
+    );
+  `);
+  const { rows } = await client.query("select filename from public.schema_migrations");
+  const applied = new Set(rows.map((row) => row.filename));
+
+  let appliedNow = 0;
   for (const file of files) {
+    if (applied.has(file)) {
+      console.log(`Skipping ${file} (already applied)`);
+      continue;
+    }
     const sql = await readFile(join(migrationsDir, file), "utf8");
     console.log(`Applying ${file}...`);
     await client.query(sql);
+    await client.query("insert into public.schema_migrations (filename) values ($1)", [file]);
     console.log("  OK");
+    appliedNow += 1;
   }
-  console.log(`Done. Applied ${files.length} migration(s).`);
+  console.log(`Done. Applied ${appliedNow} migration(s), skipped ${files.length - appliedNow}.`);
 } finally {
   await client.end();
 }

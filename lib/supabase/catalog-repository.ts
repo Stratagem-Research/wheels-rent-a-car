@@ -6,7 +6,7 @@ import {
   PROTECTION_TIERS as FALLBACK_PROTECTION,
 } from "@/lib/api/fixtures/catalog";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
-import { isLocalizedString, toLocalizedString } from "@/lib/i18n/localized";
+import { toLocalizedString } from "@/lib/i18n/localized";
 
 type AddOnRow = {
   id: string;
@@ -64,9 +64,7 @@ type CarWashRow = {
 };
 
 function coerceLocalizedField(value: unknown): CarWashPackage["name"] {
-  if (isLocalizedString(value)) return value;
-  if (typeof value === "string") return value;
-  return "";
+  return toLocalizedString(value);
 }
 
 function toAddOn(row: AddOnRow): AddOn {

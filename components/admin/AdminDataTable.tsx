@@ -14,7 +14,7 @@ export interface AdminDataTableColumn<T> {
   header: string;
   /** Cell render fn — receives the row. */
   cell: (row: T) => React.ReactNode;
-  /** Optional CSS width (e.g., "30%"). */
+  /** Optional CSS width (e.g., "10rem" or "30%"). Non-percentage values also set min-width. */
   width?: string;
   className?: string;
 }
@@ -28,6 +28,12 @@ export interface AdminDataTableProps<T> {
   rowActions?: (row: T) => React.ReactNode;
   /** Renders when `rows.length === 0`. */
   emptyState?: React.ReactNode;
+}
+
+function columnSize(width?: string): React.CSSProperties | undefined {
+  if (!width) return undefined;
+  if (width.endsWith("%")) return { width };
+  return { width, minWidth: width };
 }
 
 export function AdminDataTable<T>({
@@ -45,21 +51,21 @@ export function AdminDataTable<T>({
     );
   }
   return (
-    <div className="bg-paper border-border overflow-hidden rounded-xl border">
-      <table className="w-full">
+    <div className="bg-paper border-border overflow-auto rounded-xl border">
+      <table className="w-max min-w-full border-collapse">
         <thead className="bg-ink-10 border-border border-b">
           <tr>
             {columns.map((c) => (
               <th
                 key={c.header}
-                style={c.width ? { width: c.width } : undefined}
-                className="label-md text-ink-60 px-4 py-3 text-left font-medium tracking-wider uppercase"
+                style={columnSize(c.width)}
+                className="label-md text-ink-60 border-border px-4 py-3 text-left font-medium tracking-wider uppercase not-last:border-r"
               >
                 {c.header}
               </th>
             ))}
             {rowActions ? (
-              <th className="label-md text-ink-60 w-px px-4 py-3 text-right font-medium tracking-wider uppercase">
+              <th className="label-md text-ink-60 w-px min-w-36 px-4 py-3 text-right font-medium tracking-wider uppercase">
                 Actions
               </th>
             ) : null}
@@ -69,7 +75,11 @@ export function AdminDataTable<T>({
           {rows.map((row) => (
             <tr key={rowKey(row)} className="hover:bg-ink-05 transition-colors">
               {columns.map((c, ci) => (
-                <td key={ci} className={`body-sm text-ink-90 px-4 py-3 ${c.className ?? ""}`}>
+                <td
+                  key={ci}
+                  style={columnSize(c.width)}
+                  className={`body-sm text-ink-90 border-border px-4 py-3 not-last:border-r ${c.className ?? ""}`}
+                >
                   {c.cell(row)}
                 </td>
               ))}

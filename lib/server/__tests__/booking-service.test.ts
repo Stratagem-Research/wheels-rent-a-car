@@ -78,6 +78,14 @@ vi.mock("@/lib/supabase/user-bookings-repository", () => ({
   indexGuestBooking: vi.fn().mockResolvedValue(undefined),
 }));
 
+const mockAddVehicleBookingHold = vi.fn();
+const mockIsVehicleHeld = vi.fn();
+vi.mock("@/lib/supabase/vehicle-booking-holds-repository", () => ({
+  addVehicleBookingHold: (...args: unknown[]) => mockAddVehicleBookingHold(...args),
+  isVehicleHeld: (...args: unknown[]) => mockIsVehicleHeld(...args),
+  listHeldFrontendVehicleIds: vi.fn().mockResolvedValue(new Set()),
+}));
+
 const mockEnqueueNotification = vi.fn().mockResolvedValue(undefined);
 vi.mock("@/lib/server/notifications", () => ({
   enqueueNotification: (...args: unknown[]) => mockEnqueueNotification(...args),
@@ -119,6 +127,8 @@ describe("booking-service handleBookingSubmit", () => {
     mockGetVehicleAvailability.mockResolvedValue({
       data: { is_available: true, id: 131 },
     });
+    mockIsVehicleHeld.mockResolvedValue(false);
+    mockAddVehicleBookingHold.mockResolvedValue(undefined);
     mockCreateBookingRequest.mockResolvedValue({
       data: {
         reference: "WRC-260721-TEST",
@@ -151,11 +161,22 @@ describe("booking-service handleBookingSubmit", () => {
       endDateTime: "2026-07-24 10:00",
     });
     expect(mockCreateBookingRequest).toHaveBeenCalled();
+    expect(mockAddVehicleBookingHold).toHaveBeenCalledWith({
+      bookingReference: "WRC-260721-TEST",
+      wizardVehicleId: 131,
+      frontendVehicleId: "wiz-131",
+      pickupAt: "2026-07-21T10:00",
+      returnAt: "2026-07-24T10:00",
+    });
     expect(indexGuestBooking).toHaveBeenCalledWith({
       email: "test@example.com",
       bookingReference: "WRC-260721-TEST",
       publicToken: "tok",
       wizardBookingId: 1,
+      pickupAt: "2026-07-21T10:00",
+      returnAt: "2026-07-24T10:00",
+      frontendVehicleId: "wiz-131",
+      wizardVehicleId: 131,
     });
     expect(addUserBooking).not.toHaveBeenCalled();
     expect(mockEnqueueNotification).toHaveBeenCalledWith(
@@ -176,6 +197,10 @@ describe("booking-service handleBookingSubmit", () => {
       publicToken: "tok",
       wizardBookingId: 1,
       customerEmail: "test@example.com",
+      pickupAt: "2026-07-21T10:00",
+      returnAt: "2026-07-24T10:00",
+      frontendVehicleId: "wiz-131",
+      wizardVehicleId: 131,
     });
     expect(indexGuestBooking).toHaveBeenCalled();
   });
@@ -185,6 +210,23 @@ describe("booking-service handleBookingSubmit", () => {
       Object.assign(new Error("wizard_booking_id column missing"), { code: "PGRST204" }),
     );
     const result = await handleBookingSubmit({ draft: completeDraft() }, { userId: "user-123" });
+    expect(result.booking.ref).toBe("WRC-260721-TEST");
+    expect(mockCreateBookingRequest).toHaveBeenCalled();
+  });
+
+  it("rejects submit when the vehicle already has a website hold", async () => {
+    mockIsVehicleHeld.mockResolvedValue(true);
+
+    await expect(handleBookingSubmit({ draft: completeDraft() })).rejects.toBeInstanceOf(
+      VehicleUnavailableError,
+    );
+    expect(mockCreateBookingRequest).not.toHaveBeenCalled();
+    expect(mockAddVehicleBookingHold).not.toHaveBeenCalled();
+  });
+
+  it("still returns booking when the vehicle hold write fails", async () => {
+    mockAddVehicleBookingHold.mockRejectedValueOnce(new Error("holds table missing"));
+    const result = await handleBookingSubmit({ draft: completeDraft() });
     expect(result.booking.ref).toBe("WRC-260721-TEST");
     expect(mockCreateBookingRequest).toHaveBeenCalled();
   });

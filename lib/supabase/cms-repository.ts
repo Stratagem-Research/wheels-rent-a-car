@@ -3,53 +3,21 @@ import type { CorporateTier, FaqGroup, Itinerary, Trip } from "@/types/domain";
 import {
   toLocalizedString,
   toLocalizedStringArray,
-  isLocalizedString,
-  isLocalizedStringArray,
   type LocalizedValue,
   type LocalizedArrayValue,
 } from "@/lib/i18n/localized";
 
 /**
  * Coerce a raw jsonb column into a value the localized renderer understands.
- *
- * Guards the "raw JSON on screen" failure mode: if a localized object was
- * accidentally persisted as a JSON *string* (e.g. '{"en":"…","ar":"…"}'), the
- * renderer would otherwise print it verbatim. We parse such strings back into
- * an object; anything else falls back to a plain string (wrapped as `en`).
+ * Delegates to toLocalizedString, which also unwraps the 20260606
+ * jsonb_build_object('en', previousJson) wrapping.
  */
 function coerceLocalized(value: unknown): LocalizedValue {
-  if (isLocalizedString(value)) return value;
-  if (typeof value === "string") {
-    const trimmed = value.trim();
-    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
-      try {
-        const parsed: unknown = JSON.parse(trimmed);
-        if (isLocalizedString(parsed)) return parsed;
-      } catch {
-        // Not JSON — treat as a plain English string below.
-      }
-    }
-    return value;
-  }
-  return "";
+  return toLocalizedString(value);
 }
 
 function coerceLocalizedArray(value: unknown): LocalizedArrayValue {
-  if (isLocalizedStringArray(value)) return value;
-  if (Array.isArray(value)) return value as string[];
-  if (typeof value === "string") {
-    const trimmed = value.trim();
-    if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
-      try {
-        const parsed: unknown = JSON.parse(trimmed);
-        if (isLocalizedStringArray(parsed)) return parsed;
-        if (Array.isArray(parsed)) return parsed as string[];
-      } catch {
-        // Not JSON — fall through to empty.
-      }
-    }
-  }
-  return [];
+  return toLocalizedStringArray(value);
 }
 
 type TripRow = {

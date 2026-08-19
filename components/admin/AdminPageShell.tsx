@@ -34,7 +34,7 @@ export function AdminPageShell({
   children,
 }: AdminPageShellProps) {
   return (
-    <div className="mx-auto w-full max-w-[var(--container-default)] px-5 py-8 sm:px-8 lg:py-12">
+    <div className="mx-auto w-full max-w-(--container-default) px-4 pb-8 pt-4 sm:px-6 lg:pb-12">
       {backHref ? (
         <Button asChild variant="tertiary" size="sm" className="-ml-3">
           <Link href={backHref} className="inline-flex items-center gap-1.5">
@@ -46,10 +46,10 @@ export function AdminPageShell({
       <div className="mt-2 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex max-w-3xl flex-col gap-2">
           {eyebrow ? <p className="text-ink-60 overline">{eyebrow}</p> : null}
-          <h1 className="display-md text-ink-100 text-[clamp(28px,4.5vw,44px)] leading-[1.05]">
+          <h1 className="display-md text-ink-100 text-[clamp(22px,4vw,38px)] leading-[1.05]">
             {title}
           </h1>
-          {description ? <p className="lead-md text-ink-60 max-w-2xl">{description}</p> : null}
+          {description ? <p className="lead-sm text-ink-60 max-w-2xl">{description}</p> : null}
         </div>
         {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
       </div>

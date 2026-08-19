@@ -2,8 +2,9 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { AdminMobileBar, AdminSidebar } from "@/components/admin/AdminSidebar";
+import { AdminMobileBar, AdminSidebar, useAdminSidebarCollapsed } from "@/components/admin/AdminSidebar";
 import { getAdminSession } from "@/lib/admin/auth";
+import { cn } from "@/lib/utils";
 
 /**
  * Authenticated admin layout — verifies server session via /api/admin/sessions.
@@ -12,6 +13,7 @@ import { getAdminSession } from "@/lib/admin/auth";
 export default function AdminAuthenticatedLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [ready, setReady] = React.useState(false);
+  const { collapsed, toggle } = useAdminSidebarCollapsed();
 
   // Browser-only gate: check session endpoint post-mount.
   React.useEffect(() => {
@@ -37,8 +39,13 @@ export default function AdminAuthenticatedLayout({ children }: { children: React
   }
 
   return (
-    <div className="bg-ink-05 min-h-screen lg:pl-60">
-      <AdminSidebar />
+    <div
+      className={cn(
+        "bg-ink-05 min-h-screen transition-[padding] duration-200 ease-out",
+        collapsed ? "lg:pl-18" : "lg:pl-60",
+      )}
+    >
+      <AdminSidebar collapsed={collapsed} onToggleCollapsed={toggle} />
       <div className="min-w-0">
         <AdminMobileBar />
         <main>{children}</main>

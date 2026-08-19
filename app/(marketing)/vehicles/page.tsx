@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { getPublicBranches, getPublicVehicles } from "@/lib/server/public-content";
 import { handleBookingAvailability } from "@/lib/server/booking-service";
+import { listHeldFrontendVehicleIds } from "@/lib/supabase/vehicle-booking-holds-repository";
 import { VehiclesClient } from "./_components/VehiclesClient";
 import type { Vehicle } from "@/types/domain";
 
@@ -23,8 +24,8 @@ interface PageProps {
  * When pickupAt/returnAt are on the URL, resolve the list against real
  * Wizard availability for those dates instead of the full catalog — closes
  * the gap where /vehicles ignored picked dates until the final 409 at
- * submit. Falls back to the unfiltered catalog if the window is invalid
- * (>3 months) or the availability call fails.
+ * submit. Website booking holds are subtracted in both modes so the
+ * grouped "available" count drops after each booking.
  */
 async function resolveVehiclesForDates(
   pickupAt?: string,
@@ -32,7 +33,11 @@ async function resolveVehiclesForDates(
 ): Promise<{ vehicles: Vehicle[]; availabilityError: boolean }> {
   const catalog = await getPublicVehicles();
   if (!pickupAt || !returnAt) {
-    return { vehicles: catalog, availabilityError: false };
+    const heldIds = await listHeldFrontendVehicleIds();
+    return {
+      vehicles: heldIds.size === 0 ? catalog : catalog.filter((v) => !heldIds.has(v.id)),
+      availabilityError: false,
+    };
   }
   try {
     const { items } = await handleBookingAvailability({
