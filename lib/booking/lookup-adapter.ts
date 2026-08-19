@@ -6,7 +6,7 @@ import {
   slugifyVehicleName,
 } from "@/lib/booking/wizard-vehicle-id";
 
-const PLACEHOLDER_IMAGE = {
+export const LOOKUP_PLACEHOLDER_IMAGE = {
   url: "/images/Car Images/Untitled-design-2025-07-01T030112.627.png",
   alt: "Vehicle",
   width: 1080,
@@ -116,7 +116,7 @@ export function toBookingFromLookup(lookup: {
       model: matchedVehicle?.model ?? wizardName.model,
       year: matchedVehicle?.year ?? new Date().getFullYear(),
       category: matchedVehicle?.category ?? "economy",
-      images: matchedVehicle?.images ?? [{ ...PLACEHOLDER_IMAGE, alt: wizardName.make }],
+      images: matchedVehicle?.images ?? [{ ...LOOKUP_PLACEHOLDER_IMAGE, alt: wizardName.make }],
     },
     extras: [],
     protectionTierId: "pt-basic",

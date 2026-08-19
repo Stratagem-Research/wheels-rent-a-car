@@ -17,7 +17,7 @@ export async function GET(
     const row = await getUserBookingRow(auth.supabase, auth.user.id, ref);
 
     if (row) {
-      const booking = await resolveAccountBooking(row, authEmail);
+      const { booking } = await resolveAccountBooking(row, authEmail);
       if (booking) return NextResponse.json(booking);
     }
 
