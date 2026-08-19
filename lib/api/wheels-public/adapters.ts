@@ -19,7 +19,7 @@ import type {
   Rate,
   Vehicle,
 } from "@/types/domain";
-import { resolveWizardAddressForBooking } from "@/lib/booking/wizard-address-id";
+import { extraQtyLabel, addOnUnitPriceLabel } from "@/lib/booking/addons";
 import { fromBackendDateAndTime, fromBackendDateTime, toBackendDateTime } from "./datetime";
 import type { BookingData, BookingRequestPayload, PublicVehicle } from "./schemas";
 import { enrichVehicle, type EnrichVehicleOptions } from "./vehicle-enrichment";
@@ -59,6 +59,14 @@ export function toInternalAvailableVehicles(
       rates,
     } satisfies AvailableVehicle;
   });
+}
+
+export function catalogVehicleToAvailable(vehicle: Vehicle, days: number): AvailableVehicle {
+  const safeDays = Math.max(1, Math.trunc(days));
+  return {
+    vehicle,
+    rates: buildRateMatrix(vehicle.dailyRateFromCents, safeDays),
+  };
 }
 
 function buildRateMatrix(baseDailyCents: number, days: number): Rate[] {
@@ -273,10 +281,7 @@ export function serializeAddonsAndProtectionAsNotes({
         const addOn = addOns.find((a) => a.id === e.addOnId);
         if (!addOn) return null;
         const qty = Math.max(1, e.qty);
-        const qtyLabel = qty > 1 ? `${qty} × ` : "";
-        const price = `$${(addOn.priceCents / 100).toFixed(0)}`;
-        const unit = addOn.pricing === "per-day" ? "/day" : "/rental";
-        return `${qtyLabel}${addOn.name} (${price}${unit})`;
+        return `${extraQtyLabel(addOn, qty)}${addOn.name} (${addOnUnitPriceLabel(addOn)})`;
       })
       .filter((line): line is string => line != null);
     if (addonLines.length > 0) lines.push(`Add-ons: ${addonLines.join(", ")}`);

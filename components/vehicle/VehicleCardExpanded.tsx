@@ -1,16 +1,17 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import { X, DoorOpen, Users, Briefcase, Check } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { SaveVehicleButton } from "@/components/vehicle/SaveVehicleButton";
+import { VehicleImageSlider } from "@/components/vehicle/VehicleImageSlider";
 import { RadioGroup, RadioItem } from "@/components/ui/RadioGroup";
 import { formatUsd, perDayRate, rentalDays } from "@/lib/booking/pricing";
 import { FLEET_PAY_LATER_RATE, FLEET_PAY_NOW_RATE } from "@/lib/vehicles/fleet-card-rates";
+import { vehicleDisplayName } from "@/lib/vehicles/display-name";
 import { whatsAppHref } from "@/lib/whatsapp";
 import type { MileagePlan, RateType, Vehicle, VehicleBadge } from "@/types/domain";
 
@@ -22,7 +23,7 @@ import type { MileagePlan, RateType, Vehicle, VehicleBadge } from "@/types/domai
  *  │                                                      │  ○ Pay now      Best price   │
  *  │              [ vehicle hero photo ]                  │  ○ Pay later    +$3.90/day   │
  *  │                                                      │                              │
- *  │  TOYOTA YARIS  or similar                            │  $18.46/day  $73.82 total    │
+ *  │  TOYOTA YARIS                                        │  $18.46/day  $73.82 total    │
  *  │  ▪ 5 Seats  ▪ 2 Bag(s)  ▪ Auto  ▪ 5 Doors            │                  [Next →]    │
  *  │  Minimum age of the youngest driver: 21              │                              │
  *  └──────────────────────────────────────────────────────┴──────────────────────────────┘
@@ -123,7 +124,7 @@ export function VehicleCardExpanded({
   }, [vehicle.id]);
 
   const days = rentalDays(pickupISO, returnISO);
-  const image = vehicle.images[0];
+  const vehicleLabel = vehicleDisplayName(vehicle);
 
   // Same bundles as the collapsed card (best-price + 200 km/day vs flexible).
   const payNowPerDay = perDayRate(
@@ -145,14 +146,14 @@ export function VehicleCardExpanded({
   const totalLabel = formatUsd(totalCents);
 
   const waLink = whatsAppHref("pdp", {
-    model: `${vehicle.make} ${vehicle.model}`,
+    model: vehicleLabel,
   });
 
   return (
     <article
       ref={panelRef}
       tabIndex={-1}
-      aria-label={t("expandedAria", { vehicle: `${vehicle.make} ${vehicle.model}` })}
+      aria-label={t("expandedAria", { vehicle: vehicleLabel })}
       className={cn(
         "text-paper relative grid overflow-hidden rounded-xl outline-none",
         "lg:grid-cols-[1.15fr_1fr]",
@@ -164,7 +165,7 @@ export function VehicleCardExpanded({
       <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
         <SaveVehicleButton
           vehicleId={vehicle.id}
-          vehicleLabel={`${vehicle.make} ${vehicle.model}`}
+          vehicleLabel={vehicleLabel}
         />
         <button
           type="button"
@@ -182,30 +183,24 @@ export function VehicleCardExpanded({
 
       {/* LEFT — vehicle hero photo + below-photo specs. */}
       <div className="flex flex-col gap-5 p-5 sm:p-7">
-        <div className="relative aspect-[16/10] w-full">
-          {image ? (
-            <Image
-              src={image.url}
-              alt={image.alt}
-              fill
-              sizes="(min-width: 1024px) 520px, 100vw"
-              className="object-contain"
-              priority
-            />
-          ) : null}
+        <div className="relative">
+          <VehicleImageSlider
+            images={vehicle.images}
+            dark
+            sizes="(min-width: 1024px) 520px, 100vw"
+            priority
+            className="my-0"
+          />
           {vehicle.badge ? (
-            <div className="absolute top-0 left-0">
+            <div className="absolute top-0 left-0 z-20">
               <Badge variant={BADGE_VARIANT[vehicle.badge]}>{t(BADGE_KEY[vehicle.badge])}</Badge>
             </div>
           ) : null}
         </div>
 
         <header className="flex flex-col gap-1">
-          <h3 className="headline-sm flex flex-wrap items-baseline gap-x-2 leading-tight">
-            <span className="text-paper">
-              {vehicle.make} {vehicle.model}
-            </span>
-            <span className="body-sm text-paper/55 italic">{t("orSimilar")}</span>
+          <h3 className="headline-sm leading-tight">
+            <span className="text-paper">{vehicleLabel}</span>
           </h3>
         </header>
 

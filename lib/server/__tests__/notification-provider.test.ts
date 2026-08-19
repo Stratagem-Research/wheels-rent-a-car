@@ -43,6 +43,16 @@ describe("notification-provider", () => {
     expect(content.html.toLowerCase()).toContain("request");
   });
 
+  it("renders booking_cancelled as a confirmed cancellation", () => {
+    const content = renderNotificationTemplate("booking_cancelled", {
+      ref: "WRC-1",
+      vehicle: "NISSAN MICRA",
+    });
+    expect(content.subject.toLowerCase()).toContain("cancelled");
+    expect(content.html.toLowerCase()).toContain("cancelled");
+    expect(content.html).toContain("NISSAN MICRA");
+  });
+
   it("logs instead of sending when no SMTP/Resend in non-production", async () => {
     const info = vi.spyOn(console, "info").mockImplementation(() => undefined);
     const result = await sendEmailNotification({

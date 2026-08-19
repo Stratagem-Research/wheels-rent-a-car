@@ -105,7 +105,30 @@ export function AddonsEditor({ editor }: { editor: AdminReplaceListControls<AddO
                     </Select>
                   )}
                 </Field>
-                <Field label="Price (USD)">
+                <Field
+                  label="Quantity unit"
+                  helper="GB lets the customer type a data allowance. Price below is per GB for the rental."
+                >
+                  {({ id }) => (
+                    <Select
+                      id={id}
+                      value={item.quantityUnit ?? "item"}
+                      onChange={(e) => {
+                        const gb = e.target.value === "gb";
+                        update(index, {
+                          quantityUnit: gb ? "gb" : undefined,
+                          multiQuantity: gb ? true : item.multiQuantity,
+                          pricing: gb ? "per-rental" : item.pricing,
+                          maxQuantity: gb ? (item.maxQuantity ?? 200) : item.maxQuantity,
+                        });
+                      }}
+                    >
+                      <option value="item">Item</option>
+                      <option value="gb">GB (data allowance)</option>
+                    </Select>
+                  )}
+                </Field>
+                <Field label={item.quantityUnit === "gb" ? "Price per GB (USD)" : "Price (USD)"}>
                   {({ id }) => (
                     <Input
                       id={id}

@@ -5,7 +5,7 @@ import * as Popover from "@radix-ui/react-popover";
 import * as Dialog from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { DayPicker } from "react-day-picker";
-import { addMonths, format, isAfter, isBefore } from "date-fns";
+import { addMonths, format, isAfter, isBefore, startOfDay } from "date-fns";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
@@ -145,7 +145,7 @@ export function DatePopover({
         mode="single"
         selected={value}
         onSelect={onValueChange}
-        disabled={(d) => isBefore(d, min) || isAfter(d, max)}
+        disabled={(d) => isBefore(startOfDay(d), startOfDay(min)) || isAfter(startOfDay(d), startOfDay(max))}
         numberOfMonths={monthCount}
         showOutsideDays={false}
         classNames={dayPickerClasses}
@@ -289,7 +289,7 @@ function RangeView({
         hideNavigation
         selected={displayed?.from ? { from: displayed.from, to: displayed.to } : undefined}
         onSelect={handleSelect}
-        disabled={(d) => isBefore(d, min) || isAfter(d, max)}
+        disabled={(d) => isBefore(startOfDay(d), startOfDay(min)) || isAfter(startOfDay(d), startOfDay(max))}
         numberOfMonths={monthCount}
         showOutsideDays={false}
         classNames={dayPickerClasses}

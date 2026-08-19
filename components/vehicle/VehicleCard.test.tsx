@@ -50,9 +50,10 @@ const fixture: Vehicle = {
 };
 
 describe("VehicleCard", () => {
-  it("shows how many units of the model are available", () => {
-    renderCard(<VehicleCard vehicle={fixture} availableCount={4} />);
-    expect(screen.getByText(/4 available/i)).toBeInTheDocument();
+  it("renders brand and model as the title", () => {
+    renderCard(<VehicleCard vehicle={{ ...fixture, title: "Custom Name" }} />);
+    expect(screen.getByText("Toyota Yaris")).toBeInTheDocument();
+    expect(screen.queryByText("Custom Name")).not.toBeInTheDocument();
   });
 
   it("renders the from-price in dollars", () => {
@@ -66,6 +67,27 @@ describe("VehicleCard", () => {
     expect(links.some((l) => l.getAttribute("href") === "/vehicles?selected=toyota-yaris")).toBe(
       true,
     );
+  });
+
+  it("shows next and previous photo controls when there are multiple images", () => {
+    renderCard(
+      <VehicleCard
+        vehicle={{
+          ...fixture,
+          images: [
+            fixture.images[0]!,
+            { ...fixture.images[0]!, url: "/images/placeholder-vehicle.svg", alt: "Rear" },
+          ],
+        }}
+      />,
+    );
+    expect(screen.getByRole("button", { name: /next photo/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /previous photo/i })).toBeInTheDocument();
+  });
+
+  it("hides photo controls when there is only one image", () => {
+    renderCard(<VehicleCard vehicle={fixture} />);
+    expect(screen.queryByRole("button", { name: /next photo/i })).not.toBeInTheDocument();
   });
 
   it("renders the Best deal badge when set", () => {

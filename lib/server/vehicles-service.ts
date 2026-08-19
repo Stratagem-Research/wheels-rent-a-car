@@ -1,4 +1,5 @@
 import type { Vehicle } from "@/types/domain";
+import { frontendVehicleIdFromWizard, parseWizardVehicleId } from "@/lib/booking/wizard-vehicle-id";
 import { getPublicVehicles } from "@/lib/server/public-content";
 import {
   applyFilters,
@@ -59,7 +60,14 @@ export async function getVehicleBySlug(slug: string): Promise<Vehicle | null> {
 
 export async function getVehicleById(id: string): Promise<Vehicle | null> {
   const vehicles = await getPublicVehicles();
-  return vehicles.find((v) => v.id === id) ?? null;
+  const direct = vehicles.find((v) => v.id === id);
+  if (direct) return direct;
+  const numeric = parseWizardVehicleId(id);
+  if (numeric == null) return null;
+  const prefixed = frontendVehicleIdFromWizard(numeric);
+  return (
+    vehicles.find((v) => v.id === prefixed || parseWizardVehicleId(v.id) === numeric) ?? null
+  );
 }
 
 export async function getLocationVehicles(_slug: string, limit = 6): Promise<Vehicle[]> {

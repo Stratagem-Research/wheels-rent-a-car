@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { WheelsThrottledError } from "@/lib/api/wheels-public";
+import { emptyStoredBookingFields } from "@/lib/booking/stored-booking";
 import type { UserBookingRow } from "@/lib/supabase/user-bookings-repository";
 import type { Booking } from "@/types/domain";
 
@@ -16,6 +17,7 @@ import { bookingFromLinkedRow, resolveAccountBooking } from "../account-bookings
 
 function row(overrides: Partial<UserBookingRow> = {}): UserBookingRow {
   return {
+    ...emptyStoredBookingFields(),
     bookingReference: "WRC-260818-F8Z4",
     publicToken: "tok",
     customerEmail: "a@example.com",
@@ -24,6 +26,7 @@ function row(overrides: Partial<UserBookingRow> = {}): UserBookingRow {
     returnAt: "2026-08-22T10:00:00.000Z",
     frontendVehicleId: "wiz-131",
     wizardVehicleId: 131,
+    totalCents: 45000,
     ...overrides,
   };
 }
@@ -43,6 +46,38 @@ describe("bookingFromLinkedRow", () => {
     expect(booking.pickup.datetime).toBe("2026-08-20T10:00:00.000Z");
     expect(booking.return.datetime).toBe("2026-08-22T10:00:00.000Z");
     expect(booking.vehicle.vehicleId).toBe("wiz-131");
+  });
+
+  it("uses stored columns for price, extras, and vehicle", async () => {
+    const booking = await bookingFromLinkedRow(
+      row({
+        publicToken: null,
+        frontendVehicleId: "manual-1",
+        vehicleMake: "NISSAN",
+        vehicleModel: "MICRA",
+        extras: [{ addOnId: "gps", qty: 1 }],
+        driverFirstName: "Ada",
+        baseRateCents: 40000,
+        extrasCents: 5000,
+        totalCents: 45000,
+        paymentMethod: "cash",
+      }),
+      "auth@example.com",
+    );
+    expect(booking.vehicleSnapshot.make).toBe("NISSAN");
+    expect(booking.extras).toEqual([{ addOnId: "gps", qty: 1 }]);
+    expect(booking.price.totalCents).toBe(45000);
+    expect(booking.driver.firstName).toBe("Ada");
+  });
+
+  it("uses the cached total instead of $0 when Wizard is unavailable", async () => {
+    const booking = await bookingFromLinkedRow(row({ totalCents: 78500 }), "auth@example.com");
+    expect(booking.price.totalCents).toBe(78500);
+  });
+
+  it("falls back to $0 only when no total was ever cached", async () => {
+    const booking = await bookingFromLinkedRow(row({ totalCents: null }), "auth@example.com");
+    expect(booking.price.totalCents).toBe(0);
   });
 });
 

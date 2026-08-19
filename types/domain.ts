@@ -79,6 +79,8 @@ export interface Vehicle {
   slug: string;
   make: string;
   model: string;
+  /** Website-owned listing title. When set, cards use this instead of make + model. */
+  title?: string;
   year: number;
   category: VehicleCategory;
   /** Short marketing tagline shown under the title. */
@@ -167,6 +169,8 @@ export interface AddOn {
   /** True if user can add more than one (baby seats, etc.). */
   multiQuantity: boolean;
   maxQuantity?: number;
+  /** When `gb`, qty is gigabytes and `priceCents` is the per-GB rental rate. */
+  quantityUnit?: "gb";
   /** Icon name from lucide-react. */
   icon: string;
 }

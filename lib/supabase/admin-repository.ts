@@ -1,6 +1,8 @@
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import type { Branch, LocalizedString, LocalizedStringArray, Vehicle } from "@/types/domain";
 import { isLocalizedString, isLocalizedStringArray, toLocalizedString } from "@/lib/i18n/localized";
+import { parseVehicleMedia, toPublicVehicleImages } from "@/lib/vehicles/vehicle-media";
+import { composeVehicleTitle } from "@/lib/vehicles/display-name";
 
 export type AdminLeadStatus = "new" | "in-progress" | "won" | "lost";
 
@@ -95,11 +97,15 @@ export type FleetPartnershipLead = {
 export type VehicleMetadataRow = {
   frontend_vehicle_id: string;
   slug: string;
+  title: string | null;
+  brand: string | null;
+  model: string | null;
   tagline: string | null;
   description: string | null;
   features: unknown;
   badges: unknown;
   media: unknown;
+  operational: unknown;
   updated_at: string;
 };
 
@@ -380,18 +386,28 @@ export async function listVehicleMetadata(): Promise<VehicleMetadataRow[]> {
   return (data ?? []) as VehicleMetadataRow[];
 }
 
-export async function replaceVehicleMetadata(items: VehicleMetadataRow[]): Promise<void> {
-  const supabase = getSupabaseAdminClient();
-  const { error: clearError } = await supabase
-    .from("vehicle_metadata")
-    .delete()
-    .neq("frontend_vehicle_id", "");
-  if (clearError) throw new Error(clearError.message);
+export async function upsertVehicleMetadata(items: VehicleMetadataRow[]): Promise<void> {
   if (items.length === 0) return;
+  const supabase = getSupabaseAdminClient();
+  const { error } = await supabase.from("vehicle_metadata").upsert(
+    items.map((item) => ({ ...item, updated_at: new Date().toISOString() })),
+    { onConflict: "frontend_vehicle_id" },
+  );
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteVehicleMetadataByIds(frontendVehicleIds: string[]): Promise<void> {
+  if (frontendVehicleIds.length === 0) return;
+  const supabase = getSupabaseAdminClient();
   const { error } = await supabase
     .from("vehicle_metadata")
-    .insert(items.map((item) => ({ ...item, updated_at: new Date().toISOString() })));
+    .delete()
+    .in("frontend_vehicle_id", frontendVehicleIds);
   if (error) throw new Error(error.message);
+}
+
+function isMissingTableError(message: string): boolean {
+  return /schema cache|could not find the table|does not exist/i.test(message);
 }
 
 export async function listVehicleWizardMap(): Promise<VehicleWizardMapRow[]> {
@@ -400,7 +416,10 @@ export async function listVehicleWizardMap(): Promise<VehicleWizardMapRow[]> {
     .from("vehicle_wizard_map")
     .select("*")
     .order("frontend_vehicle_id");
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (isMissingTableError(error.message)) return [];
+    throw new Error(error.message);
+  }
   return (data ?? []) as VehicleWizardMapRow[];
 }
 
@@ -715,17 +734,21 @@ export function toVehicleWithMetadata(
 ): Vehicle {
   const row = metadataRows.find((item) => item.frontend_vehicle_id === vehicle.id);
   if (!row) return vehicle;
-  const media =
-    Array.isArray(row.media) && row.media.length > 0
-      ? (row.media as Vehicle["images"])
-      : vehicle.images;
+  const parsedMedia = parseVehicleMedia(row.media);
+  const images = parsedMedia.length > 0 ? toPublicVehicleImages(parsedMedia) : vehicle.images;
   const features = Array.isArray(row.features) ? (row.features as string[]) : vehicle.features;
+  const title = row.title?.trim() || vehicle.title;
+  const brand = row.brand?.trim();
+  const model = row.model?.trim() || vehicle.model;
   return {
     ...vehicle,
     slug: row.slug || vehicle.slug,
+    make: brand || vehicle.make,
+    title: title || composeVehicleTitle(brand || vehicle.make, model),
+    model,
     tagline: row.tagline ?? vehicle.tagline,
     description: row.description ?? vehicle.description,
     features,
-    images: media,
+    images,
   };
 }

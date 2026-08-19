@@ -11,6 +11,7 @@ import { FlowSummaryPanel } from "@/components/booking/FlowSummaryPanel";
 import { useBookingFunnelPage } from "@/hooks/useBookingFunnelPage";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
+import { isWifiDataPlan } from "@/lib/api/fixtures/catalog";
 import type { AddOnCategory } from "@/types/domain";
 
 const CATEGORY_ORDER: { id: AddOnCategory; titleKey: string }[] = [
@@ -56,6 +57,13 @@ export default function ExtrasPage() {
     draft.extras.find((e) => e.addOnId === addOnId)?.qty ?? 0;
 
   const setQty = (addOnId: string, qty: number) => {
+    if (qty > 0 && isWifiDataPlan(addOnId)) {
+      for (const extra of draft.extras) {
+        if (extra.addOnId !== addOnId && isWifiDataPlan(extra.addOnId)) {
+          upsertExtra({ addOnId: extra.addOnId, qty: 0 });
+        }
+      }
+    }
     upsertExtra({ addOnId, qty });
     if (qty > 0) track(EVENTS.EXTRAS_ADDED, { addOnId, qty });
   };

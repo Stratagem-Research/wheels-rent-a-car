@@ -32,6 +32,7 @@ export {
 } from "./client";
 export {
   toInternalAvailableVehicles,
+  catalogVehicleToAvailable,
   toInternalBooking,
   fromBookingDraft,
   synthesizeBookingRef,

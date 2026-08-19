@@ -2,78 +2,134 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import {
   frontendVehicleIdFromWizard,
+  parseWizardVehicleId,
   slugifyVehicleName,
 } from "@/lib/booking/wizard-vehicle-id";
 import {
+  deleteVehicleMetadataByIds,
   listVehicleMetadata,
-  replaceVehicleMetadata,
+  upsertVehicleMetadata,
   writeAdminAuditLog,
   type VehicleMetadataRow,
 } from "@/lib/supabase/admin-repository";
-import { listWebsiteEnabledWizardVehicles } from "@/lib/supabase/wizard-vehicles-repository";
+import { listWebsiteEnabledWizardVehicles, type WizardVehicleRow } from "@/lib/supabase/wizard-vehicles-repository";
 import { requireAdminCsrf, requireAdminSession } from "@/lib/server/admin-api";
+import { parseOperational } from "@/lib/vehicles/vehicle-operational";
+import { listHeldFrontendVehicleIds } from "@/lib/supabase/vehicle-booking-holds-repository";
 
 const MetadataItemSchema = z.object({
   frontend_vehicle_id: z.string().min(1),
   slug: z.string().min(1),
+  title: z.string().nullable().optional(),
+  brand: z.string().nullable().optional(),
+  model: z.string().nullable().optional(),
   tagline: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
   features: z.array(z.string()).optional().default([]),
   badges: z.array(z.string()).optional().default([]),
   media: z.array(z.record(z.string(), z.unknown())).optional().default([]),
+  operational: z.record(z.string(), z.unknown()).optional().default({}),
   updated_at: z.string().optional(),
 });
 
-const PayloadSchema = z.object({ items: z.array(MetadataItemSchema) });
+const PayloadSchema = z.object({
+  items: z.array(MetadataItemSchema),
+  deleted_ids: z.array(z.string()).optional().default([]),
+});
+
+function wizardName(wiz: WizardVehicleRow): string | null {
+  const operational = wiz.operational ?? {};
+  return (
+    (typeof operational.name === "string" && operational.name.trim()) ||
+    wiz.display_name?.trim() ||
+    null
+  );
+}
+
+function itemFromWizard(wiz: WizardVehicleRow, meta: VehicleMetadataRow | undefined) {
+  const frontendId = frontendVehicleIdFromWizard(wiz.wizard_vehicle_id);
+  const defaultSlug = slugifyVehicleName(wiz.display_name) || frontendId;
+  const name = wizardName(wiz);
+  const brand = meta?.brand ?? wiz.brand;
+  const model = meta?.model ?? wiz.model;
+  return {
+    frontend_vehicle_id: frontendId,
+    slug: meta?.slug ?? defaultSlug,
+    title: meta?.title ?? name,
+    brand,
+    model,
+    tagline: meta?.tagline ?? null,
+    description: meta?.description ?? null,
+    features: meta?.features ?? [],
+    badges: meta?.badges ?? [],
+    media: meta?.media ?? [],
+    operational: meta?.operational ?? {},
+    updated_at: meta?.updated_at,
+    wizard_vehicle_id: wiz.wizard_vehicle_id,
+    wizard_display_name: name,
+    wizard_brand: wiz.brand,
+    wizard_model: wiz.model,
+    source: "wizard" as const,
+  };
+}
+
+function itemFromManualMetadata(meta: VehicleMetadataRow) {
+  return {
+    frontend_vehicle_id: meta.frontend_vehicle_id,
+    slug: meta.slug,
+    title: meta.title,
+    brand: meta.brand,
+    model: meta.model,
+    tagline: meta.tagline,
+    description: meta.description,
+    features: meta.features ?? [],
+    badges: meta.badges ?? [],
+    media: meta.media ?? [],
+    operational: meta.operational ?? {},
+    updated_at: meta.updated_at,
+    wizard_vehicle_id: parseWizardVehicleId(meta.frontend_vehicle_id),
+    wizard_display_name: parseOperational(meta.operational).display_name || meta.title,
+    wizard_brand: meta.brand,
+    wizard_model: meta.model,
+    source: "website" as const,
+  };
+}
 
 /**
- * Fleet admin list is driven by website-enabled Wizard vehicles (sync mirror),
- * not every historical `vehicle_metadata` row — that inflated count past the
- * 65 synced from Wizard.
+ * Website-enabled Wizard vehicles plus manually created metadata rows.
+ * Disabled Wizard units stay in the DB (sync does not prune) but are omitted here.
  */
 export async function GET(request: Request) {
   const auth = requireAdminSession(request, ["content-editor", "ops-admin"]);
   if (!auth.ok) return auth.response;
   try {
-    const [wizardRows, metadataRows] = await Promise.all([
+    const [wizardRows, metadataRows, heldIds] = await Promise.all([
       listWebsiteEnabledWizardVehicles(),
       listVehicleMetadata(),
+      listHeldFrontendVehicleIds(),
     ]);
 
     const metaById = new Map(
       metadataRows.map((row) => [row.frontend_vehicle_id, row] as const),
     );
+    const wizardFrontendIds = new Set(
+      wizardRows.map((wiz) => frontendVehicleIdFromWizard(wiz.wizard_vehicle_id)),
+    );
 
-    const items = wizardRows.map((wiz) => {
-      const frontendId = frontendVehicleIdFromWizard(wiz.wizard_vehicle_id);
-      const meta: VehicleMetadataRow | undefined = metaById.get(frontendId);
-      const operational = wiz.operational ?? {};
-      const defaultSlug = slugifyVehicleName(wiz.display_name) || frontendId;
-      const wizardName =
-        (typeof operational.name === "string" && operational.name.trim()) ||
-        wiz.display_name?.trim() ||
-        null;
-
-      return {
-        frontend_vehicle_id: frontendId,
-        slug: meta?.slug ?? defaultSlug,
-        tagline: meta?.tagline ?? null,
-        description: meta?.description ?? null,
-        features: meta?.features ?? [],
-        badges: meta?.badges ?? [],
-        media: meta?.media ?? [],
-        updated_at: meta?.updated_at,
-        wizard_vehicle_id: wiz.wizard_vehicle_id,
-        wizard_display_name: wizardName,
-        wizard_brand: wiz.brand,
-        wizard_model: wiz.model,
-      };
-    });
+    const items = [
+      ...wizardRows.map((wiz) =>
+        itemFromWizard(wiz, metaById.get(frontendVehicleIdFromWizard(wiz.wizard_vehicle_id))),
+      ),
+      ...metadataRows
+        .filter((row) => !wizardFrontendIds.has(row.frontend_vehicle_id))
+        .map(itemFromManualMetadata),
+    ];
 
     return NextResponse.json({
       items,
       total: items.length,
-      source: "wizard_vehicles_website_enabled",
+      held_ids: [...heldIds],
+      source: "wizard_vehicles_website_enabled_plus_manual",
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to load vehicle metadata.";
@@ -90,31 +146,42 @@ export async function PUT(request: Request) {
   const parsed = PayloadSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
-      { message: "Expected { items: VehicleMetadata[] }." },
+      { message: "Expected { items: VehicleMetadata[], deleted_ids?: string[] }." },
       { status: 400 },
     );
   }
   try {
-    await replaceVehicleMetadata(
+    const keepIds = new Set(parsed.data.items.map((item) => item.frontend_vehicle_id));
+    const deletedIds = parsed.data.deleted_ids.filter((id) => !keepIds.has(id));
+    await upsertVehicleMetadata(
       parsed.data.items.map((item) => ({
         frontend_vehicle_id: item.frontend_vehicle_id,
         slug: item.slug,
+        title: item.title?.trim() ? item.title.trim() : null,
+        brand: item.brand?.trim() ? item.brand.trim() : null,
+        model: item.model?.trim() ? item.model.trim() : null,
         tagline: item.tagline ?? null,
         description: item.description ?? null,
         features: item.features,
         badges: item.badges,
         media: item.media,
+        operational: item.operational ?? {},
         updated_at: item.updated_at ?? new Date().toISOString(),
       })),
     );
+    await deleteVehicleMetadataByIds(deletedIds);
     await writeAdminAuditLog({
       actor: auth.session.username,
       role: auth.session.role,
       resource: "vehicle_metadata",
-      action: "replace",
-      details: { count: parsed.data.items.length },
+      action: "upsert",
+      details: { count: parsed.data.items.length, deleted: deletedIds.length },
     }).catch(() => undefined);
-    return NextResponse.json({ ok: true, count: parsed.data.items.length });
+    return NextResponse.json({
+      ok: true,
+      count: parsed.data.items.length,
+      deleted: deletedIds.length,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to save vehicle metadata.";
     return NextResponse.json({ message }, { status: 500 });

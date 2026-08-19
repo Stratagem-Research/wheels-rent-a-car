@@ -23,15 +23,19 @@ Authorization: Bearer <WHEELS_INTERNAL_API_TOKEN or WIZARD_API_TOKEN>
 | Field | Required | Notes |
 | --- | --- | --- |
 | `booking_reference` | yes | Website booking ref |
-| `status` | yes | `approved` or `confirmed` triggers confirmation email |
+| `status` | yes | `approved`/`confirmed` → confirmation email. `cancelled`/`canceled`/`rejected` → drop inventory hold |
 | `customer_email` | yes | Recipient |
 | `vehicle` | no | Display string in email |
 
 ## Behaviour
 
-1. Customer submit → website enqueues `booking_request_received`  
+1. Customer submit → website enqueues `booking_request_received` and creates a vehicle hold  
 2. Wizard reviews → calls this webhook with `approved`/`confirmed`  
 3. Website enqueues `booking_confirmation` **once** (idempotent on outbox template + ref)  
-4. Other statuses return `{ confirmationEnqueued: false, reason: "status_not_approval" }`  
+4. Wizard cancel/reject → calls this webhook with `cancelled` (or `canceled`/`rejected`)  
+5. Website deletes `vehicle_booking_holds` for that ref so the car is bookable again (idempotent if already gone)  
+6. Other statuses return `{ confirmationEnqueued: false, reason: "status_not_approval" }`  
+
+Hold release is **not** inferred from polling. Wizard must POST cancel here.  
 
 See [Adam_Response_Notifications_And_SMTP.md](./Adam_Response_Notifications_And_SMTP.md).

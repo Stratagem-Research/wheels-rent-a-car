@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { useRouter } from "next/navigation";
-import { format, parseISO } from "date-fns";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { addDays, format, parseISO, startOfDay } from "date-fns";
 import { Calendar, ChevronDown, Clock, Edit3, MapPin, Plus, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
@@ -10,10 +10,10 @@ import { Button } from "@/components/ui/Button";
 import { DatePopover } from "@/components/ui/DatePopover";
 import { Input } from "@/components/ui/Input";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/Sheet";
-import { TimePicker } from "@/components/ui/TimePicker";
+import { TimePicker, nextAvailableTimeSlot, timeSlotAfter } from "@/components/ui/TimePicker";
 import { LocationPicker } from "./LocationPicker";
 import { useLastSearch } from "@/hooks/useLastSearch";
-import { searchToQuery } from "@/lib/search/persistence";
+import { queryToSearch, searchToQuery } from "@/lib/search/persistence";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
 import type { Branch } from "@/types/domain";
@@ -49,7 +49,43 @@ export function SearchBar({ variant = "expanded", branches, className }: SearchB
   const t = useTranslations("search");
   const locale = useLocale();
   const router = useRouter();
-  const { criteria, setCriteria } = useLastSearch();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { criteria: storedCriteria, setCriteria: persistCriteria } = useLastSearch();
+  const urlKey = searchParams?.toString() ?? "";
+  const urlCriteria = React.useMemo(
+    () => (searchParams ? queryToSearch(new URLSearchParams(searchParams.toString())) : null),
+    [searchParams],
+  );
+  const [criteria, setCriteriaState] = React.useState<SearchCriteria>(
+    () => urlCriteria ?? storedCriteria,
+  );
+
+  React.useEffect(() => {
+    const fromUrl = searchParams
+      ? queryToSearch(new URLSearchParams(searchParams.toString()))
+      : null;
+    if (fromUrl) setCriteriaState(fromUrl);
+  }, [urlKey, searchParams]);
+
+  React.useEffect(() => {
+    const fromUrl = searchParams
+      ? queryToSearch(new URLSearchParams(searchParams.toString()))
+      : null;
+    if (!fromUrl) setCriteriaState(storedCriteria);
+  }, [urlKey, searchParams, storedCriteria]);
+
+  const setCriteria = React.useCallback(
+    (next: SearchCriteria | ((prev: SearchCriteria) => SearchCriteria)) => {
+      setCriteriaState((prev) => {
+        const value = typeof next === "function" ? next(prev) : next;
+        persistCriteria(value);
+        return value;
+      });
+    },
+    [persistCriteria],
+  );
+
   const [promoOpen, setPromoOpen] = React.useState(Boolean(criteria.promoCode));
   const [error, setError] = React.useState<string | null>(null);
   // Desktop-compact mode: the pill is itself a Sheet trigger, controlled
@@ -71,8 +107,14 @@ export function SearchBar({ variant = "expanded", branches, className }: SearchB
       promo: criteria.promoCode ?? "",
     });
     setEditorOpen(false);
+    if (pathname.includes("/vehicles")) {
+      const merged = new URLSearchParams(searchParams?.toString() ?? "");
+      for (const [key, value] of params.entries()) merged.set(key, value);
+      router.push(`/vehicles?${merged.toString()}`);
+      return;
+    }
     router.push(`/book/select-vehicle?${params.toString()}`);
-  }, [criteria, router, t]);
+  }, [criteria, pathname, router, searchParams, t]);
 
   return (
     <>
@@ -193,6 +235,17 @@ function ExpandedLayout({
   const [pickupTimeOpen, setPickupTimeOpen] = React.useState(false);
   const [returnTimeOpen, setReturnTimeOpen] = React.useState(false);
 
+  const today = format(new Date(), "yyyy-MM-dd");
+  const nowSlot = nextAvailableTimeSlot();
+  const pickupMinTime = criteria.pickupDate === today ? nowSlot : undefined;
+  const returnMinTime = (() => {
+    const afterPickup =
+      criteria.returnDate === criteria.pickupDate ? timeSlotAfter(criteria.pickupTime) : undefined;
+    const afterNow = criteria.returnDate === today ? nowSlot : undefined;
+    if (afterPickup && afterNow) return afterPickup > afterNow ? afterPickup : afterNow;
+    return afterPickup ?? afterNow;
+  })();
+
   return (
     <div className={cn(framed && "bg-paper rounded-2xl p-6 shadow-[var(--shadow-elevation-2)]")}>
       <div className="flex flex-col gap-5">
@@ -289,6 +342,7 @@ function ExpandedLayout({
               mode="range"
               open={datesOpen}
               onOpenChange={setDatesOpen}
+              min={startOfDay(addDays(new Date(), 1))}
               rangeValue={{
                 from: parseISO(criteria.pickupDate),
                 to: parseISO(criteria.returnDate),
@@ -323,6 +377,7 @@ function ExpandedLayout({
               open={pickupTimeOpen}
               onOpenChange={setPickupTimeOpen}
               title={t("selectPickupTime")}
+              minTime={pickupMinTime}
               renderTrigger={(display, isPlaceholder) => (
                 <FieldTrigger
                   icon={<Clock className="text-ink-60 size-4 shrink-0" aria-hidden="true" />}
@@ -340,6 +395,7 @@ function ExpandedLayout({
               open={returnTimeOpen}
               onOpenChange={setReturnTimeOpen}
               title={t("selectReturnTime")}
+              minTime={returnMinTime}
               renderTrigger={(display, isPlaceholder) => (
                 <FieldTrigger
                   icon={<Clock className="text-ink-60 size-4 shrink-0" aria-hidden="true" />}
@@ -435,7 +491,11 @@ const CompactLayout = React.forwardRef<
       <div className="body-md flex min-w-0 flex-1 items-center gap-3 truncate sm:gap-4">
         <span className="text-ink-95 truncate font-semibold">{location}</span>
         <span aria-hidden="true" className="bg-ink-20 hidden h-5 w-px shrink-0 sm:block" />
-        <span className="text-ink-60 hidden truncate tabular-nums sm:inline">
+        <span
+          className={cn(
+            "label-md hidden shrink-0 items-center rounded-pill bg-ink-100 px-3 py-1 text-paper sm:inline-flex",
+          )}
+        >
           {datesForLocale(criteria, locale)}
         </span>
       </div>

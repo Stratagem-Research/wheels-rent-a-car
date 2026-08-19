@@ -12,6 +12,7 @@ import { SearchBar } from "@/components/search/SearchBar";
 import { Stepper } from "@/components/booking/Stepper";
 import { VehicleCard } from "@/components/vehicle/VehicleCard";
 import { VehicleCardExpanded } from "@/components/vehicle/VehicleCardExpanded";
+import { VehiclesDateFilterChip } from "./VehiclesDateFilterChip";
 import {
   applyFilters,
   computeFacets,
@@ -24,6 +25,7 @@ import { seedDraftFromSearchParams, useBookingDraft } from "@/hooks/useBookingDr
 import { appendSearchContextFromParams, draftToSearchParams } from "@/lib/booking/draft-to-search-params";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
+import { queryToSearch } from "@/lib/search/criteria";
 import type { MileagePlan, RateType, Vehicle, VehicleCategory, Branch } from "@/types/domain";
 
 /**
@@ -104,9 +106,9 @@ export function VehiclesClient({
     const pickupTypeParam = searchParams.get("pickupType");
     const pickupType =
       pickupTypeParam === "airport" ||
-      pickupTypeParam === "branch" ||
-      pickupTypeParam === "address-delivery" ||
-      pickupTypeParam === "chauffeur"
+        pickupTypeParam === "branch" ||
+        pickupTypeParam === "address-delivery" ||
+        pickupTypeParam === "chauffeur"
         ? pickupTypeParam
         : draft.pickup.type;
     const pickupLoc = searchParams.get("pickupLoc") ?? draft.pickup.locationId;
@@ -211,14 +213,14 @@ export function VehiclesClient({
         const withSearch =
           pickupAt && returnAt
             ? (() => {
-                const seeded = seedDraftFromSearchParams(searchParams);
-                return {
-                  ...prev,
-                  pickup: { ...prev.pickup, ...seeded.pickup },
-                  return: { ...prev.return, ...seeded.return },
-                  promoCode: seeded.promoCode ?? prev.promoCode,
-                };
-              })()
+              const seeded = seedDraftFromSearchParams(searchParams);
+              return {
+                ...prev,
+                pickup: { ...prev.pickup, ...seeded.pickup },
+                return: { ...prev.return, ...seeded.return },
+                promoCode: seeded.promoCode ?? prev.promoCode,
+              };
+            })()
             : prev;
         return { ...withSearch, vehicle: { vehicleId, vehicleSlug, rate: choice } };
       });
@@ -275,8 +277,9 @@ export function VehiclesClient({
     [facets.category],
   );
 
-  const pickupISO = draft?.pickup.datetime ?? "";
-  const returnISO = draft?.return.datetime ?? "";
+  const appliedSearch = React.useMemo(() => queryToSearch(searchParams), [searchParams]);
+  const pickupISO = searchParams.get("pickupAt") ?? draft?.pickup.datetime ?? "";
+  const returnISO = searchParams.get("returnAt") ?? draft?.return.datetime ?? "";
 
   const reduce = useMotionGate();
 
@@ -289,18 +292,18 @@ export function VehiclesClient({
         data-vehicles-sticky-search
         className="bg-paper border-border sticky top-0 z-20 border-b"
       >
-        <div className="mx-auto max-w-[var(--container-full)] px-5 py-3 sm:px-5">
+        <div className="mx-auto max-w-(--container-full) px-5 py-3 sm:px-5">
           <SearchBar branches={branches} variant="compact" />
         </div>
       </section>
 
-      <section className="mx-auto max-w-[var(--container-full)] px-5 py-8 sm:px-5 sm:py-12">
+      <section className="mx-auto max-w-(--container-full) px-4 py-6 sm:px-5 sm:py-8">
         <h1 className="display-md text-ink-100 text-[clamp(24px,2.5vw,36px)] leading-[1.05] whitespace-nowrap">
           {t("title")}
         </h1>
 
         {availabilityError ? (
-          <p className="bg-signal-blue/10 text-signal-blue label-md mt-4 rounded-lg px-4 py-2">
+          <p className="bg-signal-blue/10 text-signal-blue label-md mt-3 rounded-lg px-4 py-2">
             {t("availabilityErrorBanner")}
           </p>
         ) : null}
@@ -309,6 +312,7 @@ export function VehiclesClient({
          * no fuel filter, no guaranteed-model filter. Categories are
          * multi-select; clicking the same chip again clears it. */}
         <div className="mt-6 flex flex-wrap items-center gap-2 lg:mt-8">
+          {appliedSearch ? <VehiclesDateFilterChip criteria={appliedSearch} /> : null}
           <Chip
             variant={lowestPriceActive ? "selected" : "default"}
             onClick={toggleLowestPrice}
@@ -349,71 +353,71 @@ export function VehiclesClient({
           />
         ) : (
           <>
-          <motion.div
-            variants={reduce ? undefined : staggerContainer}
-            initial={reduce ? false : "hidden"}
-            animate="visible"
-            className="mt-6 flex flex-col gap-4 sm:gap-6 lg:mt-8"
-            aria-label={t("resultsAria")}
-            role="list"
-          >
-            {chunkRows(pageItems, rowSize).map((rowGroups, rowIdx) => {
-              const selectedInRow =
-                expandedVehicle && rowGroups.some((g) => g.vehicle.id === expandedVehicle.id)
-                  ? expandedVehicle
-                  : null;
-              return (
-                <React.Fragment key={`row-${rowIdx}`}>
-                  <ul
-                    className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3"
-                    role="presentation"
-                  >
-                    {rowGroups.map(({ vehicle: v, unitCount }) => {
-                      const isExpanded = expandedVehicle?.id === v.id;
-                      return (
-                        <motion.li
-                          key={v.id}
-                          variants={reduce ? undefined : staggerItem}
-                          role="listitem"
-                        >
-                          <VehicleCard
-                            vehicle={v}
-                            availableCount={unitCount}
-                            selected={isExpanded}
-                            href={`/vehicles?${withSelected(searchParams, v.slug)}`}
-                            pickupISO={pickupISO}
-                            returnISO={returnISO}
-                            scrollOnClick={false}
-                          />
-                        </motion.li>
-                      );
-                    })}
-                  </ul>
+            <motion.div
+              variants={reduce ? undefined : staggerContainer}
+              initial={reduce ? false : "hidden"}
+              animate="visible"
+              className="mt-6 flex flex-col gap-4 sm:gap-6 lg:mt-8"
+              aria-label={t("resultsAria")}
+              role="list"
+            >
+              {chunkRows(pageItems, rowSize).map((rowGroups, rowIdx) => {
+                const selectedInRow =
+                  expandedVehicle && rowGroups.some((g) => g.vehicle.id === expandedVehicle.id)
+                    ? expandedVehicle
+                    : null;
+                return (
+                  <React.Fragment key={`row-${rowIdx}`}>
+                    <ul
+                      className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3"
+                      role="presentation"
+                    >
+                      {rowGroups.map(({ vehicle: v, unitCount }) => {
+                        const isExpanded = expandedVehicle?.id === v.id;
+                        return (
+                          <motion.li
+                            key={v.id}
+                            variants={reduce ? undefined : staggerItem}
+                            role="listitem"
+                          >
+                            <VehicleCard
+                              vehicle={v}
+                              availableCount={unitCount}
+                              selected={isExpanded}
+                              href={`/vehicles?${withSelected(searchParams, v.slug)}`}
+                              pickupISO={pickupISO}
+                              returnISO={returnISO}
+                              scrollOnClick={false}
+                            />
+                          </motion.li>
+                        );
+                      })}
+                    </ul>
 
-                  {/* Instant mount/unmount — no exit animation. AnimatePresence
+                    {/* Instant mount/unmount — no exit animation. AnimatePresence
                    * left two panels mounted during row switches, which shoved
                    * scroll to the page bottom and felt sluggish. */}
-                  {selectedInRow && ready && draft ? (
-                    <VehicleCardExpanded
-                      key={selectedInRow.id}
-                      vehicle={selectedInRow}
-                      pickupISO={pickupISO}
-                      returnISO={returnISO}
-                      onConfirm={(choice) => onConfirm(selectedInRow.id, selectedInRow.slug, choice)}
-                      onClose={onClose}
-                    />
-                  ) : null}
-                </React.Fragment>
-              );
-            })}
-          </motion.div>
-          {totalPages > 1 ? (
-            <FleetPagination
-              current={page}
-              total={totalPages}
-              onChange={goToPage}
-            />
-          ) : null}
+                    {selectedInRow && ready && draft ? (
+                      <VehicleCardExpanded
+                        key={selectedInRow.id}
+                        vehicle={selectedInRow}
+                        pickupISO={pickupISO}
+                        returnISO={returnISO}
+                        onConfirm={(choice) => onConfirm(selectedInRow.id, selectedInRow.slug, choice)}
+                        onClose={onClose}
+                      />
+                    ) : null}
+                  </React.Fragment>
+                );
+              })}
+            </motion.div>
+            {totalPages > 1 ? (
+              <FleetPagination
+                current={page}
+                total={totalPages}
+                onChange={goToPage}
+              />
+            ) : null}
           </>
         )}
       </section>

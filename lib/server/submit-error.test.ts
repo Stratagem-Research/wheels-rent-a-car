@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { WheelsApiError, VehicleUnavailableError } from "@/lib/api/wheels-public";
+import { WIZARD_VEHICLE_UNKNOWN } from "@/lib/booking/wizard-vehicle-id";
 import { mapSubmitError } from "./submit-error";
 
 describe("mapSubmitError", () => {
@@ -26,5 +27,11 @@ describe("mapSubmitError", () => {
     const mapped = mapSubmitError({ code: "weird" });
     expect(mapped.status).toBe(502);
     expect(mapped.message).toBe("Booking submission failed.");
+  });
+
+  it("maps unknown Wizard vehicle ids to 400", () => {
+    const mapped = mapSubmitError(new Error(WIZARD_VEHICLE_UNKNOWN));
+    expect(mapped.status).toBe(400);
+    expect(mapped.message).toBe(WIZARD_VEHICLE_UNKNOWN);
   });
 });

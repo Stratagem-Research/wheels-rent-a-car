@@ -23,6 +23,7 @@ import { endpoints } from "@/lib/api/endpoints";
 import { isValidPhoneNational, phoneValueFromStored, toE164 } from "@/lib/booking/phone";
 import { computePrice, formatUsd } from "@/lib/booking/pricing";
 import { draftToSearchParams } from "@/lib/booking/draft-to-search-params";
+import { WIZARD_VEHICLE_UNKNOWN } from "@/lib/booking/wizard-vehicle-id";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
 import type { BookingDriver, PaymentMethod, SubmitBookingResponse, User, UserDocument } from "@/types/domain";
@@ -146,6 +147,11 @@ export default function CheckoutPage() {
       })
       .then((result) => {
         if (result.available) return;
+        if (result.reason === "unknown_vehicle") {
+          toast.warning(WIZARD_VEHICLE_UNKNOWN);
+          router.replace("/vehicles");
+          return;
+        }
         const detail = result.reason ? ` (${result.reason})` : "";
         toast.warning(`${t("vehicleTaken")}${detail}`);
         const params = draftToSearchParams(draft);

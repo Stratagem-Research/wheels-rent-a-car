@@ -25,6 +25,8 @@ import { cn } from "@/lib/utils";
 export interface TimePickerProps {
   value?: string;
   onValueChange?: (next: string) => void;
+  /** Slots strictly before this `HH:mm` are not selectable (past times). */
+  minTime?: string;
   /** Custom time slots; defaults to the 30-minute scale. */
   options?: string[];
   placeholder?: string;
@@ -54,6 +56,25 @@ function buildAllSlots(): string[] {
 
 const ALL_SLOTS = buildAllSlots();
 
+/** First 30-minute slot strictly after `from`. */
+export function nextAvailableTimeSlot(from = new Date()): string {
+  const mins = from.getHours() * 60 + from.getMinutes() + 1;
+  const rounded = Math.ceil(mins / 30) * 30;
+  if (rounded >= 24 * 60) return "24:00";
+  const h = Math.floor(rounded / 60);
+  const m = rounded % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+function slotAfter(slot: string): string {
+  const [h, m] = slot.split(":").map(Number);
+  const next = (h ?? 0) * 60 + (m ?? 0) + 30;
+  if (next >= 24 * 60) return "24:00";
+  return `${String(Math.floor(next / 60)).padStart(2, "0")}:${String(next % 60).padStart(2, "0")}`;
+}
+
+export { slotAfter as timeSlotAfter };
+
 export function TimePicker({
   value,
   onValueChange,
@@ -67,6 +88,7 @@ export function TimePicker({
   renderTrigger,
   open,
   onOpenChange,
+  minTime,
   ...aria
 }: TimePickerProps) {
   const t = useTranslations("searchUi");
@@ -86,6 +108,7 @@ export function TimePicker({
   }
 
   const select = (slot: string) => {
+    if (minTime && slot < minTime) return;
     onValueChange?.(slot);
     onOpenChange?.(false);
   };
@@ -137,14 +160,26 @@ export function TimePicker({
           </header>
 
           {day.length > 0 && (
-            <Section label={t("timeDay")} slots={day} value={value} onSelect={select} />
+            <Section label={t("timeDay")} slots={day} value={value} minTime={minTime} onSelect={select} />
           )}
           {evening.length > 0 && (
-            <Section label={t("timeEvening")} slots={evening} value={value} onSelect={select} />
+            <Section
+              label={t("timeEvening")}
+              slots={evening}
+              value={value}
+              minTime={minTime}
+              onSelect={select}
+            />
           )}
 
           {showOffHours && offHours.length > 0 ? (
-            <Section label={t("timeOffHours")} slots={offHours} value={value} onSelect={select} />
+            <Section
+              label={t("timeOffHours")}
+              slots={offHours}
+              value={value}
+              minTime={minTime}
+              onSelect={select}
+            />
           ) : offHours.length > 0 ? (
             <button
               type="button"
@@ -165,11 +200,13 @@ function Section({
   label,
   slots,
   value,
+  minTime,
   onSelect,
 }: {
   label: string;
   slots: string[];
   value: string | undefined;
+  minTime?: string;
   onSelect: (slot: string) => void;
 }) {
   return (
@@ -178,15 +215,21 @@ function Section({
       <div className="grid grid-cols-2 gap-2">
         {slots.map((slot) => {
           const active = slot === value;
+          const unavailable = Boolean(minTime && slot < minTime);
           return (
             <button
               key={slot}
               type="button"
+              disabled={unavailable}
               onClick={() => onSelect(slot)}
               aria-pressed={active}
               className={cn(
                 "body-md inline-flex h-10 items-center justify-center rounded-md tabular-nums transition-colors duration-100",
-                active ? "bg-ink-95 text-paper" : "bg-ink-10 text-ink-95 hover:bg-ink-20",
+                unavailable
+                  ? "bg-ink-10 text-ink-40 cursor-not-allowed"
+                  : active
+                    ? "bg-ink-95 text-paper"
+                    : "bg-ink-10 text-ink-95 hover:bg-ink-20",
                 "focus-visible:outline-ink-100 focus-visible:outline-2 focus-visible:outline-offset-1",
               )}
             >

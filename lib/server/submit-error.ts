@@ -10,6 +10,7 @@ import {
   IncompleteBookingDraftError,
   MissingBackendVehicleIdError,
 } from "@/lib/api/wheels-public/adapters";
+import { WIZARD_VEHICLE_UNKNOWN } from "@/lib/booking/wizard-vehicle-id";
 
 type SubmitErrorResponse = {
   status: number;
@@ -89,6 +90,9 @@ export function mapSubmitError(err: unknown): SubmitErrorResponse {
       return { status: 409, message: err.message };
     }
     if (err.message.startsWith("No wizard mapping for vehicle")) {
+      return { status: 400, message: err.message };
+    }
+    if (err.message === WIZARD_VEHICLE_UNKNOWN) {
       return { status: 400, message: err.message };
     }
   }

@@ -56,14 +56,62 @@ describe("booking/pricing", () => {
   });
 
   it("rolls in extras priced per-day", () => {
-    const babySeat = ADD_ONS.find((a) => a.id === "ao-baby-seat")!;
+    const extraDriver = ADD_ONS.find((a) => a.id === "ao-extra-driver")!;
     const result = computePrice({
-      draft: draft({ extras: [{ addOnId: babySeat.id, qty: 1 }] }),
+      draft: draft({ extras: [{ addOnId: extraDriver.id, qty: 1 }] }),
       vehicle: yaris,
       addOns: ADD_ONS,
       tiers: PROTECTION_TIERS,
     });
-    expect(result.extrasCents).toBe(babySeat.priceCents * 5);
+    expect(result.extrasCents).toBe(extraDriver.priceCents * 5);
+  });
+
+  it("charges child seats once per rental, not per day", () => {
+    const baby = ADD_ONS.find((a) => a.id === "ao-baby-seat")!;
+    const booster = ADD_ONS.find((a) => a.id === "ao-booster-seat")!;
+    const child = ADD_ONS.find((a) => a.id === "ao-child-seat")!;
+    expect(baby.pricing).toBe("per-rental");
+    expect(booster.pricing).toBe("per-rental");
+    expect(child.pricing).toBe("per-rental");
+
+    const result = computePrice({
+      draft: draft({
+        extras: [
+          { addOnId: baby.id, qty: 1 },
+          { addOnId: booster.id, qty: 2 },
+          { addOnId: child.id, qty: 1 },
+        ],
+      }),
+      vehicle: yaris,
+      addOns: ADD_ONS,
+      tiers: PROTECTION_TIERS,
+    });
+    expect(result.extrasCents).toBe(baby.priceCents + booster.priceCents * 2 + child.priceCents);
+  });
+
+  it("charges the 22 GB hotspot once per rental", () => {
+    const wifi = ADD_ONS.find((a) => a.id === "ao-wifi")!;
+    expect(wifi.pricing).toBe("per-rental");
+    const result = computePrice({
+      draft: draft({ extras: [{ addOnId: wifi.id, qty: 1 }] }),
+      vehicle: yaris,
+      addOns: ADD_ONS,
+      tiers: PROTECTION_TIERS,
+    });
+    expect(result.extrasCents).toBe(wifi.priceCents);
+  });
+
+  it("charges custom WiFi data per GB for the rental", () => {
+    const custom = ADD_ONS.find((a) => a.id === "ao-wifi-custom")!;
+    expect(custom.quantityUnit).toBe("gb");
+    expect(custom.pricing).toBe("per-rental");
+    const result = computePrice({
+      draft: draft({ extras: [{ addOnId: custom.id, qty: 40 }] }),
+      vehicle: yaris,
+      addOns: ADD_ONS,
+      tiers: PROTECTION_TIERS,
+    });
+    expect(result.extrasCents).toBe(custom.priceCents * 40);
   });
 
   it("applies the SUMMER15 discount", () => {

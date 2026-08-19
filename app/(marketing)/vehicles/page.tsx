@@ -1,7 +1,8 @@
 import { getTranslations } from "next-intl/server";
+import { redirect } from "next/navigation";
 import { getPublicBranches, getPublicVehicles } from "@/lib/server/public-content";
 import { handleBookingAvailability } from "@/lib/server/booking-service";
-import { listHeldFrontendVehicleIds } from "@/lib/supabase/vehicle-booking-holds-repository";
+import { vehiclesQueryWithDefaultWindow } from "@/lib/search/criteria";
 import { VehiclesClient } from "./_components/VehiclesClient";
 import type { Vehicle } from "@/types/domain";
 
@@ -21,24 +22,16 @@ interface PageProps {
 }
 
 /**
- * When pickupAt/returnAt are on the URL, resolve the list against real
- * Wizard availability for those dates instead of the full catalog — closes
- * the gap where /vehicles ignored picked dates until the final 409 at
- * submit. Website booking holds are subtracted in both modes so the
- * grouped "available" count drops after each booking.
+ * Resolve the list against Wizard availability for the search window.
+ * Website booking holds are subtracted so the grouped "available" count
+ * drops after each booking. The page always has pickupAt/returnAt (defaults
+ * are written onto the URL when missing).
  */
 async function resolveVehiclesForDates(
-  pickupAt?: string,
-  returnAt?: string,
+  pickupAt: string,
+  returnAt: string,
 ): Promise<{ vehicles: Vehicle[]; availabilityError: boolean }> {
   const catalog = await getPublicVehicles();
-  if (!pickupAt || !returnAt) {
-    const heldIds = await listHeldFrontendVehicleIds();
-    return {
-      vehicles: heldIds.size === 0 ? catalog : catalog.filter((v) => !heldIds.has(v.id)),
-      availabilityError: false,
-    };
-  }
   try {
     const { items } = await handleBookingAvailability({
       pickup: { type: "branch", datetime: pickupAt },
@@ -67,12 +60,16 @@ export default async function VehiclesPage({ searchParams }: PageProps) {
   const pickupAt = typeof sp.pickupAt === "string" ? sp.pickupAt : undefined;
   const returnAt = typeof sp.returnAt === "string" ? sp.returnAt : undefined;
 
-  const [{ vehicles, availabilityError }, branches] = await Promise.all([
-    resolveVehiclesForDates(pickupAt, returnAt),
-    getPublicBranches(),
-  ]);
+  if (!pickupAt || !returnAt) {
+    redirect(`/vehicles?${vehiclesQueryWithDefaultWindow(sp).toString()}`);
+  } else {
+    const [{ vehicles, availabilityError }, branches] = await Promise.all([
+      resolveVehiclesForDates(pickupAt, returnAt),
+      getPublicBranches(),
+    ]);
 
-  return (
-    <VehiclesClient vehicles={vehicles} branches={branches} availabilityError={availabilityError} />
-  );
+    return (
+      <VehiclesClient vehicles={vehicles} branches={branches} availabilityError={availabilityError} />
+    );
+  }
 }

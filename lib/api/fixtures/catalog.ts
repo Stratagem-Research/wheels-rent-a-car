@@ -1,6 +1,6 @@
 import type { AddOn, CarWashPackage, LongTermTier, ProtectionTier } from "@/types/domain";
 
-/** 11 add-ons across all 5 categories (matches 04_booking_flow.md step 2). */
+/** Add-ons across booking categories (matches 04_booking_flow.md step 2). */
 export const ADD_ONS: AddOn[] = [
   {
     id: "ao-extra-driver",
@@ -37,7 +37,7 @@ export const ADD_ONS: AddOn[] = [
     name: "Baby seat (0–13 kg)",
     description: "Rear-facing infant seat. ECE-approved.",
     category: "comfort",
-    pricing: "per-day",
+    pricing: "per-rental",
     priceCents: 500,
     multiQuantity: true,
     maxQuantity: 3,
@@ -48,7 +48,7 @@ export const ADD_ONS: AddOn[] = [
     name: "Booster seat (15–36 kg)",
     description: "Lift cushion for older children.",
     category: "comfort",
-    pricing: "per-day",
+    pricing: "per-rental",
     priceCents: 400,
     multiQuantity: true,
     maxQuantity: 3,
@@ -59,7 +59,7 @@ export const ADD_ONS: AddOn[] = [
     name: "Child seat (9–18 kg)",
     description: "Forward-facing toddler seat.",
     category: "comfort",
-    pricing: "per-day",
+    pricing: "per-rental",
     priceCents: 500,
     multiQuantity: true,
     maxQuantity: 3,
@@ -77,12 +77,24 @@ export const ADD_ONS: AddOn[] = [
   },
   {
     id: "ao-wifi",
-    name: "4G WiFi hotspot",
-    description: "Pocket router with unlimited Lebanese data for up to 10 devices.",
+    name: "4G WiFi hotspot (22 GB)",
+    description: "Pocket router with 22 GB Lebanese data for up to 10 devices.",
     category: "connectivity",
-    pricing: "per-day",
+    pricing: "per-rental",
     priceCents: 700,
     multiQuantity: false,
+    icon: "wifi",
+  },
+  {
+    id: "ao-wifi-custom",
+    name: "4G WiFi hotspot (choose GB)",
+    description: "Enter the data allowance you need.",
+    category: "connectivity",
+    pricing: "per-rental",
+    priceCents: 50,
+    multiQuantity: true,
+    maxQuantity: 200,
+    quantityUnit: "gb",
     icon: "wifi",
   },
   {
@@ -116,6 +128,11 @@ export const ADD_ONS: AddOn[] = [
     icon: "leaf",
   },
 ];
+
+/** WiFi hotspot add-ons — pick one data plan, not several at once. */
+export function isWifiDataPlan(addOnId: string): boolean {
+  return addOnId === "ao-wifi" || addOnId.startsWith("ao-wifi-");
+}
 
 /** 3 protection tiers per 04_booking_flow.md step 3. */
 export const PROTECTION_TIERS: ProtectionTier[] = [

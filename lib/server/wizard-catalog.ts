@@ -1,5 +1,8 @@
 import type { Vehicle, VehicleCategory } from "@/types/domain";
-import { frontendVehicleIdFromWizard, slugifyVehicleName } from "@/lib/booking/wizard-vehicle-id";
+import {
+  frontendVehicleIdFromWizard,
+  slugifyVehicleName,
+} from "@/lib/booking/wizard-vehicle-id";
 import {
   listVehicleMetadata,
   toVehicleWithMetadata,
@@ -7,6 +10,13 @@ import {
 } from "@/lib/supabase/admin-repository";
 import type { WizardVehicleRow } from "@/lib/supabase/wizard-vehicles-repository";
 import { listWebsiteEnabledWizardVehicles } from "@/lib/supabase/wizard-vehicles-repository";
+import { parseVehicleMedia, toPublicVehicleImages } from "@/lib/vehicles/vehicle-media";
+import { composeVehicleTitle } from "@/lib/vehicles/display-name";
+import {
+  applyOperationalSpecs,
+  isManualVehiclePublic,
+  parseOperational,
+} from "@/lib/vehicles/vehicle-operational";
 
 const PLACEHOLDER_IMAGE = {
   url: "/images/Car Images/Untitled-design-2025-07-01T030112.627.png",
@@ -57,6 +67,7 @@ export function wizardRowToVehicle(row: WizardVehicleRow, metadataRows: VehicleM
     slug: slugifyVehicleName(row.display_name) || frontendId,
     make: row.brand ?? "Wheels",
     model: row.model ?? row.display_name,
+    title: row.display_name,
     year: new Date().getFullYear(),
     category: normalizeCategory(row.category),
     transmission: gearbox,
@@ -73,11 +84,49 @@ export function wizardRowToVehicle(row: WizardVehicleRow, metadataRows: VehicleM
   return toVehicleWithMetadata(base, metadataRows);
 }
 
+export function metadataOnlyToVehicle(row: VehicleMetadataRow): Vehicle {
+  const parsed = parseVehicleMedia(row.media);
+  const images = parsed.length > 0 ? toPublicVehicleImages(parsed) : [{ ...PLACEHOLDER_IMAGE }];
+  const operational = parseOperational(row.operational);
+  const title = row.title?.trim() || composeVehicleTitle(row.brand ?? "", row.model ?? "") || row.slug;
+  const brand = row.brand?.trim() || "Wheels";
+  const model = row.model?.trim() || title;
+  const features = Array.isArray(row.features) ? (row.features as string[]) : [];
+  const base: Vehicle = {
+    id: row.frontend_vehicle_id,
+    slug: row.slug,
+    make: brand,
+    model,
+    title,
+    year: new Date().getFullYear(),
+    category: "economy",
+    tagline: row.tagline ?? undefined,
+    description: row.description ?? undefined,
+    transmission: "automatic",
+    fuel: "petrol",
+    seats: 4,
+    doors: 4,
+    bags: 3,
+    features,
+    images,
+    dailyRateFromCents: 2000,
+    ownsInFleet: true,
+  };
+  return applyOperationalSpecs(base, operational);
+}
+
 export async function getSyncedPublicVehicles(): Promise<Vehicle[]> {
   const [rows, metadata] = await Promise.all([
     listWebsiteEnabledWizardVehicles(),
     listVehicleMetadata(),
   ]);
-  if (rows.length === 0) return [];
-  return rows.map((row) => wizardRowToVehicle(row, metadata));
+  const wizardFrontendIds = new Set(
+    rows.map((row) => frontendVehicleIdFromWizard(row.wizard_vehicle_id)),
+  );
+  const fromWizard = rows.map((row) => wizardRowToVehicle(row, metadata));
+  const manuals = metadata
+    .filter((row) => !wizardFrontendIds.has(row.frontend_vehicle_id))
+    .filter((row) => isManualVehiclePublic(parseOperational(row.operational)))
+    .map(metadataOnlyToVehicle);
+  return [...fromWizard, ...manuals];
 }

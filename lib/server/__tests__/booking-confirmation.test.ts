@@ -28,6 +28,7 @@ import { enqueueNotification } from "@/lib/server/notifications";
 import {
   enqueueBookingConfirmationOnce,
   isApprovalStatus,
+  isInventoryReleaseStatus,
 } from "@/lib/server/booking-confirmation";
 
 describe("booking-confirmation", () => {
@@ -41,6 +42,14 @@ describe("booking-confirmation", () => {
     expect(isApprovalStatus("approved")).toBe(true);
     expect(isApprovalStatus("confirmed")).toBe(true);
     expect(isApprovalStatus("pending_approval")).toBe(false);
+  });
+
+  it("recognizes inventory-release statuses", () => {
+    expect(isInventoryReleaseStatus("cancelled")).toBe(true);
+    expect(isInventoryReleaseStatus("canceled")).toBe(true);
+    expect(isInventoryReleaseStatus("rejected")).toBe(true);
+    expect(isInventoryReleaseStatus("approved")).toBe(false);
+    expect(isInventoryReleaseStatus("pending_approval")).toBe(false);
   });
 
   it("enqueues confirmation when none exists", async () => {

@@ -3,7 +3,7 @@ import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 export type VehicleBookingHoldInput = {
   bookingReference: string;
-  wizardVehicleId: number;
+  wizardVehicleId?: number | null;
   frontendVehicleId: string;
   pickupAt: string;
   returnAt: string;
@@ -36,7 +36,7 @@ export async function addVehicleBookingHold(input: VehicleBookingHoldInput): Pro
   const { error } = await supabase.from("vehicle_booking_holds").upsert(
     {
       booking_reference: input.bookingReference,
-      wizard_vehicle_id: input.wizardVehicleId,
+      ...(input.wizardVehicleId != null ? { wizard_vehicle_id: input.wizardVehicleId } : {}),
       frontend_vehicle_id: input.frontendVehicleId,
       pickup_at: toHoldIso(input.pickupAt),
       return_at: toHoldIso(input.returnAt),

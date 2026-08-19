@@ -1,3 +1,4 @@
+import { randomInt } from "node:crypto";
 import type {
   AvailabilityRequest,
   Booking,
@@ -10,10 +11,16 @@ import type {
   SubmitBookingResponse,
   Vehicle,
 } from "@/types/domain";
-import { frontendVehicleIdFromWizard, parseWizardVehicleId } from "@/lib/booking/wizard-vehicle-id";
+import {
+  frontendVehicleIdFromWizard,
+  isManualVehicleId,
+  parseWizardVehicleId,
+} from "@/lib/booking/wizard-vehicle-id";
+import { bookingFromStoredRow, storedBookingFromDomain } from "@/lib/booking/stored-booking";
 import { validatePromoCodeFromRow } from "@/lib/booking/promo";
 import {
   applyWebsiteVehicleToLookup,
+  LOOKUP_PLACEHOLDER_IMAGE,
   toBookingFromLookup,
 } from "@/lib/booking/lookup-adapter";
 import { findPromoCode } from "@/lib/supabase/promo-codes-repository";
@@ -24,24 +31,33 @@ import {
   rentalDays,
 } from "@/lib/booking/pricing";
 import { getPublicVehicles } from "@/lib/server/public-content";
+import { vehicleDisplayName } from "@/lib/vehicles/display-name";
+import { modelGroupKey } from "@/lib/vehicles/group-by-model";
 import {
   listAddOnsFromDb,
   listProtectionTiersFromDb,
 } from "@/lib/supabase/catalog-repository";
 import { listVehicleWizardMap } from "@/lib/supabase/admin-repository";
-import { addUserBooking, claimGuestBookingsForUser, indexGuestBooking } from "@/lib/supabase/user-bookings-repository";
+import {
+  addUserBooking,
+  claimGuestBookingsForUser,
+  getIndexedGuestBooking,
+  indexGuestBooking,
+} from "@/lib/supabase/user-bookings-repository";
 import {
   addVehicleBookingHold,
   isVehicleHeld,
   listHeldFrontendVehicleIds,
 } from "@/lib/supabase/vehicle-booking-holds-repository";
 import {
+  catalogVehicleToAvailable,
   createBookingRequest,
   fromBookingDraft,
   getAvailability,
   getBookingByReferenceEmail,
   getBookingStatusByToken,
   getVehicleAvailability,
+  synthesizeBookingRef,
   toInternalAvailableVehicles,
   toInternalBooking,
   VehicleUnavailableError,
@@ -55,6 +71,54 @@ import { getVehicleBySlug, getVehicleById } from "@/lib/server/vehicles-service"
 
 export { VehicleUnavailableError };
 
+function httpStatus(err: unknown): number | null {
+  if (typeof err !== "object" || err == null || !("status" in err)) return null;
+  const status = Number((err as { status: unknown }).status);
+  return Number.isFinite(status) ? status : null;
+}
+
+function candidateWizardIds(
+  preferredFrontendId: string,
+  vehicle: Vehicle | undefined,
+  catalog: Vehicle[],
+): number[] {
+  const ids: number[] = [];
+  const seen = new Set<number>();
+  const add = (id: number | null) => {
+    if (id == null || seen.has(id)) return;
+    seen.add(id);
+    ids.push(id);
+  };
+  add(parseWizardVehicleId(preferredFrontendId));
+  if (!vehicle) return ids;
+  const key = modelGroupKey(vehicle.make, vehicle.model, vehicle.id);
+  for (const item of catalog) {
+    if (isManualVehicleId(item.id)) continue;
+    if (modelGroupKey(item.make, item.model, item.id) !== key) continue;
+    add(parseWizardVehicleId(item.id));
+  }
+  return ids;
+}
+
+function candidateManualIds(preferredFrontendId: string, catalog: Vehicle[]): string[] {
+  const preferred = catalog.find((item) => item.id === preferredFrontendId);
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  const add = (id: string) => {
+    if (!id || seen.has(id) || !isManualVehicleId(id)) return;
+    seen.add(id);
+    ids.push(id);
+  };
+  add(preferredFrontendId);
+  if (!preferred) return ids;
+  const key = modelGroupKey(preferred.make, preferred.model, preferred.id);
+  for (const item of catalog) {
+    if (modelGroupKey(item.make, item.model, item.id) !== key) continue;
+    add(item.id);
+  }
+  return ids;
+}
+
 async function resolveVehicleForDraft(
   draft: BookingDraft,
   vehicles: Vehicle[],
@@ -63,6 +127,14 @@ async function resolveVehicleForDraft(
   if (!selection) return undefined;
   const byId = vehicles.find((v) => v.id === selection.vehicleId);
   if (byId) return byId;
+  const numeric = parseWizardVehicleId(selection.vehicleId);
+  if (numeric != null) {
+    const prefixed = frontendVehicleIdFromWizard(numeric);
+    const byWizardId = vehicles.find(
+      (v) => v.id === prefixed || parseWizardVehicleId(v.id) === numeric,
+    );
+    if (byWizardId) return byWizardId;
+  }
   if (selection.vehicleSlug) {
     const bySlug = await getVehicleBySlug(selection.vehicleSlug);
     if (bySlug) return bySlug;
@@ -105,6 +177,14 @@ export async function handleBookingAvailability(body: AvailabilityRequest) {
   const days =
     availablePublic[0]?.pricing.days ??
     rentalDays(body.pickup.datetime, body.return.datetime);
+  const knownIds = new Set(items.map((item) => item.vehicle.id));
+  const catalog = await getPublicVehicles();
+  for (const vehicle of catalog) {
+    if (!isManualVehicleId(vehicle.id) || heldIds.has(vehicle.id) || knownIds.has(vehicle.id)) {
+      continue;
+    }
+    items.push(catalogVehicleToAvailable(vehicle, days));
+  }
   return { items, rentalDays: days };
 }
 
@@ -119,16 +199,42 @@ export async function handleVerifyVehicleAvailability(body: {
   return: BookingDraft["return"];
 }): Promise<VerifyVehicleAvailabilityResult> {
   assertOnlineBookingWindow(body.pickup.datetime, body.return.datetime);
-  const numericId = await resolveWizardVehicleId(body.vehicleId);
-  if (numericId == null) {
+  if (isManualVehicleId(body.vehicleId)) {
+    const vehicles = await getPublicVehicles();
+    const ids = candidateManualIds(body.vehicleId, vehicles);
+    if (!ids.some((id) => vehicles.some((item) => item.id === id))) {
+      return { available: false, reason: "unknown_vehicle" };
+    }
+    const startBackend = toBackendDateTime(body.pickup.datetime);
+    const endBackend = toBackendDateTime(body.return.datetime);
+    for (const id of ids) {
+      if (await isVehicleHeld(id, startBackend, endBackend)) continue;
+      return { available: true };
+    }
+    return { available: false, reason: "booked" };
+  }
+  const vehicles = await getPublicVehicles();
+  const vehicle =
+    vehicles.find((item) => item.id === body.vehicleId) ??
+    (() => {
+      const numeric = parseWizardVehicleId(body.vehicleId);
+      if (numeric == null) return undefined;
+      const prefixed = frontendVehicleIdFromWizard(numeric);
+      return vehicles.find((item) => item.id === prefixed || parseWizardVehicleId(item.id) === numeric);
+    })();
+  const ids = candidateWizardIds(body.vehicleId, vehicle, vehicles);
+  if (ids.length === 0) {
     return { available: false, reason: "unknown_vehicle" };
   }
-
   const startBackend = toBackendDateTime(body.pickup.datetime);
   const endBackend = toBackendDateTime(body.return.datetime);
-  const gate = await resolveSubmitAvailability(numericId, startBackend, endBackend);
-  if (gate.ok) return { available: true };
-  return { available: false, reason: gate.unavailable_reason };
+  let lastReason: string | null = "unknown_vehicle";
+  for (const id of ids) {
+    const gate = await resolveSubmitAvailability(id, startBackend, endBackend);
+    if (gate.ok) return { available: true };
+    lastReason = gate.unavailable_reason;
+  }
+  return { available: false, reason: lastReason };
 }
 
 /** Pre-submit availability gate — website holds first, then Wizard `/availability/{id}`. */
@@ -140,12 +246,24 @@ async function resolveSubmitAvailability(
   if (await isVehicleHeld(frontendVehicleIdFromWizard(numericId), startBackend, endBackend)) {
     return { ok: false, unavailable_reason: "booked" };
   }
-  const single = await getVehicleAvailability(numericId, {
-    startDateTime: startBackend,
-    endDateTime: endBackend,
-  });
-  if (single.data.is_available) return { ok: true };
-  return { ok: false, unavailable_reason: single.data.unavailable_reason ?? null };
+  try {
+    const single = await getVehicleAvailability(numericId, {
+      startDateTime: startBackend,
+      endDateTime: endBackend,
+    });
+    if (single.data.is_available) return { ok: true };
+    return { ok: false, unavailable_reason: single.data.unavailable_reason ?? null };
+  } catch (err) {
+    if (err instanceof VehicleUnavailableError) {
+      const body = err.body as { unavailable_reason?: string } | null;
+      return { ok: false, unavailable_reason: body?.unavailable_reason ?? "booked" };
+    }
+    const status = httpStatus(err);
+    if (status === 400 || status === 404) {
+      return { ok: false, unavailable_reason: "unknown_vehicle" };
+    }
+    throw err;
+  }
 }
 
 export async function handleBookingRate(body: {
@@ -187,6 +305,7 @@ export async function handleBookingQuote(body: QuoteRequest): Promise<QuoteRespo
 async function resolveWizardVehicleId(frontendVehicleId: string): Promise<number | null> {
   const fromPrefix = parseWizardVehicleId(frontendVehicleId);
   if (fromPrefix != null) return fromPrefix;
+  if (isManualVehicleId(frontendVehicleId)) return null;
 
   const map = await listVehicleWizardMap();
   const row = map.find((item) => item.frontend_vehicle_id === frontendVehicleId);
@@ -208,18 +327,8 @@ export async function handleBookingSubmit(
   const vehicle = await resolveVehicleForDraft(draft, vehicles);
   if (!vehicle) throw new Error("Vehicle gone");
 
-  let numericId = await resolveWizardVehicleId(draft.vehicle.vehicleId);
-  if (numericId == null) {
-    await handleBookingAvailability({
-      pickup: draft.pickup,
-      return: draft.return,
-    });
-    numericId = await resolveWizardVehicleId(draft.vehicle.vehicleId);
-  }
-  if (numericId == null) {
-    throw new Error(`No wizard mapping for vehicle ${draft.vehicle.vehicleId}`);
-  }
-
+  const startBackend = toBackendDateTime(draft.pickup.datetime);
+  const endBackend = toBackendDateTime(draft.return.datetime);
   const price = computePrice({
     draft,
     vehicle,
@@ -227,6 +336,89 @@ export async function handleBookingSubmit(
     tiers,
     promoDiscountPercent: await resolvePromoDiscountPercent(draft.promoCode),
   });
+
+  if (isManualVehicleId(draft.vehicle.vehicleId)) {
+    let frontendVehicleId: string | null = null;
+    for (const id of candidateManualIds(draft.vehicle.vehicleId, vehicles)) {
+      if (!(await isVehicleHeld(id, startBackend, endBackend))) {
+        frontendVehicleId = id;
+        break;
+      }
+    }
+    if (!frontendVehicleId) {
+      throw new VehicleUnavailableError("pre-submit-availability-check", {
+        message: "Vehicle is not available for this period.",
+        unavailable_reason: "booked",
+      });
+    }
+
+    const ref = synthesizeBookingRef(randomInt(1, 1_679_616), new Date());
+    const booking = toInternalBooking(
+      {
+        id: 1,
+        booking_id: 1,
+        reference: ref,
+        status: "pending",
+        payment_status: "unpaid",
+        amount: price.totalCents / 100,
+        paid_amount: 0,
+        due_amount: price.totalCents / 100,
+        start_date_time: startBackend,
+        end_date_time: endBackend,
+        vehicle: { id: 1, name: vehicleDisplayName(vehicle), license_plate: null },
+        customer: {
+          name: `${draft.driver.firstName} ${draft.driver.lastName}`,
+          email: draft.driver.email,
+          phone_number: draft.driver.phone,
+        },
+      },
+      { draft, vehicle, price },
+    );
+
+    await persistBookingRecords({
+      booking,
+      draft,
+      vehicle,
+      frontendVehicleId,
+      userId: options?.userId,
+    });
+    return { booking };
+  }
+
+  const candidateIds = candidateWizardIds(draft.vehicle.vehicleId, vehicle, vehicles);
+  if (candidateIds.length === 0) {
+    throw new Error(`No wizard mapping for vehicle ${draft.vehicle.vehicleId}`);
+  }
+
+  let numericId: number | null = null;
+  let lastUnavailable: string | null = null;
+  let availabilityUnknownId: number | null = null;
+  for (const id of candidateIds) {
+    const gate = await resolveSubmitAvailability(id, startBackend, endBackend);
+    if (gate.ok) {
+      numericId = id;
+      break;
+    }
+    if (gate.unavailable_reason === "unknown_vehicle") {
+      availabilityUnknownId ??= id;
+      continue;
+    }
+    lastUnavailable = gate.unavailable_reason;
+  }
+  // Public /availability/{id} can 400 for cars added by Wizard id in admin
+  // even when /booking-request accepts that same id.
+  if (numericId == null && availabilityUnknownId != null) {
+    numericId = availabilityUnknownId;
+  }
+  if (numericId == null) {
+    throw new VehicleUnavailableError("pre-submit-availability-check", {
+      message: "Vehicle is not available for this period.",
+      unavailable_reason: lastUnavailable,
+    });
+  }
+
+  const frontendVehicleId = frontendVehicleIdFromWizard(numericId);
+
   const payload = fromBookingDraft(draft, {
     resolveVehicleId: () => numericId,
     addOns,
@@ -234,28 +426,6 @@ export async function handleBookingSubmit(
     rateTotalCents: price.totalCents,
     promoDiscountCents: price.discountCents,
   });
-
-  const startBackend = payload.start_date_time;
-  const endBackend = payload.end_date_time;
-  const frontendVehicleId = frontendVehicleIdFromWizard(numericId);
-
-  const availabilityGate = await resolveSubmitAvailability(numericId, startBackend, endBackend);
-  if (!availabilityGate.ok) {
-    if (process.env.NODE_ENV !== "production") {
-      console.info("[booking-submit] pre-check failed", {
-        vehicle_id: numericId,
-        start_date_time: startBackend,
-        end_date_time: endBackend,
-        pickup_address: payload.pickup_address,
-        drop_off_address: payload.drop_off_address,
-        unavailable_reason: availabilityGate.unavailable_reason,
-      });
-    }
-    throw new VehicleUnavailableError("pre-submit-availability-check", {
-      message: "Vehicle is not available for this period.",
-      unavailable_reason: availabilityGate.unavailable_reason,
-    });
-  }
 
   if (process.env.NODE_ENV !== "production") {
     console.info("[booking-submit] pre-check passed", {
@@ -287,10 +457,34 @@ export async function handleBookingSubmit(
     publicToken: response.data.public_token,
   });
 
+  await persistBookingRecords({
+    booking,
+    draft,
+    vehicle,
+    frontendVehicleId,
+    wizardVehicleId: numericId,
+    publicToken: response.data.public_token,
+    wizardBookingId: response.data.booking_id,
+    userId: options?.userId,
+  });
+  return { booking };
+}
+
+async function persistBookingRecords(input: {
+  booking: Booking;
+  draft: BookingDraft;
+  vehicle: Vehicle;
+  frontendVehicleId: string;
+  wizardVehicleId?: number | null;
+  publicToken?: string | null;
+  wizardBookingId?: number | null;
+  userId?: string;
+}): Promise<void> {
+  const { booking, draft, vehicle, frontendVehicleId } = input;
   try {
     await addVehicleBookingHold({
       bookingReference: booking.ref,
-      wizardVehicleId: numericId,
+      wizardVehicleId: input.wizardVehicleId,
       frontendVehicleId,
       pickupAt: draft.pickup.datetime,
       returnAt: draft.return.datetime,
@@ -303,21 +497,21 @@ export async function handleBookingSubmit(
     pickupAt: draft.pickup.datetime,
     returnAt: draft.return.datetime,
     frontendVehicleId,
-    wizardVehicleId: numericId,
+    wizardVehicleId: input.wizardVehicleId ?? null,
+    ...storedBookingFromDomain(booking),
   };
 
-  if (options?.userId) {
+  if (input.userId) {
     try {
       await addUserBooking({
-        userId: options.userId,
+        userId: input.userId,
         bookingReference: booking.ref,
-        publicToken: response.data.public_token,
-        wizardBookingId: response.data.booking_id,
-        customerEmail: draft.driver.email,
+        publicToken: input.publicToken,
+        wizardBookingId: input.wizardBookingId,
+        customerEmail: draft.driver!.email,
         ...rentalWindow,
       });
     } catch (err) {
-      // Wizard booking already exists — do not fail the customer checkout.
       if (process.env.NODE_ENV !== "production") {
         console.warn("[booking-submit] user_bookings link failed (non-fatal)", err);
       }
@@ -326,36 +520,52 @@ export async function handleBookingSubmit(
 
   try {
     await indexGuestBooking({
-      email: draft.driver.email,
+      email: draft.driver!.email,
       bookingReference: booking.ref,
-      publicToken: response.data.public_token,
-      wizardBookingId: response.data.booking_id,
+      publicToken: input.publicToken,
+      wizardBookingId: input.wizardBookingId,
       ...rentalWindow,
     });
   } catch (err) {
     console.error("[guest-booking-index] failed", err);
   }
-  // Adam Aug 9: formal confirmation email only after Wizard approval (webhook).
-  // At submit we acknowledge receipt of the booking request for all methods.
   await enqueueNotification({
     bookingReference: booking.ref,
     channel: "email",
     template: "booking_request_received",
-    recipient: draft.driver.email,
+    recipient: draft.driver!.email,
     payload: {
       ref: booking.ref,
-      vehicle: `${vehicle.make} ${vehicle.model}`,
+      vehicle: vehicleDisplayName(vehicle),
       pickupDatetime: draft.pickup.datetime,
       returnDatetime: draft.return.datetime,
       state: booking.state,
       paymentMethod: draft.paymentMethod,
     },
   }).catch(() => undefined);
+}
 
-  return { booking };
+function isWebsiteOnlyIndexedBooking(row: {
+  frontendVehicleId: string | null;
+  wizardVehicleId: number | null;
+  publicToken: string | null;
+}): boolean {
+  return (
+    isManualVehicleId(row.frontendVehicleId ?? "") ||
+    (row.wizardVehicleId == null && !row.publicToken)
+  );
 }
 
 export async function handleBookingLookup(body: LookupBookingRequest): Promise<Booking> {
+  const local = await getIndexedGuestBooking(body.ref, body.email).catch(() => null);
+  if (local && isWebsiteOnlyIndexedBooking(local)) {
+    const booking = bookingFromStoredRow(local, body.email);
+    if (booking.vehicleSnapshot.images.length === 0) {
+      booking.vehicleSnapshot.images = [{ ...LOOKUP_PLACEHOLDER_IMAGE }];
+    }
+    return booking;
+  }
+
   const response = await getBookingByReferenceEmail(body.ref, body.email);
   return hydrateLookupVehicle(toBookingFromLookup(response.data), response.data.vehicle.id);
 }

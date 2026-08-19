@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { storedBookingFromDomain } from "@/lib/booking/stored-booking";
 import { requireAccountUser } from "@/lib/server/account-auth";
 import { handleBookingLookup } from "@/lib/server/booking-service";
 import { addUserBooking } from "@/lib/supabase/user-bookings-repository";
@@ -27,8 +28,14 @@ export async function POST(request: Request) {
     await addUserBooking({
       userId: auth.user.id,
       bookingReference: booking.ref,
+      publicToken: booking.publicToken,
       customerEmail: booking.driver.email,
       wizardBookingId: null,
+      pickupAt: booking.pickup.datetime,
+      returnAt: booking.return.datetime,
+      frontendVehicleId: booking.vehicle.vehicleId,
+      wizardVehicleId: null,
+      ...storedBookingFromDomain(booking),
     });
 
     return NextResponse.json({ linked: true, ref: booking.ref });

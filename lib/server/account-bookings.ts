@@ -1,6 +1,10 @@
 import { WheelsThrottledError } from "@/lib/api/wheels-public";
 import { LOOKUP_PLACEHOLDER_IMAGE, toBookingFromLookup } from "@/lib/booking/lookup-adapter";
 import {
+  bookingFromStoredRow,
+  hasStoredBookingDetails,
+} from "@/lib/booking/stored-booking";
+import {
   frontendVehicleIdFromWizard,
   parseWizardVehicleId,
 } from "@/lib/booking/wizard-vehicle-id";
@@ -28,16 +32,11 @@ function uniqueEmails(...candidates: (string | null | undefined)[]): string[] {
 
 export type AccountBookingResolution = {
   booking: Booking;
-  /** True when Wizard itself is rate-limiting us right now — the caller should
-   *  stop issuing further live lookups this request rather than piling on
-   *  more 429s, and the client can tell live status apart from a local stub. */
   throttled: boolean;
 };
 
 export type ResolveAccountBookingOptions = {
-  /** List pages should skip token fallback (second Wizard call per row). */
   allowTokenFallback?: boolean;
-  /** After a 429, remaining rows should not hit Wizard again this request. */
   skipLiveLookup?: boolean;
 };
 
@@ -46,72 +45,17 @@ function wizardIdFromRow(row: UserBookingRow): number | null {
   return parseWizardVehicleId(row.frontendVehicleId ?? "");
 }
 
-/** Local Booking from `user_bookings` when Wizard lookup is unavailable. */
+/** Local Booking from `user_bookings` columns when Wizard lookup is unavailable. */
 export async function bookingFromLinkedRow(
   row: UserBookingRow,
   authEmail: string,
 ): Promise<Booking> {
+  const booking = bookingFromStoredRow(row, authEmail);
+  if (booking.vehicleSnapshot.images.length === 0) {
+    booking.vehicleSnapshot.images = [{ ...LOOKUP_PLACEHOLDER_IMAGE }];
+  }
+  if (hasStoredBookingDetails(row)) return booking;
   const wizardId = wizardIdFromRow(row);
-  const vehicleId =
-    row.frontendVehicleId ??
-    (wizardId != null ? frontendVehicleIdFromWizard(wizardId) : row.bookingReference);
-  const pickup = row.pickupAt ?? row.createdAt;
-  const returnAt = row.returnAt ?? row.pickupAt ?? row.createdAt;
-  const booking: Booking = {
-    ref: row.bookingReference,
-    state: "pending",
-    createdAt: row.createdAt,
-    pickup: {
-      type: "branch",
-      datetime: pickup,
-      locationId: "br-hazmieh",
-    },
-    return: {
-      datetime: returnAt,
-      locationId: "br-hazmieh",
-    },
-    vehicle: {
-      vehicleId,
-      rate: { type: "best-price", mileage: "capped-200km" },
-    },
-    vehicleSnapshot: {
-      id: vehicleId,
-      slug: vehicleId,
-      make: "Vehicle",
-      model: "",
-      year: new Date().getFullYear(),
-      category: "economy",
-      images: [{ ...LOOKUP_PLACEHOLDER_IMAGE }],
-    },
-    extras: [],
-    protectionTierId: "pt-basic",
-    driver: {
-      firstName: "",
-      lastName: "",
-      email: row.customerEmail ?? authEmail,
-      phone: "",
-      dob: "",
-      licenceNumber: "",
-      licenceIssue: "",
-      licenceExpiry: "",
-      country: "LB",
-    },
-    paymentMethod: "cash",
-    marketingConsent: false,
-    whatsappOptIn: false,
-    price: {
-      baseRateCents: 0,
-      extrasCents: 0,
-      protectionCents: 0,
-      taxesCents: 0,
-      feesCents: 0,
-      discountCents: 0,
-      totalCents: 0,
-      depositCents: 0,
-    },
-    currency: "USD",
-    publicToken: row.publicToken ?? undefined,
-  };
   if (wizardId == null) return booking;
   return hydrateLookupVehicle(booking, wizardId);
 }
@@ -123,14 +67,27 @@ export async function resolveAccountBooking(
   options: ResolveAccountBookingOptions = {},
 ): Promise<AccountBookingResolution> {
   const allowTokenFallback = options.allowTokenFallback ?? true;
+  const stored = hasStoredBookingDetails(row);
 
   if (options.skipLiveLookup) {
     return { booking: await bookingFromLinkedRow(row, authEmail), throttled: false };
   }
 
+  if (stored && !row.publicToken) {
+    return { booking: await bookingFromLinkedRow(row, authEmail), throttled: false };
+  }
+
+  const local = stored ? await bookingFromLinkedRow(row, authEmail) : null;
+
   for (const email of uniqueEmails(row.customerEmail, authEmail)) {
     try {
-      return { booking: await handleBookingLookup({ ref: row.bookingReference, email }), throttled: false };
+      const live = await handleBookingLookup({ ref: row.bookingReference, email });
+      return {
+        booking: local
+          ? { ...local, state: live.state, publicToken: live.publicToken ?? local.publicToken }
+          : live,
+        throttled: false,
+      };
     } catch (err) {
       if (err instanceof WheelsThrottledError) {
         return { booking: await bookingFromLinkedRow(row, authEmail), throttled: true };
@@ -158,7 +115,12 @@ export async function resolveAccountBooking(
           vehicle: status.vehicle,
           amount: status.amount,
         });
-        return { booking: await hydrateLookupVehicle(booking, status.vehicle.id), throttled: false };
+        return {
+          booking: local
+            ? { ...local, state: booking.state, publicToken: local.publicToken ?? row.publicToken ?? undefined }
+            : await hydrateLookupVehicle(booking, status.vehicle.id),
+          throttled: false,
+        };
       }
     } catch (err) {
       if (err instanceof WheelsThrottledError) {

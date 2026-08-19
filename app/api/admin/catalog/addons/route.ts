@@ -17,6 +17,7 @@ const AddOnSchema = z.object({
   priceCents: z.number().int().nonnegative(),
   multiQuantity: z.boolean(),
   maxQuantity: z.number().int().positive().optional(),
+  quantityUnit: z.enum(["gb"]).optional(),
   icon: z.string(),
 });
 

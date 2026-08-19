@@ -10,6 +10,9 @@ vi.mock("@/lib/api/wheels-public", () => ({
   getAvailability: (...args: unknown[]) => mockGetAvailability(...args),
   getVehicleAvailability: (...args: unknown[]) => mockGetVehicleAvailability(...args),
   createBookingRequest: (...args: unknown[]) => mockCreateBookingRequest(...args),
+  getBookingByReferenceEmail: vi.fn(),
+  synthesizeBookingRef: vi.fn(() => "WRC-260819-MAN1"),
+  catalogVehicleToAvailable: vi.fn((vehicle: { id: string }) => ({ vehicle, rates: [] })),
   fromBookingDraft: vi.fn((draft, opts) => ({
     vehicle_id: opts.resolveVehicleId(draft.vehicle!.vehicleId),
     start_date_time: "2026-07-21 10:00",
@@ -76,6 +79,7 @@ vi.mock("@/lib/server/payment-events", () => ({
 vi.mock("@/lib/supabase/user-bookings-repository", () => ({
   addUserBooking: vi.fn().mockResolvedValue(undefined),
   indexGuestBooking: vi.fn().mockResolvedValue(undefined),
+  getIndexedGuestBooking: vi.fn().mockResolvedValue(null),
 }));
 
 const mockAddVehicleBookingHold = vi.fn();
@@ -91,10 +95,22 @@ vi.mock("@/lib/server/notifications", () => ({
   enqueueNotification: (...args: unknown[]) => mockEnqueueNotification(...args),
 }));
 
-import { addUserBooking, indexGuestBooking } from "@/lib/supabase/user-bookings-repository";
-import { handleBookingSubmit, VehicleUnavailableError } from "../booking-service";
+import { emptyStoredBookingFields } from "@/lib/booking/stored-booking";
+import {
+  addUserBooking,
+  getIndexedGuestBooking,
+  indexGuestBooking,
+} from "@/lib/supabase/user-bookings-repository";
+import { getPublicVehicles } from "@/lib/server/public-content";
+import {
+  handleBookingLookup,
+  handleBookingSubmit,
+  handleVerifyVehicleAvailability,
+  VehicleUnavailableError,
+} from "../booking-service";
 
 const mockAddUserBooking = vi.mocked(addUserBooking);
+const mockGetIndexedGuestBooking = vi.mocked(getIndexedGuestBooking);
 
 function completeDraft(): BookingDraft {
   return {
@@ -129,6 +145,7 @@ describe("booking-service handleBookingSubmit", () => {
     });
     mockIsVehicleHeld.mockResolvedValue(false);
     mockAddVehicleBookingHold.mockResolvedValue(undefined);
+    mockGetIndexedGuestBooking.mockResolvedValue(null);
     mockCreateBookingRequest.mockResolvedValue({
       data: {
         reference: "WRC-260721-TEST",
@@ -168,16 +185,19 @@ describe("booking-service handleBookingSubmit", () => {
       pickupAt: "2026-07-21T10:00",
       returnAt: "2026-07-24T10:00",
     });
-    expect(indexGuestBooking).toHaveBeenCalledWith({
-      email: "test@example.com",
-      bookingReference: "WRC-260721-TEST",
-      publicToken: "tok",
-      wizardBookingId: 1,
-      pickupAt: "2026-07-21T10:00",
-      returnAt: "2026-07-24T10:00",
-      frontendVehicleId: "wiz-131",
-      wizardVehicleId: 131,
-    });
+    expect(indexGuestBooking).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: "test@example.com",
+        bookingReference: "WRC-260721-TEST",
+        publicToken: "tok",
+        wizardBookingId: 1,
+        pickupAt: "2026-07-21T10:00",
+        returnAt: "2026-07-24T10:00",
+        frontendVehicleId: "wiz-131",
+        wizardVehicleId: 131,
+        totalCents: 10000,
+      }),
+    );
     expect(addUserBooking).not.toHaveBeenCalled();
     expect(mockEnqueueNotification).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -191,17 +211,20 @@ describe("booking-service handleBookingSubmit", () => {
 
   it("links booking to user when userId is provided", async () => {
     await handleBookingSubmit({ draft: completeDraft() }, { userId: "user-abc" });
-    expect(addUserBooking).toHaveBeenCalledWith({
-      userId: "user-abc",
-      bookingReference: "WRC-260721-TEST",
-      publicToken: "tok",
-      wizardBookingId: 1,
-      customerEmail: "test@example.com",
-      pickupAt: "2026-07-21T10:00",
-      returnAt: "2026-07-24T10:00",
-      frontendVehicleId: "wiz-131",
-      wizardVehicleId: 131,
-    });
+    expect(addUserBooking).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: "user-abc",
+        bookingReference: "WRC-260721-TEST",
+        publicToken: "tok",
+        wizardBookingId: 1,
+        customerEmail: "test@example.com",
+        pickupAt: "2026-07-21T10:00",
+        returnAt: "2026-07-24T10:00",
+        frontendVehicleId: "wiz-131",
+        wizardVehicleId: 131,
+        totalCents: 10000,
+      }),
+    );
     expect(indexGuestBooking).toHaveBeenCalled();
   });
 
@@ -226,6 +249,85 @@ describe("booking-service handleBookingSubmit", () => {
 
   it("still returns booking when the vehicle hold write fails", async () => {
     mockAddVehicleBookingHold.mockRejectedValueOnce(new Error("holds table missing"));
+    const result = await handleBookingSubmit({ draft: completeDraft() });
+    expect(result.booking.ref).toBe("WRC-260721-TEST");
+    expect(mockCreateBookingRequest).toHaveBeenCalled();
+  });
+
+  it("does not query wizard map for manual vehicles", async () => {
+    vi.mocked(getPublicVehicles).mockResolvedValueOnce([
+      { id: "manual-abc", slug: "test", make: "T", model: "T", dailyRateFromCents: 2500 },
+    ]);
+    const result = await handleVerifyVehicleAvailability({
+      vehicleId: "manual-abc",
+      pickup: completeDraft().pickup,
+      return: completeDraft().return,
+    });
+    expect(result).toEqual({ available: true });
+    expect(mockListVehicleWizardMap).not.toHaveBeenCalled();
+    expect(mockGetVehicleAvailability).not.toHaveBeenCalled();
+  });
+
+  it("submits manual website-only vehicles without calling Wizard", async () => {
+    vi.mocked(getPublicVehicles).mockResolvedValueOnce([
+      { id: "manual-abc", slug: "test", make: "T", model: "T", dailyRateFromCents: 2500 },
+    ]);
+    const draft = completeDraft();
+    draft.vehicle = { vehicleId: "manual-abc", rate: { type: "best-price", mileage: "capped-200km" } };
+    const result = await handleBookingSubmit({ draft });
+    expect(result.booking.ref).toBe("WRC-260819-MAN1");
+    expect(mockListVehicleWizardMap).not.toHaveBeenCalled();
+    expect(mockCreateBookingRequest).not.toHaveBeenCalled();
+    expect(mockGetVehicleAvailability).not.toHaveBeenCalled();
+    expect(mockAddVehicleBookingHold).toHaveBeenCalledWith(
+      expect.objectContaining({ frontendVehicleId: "manual-abc", bookingReference: "WRC-260819-MAN1" }),
+    );
+  });
+
+  it("looks up manual bookings from the guest index without Wizard", async () => {
+    mockGetIndexedGuestBooking.mockResolvedValueOnce({
+      ...emptyStoredBookingFields(),
+      bookingReference: "WRC-260819-MAN1",
+      publicToken: null,
+      customerEmail: "test@example.com",
+      createdAt: "2026-08-19T10:00:00.000Z",
+      pickupAt: "2026-07-21T10:00:00.000Z",
+      returnAt: "2026-07-24T10:00:00.000Z",
+      frontendVehicleId: "manual-abc",
+      wizardVehicleId: null,
+      vehicleMake: "T",
+      vehicleModel: "T",
+      totalCents: 10000,
+      paymentMethod: "cash",
+    });
+    const booking = await handleBookingLookup({
+      ref: "WRC-260819-MAN1",
+      email: "test@example.com",
+    });
+    expect(booking.ref).toBe("WRC-260819-MAN1");
+    expect(booking.vehicle.vehicleId).toBe("manual-abc");
+    expect(booking.vehicleSnapshot.make).toBe("T");
+  });
+
+  it("books a sibling unit when the selected Wizard id is unknown", async () => {
+    vi.mocked(getPublicVehicles).mockResolvedValueOnce([
+      { id: "wiz-131", slug: "micra", make: "NISSAN", model: "MICRA", dailyRateFromCents: 2000 },
+      { id: "wiz-132", slug: "micra", make: "NISSAN", model: "MICRA", dailyRateFromCents: 2000 },
+    ]);
+    mockGetVehicleAvailability.mockImplementation(async (id: unknown) => {
+      if (id === 131) {
+        throw Object.assign(new Error("not found"), { status: 400 });
+      }
+      return { data: { is_available: true, id } };
+    });
+    await handleBookingSubmit({ draft: completeDraft() });
+    expect(mockAddVehicleBookingHold).toHaveBeenCalledWith(
+      expect.objectContaining({ wizardVehicleId: 132, frontendVehicleId: "wiz-132" }),
+    );
+  });
+
+  it("still submits when availability/{id} returns 400", async () => {
+    mockGetVehicleAvailability.mockRejectedValue(Object.assign(new Error("not found"), { status: 400 }));
     const result = await handleBookingSubmit({ draft: completeDraft() });
     expect(result.booking.ref).toBe("WRC-260721-TEST");
     expect(mockCreateBookingRequest).toHaveBeenCalled();

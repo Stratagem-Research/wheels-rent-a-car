@@ -24,6 +24,8 @@ import type {
   Vehicle,
 } from "@/types/domain";
 import { computePrice, formatUsd, rentalDays } from "@/lib/booking/pricing";
+import { extraQtyLabel } from "@/lib/booking/addons";
+import { vehicleDisplayName } from "@/lib/vehicles/display-name";
 
 /*
  * Flow-mode booking summary panel per 04_booking_flow.md"Sticky booking
@@ -250,7 +252,7 @@ function PanelContents({
         )}
         <div className="min-w-0">
           <div className="headline-sm text-ink-95 truncate">
-            {vehicle ? `${vehicle.make} ${vehicle.model}` : t("noVehicleSelected")}
+            {vehicle ? vehicleDisplayName(vehicle) : t("noVehicleSelected")}
           </div>
           {vehicle ? <div className="label-sm text-ink-60 italic">{t("orSimilar")}</div> : null}
         </div>
@@ -316,8 +318,7 @@ function PanelContents({
               {selectedExtras.map(({ extra, addOn }) => (
                 <li key={extra.addOnId} className="body-sm text-ink-80 flex items-center gap-2">
                   <span className="flex-1">
-                    {extra.qty > 1 ? `${extra.qty} × ` : ""}
-                    {addOn?.name}
+                    {addOn ? `${extraQtyLabel(addOn, extra.qty)}${addOn.name}` : extra.addOnId}
                   </span>
                 </li>
               ))}

@@ -25,15 +25,15 @@ const wrapperVariants = cva(
     variants: {
       variant: {
         default: cn(
-          "bg-paper rounded-lg h-14 px-[18px] body-md text-ink-95",
+          "bg-paper rounded-lg h-12 px-[16px] body-md text-ink-95",
           "focus-within:border-ink-100",
         ),
         search: cn(
-          "bg-paper rounded-pill h-16 px-6 body-lg text-ink-95",
+          "bg-paper rounded-pill h-12 px-5 body-lg text-ink-95",
           "focus-within:border-ink-100",
         ),
         inverse: cn(
-          "bg-ink-90 rounded-lg h-14 px-[18px] body-md text-paper",
+          "bg-ink-90 rounded-lg h-12 px-[16px] body-md text-paper",
           "focus-within:border-paper",
           "focus-within:outline-paper",
           "focus-within:shadow-[0_0_0_4px_rgba(255,255,255,0.16)]",

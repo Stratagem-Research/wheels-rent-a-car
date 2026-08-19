@@ -2,30 +2,19 @@
 
 import * as React from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Briefcase, Check, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
 import { SaveVehicleButton } from "@/components/vehicle/SaveVehicleButton";
+import { VehicleImageSlider } from "@/components/vehicle/VehicleImageSlider";
 import { formatUsd, perDayRate, rentalDays } from "@/lib/booking/pricing";
 import { FLEET_PAY_NOW_RATE } from "@/lib/vehicles/fleet-card-rates";
+import { vehicleDisplayName } from "@/lib/vehicles/display-name";
 import type { Vehicle, VehicleBadge } from "@/types/domain";
 
 /*
  * Vehicle card — Sixt-aesthetic rewrite.
- *
- *   ┌──────────────────────────────────────┐
- *   │  TOYOTA YARIS  or similar            │
- *   │  ┌Standard Hatch┐                    │
- *   │  [👤 5]  [💼 2]  [A Automatic]       │
- *   │                                      │
- *   │           [ vehicle photo ]          │
- *   │                                      │
- *   │  ✓ Pay later available               │
- *   │  $18.46 /day  $73.82 total           │
- *   │  [Popular]                           │
- *   └──────────────────────────────────────┘
  *
  * DARK card by default — a radial gradient (lighter at top-center, fading
  * to ink-95 at the edges) so the vehicle silhouette photographs read like
@@ -106,8 +95,8 @@ export function VehicleCard({
 }: VehicleCardProps) {
   const t = useTranslations("fleet");
   const detailHref = href ?? `/vehicles?selected=${vehicle.slug}`;
-  const image = vehicle.images[0];
   const dark = variant === "default";
+  const vehicleLabel = vehicleDisplayName(vehicle);
 
   // Per-day rate at the best-price + 200-km plan (matches the default
   // selection in VehicleCardExpanded). Falls back to the raw daily rate
@@ -124,12 +113,10 @@ export function VehicleCard({
 
   const classChip = t(bodyClassKey(vehicle));
 
-  const vehicleLabel = `${vehicle.make} ${vehicle.model}`;
-
   return (
     <article
       className={cn(
-        "group relative h-full overflow-hidden rounded-xl transition-shadow duration-200",
+        "group relative flex h-full flex-col overflow-hidden rounded-xl transition-shadow duration-200",
         dark ? "bg-ink-95 text-paper" : "bg-paper text-ink-95 border-border border",
         selected && "outline-signal-red outline outline-2 outline-offset-0",
         className,
@@ -145,9 +132,9 @@ export function VehicleCard({
       <Link
         href={detailHref}
         scroll={scrollOnClick}
-        aria-label={t("selectAria", { vehicle: `${vehicle.make} ${vehicle.model}` })}
+        aria-label={t("selectAria", { vehicle: vehicleLabel })}
         className={cn(
-          "flex h-full flex-col gap-4 p-5 sm:p-6",
+          "flex flex-col gap-4 p-5 pb-0 sm:p-6 sm:pb-0",
           "focus-visible:rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px]",
           dark ? "focus-visible:outline-paper" : "focus-visible:outline-ink-100",
         )}
@@ -161,15 +148,11 @@ export function VehicleCard({
         <header className="flex flex-col gap-1">
           <h3
             className={cn(
-              "headline-md flex flex-wrap items-baseline gap-x-2 leading-[1.05] font-extrabold tracking-[-0.01em]",
+              "headline-md leading-[1.05] font-extrabold tracking-[-0.01em]",
+              dark ? "text-paper" : "text-ink-95",
             )}
           >
-            <span className={dark ? "text-paper" : "text-ink-95"}>
-              {vehicle.make} {vehicle.model}
-            </span>
-            <span className={cn("body-sm italic", dark ? "text-paper/55" : "text-ink-50")}>
-              {t("orSimilar")}
-            </span>
+            {vehicleLabel}
           </h3>
           <span
             className={cn(
@@ -214,24 +197,28 @@ export function VehicleCard({
             label={t(vehicle.transmission === "automatic" ? "transAutomatic" : "transManual")}
           />
         </ul>
+      </Link>
 
-        {/* Vehicle photo — large, centered, breathing room around it. The
-         * Popular / Best-deal / New badge no longer overlays the photo — it's
-         * moved down to sit next to the price (see below). */}
-        <div className="relative my-2 flex flex-1 items-center justify-center">
-          <div className="relative aspect-[16/10] w-full">
-            {image ? (
-              <Image
-                src={image.url}
-                alt={image.alt}
-                fill
-                sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
-                className="object-contain transition-transform duration-300 group-hover:scale-[1.02]"
-              />
-            ) : null}
-          </div>
-        </div>
+      <div className="px-5 sm:px-6">
+        <VehicleImageSlider
+          images={vehicle.images}
+          dark={dark}
+          href={detailHref}
+          scroll={scrollOnClick}
+          sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
+        />
+      </div>
 
+      <Link
+        href={detailHref}
+        scroll={scrollOnClick}
+        tabIndex={-1}
+        className={cn(
+          "flex flex-1 flex-col justify-end gap-4 p-5 pt-2 sm:p-6 sm:pt-2",
+          "focus-visible:rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px]",
+          dark ? "focus-visible:outline-paper" : "focus-visible:outline-ink-100",
+        )}
+      >
         {/* Unlimited-km availability — green check + paper text. */}
         <div className="flex items-center gap-2">
           <Check

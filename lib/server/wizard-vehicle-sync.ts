@@ -6,8 +6,6 @@ import {
   slugifyVehicleName,
 } from "@/lib/booking/wizard-vehicle-id";
 import {
-  deleteVehicleMetadataNotIn,
-  deleteWizardVehiclesNotIn,
   ensureVehicleMetadataStub,
   upsertWizardVehicles,
   type UpsertWizardVehicleInput,
@@ -19,9 +17,9 @@ export type WizardVehicleSyncResult = {
   upserted: number;
   /** Count of vehicles with website_enabled after filters. */
   websiteEnabled: number;
-  /** Rows removed from `wizard_vehicles` (full sync only). */
+  /** Always 0 — sync only upserts; it never deletes local cars. */
   prunedWizard: number;
-  /** Rows removed from `vehicle_metadata` (full sync only). */
+  /** Always 0 — sync only upserts; it never deletes website metadata. */
   prunedMetadata: number;
   updatedSince?: string;
 };
@@ -96,8 +94,9 @@ function wizardVehicleToRow(vehicle: WizardVehicle, id: number): UpsertWizardVeh
  * Upserts every payload row (so disabled ones clear `website_enabled`); metadata
  * stubs are created only for website-enabled vehicles.
  *
- * Full sync (no `updatedSince`): deletes local mirror + metadata rows whose
- * Wizard ids are not in the payload. Incremental sync never prunes.
+ * Upserts every payload row. Never deletes local mirror or metadata rows
+ * (manual cars and extra website content stay). Incremental `updatedSince`
+ * is forwarded to Wizard as `?updated_since=`.
  */
 export async function syncWizardVehiclesFromApi(
   options: SyncWizardVehiclesOptions = {},
@@ -110,7 +109,6 @@ export async function syncWizardVehiclesFromApi(
 
   const response = await client.syncVehicles({ updatedSince: options.updatedSince });
   const vehicles = response.data.vehicles;
-  const isFullSync = !options.updatedSince?.trim();
 
   const rows: UpsertWizardVehicleInput[] = [];
   for (const vehicle of vehicles) {
@@ -131,25 +129,13 @@ export async function syncWizardVehiclesFromApi(
     });
   }
 
-  let prunedWizard = 0;
-  let prunedMetadata = 0;
-  if (isFullSync && rows.length > 0) {
-    const keepWizardIds = rows.map((r) => r.wizard_vehicle_id);
-    // Keep marketing rows for every vehicle still returned (enabled or not) so a
-    // temporary disable does not wipe photos/copy. Drop everything else (legacy
-    // seed ids, removed Wizard stock).
-    const keepFrontendIds = keepWizardIds.map((id) => frontendVehicleIdFromWizard(id));
-    prunedWizard = await deleteWizardVehiclesNotIn(keepWizardIds);
-    prunedMetadata = await deleteVehicleMetadataNotIn(keepFrontendIds);
-  }
-
   return {
     source: "vehicles_sync_endpoint",
     fetched: vehicles.length,
     upserted: totalUpserted,
     websiteEnabled: websiteRows.length,
-    prunedWizard,
-    prunedMetadata,
+    prunedWizard: 0,
+    prunedMetadata: 0,
     updatedSince: options.updatedSince,
   };
 }

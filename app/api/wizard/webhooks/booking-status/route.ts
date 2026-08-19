@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import {
+  buildBookingConfirmationPayload,
   enqueueBookingConfirmationOnce,
   isApprovalStatus,
+  isInventoryReleaseStatus,
 } from "@/lib/server/booking-confirmation";
+import { appendBookingState } from "@/lib/server/payment-events";
+import { deleteVehicleBookingHold } from "@/lib/supabase/vehicle-booking-holds-repository";
+import { findIndexedBookingByReference } from "@/lib/supabase/user-bookings-repository";
 
 const BodySchema = z.object({
   booking_reference: z.string().min(1),
@@ -31,7 +36,8 @@ function authorize(request: Request): boolean {
 
 /**
  * Inbound Wizard → website status webhook.
- * On first approved/confirmed status, enqueues customer booking_confirmation email.
+ * Approval: enqueue confirmation email once.
+ * Cancel/reject: drop the inventory hold so the car counts as available again.
  */
 export async function POST(request: Request) {
   if (!authorize(request)) {
@@ -55,24 +61,55 @@ export async function POST(request: Request) {
 
   const { booking_reference, status, customer_email, vehicle } = parsed.data;
 
+  if (isInventoryReleaseStatus(status)) {
+    try {
+      await deleteVehicleBookingHold(booking_reference);
+      await appendBookingState(booking_reference, "cancelled", {
+        source: "wizard",
+        status,
+      }).catch(() => undefined);
+      return NextResponse.json({
+        ok: true,
+        confirmationEnqueued: false,
+        holdReleased: true,
+        reason: "hold_released",
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to release hold.";
+      return NextResponse.json({ message }, { status: 500 });
+    }
+  }
+
   if (!isApprovalStatus(status)) {
     return NextResponse.json({
       ok: true,
       confirmationEnqueued: false,
+      holdReleased: false,
       reason: "status_not_approval",
     });
   }
 
   try {
+    // Best-effort: pull the stored booking (dates, extras, protection tier,
+    // price, driver, location) so the confirmation email is fully populated,
+    // not just a bare reference + vehicle name. Falls back to the minimal
+    // payload if the row isn't indexed yet for some reason — the email
+    // still sends, just without the rich details.
+    const row = await findIndexedBookingByReference(booking_reference).catch(() => null);
+    const richPayload = row
+      ? await buildBookingConfirmationPayload(row, customer_email).catch(() => null)
+      : null;
+
     const result = await enqueueBookingConfirmationOnce({
       bookingReference: booking_reference,
       recipient: customer_email,
       vehicle,
-      payload: { state: status },
+      payload: { state: status, ...richPayload },
     });
     return NextResponse.json({
       ok: true,
       confirmationEnqueued: result.enqueued,
+      holdReleased: false,
       reason: result.enqueued ? "enqueued" : "already_sent",
     });
   } catch (err) {

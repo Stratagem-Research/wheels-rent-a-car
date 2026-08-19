@@ -3,7 +3,6 @@
 import * as React from "react";
 import { RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Chip } from "@/components/ui/Chip";
 import { Select } from "@/components/ui/Select";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
@@ -24,6 +23,7 @@ type BookingsResponse = {
 type CustomerFilter = "all" | "account" | "guest";
 type HoldFilter = "all" | "holding" | "not-holding";
 type RangeFilter = "7" | "30" | "90" | "all";
+type SourceFilter = "all" | "wizard" | "manual";
 
 const PAGE_SIZE = 20;
 
@@ -42,6 +42,21 @@ function formatBeirut(iso: string | null): string {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(date);
+}
+
+function BeirutDateTime({ iso }: { iso: string | null }) {
+  if (!iso) return "—";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return iso;
+  const tz = { timeZone: "Asia/Beirut" } as const;
+  const time = new Intl.DateTimeFormat("en-GB", { ...tz, timeStyle: "short" }).format(date);
+  const day = new Intl.DateTimeFormat("en-GB", { ...tz, dateStyle: "medium" }).format(date);
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span>{time}</span>
+      <span className="text-ink-60">{day}</span>
+    </div>
+  );
 }
 
 function customerLabel(type: HoldCustomerType): string {
@@ -64,8 +79,11 @@ export default function AdminBookingsPage() {
   const [customerFilter, setCustomerFilter] = React.useState<CustomerFilter>("all");
   const [holdFilter, setHoldFilter] = React.useState<HoldFilter>("all");
   const [rangeFilter, setRangeFilter] = React.useState<RangeFilter>("7");
+  const [sourceFilter, setSourceFilter] = React.useState<SourceFilter>("all");
   const [page, setPage] = React.useState(1);
-  const [releasing, setReleasing] = React.useState<string | null>(null);
+  const [acting, setActing] = React.useState<{ ref: string; action: "confirm" | "cancel" } | null>(
+    null,
+  );
 
   const refresh = React.useCallback(async () => {
     setLoading(true);
@@ -90,29 +108,56 @@ export default function AdminBookingsPage() {
   }, [refresh]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  const releaseHold = async (bookingReference: string) => {
+  const runManualAction = async (bookingReference: string, action: "confirm" | "cancel") => {
     const confirmed = window.confirm(
-      `Release hold ${bookingReference}? That car will count as available again on the website.`,
+      action === "confirm"
+        ? `Confirm ${bookingReference}? The customer will get the same confirmation email as a Wizard approval.`
+        : `Cancel ${bookingReference}? The customer will be emailed and the fleet hold will be released.`,
     );
     if (!confirmed) return;
-    setReleasing(bookingReference);
+    setActing({ ref: bookingReference, action });
     try {
-      const res = await fetch("/api/admin/holds", {
+      const res = await fetch("/api/admin/bookings/actions", {
         method: "POST",
         headers: { "Content-Type": "application/json", ...getAdminCsrfHeader() },
-        body: JSON.stringify({ bookingReference }),
+        body: JSON.stringify({ bookingReference, action }),
       });
       if (!res.ok) {
         const details = (await res.json().catch(() => ({}))) as { message?: string };
-        throw new Error(details.message ?? "Failed to release hold.");
+        throw new Error(details.message ?? `Failed to ${action} booking.`);
       }
       await refresh();
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to release hold.");
+      alert(err instanceof Error ? err.message : `Failed to ${action} booking.`);
     } finally {
-      setReleasing(null);
+      setActing(null);
     }
   };
+
+  // Wizard hold release — unused while confirm/cancel stay in Wizard.
+  // const releaseHold = async (bookingReference: string) => {
+  //   const confirmed = window.confirm(
+  //     `Release hold ${bookingReference}? That car will count as available again on the website.`,
+  //   );
+  //   if (!confirmed) return;
+  //   setReleasing(bookingReference);
+  //   try {
+  //     const res = await fetch("/api/admin/holds", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json", ...getAdminCsrfHeader() },
+  //       body: JSON.stringify({ bookingReference }),
+  //     });
+  //     if (!res.ok) {
+  //       const details = (await res.json().catch(() => ({}))) as { message?: string };
+  //       throw new Error(details.message ?? "Failed to release hold.");
+  //     }
+  //     await refresh();
+  //   } catch (err) {
+  //     alert(err instanceof Error ? err.message : "Failed to release hold.");
+  //   } finally {
+  //     setReleasing(null);
+  //   }
+  // };
 
   const windowed = (data?.items ?? []).filter((item) =>
     rangeFilter === "all" ? true : bookedWithinDays(item.createdAt, Number(rangeFilter)),
@@ -124,6 +169,8 @@ export default function AdminBookingsPage() {
     holding: windowed.filter((item) => item.reducingCount).length,
   };
   const rows = windowed.filter((item) => {
+    if (sourceFilter === "manual" && !item.isManual) return false;
+    if (sourceFilter === "wizard" && item.isManual) return false;
     if (customerFilter !== "all" && item.customerType !== customerFilter) return false;
     if (holdFilter === "holding" && !item.reducingCount) return false;
     if (holdFilter === "not-holding" && item.reducingCount) return false;
@@ -142,7 +189,7 @@ export default function AdminBookingsPage() {
     <AdminPageShell
       eyebrow="Operations"
       title="Bookings"
-      description="Every website booking — guest checkout and logged-in accounts. Release hold puts that vehicle back in the fleet listing."
+      description="Website bookings. Confirm and Cancel on website-only cars while a hold is active."
       actions={
         <Button variant="tertiary" onClick={() => void refresh()}>
           <RefreshCcw className="size-4" aria-hidden="true" />
@@ -187,38 +234,42 @@ export default function AdminBookingsPage() {
                 <option value="all">All time</option>
               </Select>
             </div>
-            <span className="bg-border mx-1 hidden w-px self-stretch sm:inline-block" aria-hidden="true" />
-            {(
-              [
-                ["all", "All customers"],
-                ["account", "Account"],
-                ["guest", "Guest"],
-              ] as const
-            ).map(([id, label]) => (
-              <Chip
-                key={id}
-                variant={customerFilter === id ? "selected" : "default"}
-                onClick={() => setFilter(setCustomerFilter, id)}
+            <div className="w-40">
+              <Select
+                size="sm"
+                aria-label="Source"
+                value={sourceFilter}
+                onChange={(event) => setFilter(setSourceFilter, event.target.value as SourceFilter)}
               >
-                {label}
-              </Chip>
-            ))}
-            <span className="bg-border mx-1 hidden w-px self-stretch sm:inline-block" aria-hidden="true" />
-            {(
-              [
-                ["all", "All holds"],
-                ["holding", "Holding a car"],
-                ["not-holding", "Not holding"],
-              ] as const
-            ).map(([id, label]) => (
-              <Chip
-                key={id}
-                variant={holdFilter === id ? "selected" : "default"}
-                onClick={() => setFilter(setHoldFilter, id)}
+                <option value="all">All sources</option>
+                <option value="wizard">Wizard</option>
+                <option value="manual">Manual</option>
+              </Select>
+            </div>
+            <div className="w-40">
+              <Select
+                size="sm"
+                aria-label="Customer"
+                value={customerFilter}
+                onChange={(event) => setFilter(setCustomerFilter, event.target.value as CustomerFilter)}
               >
-                {label}
-              </Chip>
-            ))}
+                <option value="all">All customers</option>
+                <option value="account">Account</option>
+                <option value="guest">Guest</option>
+              </Select>
+            </div>
+            <div className="w-44">
+              <Select
+                size="sm"
+                aria-label="Hold"
+                value={holdFilter}
+                onChange={(event) => setFilter(setHoldFilter, event.target.value as HoldFilter)}
+              >
+                <option value="all">All holds</option>
+                <option value="holding">Holding a car</option>
+                <option value="not-holding">Not holding</option>
+              </Select>
+            </div>
           </div>
 
           <AdminDataTable
@@ -276,14 +327,14 @@ export default function AdminBookingsPage() {
               },
               {
                 header: "Pickup",
-                cell: (row) => formatBeirut(row.pickupAt),
-                width: "10rem",
+                cell: (row) => <BeirutDateTime iso={row.pickupAt} />,
+                width: "8rem",
                 className: "whitespace-nowrap",
               },
               {
                 header: "Return",
-                cell: (row) => formatBeirut(row.returnAt),
-                width: "10rem",
+                cell: (row) => <BeirutDateTime iso={row.returnAt} />,
+                width: "8rem",
                 className: "whitespace-nowrap",
               },
               {
@@ -304,18 +355,50 @@ export default function AdminBookingsPage() {
                 width: "8rem",
               },
             ]}
-            rowActions={(row) =>
-              row.reducingCount ? (
-                <Button
-                  size="sm"
-                  variant="tertiary"
-                  loading={releasing === row.bookingReference}
-                  onClick={() => void releaseHold(row.bookingReference)}
-                >
-                  Release hold
-                </Button>
-              ) : null
-            }
+            rowActions={(row) => {
+              if (!row.isManual || !row.reducingCount) return null;
+              const terminal =
+                row.lifecycleState === "cancelled" || row.lifecycleState === "completed";
+              const confirmed = row.lifecycleState === "confirmed";
+              return (
+                <div className="flex flex-col items-end gap-1">
+                  {!terminal && !confirmed ? (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      loading={acting?.ref === row.bookingReference && acting.action === "confirm"}
+                      disabled={acting != null}
+                      onClick={() => void runManualAction(row.bookingReference, "confirm")}
+                    >
+                      Confirm
+                    </Button>
+                  ) : null}
+                  {!terminal ? (
+                    <Button
+                      size="sm"
+                      variant="tertiary"
+                      loading={acting?.ref === row.bookingReference && acting.action === "cancel"}
+                      disabled={acting != null}
+                      onClick={() => void runManualAction(row.bookingReference, "cancel")}
+                    >
+                      Cancel
+                    </Button>
+                  ) : null}
+                </div>
+              );
+              // if (row.reducingCount) {
+              //   return (
+              //     <Button
+              //       size="sm"
+              //       variant="tertiary"
+              //       loading={releasing === row.bookingReference}
+              //       onClick={() => void releaseHold(row.bookingReference)}
+              //     >
+              //       Release hold
+              //     </Button>
+              //   );
+              // }
+            }}
           />
           {rows.length > 0 ? (
             <div className="flex flex-wrap items-center justify-between gap-3">

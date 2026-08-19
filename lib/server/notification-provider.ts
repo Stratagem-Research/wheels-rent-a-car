@@ -77,16 +77,18 @@ export function renderNotificationTemplate(
         text: `Thank you — we have received your booking request${ref ? ` (${ref})` : ""}.${vehicle ? ` Vehicle: ${vehicle}.` : ""} Our team will review it and email you once it is approved.`,
       };
     case "booking_confirmation":
-      return {
-        subject: ref ? `Wheels booking confirmed — ${ref}` : "Wheels booking confirmed",
-        html: `<p>Your Wheels booking is confirmed${ref ? ` (<strong>${ref}</strong>)` : ""}.</p>${vehicle ? `<p>Vehicle: ${vehicle}</p>` : ""}<p>We will contact you before pickup with any final details.</p>`,
-        text: `Your Wheels booking is confirmed${ref ? ` (${ref})` : ""}.${vehicle ? ` Vehicle: ${vehicle}.` : ""}`,
-      };
+      return renderBookingConfirmation(ref, vehicle, payload);
     case "booking_cancel_requested":
       return {
         subject: ref ? `Cancellation request received — ${ref}` : "Cancellation request received",
         html: `<p>We received your cancellation request${ref ? ` for <strong>${ref}</strong>` : ""}. Our team will review it and email you once it is processed.</p>`,
         text: `We received your cancellation request${ref ? ` for ${ref}` : ""}.`,
+      };
+    case "booking_cancelled":
+      return {
+        subject: ref ? `Wheels booking cancelled — ${ref}` : "Wheels booking cancelled",
+        html: `<p>Your Wheels booking has been cancelled${ref ? ` (<strong>${ref}</strong>)` : ""}.</p>${vehicle ? `<p>Vehicle: ${vehicle}</p>` : ""}<p>If you did not request this, please contact us.</p>`,
+        text: `Your Wheels booking has been cancelled${ref ? ` (${ref})` : ""}.${vehicle ? ` Vehicle: ${vehicle}.` : ""}`,
       };
     case "booking_change_requested":
       return {
@@ -101,6 +103,129 @@ export function renderNotificationTemplate(
         text: `${template}\n${JSON.stringify(payload)}`,
       };
   }
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function str(payload: Record<string, unknown>, key: string): string {
+  const value = payload[key];
+  return typeof value === "string" ? value : value != null ? String(value) : "";
+}
+
+function strList(payload: Record<string, unknown>, key: string): string[] {
+  const value = payload[key];
+  return Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
+}
+
+/**
+ * Rich confirmation email — dates/times, driver, extras, protection, full
+ * price breakdown, and pickup/return location, when `payload` was built via
+ * `buildBookingConfirmationPayload()`. Falls back to the old minimal
+ * ref+vehicle message if the caller couldn't attach the rich details (e.g.
+ * the booking row wasn't indexed yet) so a confirmation still goes out.
+ */
+function renderBookingConfirmation(
+  ref: string,
+  vehicle: string,
+  payload: Record<string, unknown>,
+): { subject: string; html: string; text: string } {
+  const subject = ref ? `Wheels booking confirmed — ${ref}` : "Wheels booking confirmed";
+  const pickupDate = str(payload, "pickupDate");
+  const pickupTime = str(payload, "pickupTime");
+  const returnDate = str(payload, "returnDate");
+  const returnTime = str(payload, "returnTime");
+
+  if (!pickupDate || !returnDate) {
+    // No rich payload attached — degrade to the original minimal message.
+    return {
+      subject,
+      html: `<p>Your Wheels booking is confirmed${ref ? ` (<strong>${escapeHtml(ref)}</strong>)` : ""}.</p>${vehicle ? `<p>Vehicle: ${escapeHtml(vehicle)}</p>` : ""}<p>We will contact you before pickup with any final details.</p>`,
+      text: `Your Wheels booking is confirmed${ref ? ` (${ref})` : ""}.${vehicle ? ` Vehicle: ${vehicle}.` : ""}`,
+    };
+  }
+
+  const vehicleLabel = [str(payload, "vehicle") || vehicle, str(payload, "vehicleYear")]
+    .filter(Boolean)
+    .join(" · ");
+  const driverName = str(payload, "driverName");
+  const driverEmail = str(payload, "driverEmail");
+  const driverPhone = str(payload, "driverPhone");
+  const pickupLocation = str(payload, "pickupLocation");
+  const returnLocation = str(payload, "returnLocation");
+  const flightNumber = str(payload, "flightNumber");
+  const paymentMethod = str(payload, "paymentMethod");
+  const protectionName = str(payload, "protectionName");
+  const protectionPriceLabel = str(payload, "protectionPriceLabel");
+  const extrasLines = strList(payload, "extrasLines");
+  const priceDiscount = str(payload, "priceDiscount");
+
+  const htmlRow = (label: string, value: string) =>
+    value ? `<tr><td style="padding:4px 12px 4px 0;color:#666;">${label}</td><td>${escapeHtml(value)}</td></tr>` : "";
+
+  const textLine = (label: string, value: string) => (value ? `${label}: ${value}\n` : "");
+
+  const html = `
+    <p>Your Wheels booking is confirmed${ref ? ` (<strong>${escapeHtml(ref)}</strong>)` : ""}.</p>
+    <table cellpadding="0" cellspacing="0">
+      ${htmlRow("Vehicle", vehicleLabel)}
+      ${htmlRow("Pickup", `${pickupDate} at ${pickupTime}${pickupLocation ? ` — ${pickupLocation}` : ""}`)}
+      ${htmlRow("Return", `${returnDate} at ${returnTime}${returnLocation ? ` — ${returnLocation}` : ""}`)}
+      ${htmlRow("Flight number", flightNumber)}
+      ${htmlRow("Driver", driverName)}
+      ${htmlRow("Email", driverEmail)}
+      ${htmlRow("Phone", driverPhone)}
+      ${htmlRow("Protection plan", protectionName ? `${protectionName}${protectionPriceLabel ? ` (${protectionPriceLabel})` : ""}` : "")}
+      ${htmlRow("Payment method", paymentMethod)}
+    </table>
+    ${extrasLines.length > 0 ? `<p><strong>Selected extras</strong></p><ul>${extrasLines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>` : ""}
+    <p><strong>Price breakdown</strong></p>
+    <table cellpadding="0" cellspacing="0">
+      ${htmlRow("Base rate", str(payload, "priceBaseRate"))}
+      ${htmlRow("Extras", str(payload, "priceExtras"))}
+      ${htmlRow("Protection", str(payload, "priceProtection"))}
+      ${htmlRow("Taxes", str(payload, "priceTaxes"))}
+      ${htmlRow("Fees", str(payload, "priceFees"))}
+      ${priceDiscount ? htmlRow("Discount", `-${priceDiscount}`) : ""}
+      <tr><td style="padding:8px 12px 4px 0;font-weight:bold;">Total</td><td style="font-weight:bold;">${escapeHtml(str(payload, "priceTotal"))}</td></tr>
+      ${htmlRow("Security deposit (refundable)", str(payload, "priceDeposit"))}
+    </table>
+    <p>We will contact you before pickup with any final details.</p>
+  `;
+
+  const text = [
+    `Your Wheels booking is confirmed${ref ? ` (${ref})` : ""}.`,
+    "",
+    textLine("Vehicle", vehicleLabel),
+    textLine("Pickup", `${pickupDate} at ${pickupTime}${pickupLocation ? ` — ${pickupLocation}` : ""}`),
+    textLine("Return", `${returnDate} at ${returnTime}${returnLocation ? ` — ${returnLocation}` : ""}`),
+    textLine("Flight number", flightNumber),
+    textLine("Driver", driverName),
+    textLine("Email", driverEmail),
+    textLine("Phone", driverPhone),
+    textLine("Protection plan", protectionName ? `${protectionName}${protectionPriceLabel ? ` (${protectionPriceLabel})` : ""}` : ""),
+    textLine("Payment method", paymentMethod),
+    extrasLines.length > 0 ? `\nSelected extras:\n${extrasLines.map((l) => `- ${l}`).join("\n")}\n` : "",
+    "\nPrice breakdown:",
+    textLine("Base rate", str(payload, "priceBaseRate")),
+    textLine("Extras", str(payload, "priceExtras")),
+    textLine("Protection", str(payload, "priceProtection")),
+    textLine("Taxes", str(payload, "priceTaxes")),
+    textLine("Fees", str(payload, "priceFees")),
+    priceDiscount ? textLine("Discount", `-${priceDiscount}`) : "",
+    textLine("Total", str(payload, "priceTotal")),
+    textLine("Security deposit (refundable)", str(payload, "priceDeposit")),
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  return { subject, html, text };
 }
 
 async function sendViaSmtp(

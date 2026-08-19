@@ -93,10 +93,10 @@ const buttonVariants = cva(
         ),
       },
       size: {
-        sm: "h-9 px-[18px] button-sm",
-        md: "h-12 px-7 button-md",
-        lg: "h-14 px-9 button-lg",
-        xl: "h-16 px-11 button-lg",
+        sm: "h-8 px-[18px] button-sm",
+        md: "h-10 px-6 button-sm",
+        lg: "h-12 px-8 button-md",
+        xl: "h-14 px-10 button-lg",
       },
       fullWidth: {
         true: "w-full",

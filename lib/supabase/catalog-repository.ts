@@ -17,6 +17,7 @@ type AddOnRow = {
   price_cents: number;
   multi_quantity: boolean;
   max_quantity: number | null;
+  quantity_unit: "gb" | null;
   icon: string;
   sort_order: number;
   active: boolean;
@@ -77,6 +78,7 @@ function toAddOn(row: AddOnRow): AddOn {
     priceCents: row.price_cents,
     multiQuantity: row.multi_quantity,
     maxQuantity: row.max_quantity ?? undefined,
+    quantityUnit: row.quantity_unit === "gb" ? "gb" : undefined,
     icon: row.icon,
   };
 }
@@ -186,6 +188,7 @@ export async function replaceAddOnsInDb(items: AddOn[]): Promise<void> {
     price_cents: item.priceCents,
     multi_quantity: item.multiQuantity,
     max_quantity: item.maxQuantity ?? null,
+    quantity_unit: item.quantityUnit ?? null,
     icon: item.icon,
     sort_order: index,
     active: true,

@@ -1,4 +1,5 @@
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
+import { isManualIndexedBooking } from "@/lib/server/manual-booking-ops";
 import {
   fleetVehicleLabel,
   holdInventoryStatus,
@@ -21,6 +22,7 @@ export type AdminWebsiteBooking = {
   reducingCount: boolean;
   lifecycleState: string | null;
   paymentStatus: string | null;
+  isManual: boolean;
 };
 
 function earlierIso(a: string, b: string): string {
@@ -254,6 +256,10 @@ export async function listAdminWebsiteBookings(): Promise<AdminWebsiteBooking[]>
         reducingCount: holdStatus != null && holdStatus !== "ended",
         lifecycleState: timelineByRef.get(row.bookingReference) || null,
         paymentStatus: paymentByRef.get(row.bookingReference) || null,
+        isManual: isManualIndexedBooking({
+          frontendVehicleId: row.frontendVehicleId,
+          wizardVehicleId: row.wizardVehicleId,
+        }),
       };
     })
     .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
