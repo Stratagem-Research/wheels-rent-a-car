@@ -21,6 +21,7 @@ import {
   Settings2,
   Star,
   Users,
+  UserCircle,
   MapIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -72,6 +73,7 @@ const NAV_ITEMS: Array<{
     { href: "/admin/car-wash", label: "Car wash", icon: Droplets },
     { href: "/admin/about", label: "About", icon: Info },
     { href: "/admin/leads", label: "Leads", icon: Users },
+    { href: "/admin/users", label: "Users", icon: UserCircle },
     { href: "/admin/bookings", label: "Bookings", icon: BookOpen },
     { href: "/admin/fleet", label: "Fleet", icon: Route },
     { href: "/admin/locations", label: "Locations", icon: MapPinned },
