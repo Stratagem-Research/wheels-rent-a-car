@@ -93,14 +93,18 @@ export async function listUserBookings(
           .eq("user_id", userId)
           .order("created_at", { ascending: false });
         if (minimal.error) throw minimal.error;
-        return (minimal.data ?? []).map((row) => mapUserBookingRow(row as Record<string, unknown>));
+        return (minimal.data ?? []).map((row) =>
+          mapUserBookingRow(row as unknown as Record<string, unknown>),
+        );
       }
       throw fallback.error;
     }
-    return (fallback.data ?? []).map((row) => mapUserBookingRow(row as Record<string, unknown>));
+    return (fallback.data ?? []).map((row) =>
+      mapUserBookingRow(row as unknown as Record<string, unknown>),
+    );
   }
   if (error) throw error;
-  return (data ?? []).map((row) => mapUserBookingRow(row as Record<string, unknown>));
+  return (data ?? []).map((row) => mapUserBookingRow(row as unknown as Record<string, unknown>));
 }
 
 /**
@@ -205,11 +209,11 @@ export async function getUserBookingRow(
       .maybeSingle();
     if (fallback.error) throw fallback.error;
     if (!fallback.data) return null;
-    return mapUserBookingRow(fallback.data as Record<string, unknown>);
+    return mapUserBookingRow(fallback.data as unknown as Record<string, unknown>);
   }
   if (error) throw error;
   if (!data) return null;
-  return mapUserBookingRow(data as Record<string, unknown>);
+  return mapUserBookingRow(data as unknown as Record<string, unknown>);
 }
 
 export async function userOwnsBooking(
@@ -302,11 +306,11 @@ export async function getIndexedGuestBooking(
       .maybeSingle();
     if (fallback.error) throw fallback.error;
     if (!fallback.data) return null;
-    return mapGuestBookingRow(fallback.data as Record<string, unknown>);
+    return mapGuestBookingRow(fallback.data as unknown as Record<string, unknown>);
   }
   if (error) throw error;
   if (!data) return null;
-  return mapGuestBookingRow(data as Record<string, unknown>);
+  return mapGuestBookingRow(data as unknown as Record<string, unknown>);
 }
 
 /** First guest index row for this ref, else a linked user_bookings row. */
@@ -322,7 +326,8 @@ export async function findIndexedBookingByReference(
     .eq("booking_reference", ref)
     .limit(1)
     .maybeSingle();
-  if (!guest.error && guest.data) return mapGuestBookingRow(guest.data as Record<string, unknown>);
+  if (!guest.error && guest.data)
+    return mapGuestBookingRow(guest.data as unknown as Record<string, unknown>);
   if (guest.error && !isMissingStoredBookingColumn(guest.error)) throw guest.error;
 
   const user = await supabase
@@ -340,11 +345,11 @@ export async function findIndexedBookingByReference(
       .maybeSingle();
     if (fallback.error) throw fallback.error;
     if (!fallback.data) return null;
-    return mapUserBookingRow(fallback.data as Record<string, unknown>);
+    return mapUserBookingRow(fallback.data as unknown as Record<string, unknown>);
   }
   if (user.error) throw user.error;
   if (!user.data) return null;
-  return mapUserBookingRow(user.data as Record<string, unknown>);
+  return mapUserBookingRow(user.data as unknown as Record<string, unknown>);
 }
 
 export async function updateStoredBookingState(bookingReference: string, state: string): Promise<void> {
