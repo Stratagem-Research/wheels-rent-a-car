@@ -1,5 +1,11 @@
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
-import type { Branch, LocalizedString, LocalizedStringArray, Vehicle } from "@/types/domain";
+import type {
+  Branch,
+  DeliveryPricingSettings,
+  LocalizedString,
+  LocalizedStringArray,
+  Vehicle,
+} from "@/types/domain";
 import { isLocalizedString, isLocalizedStringArray, toLocalizedString } from "@/lib/i18n/localized";
 import { parseVehicleMedia, toPublicVehicleImages } from "@/lib/vehicles/vehicle-media";
 import { composeVehicleTitle } from "@/lib/vehicles/display-name";
@@ -487,6 +493,39 @@ export async function replaceLocations(items: Branch[]): Promise<void> {
       updated_at: new Date().toISOString(),
     })),
   );
+  if (error) throw new Error(error.message);
+}
+
+export async function getDeliveryPricingSettings(): Promise<DeliveryPricingSettings | null> {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("delivery_pricing_settings")
+    .select("*")
+    .eq("id", "default")
+    .limit(1);
+  if (error) throw new Error(error.message);
+  const row = (data ?? [])[0] as
+    | { base_fee_cents: number; free_radius_km: number; per_km_cents: number }
+    | undefined;
+  if (!row) return null;
+  return {
+    baseFeeCents: row.base_fee_cents,
+    freeRadiusKm: Number(row.free_radius_km),
+    perKmCents: row.per_km_cents,
+  };
+}
+
+export async function replaceDeliveryPricingSettings(
+  settings: DeliveryPricingSettings,
+): Promise<void> {
+  const supabase = getSupabaseAdminClient();
+  const { error } = await supabase.from("delivery_pricing_settings").upsert({
+    id: "default",
+    base_fee_cents: settings.baseFeeCents,
+    free_radius_km: settings.freeRadiusKm,
+    per_km_cents: settings.perKmCents,
+    updated_at: new Date().toISOString(),
+  });
   if (error) throw new Error(error.message);
 }
 

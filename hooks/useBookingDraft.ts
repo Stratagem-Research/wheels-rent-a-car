@@ -204,6 +204,10 @@ export function seedDraftFromSearchParams(params: URLSearchParams): BookingDraft
   if (pickupLoc) d.pickup.locationId = pickupLoc;
   const pickupAddr = params.get("pickupAddr");
   if (pickupAddr) d.pickup.address = pickupAddr;
+  const pickupLat = params.get("pickupLat");
+  if (pickupLat) d.pickup.lat = Number(pickupLat);
+  const pickupLng = params.get("pickupLng");
+  if (pickupLng) d.pickup.lng = Number(pickupLng);
   const pickupAt = params.get("pickupAt");
   if (pickupAt) d.pickup.datetime = pickupAt;
   const returnAt = params.get("returnAt");

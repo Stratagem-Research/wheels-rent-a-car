@@ -31,7 +31,7 @@ import {
   isWithinOnlineBookingWindow,
   rentalDays,
 } from "@/lib/booking/pricing";
-import { getPublicVehicles } from "@/lib/server/public-content";
+import { getPublicBranches, getPublicDeliveryPricing, getPublicVehicles } from "@/lib/server/public-content";
 import { vehicleDisplayName } from "@/lib/vehicles/display-name";
 import { modelGroupKey } from "@/lib/vehicles/group-by-model";
 import {
@@ -152,12 +152,14 @@ function assertOnlineBookingWindow(pickupISO: string, returnISO: string) {
 }
 
 async function getCatalog() {
-  const [addOns, tiers, vehicles] = await Promise.all([
+  const [addOns, tiers, vehicles, branches, deliveryPricing] = await Promise.all([
     listAddOnsFromDb(),
     listProtectionTiersFromDb(),
     getPublicVehicles(),
+    getPublicBranches(),
+    getPublicDeliveryPricing(),
   ]);
-  return { addOns, tiers, vehicles };
+  return { addOns, tiers, vehicles, branches, deliveryPricing };
 }
 
 export async function handleBookingAvailability(body: AvailabilityRequest) {
@@ -293,13 +295,21 @@ async function resolvePromoDiscountPercent(promoCode?: string): Promise<number> 
 
 export async function handleBookingQuote(body: QuoteRequest): Promise<QuoteResponse> {
   assertOnlineBookingWindow(body.draft.pickup.datetime, body.draft.return.datetime);
-  const { addOns, tiers, vehicles } = await getCatalog();
+  const { addOns, tiers, vehicles, branches, deliveryPricing } = await getCatalog();
   const vehicle = body.draft.vehicle
     ? await resolveVehicleForDraft(body.draft, vehicles)
     : undefined;
   const days = rentalDays(body.draft.pickup.datetime, body.draft.return.datetime);
   const promoDiscountPercent = await resolvePromoDiscountPercent(body.draft.promoCode);
-  const price = computePrice({ draft: body.draft, vehicle, addOns, tiers, promoDiscountPercent });
+  const price = computePrice({
+    draft: body.draft,
+    vehicle,
+    addOns,
+    tiers,
+    promoDiscountPercent,
+    branches,
+    deliveryPricing,
+  });
   return { rentalDays: days, price, changedSinceLastQuote: false };
 }
 
@@ -324,7 +334,7 @@ export async function handleBookingSubmit(
   assertPaymentMethodSelectable(draft.paymentMethod);
   assertOnlineBookingWindow(draft.pickup.datetime, draft.return.datetime);
 
-  const { addOns, tiers, vehicles } = await getCatalog();
+  const { addOns, tiers, vehicles, branches, deliveryPricing } = await getCatalog();
   const vehicle = await resolveVehicleForDraft(draft, vehicles);
   if (!vehicle) throw new Error("Vehicle gone");
 
@@ -336,6 +346,8 @@ export async function handleBookingSubmit(
     addOns,
     tiers,
     promoDiscountPercent: await resolvePromoDiscountPercent(draft.promoCode),
+    branches,
+    deliveryPricing,
   });
 
   if (isManualVehicleId(draft.vehicle.vehicleId)) {

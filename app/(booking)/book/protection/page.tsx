@@ -25,6 +25,7 @@ export default function ProtectionPage() {
     addOns: ADD_ONS,
     protectionTiers: PROTECTION_TIERS,
     branches: BRANCHES,
+    deliveryPricing: DELIVERY_PRICING,
   } = useBookingFunnelPage();
   const protectionFaqs = t.raw("protection.faqs") as { q: string; a: string }[];
 
@@ -98,6 +99,7 @@ export default function ProtectionPage() {
               branches={BRANCHES}
               addOns={ADD_ONS}
               tiers={PROTECTION_TIERS}
+              deliveryPricing={DELIVERY_PRICING}
               primary={{
                 label: t("continue"),
                 onClick: () => goToStep("/book/checkout"),

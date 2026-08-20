@@ -26,7 +26,15 @@ import { appendSearchContextFromParams, draftToSearchParams } from "@/lib/bookin
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
 import { queryToSearch } from "@/lib/search/criteria";
-import type { MileagePlan, RateType, Vehicle, VehicleCategory, Branch } from "@/types/domain";
+import type {
+  Branch,
+  DeliveryPricingSettings,
+  MileagePlan,
+  RateType,
+  Vehicle,
+  VehicleCategory,
+} from "@/types/domain";
+import { DEFAULT_DELIVERY_PRICING_SETTINGS } from "@/lib/booking/delivery-pricing";
 
 /**
  * /vehicles — INK & SIGNAL canonical results page (Phase 7).
@@ -53,10 +61,12 @@ import type { MileagePlan, RateType, Vehicle, VehicleCategory, Branch } from "@/
 export function VehiclesClient({
   vehicles,
   branches,
+  deliveryPricing = DEFAULT_DELIVERY_PRICING_SETTINGS,
   availabilityError = false,
 }: {
   vehicles: Vehicle[];
   branches: Branch[];
+  deliveryPricing?: DeliveryPricingSettings;
   availabilityError?: boolean;
 }) {
   const t = useTranslations("vehicles");
@@ -113,6 +123,10 @@ export function VehiclesClient({
         : draft.pickup.type;
     const pickupLoc = searchParams.get("pickupLoc") ?? draft.pickup.locationId;
     const pickupAddr = searchParams.get("pickupAddr") ?? draft.pickup.address;
+    const pickupLatParam = searchParams.get("pickupLat");
+    const pickupLngParam = searchParams.get("pickupLng");
+    const pickupLat = pickupLatParam ? Number(pickupLatParam) : draft.pickup.lat;
+    const pickupLng = pickupLngParam ? Number(pickupLngParam) : draft.pickup.lng;
     const returnLoc = searchParams.get("returnLoc") ?? draft.return.locationId;
     const returnAddr = searchParams.get("returnAddr") ?? draft.return.address;
     const promo = searchParams.get("promo") ?? draft.promoCode;
@@ -123,6 +137,8 @@ export function VehiclesClient({
       draft.pickup.type === pickupType &&
       draft.pickup.locationId === pickupLoc &&
       draft.pickup.address === pickupAddr &&
+      draft.pickup.lat === pickupLat &&
+      draft.pickup.lng === pickupLng &&
       draft.return.locationId === returnLoc &&
       draft.return.address === returnAddr &&
       draft.promoCode === promo;
@@ -133,6 +149,8 @@ export function VehiclesClient({
       type: pickupType,
       locationId: pickupLoc,
       address: pickupAddr,
+      lat: pickupLat,
+      lng: pickupLng,
       datetime: pickupAt,
     });
     setReturn({
@@ -403,6 +421,9 @@ export function VehiclesClient({
                         vehicle={selectedInRow}
                         pickupISO={pickupISO}
                         returnISO={returnISO}
+                        pickup={draft.pickup}
+                        branches={branches}
+                        deliveryPricing={deliveryPricing}
                         onConfirm={(choice) => onConfirm(selectedInRow.id, selectedInRow.slug, choice)}
                         onClose={onClose}
                       />

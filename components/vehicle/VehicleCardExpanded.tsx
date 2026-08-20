@@ -8,23 +8,34 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { SaveVehicleButton } from "@/components/vehicle/SaveVehicleButton";
 import { VehicleImageSlider } from "@/components/vehicle/VehicleImageSlider";
-import { RadioGroup, RadioItem } from "@/components/ui/RadioGroup";
 import { formatUsd, perDayRate, rentalDays } from "@/lib/booking/pricing";
-import { FLEET_PAY_LATER_RATE, FLEET_PAY_NOW_RATE } from "@/lib/vehicles/fleet-card-rates";
+import {
+  computeDeliveryFeeCents,
+  DEFAULT_DELIVERY_PRICING_SETTINGS,
+  nearestBranchDistanceKm,
+} from "@/lib/booking/delivery-pricing";
+import { FLEET_PAY_NOW_RATE } from "@/lib/vehicles/fleet-card-rates";
 import { vehicleDisplayName } from "@/lib/vehicles/display-name";
 import { whatsAppHref } from "@/lib/whatsapp";
-import type { MileagePlan, RateType, Vehicle, VehicleBadge } from "@/types/domain";
+import type {
+  Branch,
+  BookingPickup,
+  DeliveryPricingSettings,
+  MileagePlan,
+  RateType,
+  Vehicle,
+  VehicleBadge,
+} from "@/types/domain";
 
 /**
  * VehicleCardExpanded — Sixt's "car selected" inline panel.
  *
  *  ┌──────────────────────────────────────────────────────┬──────────────────────────────┐
- *  │                                                      │  Payment option            × │
- *  │                                                      │  ○ Pay now      Best price   │
- *  │              [ vehicle hero photo ]                  │  ○ Pay later    +$3.90/day   │
- *  │                                                      │                              │
- *  │  TOYOTA YARIS                                        │  $18.46/day  $73.82 total    │
- *  │  ▪ 5 Seats  ▪ 2 Bag(s)  ▪ Auto  ▪ 5 Doors            │                  [Next →]    │
+ *  │                                                      │                             × │
+ *  │              [ vehicle hero photo ]                  │                              │
+ *  │                                                      │  $18.46/day  $73.82 total    │
+ *  │  TOYOTA YARIS                                        │                  [Next →]    │
+ *  │  ▪ 5 Seats  ▪ 2 Bag(s)  ▪ Auto  ▪ 5 Doors            │                              │
  *  │  Minimum age of the youngest driver: 21              │                              │
  *  └──────────────────────────────────────────────────────┴──────────────────────────────┘
  *
@@ -32,12 +43,9 @@ import type { MileagePlan, RateType, Vehicle, VehicleBadge } from "@/types/domai
  * collapsed VehicleCard widens into it on selection). Same radial gradient
  * surface as the collapsed card so the panel reads as a continuation.
  *
- * Right column was previously two sections — "Booking option" (best-price /
- * flexible) and "Mileage" (200km / unlimited). Both collapsed into a single
- * "Payment option" panel: Pay Now (the cheaper bundle — best-price +
- * capped-200km) vs Pay Later (slight surcharge — flexible + capped-200km).
- * Cleaner read, same downstream booking-draft shape (rate + mileage are
- * still what the callback sends, derived from the payment-timing choice).
+ * No payment-timing choice here — always the best-price bundle
+ * (best-price + capped-200km, same as FLEET_PAY_NOW_RATE on the collapsed
+ * card).
  *
  * - Red `cta` "Next →" → confirms rate + mileage and routes to /book/extras.
  * - × top-right strips `?selected=` from the URL.
@@ -65,39 +73,27 @@ export interface VehicleCardExpandedProps {
   vehicle: Vehicle;
   pickupISO: string;
   returnISO: string;
+  /** Delivery distance fee shows when this is an "address-delivery" pickup with lat/lng. */
+  pickup?: BookingPickup;
+  branches?: Branch[];
+  deliveryPricing?: DeliveryPricingSettings;
   onConfirm: (choice: { type: RateType; mileage: MileagePlan }) => void;
   onClose: () => void;
   className?: string;
 }
 
-/**
- * Pay-now / pay-later is a UI-layer concept that maps to the existing
- * (rate × mileage) pricing matrix:
- *
- *   pay-now   → best-price + capped-200km   (the cheaper bundle)
- *   pay-later → flexible   + capped-200km   (slight surcharge)
- *
- * Mileage stays at the default 200km/day for both. The downstream booking
- * draft still receives `{ type: RateType; mileage: MileagePlan }` so no
- * other code in the funnel needs to change.
- */
-type PaymentTiming = "pay-now" | "pay-later";
-
-const PAYMENT_TIMING_TO_BOOKING: Record<PaymentTiming, { type: RateType; mileage: MileagePlan }> = {
-  "pay-now": FLEET_PAY_NOW_RATE,
-  "pay-later": FLEET_PAY_LATER_RATE,
-};
-
 export function VehicleCardExpanded({
   vehicle,
   pickupISO,
   returnISO,
+  pickup,
+  branches = [],
+  deliveryPricing,
   onConfirm,
   onClose,
   className,
 }: VehicleCardExpandedProps) {
   const t = useTranslations("fleet");
-  const [paymentTiming, setPaymentTiming] = React.useState<PaymentTiming>("pay-now");
   const panelRef = React.useRef<HTMLElement>(null);
 
   // Focus + pin the panel under sticky chrome. Instant scroll only — smooth
@@ -126,24 +122,22 @@ export function VehicleCardExpanded({
   const days = rentalDays(pickupISO, returnISO);
   const vehicleLabel = vehicleDisplayName(vehicle);
 
-  // Same bundles as the collapsed card (best-price + 200 km/day vs flexible).
-  const payNowPerDay = perDayRate(
-    vehicle,
-    FLEET_PAY_NOW_RATE.type,
-    FLEET_PAY_NOW_RATE.mileage,
-  );
-  const payLaterPerDay = perDayRate(
-    vehicle,
-    FLEET_PAY_LATER_RATE.type,
-    FLEET_PAY_LATER_RATE.mileage,
-  );
-  const payLaterSurchargeCents = payLaterPerDay - payNowPerDay;
-
-  const perDay = paymentTiming === "pay-now" ? payNowPerDay : payLaterPerDay;
-  const totalCents = perDay * days;
+  // Same bundle as the collapsed card (best-price + 200 km/day).
+  const perDay = perDayRate(vehicle, FLEET_PAY_NOW_RATE.type, FLEET_PAY_NOW_RATE.mileage);
+  const isDelivery = pickup?.type === "address-delivery";
+  const pricingSettings = deliveryPricing ?? DEFAULT_DELIVERY_PRICING_SETTINGS;
+  const distanceKm =
+    isDelivery && pickup?.lat !== undefined && pickup?.lng !== undefined
+      ? nearestBranchDistanceKm({ lat: pickup.lat, lng: pickup.lng }, branches)
+      : null;
+  const deliveryCents = isDelivery
+    ? computeDeliveryFeeCents(pickup, branches, deliveryPricing)
+    : 0;
+  const totalCents = perDay * days + deliveryCents;
 
   const fromPriceParts = splitPrice(perDay);
   const totalLabel = formatUsd(totalCents);
+  const deliveryLabel = formatUsd(deliveryCents);
 
   const waLink = whatsAppHref("pdp", {
     model: vehicleLabel,
@@ -228,47 +222,51 @@ export function VehicleCardExpanded({
         <p className="label-sm text-paper/60">{t("minAge")}</p>
       </div>
 
-      {/* RIGHT — payment option + total + Next.
+      {/* RIGHT — total + Next.
        *
        * Column is a flex-col with the footer pinned to the bottom via
-       * mt-auto. Extra top padding on sm+ gives the PAYMENT OPTION label
-       * room to breathe instead of crashing into the top edge. */}
+       * mt-auto. Extra top padding on sm+ gives the content room to breathe
+       * instead of crashing into the top edge. */}
       <div
         className={cn(
-          "flex flex-col gap-5 border-t border-white/10 p-5 sm:p-7 sm:pt-10",
+          "flex flex-col gap-5 border-t border-white/10 p-5 sm:p-7 sm:pt-16",
           "lg:border-t-0 lg:border-l lg:border-white/10",
         )}
       >
-        <Panel title={t("paymentOption")}>
-          <RadioGroup
-            value={paymentTiming}
-            onValueChange={(v) => setPaymentTiming(v as PaymentTiming)}
-            aria-label={t("paymentOption")}
-          >
-            <RadioRow
-              value="pay-now"
-              selected={paymentTiming === "pay-now"}
-              title={t("payNow")}
-              description={t("payNowDesc")}
-              priceLabel={t("bestPrice")}
-              badge={<Badge variant="popular">{t("badgePopular")}</Badge>}
-            />
-            <RadioRow
-              value="pay-later"
-              selected={paymentTiming === "pay-later"}
-              title={t("payLater")}
-              description={t("payLaterDesc")}
-              priceLabel={t("perDaySurcharge", { price: formatUsd(payLaterSurchargeCents) })}
-            />
-          </RadioGroup>
-        </Panel>
-
         {/* What's included — matches the 200 km/day plan shown on the card. */}
         <ul className="flex flex-col gap-2">
           <Benefit text={t("benefitMileage")} />
           <Benefit text={t("benefitCancellation")} />
           <Benefit text={t("benefitWhatsapp")} />
         </ul>
+
+        {isDelivery ? (
+          <div className="flex flex-col gap-1.5 rounded-lg bg-white/5 p-3.5">
+            <h4 className="label-md text-paper/85 font-semibold">{t("deliveryDetailsTitle")}</h4>
+            <DeliveryDetailRow
+              label={t("deliveryDistance")}
+              value={distanceKm !== null ? t("deliveryDistanceKm", { km: distanceKm.toFixed(2) }) : t("deliveryDistanceUnknown")}
+            />
+            {pricingSettings.freeRadiusKm > 0 ? (
+              <DeliveryDetailRow
+                label={t("deliveryBaseFee")}
+                value={t("deliveryBaseFeeValue", {
+                  price: formatUsd(pricingSettings.baseFeeCents),
+                  km: pricingSettings.freeRadiusKm,
+                })}
+              />
+            ) : null}
+            <DeliveryDetailRow
+              label={t("deliveryUnitPrice")}
+              value={t("deliveryUnitPriceValue", { price: formatUsd(pricingSettings.perKmCents) })}
+            />
+            <DeliveryDetailRow
+              label={t("deliveryTotalCost")}
+              value={deliveryLabel}
+              emphasize
+            />
+          </div>
+        ) : null}
 
         {/* mt-auto pushes the price + Next CTA all the way to the bottom of
          * the right column — so even on lg, where the column stretches to
@@ -280,24 +278,24 @@ export function VehicleCardExpanded({
               <span className="price-md text-paper tabular-nums">
                 <span className="text-[1.25em] font-extrabold">${fromPriceParts.dollars}</span>
                 <span className="font-bold">.{fromPriceParts.cents}</span>{" "}
-              <span className="body-sm text-paper/85 font-medium">{t("perDay")}</span>
-            </span>
-            <span className="body-sm text-paper/55 tabular-nums">
-              {t("total", { price: totalLabel })}
-            </span>
+                <span className="body-sm text-paper/85 font-medium">{t("perDay")}</span>
+              </span>
+              <span className="body-sm text-paper/55 tabular-nums">
+                {t("total", { price: totalLabel })}
+              </span>
+            </div>
+            <a
+              href={waLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="label-md text-paper/70 hover:text-paper inline-flex items-center gap-1 underline-offset-4 hover:underline"
+            >
+              {t("askWhatsapp")} →
+            </a>
           </div>
-          <a
-            href={waLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="label-md text-paper/70 hover:text-paper inline-flex items-center gap-1 underline-offset-4 hover:underline"
-          >
-            {t("askWhatsapp")} →
-          </a>
-        </div>
-        <Button variant="cta" onClick={() => onConfirm(PAYMENT_TIMING_TO_BOOKING[paymentTiming])}>
-          {t("next")} →
-        </Button>
+          <Button variant="cta" onClick={() => onConfirm(FLEET_PAY_NOW_RATE)}>
+            {t("next")} →
+          </Button>
         </footer>
       </div>
     </article>
@@ -315,49 +313,22 @@ function Benefit({ text }: { text: string }) {
   );
 }
 
-function Panel({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-2.5">
-      <h4 className="headline-xs text-paper">{title}</h4>
-      {children}
-    </div>
-  );
-}
-
-function RadioRow({
+function DeliveryDetailRow({
+  label,
   value,
-  selected,
-  title,
-  description,
-  priceLabel,
-  badge,
+  emphasize,
 }: {
+  label: string;
   value: string;
-  selected: boolean;
-  title: string;
-  description: string;
-  priceLabel: string;
-  badge?: React.ReactNode;
+  emphasize?: boolean;
 }) {
   return (
-    <label
-      className={cn(
-        "flex cursor-pointer items-start gap-3 rounded-lg border p-3.5 transition-colors",
-        selected ? "border-paper bg-white/10" : "border-white/15 bg-transparent hover:bg-white/5",
-      )}
-    >
-      <RadioItem value={value} className="mt-0.5" />
-      <div className="flex flex-1 flex-col gap-0.5">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <span className="body-md text-paper inline-flex items-center gap-2 font-semibold">
-            {title}
-            {badge ?? null}
-          </span>
-          <span className="label-md text-paper/85 tabular-nums">{priceLabel}</span>
-        </div>
-        <span className="body-sm text-paper/60">{description}</span>
-      </div>
-    </label>
+    <div className="body-sm flex items-center justify-between gap-3">
+      <span className="text-paper/70">{label}</span>
+      <span className={cn("tabular-nums", emphasize ? "text-paper font-semibold" : "text-paper/85")}>
+        {value}
+      </span>
+    </div>
   );
 }
 

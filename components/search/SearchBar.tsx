@@ -292,6 +292,7 @@ function ExpandedLayout({
             branches={branches}
             value={criteria.pickup}
             onValueChange={(next) => setCriteria((p) => ({ ...p, pickup: next }))}
+            placesAutocomplete
             renderTrigger={(summary, isPlaceholder) => (
               <FieldTrigger
                 icon={<MapPin className="text-ink-60 size-4 shrink-0" aria-hidden="true" />}

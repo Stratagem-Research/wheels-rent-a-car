@@ -43,6 +43,7 @@ export const endpoints = {
   carWashPackages: `${API_BASE}/car-wash/packages`,
 
   // Locations
+  deliveryPricing: `${API_BASE}/delivery-pricing`,
   locations: `${API_BASE}/locations`,
   locationBySlug: (slug: string) => `${API_BASE}/locations/${slug}`,
   locationVehicles: (slug: string) => `${API_BASE}/locations/${slug}/vehicles`,

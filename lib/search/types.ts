@@ -15,12 +15,22 @@ export interface SearchCriteria {
     locationId?: string;
     /** Street address when type === "address-delivery". */
     address?: string;
+    /** Set when `address` was chosen via Google Places Autocomplete — lets
+     *  delivery fees be computed from real distance instead of a free-typed
+     *  address. Absent when the customer just typed without picking a
+     *  suggestion. */
+    lat?: number;
+    lng?: number;
+    placeId?: string;
   };
   return: {
     /** If true, ignore the rest and use pickup. */
     sameAsPickup: boolean;
     locationId?: string;
     address?: string;
+    lat?: number;
+    lng?: number;
+    placeId?: string;
   };
   pickupDate: ISODate;
   pickupTime: TimeHHmm;

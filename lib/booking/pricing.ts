@@ -4,13 +4,16 @@ import type {
   AddOn,
   BookingDraft,
   BookingPriceBreakdown,
+  Branch,
   Cents,
+  DeliveryPricingSettings,
   MileagePlan,
   ProtectionTier,
   RateType,
   Vehicle,
 } from "@/types/domain";
 import { promoDiscountCents } from "./promo";
+import { computeDeliveryFeeCents } from "./delivery-pricing";
 
 /**
  * Client + server shared pricing engine.
@@ -24,7 +27,6 @@ import { promoDiscountCents } from "./promo";
 const TAX_RATE = 0.11;
 /** Adam Q8: online booking max 3 months (~92 days). */
 export const MAX_ONLINE_RENTAL_DAYS = 92;
-const DELIVERY_FEE_CENTS = 1500;
 const FLEXIBLE_MULTIPLIER = 1.15;
 const UNLIMITED_MULTIPLIER = 1.1;
 const DEPOSIT_BY_CATEGORY: Record<string, Cents> = {
@@ -79,6 +81,10 @@ export interface ComputePriceInputs {
   tiers: ProtectionTier[];
   /** Website-validated promo discount percent (0–100). */
   promoDiscountPercent?: number;
+  /** Used to measure delivery distance from the nearest branch. */
+  branches?: Branch[];
+  /** Admin-editable delivery-fee formula; falls back to seed defaults. */
+  deliveryPricing?: DeliveryPricingSettings;
 }
 
 export function computePrice({
@@ -87,6 +93,8 @@ export function computePrice({
   addOns,
   tiers,
   promoDiscountPercent = 0,
+  branches = [],
+  deliveryPricing,
 }: ComputePriceInputs): BookingPriceBreakdown {
   if (!vehicle || !draft.vehicle) return emptyBreakdown();
 
@@ -104,7 +112,10 @@ export function computePrice({
   const tier = tiers.find((t) => t.id === draft.protectionTierId);
   const protectionCents = (tier?.perDayCents ?? 0) * days;
 
-  const deliveryCents = draft.pickup.type === "address-delivery" ? DELIVERY_FEE_CENTS : 0;
+  const deliveryCents =
+    draft.pickup.type === "address-delivery"
+      ? computeDeliveryFeeCents(draft.pickup, branches, deliveryPricing)
+      : 0;
   const subtotal = baseRateCents + extrasCents + protectionCents + deliveryCents;
   const taxesCents = Math.round(subtotal * TAX_RATE);
   const feesCents = deliveryCents;

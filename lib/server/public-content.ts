@@ -1,11 +1,13 @@
 import * as Sentry from "@sentry/nextjs";
-import type { Branch, Review, SiteConfig, Vehicle } from "@/types/domain";
+import type { Branch, DeliveryPricingSettings, Review, SiteConfig, Vehicle } from "@/types/domain";
 import { BRANCHES as FALLBACK_BRANCHES } from "@/lib/api/fixtures/branches";
 import { SITE_CONFIG as FALLBACK_SITE_CONFIG } from "@/lib/api/fixtures/content";
 import { VEHICLES as FALLBACK_VEHICLES } from "@/lib/api/fixtures/vehicles";
 import { listReviewsFromDb } from "@/lib/supabase/reviews-repository";
 import { ABOUT_CONTENT_SEED } from "@/lib/supabase/seed-data";
+import { DEFAULT_DELIVERY_PRICING_SETTINGS } from "@/lib/booking/delivery-pricing";
 import {
+  getDeliveryPricingSettings,
   listAboutContent,
   listLocations,
   listPromotions,
@@ -50,6 +52,17 @@ export async function getPublicBranches(): Promise<Branch[]> {
     reportFixtureFallback("branches", "listLocations() threw", err);
   }
   return FALLBACK_BRANCHES;
+}
+
+export async function getPublicDeliveryPricing(): Promise<DeliveryPricingSettings> {
+  try {
+    const settings = await getDeliveryPricingSettings();
+    if (settings) return settings;
+    reportFixtureFallback("delivery-pricing", "getDeliveryPricingSettings() returned no row");
+  } catch (err) {
+    reportFixtureFallback("delivery-pricing", "getDeliveryPricingSettings() threw", err);
+  }
+  return DEFAULT_DELIVERY_PRICING_SETTINGS;
 }
 
 function withPaymentMethods(config: SiteConfig): SiteConfig {

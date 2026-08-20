@@ -33,6 +33,7 @@ export default function ExtrasPage() {
     addOns: ADD_ONS,
     protectionTiers: PROTECTION_TIERS,
     branches: BRANCHES,
+    deliveryPricing: DELIVERY_PRICING,
   } = useBookingFunnelPage();
   const firedView = React.useRef(false);
 
@@ -114,6 +115,7 @@ export default function ExtrasPage() {
               branches={BRANCHES}
               addOns={ADD_ONS}
               tiers={PROTECTION_TIERS}
+              deliveryPricing={DELIVERY_PRICING}
               primary={{
                 label: t("continue"),
                 onClick: () => goToStep("/book/protection"),

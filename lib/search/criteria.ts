@@ -24,6 +24,8 @@ export function searchToQuery(criteria: SearchCriteria): URLSearchParams {
   params.set("pickupType", criteria.pickup.type);
   if (criteria.pickup.locationId) params.set("pickupLoc", criteria.pickup.locationId);
   if (criteria.pickup.address) params.set("pickupAddr", criteria.pickup.address);
+  if (criteria.pickup.lat !== undefined) params.set("pickupLat", String(criteria.pickup.lat));
+  if (criteria.pickup.lng !== undefined) params.set("pickupLng", String(criteria.pickup.lng));
   params.set("pickupAt", `${criteria.pickupDate}T${criteria.pickupTime}`);
   params.set("returnAt", `${criteria.returnDate}T${criteria.returnTime}`);
   if (!criteria.return.sameAsPickup) {
@@ -64,11 +66,16 @@ export function queryToSearch(params: URLSearchParams): SearchCriteria | null {
   const returnAddr = params.get("returnAddr");
   const sameAsPickup = !returnLoc && !returnAddr;
 
+  const pickupLat = params.get("pickupLat");
+  const pickupLng = params.get("pickupLng");
+
   return {
     pickup: {
       type: pickupType,
       locationId: params.get("pickupLoc") ?? undefined,
       address: params.get("pickupAddr") ?? undefined,
+      lat: pickupLat ? Number(pickupLat) : undefined,
+      lng: pickupLng ? Number(pickupLng) : undefined,
     },
     return: {
       sameAsPickup,

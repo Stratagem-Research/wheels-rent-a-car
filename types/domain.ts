@@ -135,6 +135,14 @@ export interface Branch {
   closedReason?: string;
 }
 
+/** Admin-editable delivery-fee formula for non-branch pickup addresses. */
+export interface DeliveryPricingSettings {
+  baseFeeCents: number;
+  /** Distance from the nearest branch, in km, covered by the base fee. */
+  freeRadiusKm: number;
+  perKmCents: number;
+}
+
 // ── Rates, extras, protection ────────────────────────────────────────────
 
 export type RateType = "best-price" | "flexible";
@@ -195,6 +203,10 @@ export interface BookingPickup {
   locationId?: string;
   /** Full street address when type is "address-delivery". */
   address?: string;
+  /** Set when `address` was chosen via Google Places Autocomplete — lets
+   *  delivery fees be computed from real distance to the nearest branch. */
+  lat?: number;
+  lng?: number;
   datetime: ISODateTime;
 }
 

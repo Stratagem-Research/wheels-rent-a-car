@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
-import { getPublicBranches, getPublicVehicles } from "@/lib/server/public-content";
+import { getPublicBranches, getPublicDeliveryPricing, getPublicVehicles } from "@/lib/server/public-content";
 import { handleBookingAvailability } from "@/lib/server/booking-service";
 import { vehiclesQueryWithDefaultWindow } from "@/lib/search/criteria";
 import { VehiclesClient } from "./_components/VehiclesClient";
@@ -63,13 +63,19 @@ export default async function VehiclesPage({ searchParams }: PageProps) {
   if (!pickupAt || !returnAt) {
     redirect(`/vehicles?${vehiclesQueryWithDefaultWindow(sp).toString()}`);
   } else {
-    const [{ vehicles, availabilityError }, branches] = await Promise.all([
+    const [{ vehicles, availabilityError }, branches, deliveryPricing] = await Promise.all([
       resolveVehiclesForDates(pickupAt, returnAt),
       getPublicBranches(),
+      getPublicDeliveryPricing(),
     ]);
 
     return (
-      <VehiclesClient vehicles={vehicles} branches={branches} availabilityError={availabilityError} />
+      <VehiclesClient
+        vehicles={vehicles}
+        branches={branches}
+        deliveryPricing={deliveryPricing}
+        availabilityError={availabilityError}
+      />
     );
   }
 }

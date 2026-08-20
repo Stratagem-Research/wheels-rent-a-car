@@ -100,6 +100,7 @@ export default function CheckoutPage() {
     addOns: ADD_ONS,
     protectionTiers: PROTECTION_TIERS,
     branches: BRANCHES,
+    deliveryPricing: DELIVERY_PRICING,
   } = useBookingFunnelPage({ requireProtection: true });
   const { session, ready: sessionReady } = useSession();
   const [form, setForm] = React.useState<CheckoutFormState>(emptyForm);
@@ -227,6 +228,8 @@ export default function CheckoutPage() {
     vehicle,
     addOns: ADD_ONS,
     tiers: PROTECTION_TIERS,
+    branches: BRANCHES,
+    deliveryPricing: DELIVERY_PRICING,
   });
 
   const onPaymentMethod = (m: PaymentMethod) => {
@@ -497,6 +500,7 @@ export default function CheckoutPage() {
               branches={BRANCHES}
               addOns={ADD_ONS}
               tiers={PROTECTION_TIERS}
+              deliveryPricing={DELIVERY_PRICING}
               primary={{
                 label: ctaLabel,
                 onClick: onSubmit,

@@ -5,6 +5,8 @@ export const BOOKING_SEARCH_PARAM_KEYS = [
   "pickupType",
   "pickupLoc",
   "pickupAddr",
+  "pickupLat",
+  "pickupLng",
   "pickupAt",
   "returnAt",
   "returnLoc",
@@ -30,6 +32,8 @@ export function draftToSearchParams(draft: BookingDraft): URLSearchParams {
   params.set("pickupType", draft.pickup.type);
   if (draft.pickup.locationId) params.set("pickupLoc", draft.pickup.locationId);
   if (draft.pickup.address) params.set("pickupAddr", draft.pickup.address);
+  if (draft.pickup.lat !== undefined) params.set("pickupLat", String(draft.pickup.lat));
+  if (draft.pickup.lng !== undefined) params.set("pickupLng", String(draft.pickup.lng));
   params.set("pickupAt", draft.pickup.datetime);
   params.set("returnAt", draft.return.datetime);
   if (draft.return.locationId) params.set("returnLoc", draft.return.locationId);

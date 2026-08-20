@@ -1,3 +1,4 @@
+/// <reference types="google.maps" />
 "use client";
 
 import * as React from "react";
@@ -7,6 +8,7 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/Input";
 import { readLastSearch } from "@/lib/search/persistence";
+import { loadGooglePlaces } from "@/lib/maps/loadGoogleMaps";
 import type { Branch, PickupType } from "@/types/domain";
 
 /**
@@ -25,6 +27,13 @@ export interface LocationValue {
   type: PickupType;
   locationId?: string;
   address?: string;
+  /** Decimal degrees + Google's place id — set when `address` was chosen via
+   *  Places Autocomplete, so a delivery fee can be computed from real
+   *  distance instead of trusting a free-typed address. Absent when the
+   *  customer just typed an address without picking a suggestion. */
+  lat?: number;
+  lng?: number;
+  placeId?: string;
 }
 
 export interface LocationPickerProps {
@@ -39,6 +48,8 @@ export interface LocationPickerProps {
   renderTrigger?: (summary: string, isPlaceholder: boolean) => React.ReactNode;
   open?: boolean;
   onOpenChange?: (next: boolean) => void;
+  /** Attach Google Places Autocomplete to the delivery-address field. */
+  placesAutocomplete?: boolean;
 }
 
 export function LocationPicker({
@@ -51,6 +62,7 @@ export function LocationPicker({
   renderTrigger,
   open: controlledOpen,
   onOpenChange,
+  placesAutocomplete = false,
 }: LocationPickerProps) {
   const t = useTranslations("searchUi");
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false);
@@ -61,6 +73,9 @@ export function LocationPicker({
   };
 
   const [addressDraft, setAddressDraft] = React.useState(value.address ?? "");
+  // Ref so the place-selection handler (attached once per mounted element)
+  // always sees the latest `choose` without needing the element recreated.
+  const chooseRef = React.useRef<(next: LocationValue) => void>(() => {});
   // Split branches: our physical hub vs airport meet-and-greet locations.
   // Airport branches get their own section + plane icon so the meet-and-
   // greet option is obvious next to the standard pickup hub.
@@ -96,6 +111,12 @@ export function LocationPicker({
     onValueChange(next);
     setOpen(false);
   };
+  chooseRef.current = choose;
+
+  const onPlaceSelected = React.useCallback((next: { address: string; lat?: number; lng?: number; placeId?: string }) => {
+    setAddressDraft(next.address);
+    chooseRef.current({ type: "address-delivery", ...next });
+  }, []);
 
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
@@ -189,19 +210,31 @@ export function LocationPicker({
 
           <Section title={t("locDeliver")}>
             <div className="px-1 pb-1">
-              <Input
-                placeholder={t("locDeliverPlaceholder")}
-                value={addressDraft}
-                onChange={(e) => setAddressDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && addressDraft.trim()) {
-                    e.preventDefault();
-                    choose({ type: "address-delivery", address: addressDraft.trim() });
-                  }
-                }}
-                startAdornment={<MapPin className="size-4" aria-hidden="true" />}
-                aria-label={t("locDeliverAria")}
-              />
+              {placesAutocomplete ? (
+                <GooglePlaceAutocompleteField
+                  placeholder={t("locDeliverPlaceholder")}
+                  ariaLabel={t("locDeliverAria")}
+                  fallbackValue={addressDraft}
+                  onFallbackChange={setAddressDraft}
+                  onFallbackCommit={(address) => choose({ type: "address-delivery", address })}
+                  onSelect={onPlaceSelected}
+                />
+              ) : (
+                <Input
+                  placeholder={t("locDeliverPlaceholder")}
+                  value={addressDraft}
+                  onChange={(e) => setAddressDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && addressDraft.trim()) {
+                      e.preventDefault();
+                      choose({ type: "address-delivery", address: addressDraft.trim() });
+                    }
+                  }}
+                  startAdornment={<MapPin className="size-4" aria-hidden="true" />}
+                  aria-label={t("locDeliverAria")}
+                  autoComplete="off"
+                />
+              )}
             </div>
           </Section>
         </Popover.Content>
@@ -298,4 +331,98 @@ function formatSummary(value: LocationValue, branches: Branch[]): string | null 
   const branch = branches.find((b) => b.id === value.locationId);
   if (branch) return branch.name;
   return null;
+}
+
+/**
+ * Delivery-address field backed by Google's `PlaceAutocompleteElement` — the
+ * class Google now recommends over the deprecated `Autocomplete` (closed to
+ * new API keys since March 2025). Unlike the old class, this is a
+ * self-contained custom element with its own internal input, not something
+ * you attach to an existing `<input>` — so it fully replaces our plain
+ * `Input` once the Places library has loaded, and falls back to that plain
+ * input (still fully usable, just without suggestions) until then or if the
+ * library fails to load (no key configured, network error, etc.).
+ */
+function GooglePlaceAutocompleteField({
+  placeholder,
+  ariaLabel,
+  fallbackValue,
+  onFallbackChange,
+  onFallbackCommit,
+  onSelect,
+}: {
+  placeholder: string;
+  ariaLabel: string;
+  fallbackValue: string;
+  onFallbackChange: (next: string) => void;
+  onFallbackCommit: (address: string) => void;
+  onSelect: (next: { address: string; lat?: number; lng?: number; placeId?: string }) => void;
+}) {
+  const [ready, setReady] = React.useState(false);
+  // Refs so the mount callback (created once) always sees latest props
+  // without needing the custom element torn down and recreated.
+  const onSelectRef = React.useRef(onSelect);
+  onSelectRef.current = onSelect;
+
+  const mountElement = React.useCallback((container: HTMLDivElement | null) => {
+    if (!container) return;
+    let cancelled = false;
+
+    loadGooglePlaces()
+      ?.then((places) => {
+        if (cancelled) return;
+        const el = new places.PlaceAutocompleteElement({ includedRegionCodes: ["lb"] });
+        el.classList.add("wheels-place-autocomplete");
+        (el as unknown as { placeholder: string }).placeholder = placeholder;
+        el.setAttribute("aria-label", ariaLabel);
+        el.addEventListener("gmp-select", (event) => {
+          void (async () => {
+            const place = event.placePrediction.toPlace();
+            await place.fetchFields({ fields: ["formattedAddress", "location", "id"] });
+            const address = place.formattedAddress ?? "";
+            if (!address) return;
+            onSelectRef.current({
+              address,
+              lat: place.location?.lat(),
+              lng: place.location?.lng(),
+              placeId: place.id,
+            });
+          })();
+        });
+        container.appendChild(el);
+        setReady(true);
+      })
+      .catch((err) => {
+        console.warn("[LocationPicker] Google Places failed to load", err);
+      });
+
+    return () => {
+      cancelled = true;
+      container.replaceChildren();
+    };
+    // Mount once per popover-open — placeholder/ariaLabel don't change mid-session.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <div className="relative">
+      <div ref={mountElement} className={cn(!ready && "hidden")} />
+      {ready ? null : (
+        <Input
+          placeholder={placeholder}
+          value={fallbackValue}
+          onChange={(e) => onFallbackChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && fallbackValue.trim()) {
+              e.preventDefault();
+              onFallbackCommit(fallbackValue.trim());
+            }
+          }}
+          startAdornment={<MapPin className="size-4" aria-hidden="true" />}
+          aria-label={ariaLabel}
+          autoComplete="off"
+        />
+      )}
+    </div>
+  );
 }

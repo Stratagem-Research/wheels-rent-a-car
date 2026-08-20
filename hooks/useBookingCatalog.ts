@@ -9,13 +9,15 @@ import {
   PROTECTION_TIERS as FALLBACK_TIERS,
 } from "@/lib/api/fixtures/catalog";
 import { VEHICLES as FALLBACK_VEHICLES } from "@/lib/api/fixtures/vehicles";
-import type { AddOn, Branch, ProtectionTier, Vehicle } from "@/types/domain";
+import { DEFAULT_DELIVERY_PRICING_SETTINGS } from "@/lib/booking/delivery-pricing";
+import type { AddOn, Branch, DeliveryPricingSettings, ProtectionTier, Vehicle } from "@/types/domain";
 
 type BookingCatalog = {
   addOns: AddOn[];
   protectionTiers: ProtectionTier[];
   vehicles: Vehicle[];
   branches: Branch[];
+  deliveryPricing: DeliveryPricingSettings;
   ready: boolean;
 };
 
@@ -24,6 +26,7 @@ const INITIAL: BookingCatalog = {
   protectionTiers: FALLBACK_TIERS,
   vehicles: FALLBACK_VEHICLES,
   branches: FALLBACK_BRANCHES,
+  deliveryPricing: DEFAULT_DELIVERY_PRICING_SETTINGS,
   ready: false,
 };
 
@@ -35,18 +38,21 @@ export function useBookingCatalog(): BookingCatalog {
     let cancelled = false;
     (async () => {
       try {
-        const [addonsRes, tiersRes, vehiclesRes, locationsRes] = await Promise.all([
-          api.get<{ items: AddOn[] }>(endpoints.addons),
-          api.get<{ items: ProtectionTier[] }>(endpoints.protectionTiers),
-          api.get<{ items: Vehicle[] }>(`${endpoints.vehicles}?perPage=100`),
-          api.get<{ items: Branch[] }>(endpoints.locations),
-        ]);
+        const [addonsRes, tiersRes, vehiclesRes, locationsRes, deliveryPricingRes] =
+          await Promise.all([
+            api.get<{ items: AddOn[] }>(endpoints.addons),
+            api.get<{ items: ProtectionTier[] }>(endpoints.protectionTiers),
+            api.get<{ items: Vehicle[] }>(`${endpoints.vehicles}?perPage=100`),
+            api.get<{ items: Branch[] }>(endpoints.locations),
+            api.get<{ settings: DeliveryPricingSettings }>(endpoints.deliveryPricing),
+          ]);
         if (cancelled) return;
         setCatalog({
           addOns: addonsRes.items,
           protectionTiers: tiersRes.items,
           vehicles: vehiclesRes.items,
           branches: locationsRes.items,
+          deliveryPricing: deliveryPricingRes.settings,
           ready: true,
         });
       } catch {

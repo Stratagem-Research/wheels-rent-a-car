@@ -20,6 +20,7 @@ import type {
   BookingDraft,
   BookingPriceBreakdown,
   Branch,
+  DeliveryPricingSettings,
   ProtectionTier,
   Vehicle,
 } from "@/types/domain";
@@ -48,6 +49,7 @@ export interface FlowSummaryPanelProps {
   branches: Branch[];
   addOns: AddOn[];
   tiers: ProtectionTier[];
+  deliveryPricing?: DeliveryPricingSettings;
   primary: {
     label: string;
     onClick: () => void;
@@ -65,8 +67,10 @@ export function FlowSummaryPanel(props: FlowSummaryPanelProps) {
         vehicle: props.vehicle,
         addOns: props.addOns,
         tiers: props.tiers,
+        branches: props.branches,
+        deliveryPricing: props.deliveryPricing,
       }),
-    [props.draft, props.vehicle, props.addOns, props.tiers],
+    [props.draft, props.vehicle, props.addOns, props.tiers, props.branches, props.deliveryPricing],
   );
 
   return (
@@ -218,7 +222,10 @@ function PanelContents({
   const locale = useLocale();
   const t = useTranslations("bookingSummary");
   const days = rentalDays(draft.pickup.datetime, draft.return.datetime);
-  const pickupBranch = branches.find((b) => b.id === draft.pickup.locationId);
+  const pickupBranch =
+    draft.pickup.type === "address-delivery"
+      ? undefined
+      : branches.find((b) => b.id === draft.pickup.locationId);
   const returnBranch = branches.find((b) => b.id === draft.return.locationId);
   const tier = tiers.find((t) => t.id === draft.protectionTierId);
   const heroImage = vehicle?.images[0];
@@ -344,7 +351,11 @@ function PanelContents({
 
       <hr className="border-border" />
 
-      <PriceBreakdownList price={price} days={days} />
+      <PriceBreakdownList
+        price={price}
+        days={days}
+        isDelivery={draft.pickup.type === "address-delivery"}
+      />
 
       <div className="flex items-baseline justify-between">
         <span className="headline-xs text-ink-95">{t("total")}</span>
@@ -389,7 +400,15 @@ function EditSearchModal({ children }: { children: React.ReactNode }) {
   );
 }
 
-function PriceBreakdownList({ price, days }: { price: BookingPriceBreakdown; days: number }) {
+function PriceBreakdownList({
+  price,
+  days,
+  isDelivery,
+}: {
+  price: BookingPriceBreakdown;
+  days: number;
+  isDelivery: boolean;
+}) {
   const t = useTranslations("bookingSummary");
   if (price.totalCents === 0 && price.baseRateCents === 0) {
     return (
@@ -406,7 +425,9 @@ function PriceBreakdownList({ price, days }: { price: BookingPriceBreakdown; day
       {price.protectionCents > 0 ? (
         <PriceRow label={t("protection")} value={price.protectionCents} />
       ) : null}
-      {price.feesCents > 0 ? <PriceRow label={t("fees")} value={price.feesCents} /> : null}
+      {price.feesCents > 0 ? (
+        <PriceRow label={isDelivery ? t("deliveryFee") : t("fees")} value={price.feesCents} />
+      ) : null}
       <PriceRow label={t("taxes11")} value={price.taxesCents} />
       {price.discountCents > 0 ? (
         <PriceRow label={t("promoDiscount")} value={-price.discountCents} />

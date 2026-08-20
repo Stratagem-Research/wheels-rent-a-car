@@ -9,7 +9,8 @@ import { Select } from "@/components/ui/Select";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
-import type { Branch, BranchHours } from "@/types/domain";
+import type { Branch, BranchHours, DeliveryPricingSettings } from "@/types/domain";
+import { DEFAULT_DELIVERY_PRICING_SETTINGS } from "@/lib/booking/delivery-pricing";
 
 /**
  * /admin/locations — structured editor for branch records.
@@ -129,6 +130,8 @@ export default function AdminLocationsPage() {
       }
     >
       {error ? <p className="body-md text-danger mb-4">{error}</p> : null}
+
+      <DeliveryPricingPanel />
 
       {items.length === 0 && !loading ? (
         <p className="body-md text-ink-60 mb-4">No branches yet. Add one to get started.</p>
@@ -263,6 +266,131 @@ export default function AdminLocationsPage() {
         </div>
       </div>
     </AdminPageShell>
+  );
+}
+
+/**
+ * Delivery-fee formula for "address-delivery" pickups: a flat base fee
+ * within the free radius, plus a per-km surcharge beyond it, measured from
+ * the nearest branch. GET/PUT /api/admin/delivery-pricing.
+ */
+function DeliveryPricingPanel() {
+  const [settings, setSettings] = React.useState<DeliveryPricingSettings>(
+    DEFAULT_DELIVERY_PRICING_SETTINGS,
+  );
+  const [loading, setLoading] = React.useState(true);
+  const [saving, setSaving] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
+  const refresh = React.useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/delivery-pricing", { cache: "no-store" });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { message?: string };
+        throw new Error(data.message ?? "Failed to load delivery pricing.");
+      }
+      const data = (await res.json()) as { settings: DeliveryPricingSettings };
+      setSettings(data.settings);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load delivery pricing.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  /* eslint-disable react-hooks/set-state-in-effect */
+  React.useEffect(() => {
+    void refresh();
+  }, [refresh]);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  const save = async () => {
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/delivery-pricing", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...csrfHeader() },
+        body: JSON.stringify({ settings }),
+      });
+      if (!res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { message?: string };
+        throw new Error(data.message ?? "Failed to save delivery pricing.");
+      }
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save delivery pricing.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="mb-6">
+      <AdminFormShell
+        title="Delivery pricing"
+        helper="Fee for delivering to an address instead of a branch, based on distance from the nearest branch."
+      >
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Field label="Base fee (USD)" helper="Charged within the free radius.">
+          {({ id }) => (
+            <Input
+              id={id}
+              type="number"
+              min={0}
+              step="0.01"
+              value={String(settings.baseFeeCents / 100)}
+              onChange={(e) =>
+                setSettings((s) => ({
+                  ...s,
+                  baseFeeCents: Math.round(Number(e.target.value || 0) * 100),
+                }))
+              }
+            />
+          )}
+        </Field>
+        <Field label="Free radius (km)" helper="Distance covered by the base fee.">
+          {({ id }) => (
+            <Input
+              id={id}
+              type="number"
+              min={0}
+              step="0.1"
+              value={String(settings.freeRadiusKm)}
+              onChange={(e) =>
+                setSettings((s) => ({ ...s, freeRadiusKm: Number(e.target.value || 0) }))
+              }
+            />
+          )}
+        </Field>
+        <Field label="Per km beyond radius (USD)">
+          {({ id }) => (
+            <Input
+              id={id}
+              type="number"
+              min={0}
+              step="0.01"
+              value={String(settings.perKmCents / 100)}
+              onChange={(e) =>
+                setSettings((s) => ({
+                  ...s,
+                  perKmCents: Math.round(Number(e.target.value || 0) * 100),
+                }))
+              }
+            />
+          )}
+        </Field>
+      </div>
+      {error ? <p className="body-md text-danger">{error}</p> : null}
+      <div className="flex justify-end">
+        <Button onClick={() => void save()} loading={saving} disabled={loading}>
+          Save delivery pricing
+        </Button>
+      </div>
+      </AdminFormShell>
+    </div>
   );
 }
 
