@@ -28,6 +28,15 @@ export default function ProtectionPage() {
     deliveryPricing: DELIVERY_PRICING,
   } = useBookingFunnelPage();
   const protectionFaqs = t.raw("protection.faqs") as { q: string; a: string }[];
+  const selectedTierId = draft?.protectionTierId;
+
+  // Smart is the popular tier — preselect it so most customers don't have
+  // to make a choice, but never override a tier the customer already picked.
+  React.useEffect(() => {
+    if (!draft || selectedTierId) return;
+    const popular = PROTECTION_TIERS.find((tier) => tier.popular);
+    if (popular) setProtection(popular.id);
+  }, [draft, selectedTierId, PROTECTION_TIERS, setProtection]);
 
   if (showSkeleton || !draft) {
     return (
@@ -39,8 +48,6 @@ export default function ProtectionPage() {
       </>
     );
   }
-
-  const selectedTierId = draft.protectionTierId;
 
   const onSelect = (tierId: string) => {
     setProtection(tierId);
