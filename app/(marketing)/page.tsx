@@ -7,7 +7,7 @@ import { ServicePromos } from "./_components/ServicePromos";
 import { Reviews } from "./_components/Reviews";
 import { getTranslations } from "next-intl/server";
 import { NewsletterPopup } from "@/components/consent/NewsletterPopup";
-import { getPublicBranches, getPublicReviews, getPublicVehicles } from "@/lib/server/public-content";
+import { getFeaturedVehicles, getPublicBranches, getPublicReviews } from "@/lib/server/public-content";
 
 /**
  * Home page — INK & SIGNAL rebuild per /docs/Implementation/landingpage.md.
@@ -17,9 +17,6 @@ import { getPublicBranches, getPublicReviews, getPublicVehicles } from "@/lib/se
  * dark vehicle cards) → Explore Lebanon (editorial tiles) → Service promos
  * (long-term + chauffeur, two dark cards side by side) → Reviews → Footer.
  *
- * (The legacy HeroPromo "Travelers' Choice" inverse block was removed —
- * Categories + Featured4 already carry the inverse-block rhythm and the
- * extra strip was visual noise above the fold.)
  *
  * Server component — content resolves through the website repositories and
  * their explicit seed-data fallbacks.
@@ -67,8 +64,7 @@ const jsonLd = {
 
 export default async function Home() {
   const branches = await getPublicBranches();
-  const vehicles = await getPublicVehicles();
-  const featuredVehicles = vehicles.slice(0, 4);
+  const featuredVehicles = await getFeaturedVehicles(4);
   const reviews = await getPublicReviews(20);
 
   return (

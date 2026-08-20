@@ -396,3 +396,51 @@ export async function claimGuestBookingsForUser(userId: string, email: string): 
 
   return rows.length;
 }
+
+/**
+ * Frontend vehicle ids booked in the last `days`, most recent first and
+ * deduplicated — feeds the homepage "Driver favourites" pick (recent
+ * bookings, ranked by price, falling back to the general catalog when
+ * there's no recent activity). Pulls from both user_bookings and the guest
+ * index since either can hold a booking's frontend_vehicle_id.
+ */
+export async function listRecentlyBookedVehicleIds(
+  options: { days?: number; limit?: number } = {},
+): Promise<string[]> {
+  const { days = 30, limit = 200 } = options;
+  const supabase = getSupabaseAdminClient();
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+
+  const [userRows, guestRows] = await Promise.all([
+    supabase
+      .from("user_bookings")
+      .select("frontend_vehicle_id, created_at")
+      .gte("created_at", since)
+      .not("frontend_vehicle_id", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(limit),
+    supabase
+      .from("guest_booking_index")
+      .select("frontend_vehicle_id, created_at")
+      .gte("created_at", since)
+      .not("frontend_vehicle_id", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(limit),
+  ]);
+  if (userRows.error) throw userRows.error;
+  if (guestRows.error) throw guestRows.error;
+
+  const merged = [
+    ...((userRows.data ?? []) as Array<{ frontend_vehicle_id: string | null; created_at: string }>),
+    ...((guestRows.data ?? []) as Array<{ frontend_vehicle_id: string | null; created_at: string }>),
+  ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  for (const row of merged) {
+    if (!row.frontend_vehicle_id || seen.has(row.frontend_vehicle_id)) continue;
+    seen.add(row.frontend_vehicle_id);
+    ids.push(row.frontend_vehicle_id);
+  }
+  return ids;
+}

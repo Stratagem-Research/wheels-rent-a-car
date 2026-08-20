@@ -16,6 +16,7 @@ import {
 } from "@/lib/supabase/admin-repository";
 import { getSyncedPublicVehicles } from "@/lib/server/wizard-catalog";
 import { getCheckoutPaymentMethods } from "@/lib/server/payment-methods";
+import { listRecentlyBookedVehicleIds } from "@/lib/supabase/user-bookings-repository";
 
 /**
  * Fixture fallbacks below keep pages rendering through a transient
@@ -116,6 +117,39 @@ export async function getPublicVehicles(): Promise<Vehicle[]> {
     reportFixtureFallback("vehicles", "getSyncedPublicVehicles()/listVehicleMetadata() threw", err);
     return FALLBACK_VEHICLES;
   }
+}
+
+/**
+ * Homepage "Driver favourites" pick: the highest-priced cars among recently
+ * booked vehicles (last 30 days). Fills any remaining slots — including all
+ * of them when there's no recent booking activity — with the highest-priced
+ * cars in the catalog, so the section never comes back empty.
+ */
+export async function getFeaturedVehicles(count = 4): Promise<Vehicle[]> {
+  const vehicles = await getPublicVehicles();
+  const byId = new Map(vehicles.map((v) => [v.id, v]));
+
+  let recentIds: string[] = [];
+  try {
+    recentIds = await listRecentlyBookedVehicleIds();
+  } catch (err) {
+    reportFixtureFallback("featuredVehicles", "listRecentlyBookedVehicleIds() threw", err);
+  }
+
+  const recentVehicles = recentIds
+    .map((id) => byId.get(id))
+    .filter((v): v is Vehicle => v != null)
+    .sort((a, b) => b.dailyRateFromCents - a.dailyRateFromCents);
+
+  const seen = new Set<string>();
+  const picked: Vehicle[] = [];
+  for (const v of [...recentVehicles, ...[...vehicles].sort((a, b) => b.dailyRateFromCents - a.dailyRateFromCents)]) {
+    if (seen.has(v.id)) continue;
+    seen.add(v.id);
+    picked.push(v);
+    if (picked.length === count) break;
+  }
+  return picked;
 }
 
 export async function getPublicAboutContent() {
