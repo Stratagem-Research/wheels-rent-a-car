@@ -17,6 +17,7 @@ import {
   parseWizardVehicleId,
 } from "@/lib/booking/wizard-vehicle-id";
 import { bookingFromStoredRow, storedBookingFromDomain } from "@/lib/booking/stored-booking";
+import { buildBookingEmailPayload } from "@/lib/server/booking-confirmation";
 import { validatePromoCodeFromRow } from "@/lib/booking/promo";
 import {
   applyWebsiteVehicleToLookup,
@@ -529,6 +530,10 @@ async function persistBookingRecords(input: {
   } catch (err) {
     console.error("[guest-booking-index] failed", err);
   }
+  const richPayload = await buildBookingEmailPayload(booking).catch((err) => {
+    console.error("[booking-submit] rich email payload failed (non-fatal)", err);
+    return null;
+  });
   await enqueueNotification({
     bookingReference: booking.ref,
     channel: "email",
@@ -541,6 +546,7 @@ async function persistBookingRecords(input: {
       returnDatetime: draft.return.datetime,
       state: booking.state,
       paymentMethod: draft.paymentMethod,
+      ...richPayload,
     },
   }).catch(() => undefined);
 }

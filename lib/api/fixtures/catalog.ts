@@ -1,26 +1,16 @@
 import type { AddOn, CarWashPackage, LongTermTier, ProtectionTier } from "@/types/domain";
 
-/** Add-ons across booking categories (matches 04_booking_flow.md step 2). */
+/** Synced from live `catalog_*` tables. Re-run `pnpm exec tsx scripts/pull-fixture-defaults.ts`. */
 export const ADD_ONS: AddOn[] = [
   {
     id: "ao-extra-driver",
     name: "Additional driver",
     description: "Add a second driver to share the wheel.",
     category: "driver-access",
-    pricing: "per-day",
-    priceCents: 500,
+    pricing: "per-rental",
+    priceCents: 0,
     multiQuantity: false,
     icon: "users",
-  },
-  {
-    id: "ao-underage",
-    name: "Underage driver fee",
-    description: "Drivers aged 21–24. Required if your primary driver is under 25.",
-    category: "driver-access",
-    pricing: "per-day",
-    priceCents: 1000,
-    multiQuantity: false,
-    icon: "user-check",
   },
   {
     id: "ao-cross-border",
@@ -38,7 +28,7 @@ export const ADD_ONS: AddOn[] = [
     description: "Rear-facing infant seat. ECE-approved.",
     category: "comfort",
     pricing: "per-rental",
-    priceCents: 500,
+    priceCents: 1500,
     multiQuantity: true,
     maxQuantity: 3,
     icon: "baby",
@@ -49,7 +39,7 @@ export const ADD_ONS: AddOn[] = [
     description: "Lift cushion for older children.",
     category: "comfort",
     pricing: "per-rental",
-    priceCents: 400,
+    priceCents: 1500,
     multiQuantity: true,
     maxQuantity: 3,
     icon: "baby",
@@ -60,7 +50,7 @@ export const ADD_ONS: AddOn[] = [
     description: "Forward-facing toddler seat.",
     category: "comfort",
     pricing: "per-rental",
-    priceCents: 500,
+    priceCents: 1500,
     multiQuantity: true,
     maxQuantity: 3,
     icon: "baby",
@@ -76,14 +66,24 @@ export const ADD_ONS: AddOn[] = [
     icon: "navigation",
   },
   {
-    id: "ao-wifi",
-    name: "4G WiFi hotspot (22 GB)",
-    description: "Pocket router with 22 GB Lebanese data for up to 10 devices.",
+    id: "ao-sim-22gb",
+    name: "SIM card — 22GB data",
+    description: "Active local SIM card with 22GB of data for the rental.",
     category: "connectivity",
     pricing: "per-rental",
     priceCents: 700,
     multiQuantity: false,
     icon: "wifi",
+  },
+  {
+    id: "ao-refuel",
+    name: "Refuelling service",
+    description: "Skip the petrol station on return. Flat fee, no markup.",
+    category: "convenience",
+    pricing: "per-rental",
+    priceCents: 1500,
+    multiQuantity: false,
+    icon: "fuel",
   },
   {
     id: "ao-wifi-custom",
@@ -96,16 +96,6 @@ export const ADD_ONS: AddOn[] = [
     maxQuantity: 200,
     quantityUnit: "gb",
     icon: "wifi",
-  },
-  {
-    id: "ao-refuel",
-    name: "Refuelling service",
-    description: "Skip the petrol station on return. Flat fee, no markup.",
-    category: "convenience",
-    pricing: "per-rental",
-    priceCents: 1500,
-    multiQuantity: false,
-    icon: "fuel",
   },
   {
     id: "ao-roadside-plus",
@@ -131,16 +121,15 @@ export const ADD_ONS: AddOn[] = [
 
 /** WiFi hotspot add-ons — pick one data plan, not several at once. */
 export function isWifiDataPlan(addOnId: string): boolean {
-  return addOnId === "ao-wifi" || addOnId.startsWith("ao-wifi-");
+  return addOnId === "ao-wifi" || addOnId === "ao-sim-22gb" || addOnId.startsWith("ao-wifi-");
 }
 
-/** 3 protection tiers per 04_booking_flow.md step 3. */
 export const PROTECTION_TIERS: ProtectionTier[] = [
   {
     id: "pt-basic",
     name: "Basic",
     perDayCents: 0,
-    deductibleCents: 80_000,
+    deductibleCents: 80000,
     inclusions: [
       "Third-party liability",
       "Collision damage with $800 deductible",
@@ -152,7 +141,7 @@ export const PROTECTION_TIERS: ProtectionTier[] = [
     id: "pt-smart",
     name: "Smart",
     perDayCents: 1500,
-    deductibleCents: 25_000,
+    deductibleCents: 25000,
     inclusions: [
       "Reduced deductible ($250)",
       "Tyre + windscreen cover",
@@ -177,7 +166,6 @@ export const PROTECTION_TIERS: ProtectionTier[] = [
   },
 ];
 
-/** Long-term tiers for /long-term. */
 export const LONG_TERM_TIERS: LongTermTier[] = [
   {
     id: "lt-1m",
@@ -228,11 +216,14 @@ export const LONG_TERM_TIERS: LongTermTier[] = [
   },
 ];
 
-/** Car wash packages for /car-wash. */
 export const CAR_WASH_PACKAGES: CarWashPackage[] = [
   {
     id: "normal-wash",
-    name: { en: "Normal car wash", ar: "غسيل سيارة عادي", fr: "Lavage standard" },
+    name: {
+      en: "Normal car wash",
+      ar: "غسيل سيارة عادي",
+      fr: "Lavage standard",
+    },
     description: {
       en: "Exterior wash and dry. Ready in 30 minutes.",
       ar: "غسيل وتجفيف خارجي. جاهز خلال 30 دقيقة.",
@@ -242,14 +233,25 @@ export const CAR_WASH_PACKAGES: CarWashPackage[] = [
     currency: "LBP",
     pricingMode: "by_vehicle_class",
     vehiclePrices: [
-      { vehicleClass: "car", amount: 600_000 },
-      { vehicleClass: "suv", amount: 700_000 },
+      {
+        amount: 600000,
+        vehicleClass: "car",
+      },
+      {
+        amount: 700000,
+        vehicleClass: "suv",
+      },
     ],
     icon: "droplets",
+    active: true,
   },
   {
     id: "special-wash",
-    name: { en: "Special car wash", ar: "غسيل سيارة خاص", fr: "Lavage spécial" },
+    name: {
+      en: "Special car wash",
+      ar: "غسيل سيارة خاص",
+      fr: "Lavage spécial",
+    },
     description: {
       en: "Full exterior detail with premium products. One hour.",
       ar: "تفاصيل خارجية كاملة بمنتجات مميزة. ساعة واحدة.",
@@ -260,6 +262,7 @@ export const CAR_WASH_PACKAGES: CarWashPackage[] = [
     pricingMode: "fixed",
     priceCents: 1500,
     icon: "sparkles",
+    active: true,
   },
   {
     id: "interior-deep-clean",
@@ -279,10 +282,15 @@ export const CAR_WASH_PACKAGES: CarWashPackage[] = [
     pricingMode: "fixed",
     priceCents: 8000,
     icon: "sofa",
+    active: true,
   },
   {
     id: "dry-engine",
-    name: { en: "Dry engine cleaning", ar: "تنظيف المحرك بدون ماء", fr: "Nettoyage moteur à sec" },
+    name: {
+      en: "Dry engine cleaning",
+      ar: "تنظيف المحرك بدون ماء",
+      fr: "Nettoyage moteur à sec",
+    },
     description: {
       en: "Water-free engine bay cleaning. One hour.",
       ar: "تنظيف حجرة المحرك بدون ماء. ساعة واحدة.",
@@ -293,6 +301,7 @@ export const CAR_WASH_PACKAGES: CarWashPackage[] = [
     pricingMode: "fixed",
     priceCents: 2000,
     icon: "cog",
+    active: true,
   },
   {
     id: "wedding-detailing",
@@ -310,7 +319,8 @@ export const CAR_WASH_PACKAGES: CarWashPackage[] = [
     currency: "USD",
     pricingMode: "fixed",
     priceCents: 5000,
-    icon: "heart",
     popular: true,
+    icon: "heart",
+    active: true,
   },
 ];

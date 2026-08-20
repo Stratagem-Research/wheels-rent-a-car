@@ -10,11 +10,25 @@ type DocumentRow = {
   expiry_date: string | null;
   issuing_country: string;
   storage_path: string | null;
+  storage_path_front: string | null;
+  storage_path_back: string | null;
   status: DocumentStatus;
   uploaded_at: string;
 };
 
-function toUserDocument(row: DocumentRow, scanUrl?: string): UserDocument {
+async function signedUrl(
+  supabase: SupabaseClient,
+  path: string | null | undefined,
+): Promise<string | undefined> {
+  if (!path) return undefined;
+  const { data } = await supabase.storage.from("user-documents").createSignedUrl(path, 3600);
+  return data?.signedUrl;
+}
+
+function toUserDocument(
+  row: DocumentRow,
+  urls: { scanUrl?: string; scanFrontUrl?: string; scanBackUrl?: string },
+): UserDocument {
   return {
     id: row.id,
     userId: row.user_id,
@@ -23,7 +37,9 @@ function toUserDocument(row: DocumentRow, scanUrl?: string): UserDocument {
     issueDate: row.issue_date ?? "",
     expiryDate: row.expiry_date ?? "",
     issuingCountry: row.issuing_country,
-    scanUrl,
+    scanUrl: urls.scanUrl ?? urls.scanFrontUrl,
+    scanFrontUrl: urls.scanFrontUrl,
+    scanBackUrl: urls.scanBackUrl,
     status: row.status,
     uploadedAt: row.uploaded_at,
   };
@@ -44,17 +60,31 @@ export async function listUserDocuments(
   const docs: UserDocument[] = [];
 
   for (const row of rows) {
-    let scanUrl: string | undefined;
-    if (row.storage_path) {
-      const { data: signed } = await supabase.storage
-        .from("user-documents")
-        .createSignedUrl(row.storage_path, 3600);
-      scanUrl = signed?.signedUrl;
-    }
-    docs.push(toUserDocument(row, scanUrl));
+    const frontPath = row.storage_path_front ?? row.storage_path;
+    const [scanFrontUrl, scanBackUrl, scanUrl] = await Promise.all([
+      signedUrl(supabase, frontPath),
+      signedUrl(supabase, row.storage_path_back),
+      signedUrl(supabase, row.storage_path),
+    ]);
+    docs.push(toUserDocument(row, { scanUrl: scanUrl ?? scanFrontUrl, scanFrontUrl, scanBackUrl }));
   }
 
   return docs;
+}
+
+export async function findUserDocument(
+  supabase: SupabaseClient,
+  userId: string,
+  type: DocumentType,
+): Promise<DocumentRow | null> {
+  const { data, error } = await supabase
+    .from("user_documents")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("type", type)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as DocumentRow | null) ?? null;
 }
 
 export async function upsertUserDocument(
@@ -67,6 +97,8 @@ export async function upsertUserDocument(
     expiryDate: string;
     issuingCountry: string;
     storagePath?: string | null;
+    storagePathFront?: string | null;
+    storagePathBack?: string | null;
   },
 ): Promise<UserDocument> {
   const { data, error } = await supabase
@@ -80,6 +112,8 @@ export async function upsertUserDocument(
         expiry_date: input.expiryDate || null,
         issuing_country: input.issuingCountry,
         ...(input.storagePath ? { storage_path: input.storagePath } : {}),
+        ...(input.storagePathFront ? { storage_path_front: input.storagePathFront } : {}),
+        ...(input.storagePathBack ? { storage_path_back: input.storagePathBack } : {}),
         updated_at: new Date().toISOString(),
       },
       { onConflict: "user_id,type" },
@@ -89,14 +123,13 @@ export async function upsertUserDocument(
   if (error) throw error;
 
   const row = data as DocumentRow;
-  let scanUrl: string | undefined;
-  if (row.storage_path) {
-    const { data: signed } = await supabase.storage
-      .from("user-documents")
-      .createSignedUrl(row.storage_path, 3600);
-    scanUrl = signed?.signedUrl;
-  }
-  return toUserDocument(row, scanUrl);
+  const frontPath = row.storage_path_front ?? row.storage_path;
+  const [scanFrontUrl, scanBackUrl, scanUrl] = await Promise.all([
+    signedUrl(supabase, frontPath),
+    signedUrl(supabase, row.storage_path_back),
+    signedUrl(supabase, row.storage_path),
+  ]);
+  return toUserDocument(row, { scanUrl: scanUrl ?? scanFrontUrl, scanFrontUrl, scanBackUrl });
 }
 
 export async function deleteUserDocument(
@@ -106,15 +139,18 @@ export async function deleteUserDocument(
 ): Promise<void> {
   const { data, error } = await supabase
     .from("user_documents")
-    .select("storage_path")
+    .select("storage_path, storage_path_front, storage_path_back")
     .eq("user_id", userId)
     .eq("id", documentId)
     .maybeSingle();
   if (error) throw error;
   if (!data) throw new Error("Document not found.");
 
-  if (data.storage_path) {
-    await supabase.storage.from("user-documents").remove([data.storage_path as string]);
+  const paths = [data.storage_path, data.storage_path_front, data.storage_path_back].filter(
+    (p): p is string => Boolean(p),
+  );
+  if (paths.length) {
+    await supabase.storage.from("user-documents").remove(paths);
   }
 
   const { error: deleteError } = await supabase

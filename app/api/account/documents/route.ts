@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAccountUser } from "@/lib/server/account-auth";
-import { listUserDocuments, upsertUserDocument } from "@/lib/supabase/user-documents-repository";
+import { findUserDocument, listUserDocuments, upsertUserDocument } from "@/lib/supabase/user-documents-repository";
 import type { DocumentType } from "@/types/domain";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 const DocumentTypeSchema = z.enum(["licence", "id", "passport"]);
 
@@ -18,6 +19,24 @@ export async function GET() {
   }
 }
 
+async function uploadScan(
+  supabase: SupabaseClient,
+  userId: string,
+  type: DocumentType,
+  side: string,
+  file: File,
+): Promise<{ path: string } | { error: string }> {
+  const ext = file.name.split(".").pop() ?? "bin";
+  const path = `${userId}/${type}/${side}-${Date.now()}.${ext}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const { error } = await supabase.storage.from("user-documents").upload(path, buffer, {
+    contentType: file.type || "application/octet-stream",
+    upsert: true,
+  });
+  if (error) return { error: error.message };
+  return { path };
+}
+
 export async function POST(request: Request) {
   const auth = await requireAccountUser();
   if (!auth.ok) return auth.response;
@@ -30,25 +49,64 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: "Invalid document type." }, { status: 400 });
     }
 
-    const number = String(form.get("number") ?? "").trim();
-    const issueDate = String(form.get("issueDate") ?? "").trim();
-    const expiryDate = String(form.get("expiryDate") ?? "").trim();
-    const issuingCountry = String(form.get("issuingCountry") ?? "LB").trim();
+    const existing = await findUserDocument(auth.supabase, auth.user.id, parsedType.data);
+    const number = String(form.get("number") ?? "").trim() || existing?.number || "";
+    const issueDate = String(form.get("issueDate") ?? "").trim() || existing?.issue_date || "";
+    const expiryDate = String(form.get("expiryDate") ?? "").trim() || existing?.expiry_date || "";
+    const issuingCountry =
+      String(form.get("issuingCountry") ?? "").trim() || existing?.issuing_country || "LB";
     const file = form.get("file");
+    const fileFront = form.get("fileFront");
+    const fileBack = form.get("fileBack");
 
     let storagePath: string | null = null;
-    if (file instanceof File && file.size > 0) {
-      const ext = file.name.split(".").pop() ?? "bin";
-      storagePath = `${auth.user.id}/${parsedType.data}/${Date.now()}.${ext}`;
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const { error: uploadError } = await auth.supabase.storage
-        .from("user-documents")
-        .upload(storagePath, buffer, {
-          contentType: file.type || "application/octet-stream",
-          upsert: true,
-        });
-      if (uploadError) {
-        return NextResponse.json({ message: uploadError.message }, { status: 500 });
+    let storagePathFront: string | null = null;
+    let storagePathBack: string | null = null;
+
+    if (parsedType.data === "licence") {
+      if (fileFront instanceof File && fileFront.size > 0) {
+        const uploaded = await uploadScan(auth.supabase, auth.user.id, "licence", "front", fileFront);
+        if ("error" in uploaded) {
+          return NextResponse.json({ message: uploaded.error }, { status: 500 });
+        }
+        storagePathFront = uploaded.path;
+        storagePath = uploaded.path;
+      }
+      if (fileBack instanceof File && fileBack.size > 0) {
+        const uploaded = await uploadScan(auth.supabase, auth.user.id, "licence", "back", fileBack);
+        if ("error" in uploaded) {
+          return NextResponse.json({ message: uploaded.error }, { status: 500 });
+        }
+        storagePathBack = uploaded.path;
+      }
+    } else if (file instanceof File && file.size > 0) {
+      const uploaded = await uploadScan(
+        auth.supabase,
+        auth.user.id,
+        parsedType.data,
+        "scan",
+        file,
+      );
+      if ("error" in uploaded) {
+        return NextResponse.json({ message: uploaded.error }, { status: 500 });
+      }
+      storagePath = uploaded.path;
+    }
+
+    if (parsedType.data === "licence") {
+      const hasFront = Boolean(
+        storagePathFront || existing?.storage_path_front || existing?.storage_path,
+      );
+      const hasBack = Boolean(storagePathBack || existing?.storage_path_back);
+      const uploading =
+        (fileFront instanceof File && fileFront.size > 0) ||
+        (fileBack instanceof File && fileBack.size > 0) ||
+        !existing;
+      if (uploading && (!hasFront || !hasBack)) {
+        return NextResponse.json(
+          { message: "Front and back of the driver's licence are required." },
+          { status: 400 },
+        );
       }
     }
 
@@ -59,6 +117,8 @@ export async function POST(request: Request) {
       expiryDate,
       issuingCountry,
       storagePath,
+      storagePathFront,
+      storagePathBack,
     });
 
     return NextResponse.json(saved);

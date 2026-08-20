@@ -21,7 +21,7 @@
 
 ### 1. Page header
 
-- Background `colors.primary-95`. Heading `headline-xl`: "Get in touch."
+- Background `colors.primary-95`. Heading `headline-lg`: "Get in touch."
 - Subhead: "We're available 24/7 on WhatsApp. Or pick the channel you prefer."
 
 ### 2. Channel cards (3 across)

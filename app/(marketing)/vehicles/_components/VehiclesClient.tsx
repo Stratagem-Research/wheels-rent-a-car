@@ -20,7 +20,7 @@ import {
   paginate,
   sortFiltered,
 } from "@/lib/vehicles/filter";
-import { groupFleetModels, groupVehiclesByModel } from "@/lib/vehicles/group-by-model";
+import { findSelectedFleetVehicle, groupFleetModels, groupVehiclesByModel } from "@/lib/vehicles/group-by-model";
 import { seedDraftFromSearchParams, useBookingDraft } from "@/hooks/useBookingDraft";
 import { appendSearchContextFromParams, draftToSearchParams } from "@/lib/booking/draft-to-search-params";
 import { track } from "@/lib/analytics/dataLayer";
@@ -32,9 +32,9 @@ import type { MileagePlan, RateType, Vehicle, VehicleCategory, Branch } from "@/
  * /vehicles — INK & SIGNAL canonical results page (Phase 7).
  *
  * Replaces both the legacy /vehicles listing and the /vehicles/[slug] PDP.
- * Sixt-style inline expansion: clicking a card pushes `?selected=<slug>`,
+ * Sixt-style inline expansion: clicking a card pushes `?selected=<vehicleId>`,
  * which expands that card into a `<VehicleCardExpanded />` panel in place
- * (spans 2 cols on lg).
+ * (spans 2 cols on lg). Slug still works when it matches exactly one card.
  *
  * Modes:
  *   - Browse:  default URL `/vehicles`. Categories filtered via `?category=`.
@@ -44,7 +44,7 @@ import type { MileagePlan, RateType, Vehicle, VehicleCategory, Branch } from "@/
  *
  * URL surface:
  *   ?step=1                 booking-step-1 mode
- *   ?selected=<slug>        auto-expand the matching card
+ *   ?selected=<id>          auto-expand that card (slug if unique)
  *   ?sort=price-asc         toolbar "Lowest price" toggle
  *   ?transmission=automatic toolbar "Auto only" toggle
  *   ?category=<slug>        category lock (also driven by FilterSidebar)
@@ -159,10 +159,10 @@ export function VehiclesClient({
     router.replace(`/vehicles?${next.toString()}`, { scroll: false });
   }, [draft, isStep1, ready, router, searchParams, selectedSlug]);
 
-  const expandedVehicle: Vehicle | null = React.useMemo(() => {
-    if (!selectedSlug) return null;
-    return filtered.find((v) => v.slug === selectedSlug) ?? null;
-  }, [filtered, selectedSlug]);
+  const expandedVehicle: Vehicle | null = React.useMemo(
+    () => findSelectedFleetVehicle(filtered, selectedSlug),
+    [filtered, selectedSlug],
+  );
 
   const setQuery = React.useCallback(
     (mutate: (next: URLSearchParams) => void, keepPage = false) => {
@@ -193,7 +193,7 @@ export function VehiclesClient({
 
   React.useEffect(() => {
     if (!selectedSlug) return;
-    const idx = filtered.findIndex((v) => v.slug === selectedSlug);
+    const idx = filtered.findIndex((v) => v.id === expandedVehicle?.id);
     if (idx < 0) return;
     const selectedPage = Math.floor(idx / filters.perPage) + 1;
     if (selectedPage === page) return;
@@ -201,7 +201,7 @@ export function VehiclesClient({
       if (selectedPage <= 1) next.delete("page");
       else next.set("page", String(selectedPage));
     }, true);
-  }, [filtered, filters.perPage, page, selectedSlug, setQuery]);
+  }, [expandedVehicle, filtered, filters.perPage, page, setQuery]);
 
   const onConfirm = React.useCallback(
     (vehicleId: string, vehicleSlug: string, choice: { type: RateType; mileage: MileagePlan }) => {
@@ -384,7 +384,7 @@ export function VehiclesClient({
                               vehicle={v}
                               availableCount={unitCount}
                               selected={isExpanded}
-                              href={`/vehicles?${withSelected(searchParams, v.slug)}`}
+                              href={`/vehicles?${withSelected(searchParams, v.id)}`}
                               pickupISO={pickupISO}
                               returnISO={returnISO}
                               scrollOnClick={false}
@@ -455,9 +455,9 @@ function chunkRows<T>(items: T[], size: number): T[][] {
   return rows;
 }
 
-function withSelected(params: URLSearchParams, slug: string): string {
+function withSelected(params: URLSearchParams, selected: string): string {
   const next = new URLSearchParams(params.toString());
-  next.set("selected", slug);
+  next.set("selected", selected);
   return next.toString();
 }
 

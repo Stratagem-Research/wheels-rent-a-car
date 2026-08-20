@@ -24,7 +24,7 @@ The Help module reduces support load and removes pre-booking friction. Strong, c
 
 #### 1. Page header
 
-- Background `colors.primary-95`. Heading `headline-xl`: "How can we help?". Subhead: "Browse common questions or chat with our team."
+- Background `colors.primary-95`. Heading `headline-lg`: "How can we help?". Subhead: "Browse common questions or chat with our team."
 
 #### 2. Search bar (helpdesk)
 

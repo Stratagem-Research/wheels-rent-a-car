@@ -328,6 +328,10 @@ export interface UserDocument {
   issuingCountry: CountryCode;
   /** URL of the stored document scan, when available. */
   scanUrl?: string;
+  /** Driver's licence — front of card. */
+  scanFrontUrl?: string;
+  /** Driver's licence — back of card. */
+  scanBackUrl?: string;
   status: DocumentStatus;
   uploadedAt: ISODateTime;
 }

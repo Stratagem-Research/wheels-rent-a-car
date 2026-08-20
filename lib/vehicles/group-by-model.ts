@@ -46,3 +46,15 @@ export function groupFleetModels(vehicles: Vehicle[]): FleetModelGroup[] {
 export function groupVehiclesByModel(vehicles: Vehicle[]): Vehicle[] {
   return groupFleetModels(vehicles).map((group) => group.vehicle);
 }
+
+/** Resolve `?selected=` to one fleet card. Prefer unique id; slug only if unambiguous. */
+export function findSelectedFleetVehicle(
+  vehicles: Vehicle[],
+  selected: string | null,
+): Vehicle | null {
+  if (!selected) return null;
+  const byId = vehicles.find((vehicle) => vehicle.id === selected);
+  if (byId) return byId;
+  const slugMatches = vehicles.filter((vehicle) => vehicle.slug === selected);
+  return slugMatches.length === 1 ? slugMatches[0]! : null;
+}

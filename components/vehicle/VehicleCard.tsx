@@ -94,7 +94,7 @@ export function VehicleCard({
   className,
 }: VehicleCardProps) {
   const t = useTranslations("fleet");
-  const detailHref = href ?? `/vehicles?selected=${vehicle.slug}`;
+  const detailHref = href ?? `/vehicles?selected=${encodeURIComponent(vehicle.id)}`;
   const dark = variant === "default";
   const vehicleLabel = vehicleDisplayName(vehicle);
 

@@ -46,7 +46,7 @@ export default function ExtrasPage() {
     return (
       <>
         <Stepper current={2} />
-        <div className="mx-auto max-w-[var(--container-full)] px-5 py-10 sm:px-5">
+        <div className="mx-auto max-w-(--container-full) px-4 py-8 sm:px-5">
           <Skeleton className="h-40 rounded-lg" />
         </div>
       </>
@@ -71,7 +71,7 @@ export default function ExtrasPage() {
   return (
     <>
       <Stepper current={2} />
-      <section className="mx-auto max-w-[var(--container-full)] px-5 py-8 sm:px-5 sm:py-10">
+      <section className="mx-auto max-w-(--container-full) px-4 py-6 sm:px-5 sm:py-8">
         <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
           <div>
             <Button asChild variant="tertiary" size="sm" className="mb-3">
@@ -79,7 +79,7 @@ export default function ExtrasPage() {
                 <ArrowLeft className="size-4" aria-hidden="true" /> {t("extras.backToVehicles")}
               </a>
             </Button>
-            <h1 className="headline-xl text-ink-95">{t("extras.heading")}</h1>
+            <h1 className="headline-lg text-ink-95">{t("extras.heading")}</h1>
             <p className="body-md text-ink-60 mt-1">{t("extras.subtitle")}</p>
 
             <div className="mt-8 flex flex-col gap-8">

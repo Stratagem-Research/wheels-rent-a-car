@@ -76,7 +76,7 @@ function Header() {
   return (
     <header className="flex flex-col gap-2">
       <p className="text-ink-100 overline">Internal</p>
-      <h1 className="headline-xl text-ink-95">Component showcase</h1>
+      <h1 className="headline-lg text-ink-95">Component showcase</h1>
       <p className="body-md text-ink-60 max-w-2xl">
         Every Sprint 1 primitive in every meaningful state. Used for visual review and axe-core
         sweeps during development.
@@ -186,7 +186,7 @@ function Typography() {
       <Card>
         <div className="flex flex-col gap-3">
           <span className="display-lg text-ink-95">Drive Lebanon, your way.</span>
-          <span className="headline-xl text-ink-95">headline-xl — 44px / 800 uppercase</span>
+          <span className="headline-lg text-ink-95">headline-lg — 44px / 800 uppercase</span>
           <span className="headline-lg text-ink-95">headline-lg — 32px / 800 uppercase</span>
           <span className="headline-md text-ink-95">headline-md — 24px / 800 uppercase</span>
           <span className="headline-sm text-ink-95">headline-sm — 18px / 800 uppercase</span>

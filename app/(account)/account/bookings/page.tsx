@@ -75,7 +75,7 @@ export default function BookingsPage() {
     <div className="flex flex-col gap-8">
       <header className="flex flex-col gap-2">
         <p className="text-ink-60 overline">{t("eyebrow")}</p>
-        <h1 className="headline-xl text-ink-100">{t("heading")}</h1>
+        <h1 className="headline-lg text-ink-100">{t("heading")}</h1>
         <p className="lead-md text-ink-60">{t("subtitle")}</p>
       </header>
 

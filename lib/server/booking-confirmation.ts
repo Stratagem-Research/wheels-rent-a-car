@@ -2,9 +2,11 @@ import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import { enqueueNotification } from "@/lib/server/notifications";
 import { bookingFromStoredRow } from "@/lib/booking/stored-booking";
 import { extraQtyLabel } from "@/lib/booking/addons";
+import { formatUsd, rentalDays } from "@/lib/booking/pricing";
 import { listAddOnsFromDb, listProtectionTiersFromDb } from "@/lib/supabase/catalog-repository";
 import { getPublicBranches } from "@/lib/server/public-content";
 import type { UserBookingRow } from "@/lib/supabase/user-bookings-repository";
+import type { Booking } from "@/types/domain";
 
 const APPROVAL_STATUSES = new Set(["approved", "confirmed"]);
 const INVENTORY_RELEASE_STATUSES = new Set(["cancelled", "canceled", "rejected"]);
@@ -101,17 +103,14 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = {
 };
 
 /**
- * Build the full set of human-readable fields the confirmation email needs
- * — dates/times, driver, extras/protection by name (not id), pickup/return
- * location, and the price breakdown — from a stored booking row. Used by
- * both the Wizard approval webhook and the admin manual-confirm flow so the
- * email always has everything, not just a booking reference + vehicle name.
+ * Build the full set of human-readable fields any booking email needs —
+ * dates/times, driver, extras/protection by name (not id), pickup/return
+ * location, and the price breakdown — from an in-memory `Booking`. Shared by
+ * every trigger point (immediate submit, Wizard approval webhook, admin
+ * manual-confirm) so every booking email has the same complete detail, not
+ * just a booking reference + vehicle name.
  */
-export async function buildBookingConfirmationPayload(
-  row: UserBookingRow,
-  recipient: string,
-): Promise<Record<string, unknown>> {
-  const booking = bookingFromStoredRow(row, recipient);
+export async function buildBookingEmailPayload(booking: Booking): Promise<Record<string, unknown>> {
   const [addOns, tiers, branches] = await Promise.all([
     listAddOnsFromDb().catch(() => []),
     listProtectionTiersFromDb().catch(() => []),
@@ -179,4 +178,16 @@ export async function buildBookingConfirmationPayload(
     priceTotal: formatUsd(booking.price.totalCents),
     priceDeposit: formatUsd(booking.price.depositCents),
   };
+}
+
+/**
+ * Same as `buildBookingEmailPayload`, but for callers that only have a
+ * stored `UserBookingRow` (no in-memory `Booking` yet) — the Wizard
+ * approval webhook and the admin manual-confirm flow.
+ */
+export async function buildBookingConfirmationPayload(
+  row: UserBookingRow,
+  recipient: string,
+): Promise<Record<string, unknown>> {
+  return buildBookingEmailPayload(bookingFromStoredRow(row, recipient));
 }

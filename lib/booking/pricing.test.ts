@@ -56,14 +56,15 @@ describe("booking/pricing", () => {
   });
 
   it("rolls in extras priced per-day", () => {
-    const extraDriver = ADD_ONS.find((a) => a.id === "ao-extra-driver")!;
+    const gps = ADD_ONS.find((a) => a.id === "ao-gps")!;
+    expect(gps.pricing).toBe("per-day");
     const result = computePrice({
-      draft: draft({ extras: [{ addOnId: extraDriver.id, qty: 1 }] }),
+      draft: draft({ extras: [{ addOnId: gps.id, qty: 1 }] }),
       vehicle: yaris,
       addOns: ADD_ONS,
       tiers: PROTECTION_TIERS,
     });
-    expect(result.extrasCents).toBe(extraDriver.priceCents * 5);
+    expect(result.extrasCents).toBe(gps.priceCents * 5);
   });
 
   it("charges child seats once per rental, not per day", () => {
@@ -90,7 +91,7 @@ describe("booking/pricing", () => {
   });
 
   it("charges the 22 GB hotspot once per rental", () => {
-    const wifi = ADD_ONS.find((a) => a.id === "ao-wifi")!;
+    const wifi = ADD_ONS.find((a) => a.id === "ao-sim-22gb")!;
     expect(wifi.pricing).toBe("per-rental");
     const result = computePrice({
       draft: draft({ extras: [{ addOnId: wifi.id, qty: 1 }] }),

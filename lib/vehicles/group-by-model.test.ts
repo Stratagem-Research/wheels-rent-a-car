@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { VEHICLES } from "@/lib/api/fixtures/vehicles";
-import { groupFleetModels, groupVehiclesByModel, modelGroupKey } from "./group-by-model";
+import {
+  findSelectedFleetVehicle,
+  groupFleetModels,
+  groupVehiclesByModel,
+  modelGroupKey,
+} from "./group-by-model";
 import type { Vehicle } from "@/types/domain";
 
 describe("groupVehiclesByModel", () => {
@@ -40,6 +45,13 @@ describe("groupVehiclesByModel", () => {
     const a: Vehicle = { ...VEHICLES[0]!, id: "a", model: "" };
     const b: Vehicle = { ...VEHICLES[0]!, id: "b", model: "" };
     expect(groupVehiclesByModel([a, b])).toHaveLength(2);
+  });
+
+  it("selects by unique id when slugs collide", () => {
+    const a: Vehicle = { ...VEHICLES[0]!, id: "wiz-1", slug: "rio" };
+    const b: Vehicle = { ...VEHICLES[1]!, id: "wiz-2", slug: "rio" };
+    expect(findSelectedFleetVehicle([a, b], "wiz-2")?.id).toBe("wiz-2");
+    expect(findSelectedFleetVehicle([a, b], "rio")).toBeNull();
   });
 
   it("builds a stable make+model key", () => {

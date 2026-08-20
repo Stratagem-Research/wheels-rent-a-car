@@ -32,6 +32,7 @@ import {
 import { paginate } from "@/lib/vehicles/filter";
 import { composeVehicleTitle } from "@/lib/vehicles/display-name";
 import { modelGroupKey } from "@/lib/vehicles/group-by-model";
+import { preserveWebsiteBrandModel } from "@/lib/vehicles/preserve-fleet-names";
 import {
   parseVehicleMedia,
   sortVehicleMedia,
@@ -367,7 +368,7 @@ export default function AdminFleetPage() {
   const currentPage = Math.min(page, pageCount);
   const pagedGroups = paginate(visibleGroups, currentPage, PAGE_SIZE);
 
-  const refresh = React.useCallback(async () => {
+  const refresh = React.useCallback(async (opts?: { keepLocalNames?: boolean }) => {
     setLoading(true);
     setError(null);
     try {
@@ -375,7 +376,8 @@ export default function AdminFleetPage() {
         "/api/admin/fleet/metadata",
       );
       const items = Array.isArray(metadataRes.items) ? metadataRes.items : [];
-      setDrafts(items.map(toDraft));
+      const incoming = items.map(toDraft);
+      setDrafts((prev) => (opts?.keepLocalNames ? preserveWebsiteBrandModel(prev, incoming) : incoming));
       setHeldIds(new Set(Array.isArray(metadataRes.held_ids) ? metadataRes.held_ids : []));
       setDeletedIds([]);
     } catch (err) {
@@ -473,7 +475,7 @@ export default function AdminFleetPage() {
       toast.success(
         `Synced from Wizard: fetched ${body.fetched ?? 0}, mirror updated ${body.upserted ?? 0}, website-enabled ${body.websiteEnabled ?? body.upserted ?? 0}. Existing cars were kept.`,
       );
-      await refresh();
+      await refresh({ keepLocalNames: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to sync from Wizard.");
     } finally {
@@ -527,7 +529,7 @@ export default function AdminFleetPage() {
     <AdminPageShell
       eyebrow="Fleet"
       title="Vehicle metadata"
-      description="Sync fleet from Wizard or add a car here. Brand, model, and photos are website-owned and are not overwritten by later syncs. Save each card separately."
+      description="Sync fleet from Wizard or add a car here. Brand, model, and photos are website-owned and are not overwritten by later syncs."
       actions={
         <>
           <Button

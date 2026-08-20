@@ -21,6 +21,8 @@ export interface FileUploadProps {
   onFileRemove?: (file: File) => void;
   /** Externally provided error (from validation). */
   error?: React.ReactNode;
+  /** Marks the file input invalid without duplicating an error message. */
+  invalid?: boolean;
   /** Helper line shown when no files selected. */
   helper?: React.ReactNode;
   id?: string;
@@ -47,6 +49,7 @@ export function FileUpload({
   onFilesChange,
   onFileRemove,
   error,
+  invalid,
   helper,
   id,
   disabled,
@@ -96,7 +99,7 @@ export function FileUpload({
           "transition-colors duration-150 ease-out",
           "hover:border-ink-100 hover:bg-signal-blue-bg",
           isDragging && "border-ink-100 bg-signal-blue-bg",
-          displayedError && "border-error bg-error-bg",
+          (displayedError || invalid) && "border-error bg-error-bg",
           disabled && "hover:border-border-strong hover:bg-surface cursor-not-allowed opacity-60",
         )}
       >
@@ -110,6 +113,7 @@ export function FileUpload({
           accept={accept}
           multiple={multiple}
           disabled={disabled}
+          aria-invalid={Boolean(displayedError || invalid) || undefined}
           className="sr-only"
           onChange={(e) => handleFiles(e.target.files)}
         />

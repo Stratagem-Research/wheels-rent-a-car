@@ -41,7 +41,7 @@ export function ConfirmationStatusBlock({ state, bookingRef }: ConfirmationStatu
       </div>
       <h1
         id="confirmation-headline"
-        className={cn("headline-xl", isPending ? "text-warning" : "text-ink-95")}
+        className={cn("headline-lg", isPending ? "text-warning" : "text-ink-95")}
       >
         {isPending ? t("pendingTitle") : t("confirmedTitle")}
       </h1>

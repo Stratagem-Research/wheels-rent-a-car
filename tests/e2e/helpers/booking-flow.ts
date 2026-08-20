@@ -47,9 +47,17 @@ export async function fillDriverInfo(page: Page, email: string): Promise<void> {
   await page.getByLabel("Email", { exact: false }).fill(email);
   await page.getByPlaceholder("70 123 456").fill("70123456");
   await page.getByLabel("Date of birth", { exact: false }).fill("1990-01-01");
-  await page.getByLabel("Licence number", { exact: false }).fill("LB12345");
-  await page.getByLabel("Issue date", { exact: false }).fill("2018-01-01");
-  await page.getByLabel("Expiry date", { exact: false }).fill("2030-01-01");
+  const licenceFiles = page.locator('section[aria-labelledby="licence-info"] input[type="file"]');
+  const scan = {
+    name: "licence.png",
+    mimeType: "image/png",
+    buffer: Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+      "base64",
+    ),
+  };
+  await licenceFiles.nth(0).setInputFiles(scan);
+  await licenceFiles.nth(1).setInputFiles({ ...scan, name: "licence-back.png" });
 }
 
 export async function acceptTerms(page: Page): Promise<void> {

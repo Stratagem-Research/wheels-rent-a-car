@@ -20,6 +20,7 @@ import type {
   Vehicle,
 } from "@/types/domain";
 import { extraQtyLabel, addOnUnitPriceLabel } from "@/lib/booking/addons";
+import { resolveWizardAddressForBooking } from "@/lib/booking/wizard-address-id";
 import { fromBackendDateAndTime, fromBackendDateTime, toBackendDateTime } from "./datetime";
 import type { BookingData, BookingRequestPayload, PublicVehicle } from "./schemas";
 import { enrichVehicle, type EnrichVehicleOptions } from "./vehicle-enrichment";
@@ -27,6 +28,11 @@ import { enrichVehicle, type EnrichVehicleOptions } from "./vehicle-enrichment";
 const RATE_TYPES = ["best-price", "flexible"] as const;
 const MILEAGE_PLANS = ["capped-200km", "unlimited"] as const;
 const FLEXIBLE_MULTIPLIER = 1.15;
+
+function optionalYmd(value: string | undefined): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : undefined;
+}
 const UNLIMITED_MULTIPLIER = 1.1;
 
 // ── Availability ──────────────────────────────────────────────────────────
@@ -168,10 +174,10 @@ export function fromBookingDraft(
       email: draft.driver.email || undefined,
       phone_number: draft.driver.phone,
       birth_date: draft.driver.dob,
-      license_number: draft.driver.licenceNumber,
+      license_number: draft.driver.licenceNumber || undefined,
       license_country: draft.driver.country || options.defaultCountry || "LB",
-      issue_date: draft.driver.licenceIssue,
-      expiration_date: draft.driver.licenceExpiry,
+      issue_date: optionalYmd(draft.driver.licenceIssue),
+      expiration_date: optionalYmd(draft.driver.licenceExpiry),
     },
     notes,
     ...buildRateSelectionFields(draft, options.rateTotalCents),

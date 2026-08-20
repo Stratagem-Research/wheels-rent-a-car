@@ -18,6 +18,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { toast } from "@/components/ui/Toast";
 import { DocumentVaultCard } from "@/components/account/DocumentVaultCard";
 import { DocumentScanPreview } from "@/components/account/DocumentScanPreview";
+import { LicenceScanFields } from "@/components/account/LicenceScanFields";
 import { useSession } from "@/hooks/useSession";
 import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
@@ -84,7 +85,7 @@ export default function DocumentsPage() {
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <h1 className="headline-xl text-ink-100">{t("title")}</h1>
+        <h1 className="headline-lg text-ink-100">{t("title")}</h1>
         <p className="body-md text-ink-60 mt-1">{t("subtitle")}</p>
       </header>
 
@@ -220,6 +221,8 @@ function UploadDocumentModal({
   const t = useTranslations("accountDocuments");
   const { session } = useSession();
   const [file, setFile] = React.useState<File | null>(null);
+  const [frontFile, setFrontFile] = React.useState<File | null>(null);
+  const [backFile, setBackFile] = React.useState<File | null>(null);
   const [number, setNumber] = React.useState(existing?.number ?? "");
   const [issueDate, setIssueDate] = React.useState(existing?.issueDate ?? "");
   const [expiryDate, setExpiryDate] = React.useState(existing?.expiryDate ?? "");
@@ -229,6 +232,8 @@ function UploadDocumentModal({
   React.useEffect(() => {
     if (!open) return;
     setFile(null);
+    setFrontFile(null);
+    setBackFile(null);
     setNumber(existing?.number ?? "");
     setIssueDate(existing?.issueDate ?? "");
     setExpiryDate(existing?.expiryDate ?? "");
@@ -237,12 +242,33 @@ function UploadDocumentModal({
 
   const title =
     mode === "edit" ? t("editDocument") : mode === "replace" ? t("replaceDocument") : t("uploadDocument");
+  const isLicence = docType === "licence";
   const showFile = mode !== "edit";
   const requireFile = mode === "replace" || mode === "upload";
+  const hasFront = Boolean(frontFile || existing?.scanFrontUrl || existing?.scanUrl);
+  const hasBack = Boolean(backFile || existing?.scanBackUrl);
+  const licenceFileOk =
+    mode === "edit" ||
+    (mode === "upload" && Boolean(frontFile && backFile)) ||
+    (mode === "replace" && Boolean(frontFile || backFile) && hasFront && hasBack);
+  const fileOk = isLicence ? licenceFileOk : !requireFile || Boolean(file);
 
   const onSubmit = async () => {
     if (!session?.user.id) return;
-    if (requireFile && !file) {
+    if (isLicence && showFile) {
+      if (mode === "upload" && (!frontFile || !backFile)) {
+        toast.error(t("bothSidesRequired"));
+        return;
+      }
+      if (mode === "replace" && !frontFile && !backFile) {
+        toast.error(t("fileRequired"));
+        return;
+      }
+      if (!hasFront || !hasBack) {
+        toast.error(t("bothSidesRequired"));
+        return;
+      }
+    } else if (requireFile && !file) {
       toast.error(t("fileRequired"));
       return;
     }
@@ -254,7 +280,12 @@ function UploadDocumentModal({
       form.set("issueDate", issueDate);
       form.set("expiryDate", expiryDate);
       form.set("issuingCountry", country);
-      if (file) form.set("file", file);
+      if (isLicence) {
+        if (frontFile) form.set("fileFront", frontFile);
+        if (backFile) form.set("fileBack", backFile);
+      } else if (file) {
+        form.set("file", file);
+      }
 
       const res = await fetch(endpoints.accountDocuments, {
         method: "POST",
@@ -274,13 +305,13 @@ function UploadDocumentModal({
 
   return (
     <Modal open={open} onOpenChange={onOpenChange}>
-      <ModalContent size="sm">
+      <ModalContent size={isLicence && showFile ? "md" : "sm"}>
         <ModalTitle>{title}</ModalTitle>
         <ModalDescription>
           {mode === "edit" ? t("editDescription") : t("uploadDescription")}
         </ModalDescription>
         <div className="mt-4 flex flex-col gap-3">
-          {mode === "replace" && existing?.scanUrl ? (
+          {mode === "replace" && !isLicence && existing?.scanUrl ? (
             <div className="flex flex-col gap-2">
               <p className="label-md text-ink-80">{t("currentScan")}</p>
               <DocumentScanPreview
@@ -290,7 +321,20 @@ function UploadDocumentModal({
               />
             </div>
           ) : null}
-          {showFile ? (
+          {showFile && isLicence ? (
+            <LicenceScanFields
+              frontFile={frontFile}
+              backFile={backFile}
+              frontUrl={existing?.scanFrontUrl || existing?.scanUrl}
+              backUrl={existing?.scanBackUrl}
+              onFrontChange={setFrontFile}
+              onBackChange={setBackFile}
+              frontLabel={t("licenceFront")}
+              backLabel={t("licenceBack")}
+              helper={t("uploadDescription")}
+            />
+          ) : null}
+          {showFile && !isLicence ? (
             <FileUpload
               label={t("dragOrBrowse")}
               accept=".pdf,.jpg,.jpeg,.png"
@@ -346,7 +390,7 @@ function UploadDocumentModal({
           <Button
             variant="primary"
             loading={saving}
-            disabled={!number || !issueDate || !expiryDate || saving || (requireFile && !file)}
+            disabled={!number || !issueDate || !expiryDate || saving || !fileOk}
             onClick={onSubmit}
           >
             {t("saveDocument")}

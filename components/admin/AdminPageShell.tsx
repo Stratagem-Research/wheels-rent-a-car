@@ -43,18 +43,18 @@ export function AdminPageShell({
           </Link>
         </Button>
       ) : null}
-      <div className="mt-2 flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+      <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex max-w-3xl flex-col gap-2">
           {eyebrow ? <p className="text-ink-60 overline">{eyebrow}</p> : null}
-          <h1 className="display-md text-ink-100 text-[clamp(22px,4vw,38px)] leading-[1.05]">
+          <h1 className="display-md text-3xl text-ink-100 text-[clamp(22px,4vw,38px)] leading-[1.05]">
             {title}
           </h1>
-          {description ? <p className="lead-sm text-ink-60 max-w-2xl">{description}</p> : null}
+          {description ? <p className="lead-sm text-ink-60 max-w-xl">{description}</p> : null}
         </div>
         {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
       </div>
 
-      <div className="mt-8">{children}</div>
+      <div className="mt-6">{children}</div>
     </div>
   );
 }

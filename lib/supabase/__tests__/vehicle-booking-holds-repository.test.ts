@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { holdInventoryStatus, toHoldIso } from "../vehicle-booking-holds-repository";
+import { fleetVehicleLabel, holdInventoryStatus, toHoldIso } from "../vehicle-booking-holds-repository";
 
 describe("toHoldIso", () => {
   it("treats SearchBar local datetimes as Asia/Beirut", () => {
@@ -34,5 +34,22 @@ describe("holdInventoryStatus", () => {
     expect(
       holdInventoryStatus("2026-08-01T10:00:00.000Z", "2026-08-10T10:00:00.000Z", now),
     ).toBe("ended");
+  });
+});
+
+describe("fleetVehicleLabel", () => {
+  it("prefers website brand and model over Wizard names", () => {
+    expect(
+      fleetVehicleLabel(
+        { brand: "Toyota", model: "Yaris", display_name: "Toyota Yaris" },
+        { brand: "Kia", model: "Rio" },
+      ),
+    ).toBe("Kia Rio");
+  });
+
+  it("falls back to Wizard when website metadata has no name", () => {
+    expect(
+      fleetVehicleLabel({ brand: "Toyota", model: "Yaris", display_name: "Toyota Yaris" }, {}),
+    ).toBe("Toyota Yaris");
   });
 });

@@ -3,9 +3,11 @@ import { isManualIndexedBooking } from "@/lib/server/manual-booking-ops";
 import {
   fleetVehicleLabel,
   holdInventoryStatus,
+  websiteVehicleLabels,
   type HoldCustomerType,
   type HoldInventoryStatus,
 } from "@/lib/supabase/vehicle-booking-holds-repository";
+import { frontendVehicleIdFromWizard } from "@/lib/booking/wizard-vehicle-id";
 
 export type AdminWebsiteBooking = {
   bookingReference: string;
@@ -120,13 +122,25 @@ export async function listAdminWebsiteBookings(): Promise<AdminWebsiteBooking[]>
       ].filter((id) => Number.isFinite(id) && id > 0),
     ),
   ];
-  const vehiclesResult =
+  const frontendIds = [
+    ...new Set(
+      [
+        ...holds.map((row) => row.frontend_vehicle_id as string | null),
+        ...userRows.map((row) => row.frontend_vehicle_id as string | null),
+        ...guestRows.map((row) => row.frontend_vehicle_id as string | null),
+        ...wizardIds.map((id) => frontendVehicleIdFromWizard(id)),
+      ].filter((id): id is string => Boolean(id)),
+    ),
+  ];
+  const [vehiclesResult, websiteByFrontend] = await Promise.all([
     wizardIds.length > 0
-      ? await supabase
+      ? supabase
           .from("wizard_vehicles")
           .select("wizard_vehicle_id, display_name, brand, model")
           .in("wizard_vehicle_id", wizardIds)
-      : { data: [], error: null };
+      : Promise.resolve({ data: [] as { wizard_vehicle_id: number; display_name: string | null; brand: string | null; model: string | null }[], error: null }),
+    websiteVehicleLabels(supabase, frontendIds),
+  ]);
   if (vehiclesResult.error) throw new Error(vehiclesResult.error.message);
   const vehicleById = new Map(
     (vehiclesResult.data ?? []).map((row) => [
@@ -241,6 +255,9 @@ export async function listAdminWebsiteBookings(): Promise<AdminWebsiteBooking[]>
         : row.guestEmail
           ? "guest"
           : "unknown";
+      const frontendId =
+        row.frontendVehicleId ||
+        (row.wizardVehicleId != null ? frontendVehicleIdFromWizard(row.wizardVehicleId) : null);
       return {
         bookingReference: row.bookingReference,
         wizardBookingId: row.wizardBookingId,
@@ -248,7 +265,10 @@ export async function listAdminWebsiteBookings(): Promise<AdminWebsiteBooking[]>
         email: (row.accountEmail && row.accountEmail.trim()) || row.guestEmail,
         customerName: row.customerName,
         createdAt: row.createdAt,
-        vehicleName: row.wizardVehicleId != null ? vehicleById.get(row.wizardVehicleId) ?? row.frontendVehicleId : row.frontendVehicleId,
+        vehicleName:
+          (frontendId ? websiteByFrontend.get(frontendId) : undefined) ??
+          (row.wizardVehicleId != null ? vehicleById.get(row.wizardVehicleId) : undefined) ??
+          frontendId,
         frontendVehicleId: row.frontendVehicleId,
         pickupAt: row.pickupAt,
         returnAt: row.returnAt,

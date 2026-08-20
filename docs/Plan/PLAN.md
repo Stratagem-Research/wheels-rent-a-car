@@ -41,7 +41,7 @@ We executed an 11-sprint Phase-1 build (commit `e464915`) and started a Sixt-aes
 ### Phase 3 (commit `d656f61`) — shipped
 - Installed `geist` npm package; replaced Plus Jakarta / Inter / JetBrains Mono with `GeistSans` + `GeistMono` via `next/font` re-exports.
 - Rewrote `styles/tokens.css` to INK & SIGNAL: full ink ramp (`ink-100` → `ink-05`), `paper`, `signal-red*`, `signal-blue*`, semantic alias layer (`surface`, `on-surface`, `border`, etc.), 4-step elevation tokens, container widths, new radius scale (xl=20px, 2xl=24px, 3xl=32px).
-- Replaced all `wheels-*` typography utilities with the INK & SIGNAL set (display-mega → display-md, headline-xl → headline-xs uppercase Geist 800, lead-xl → lead-sm Geist Medium, body-lg → body-xs, button-lg → button-sm, label-lg → label-sm, overline, field-label/helper/error, mono-md/lg, price-xl → price-sm).
+- Replaced all `wheels-*` typography utilities with the INK & SIGNAL set (display-mega → display-md, headline-lg → headline-xs uppercase Geist 800, lead-xl → lead-sm Geist Medium, body-lg → body-xs, button-lg → button-sm, label-lg → label-sm, overline, field-label/helper/error, mono-md/lg, price-xl → price-sm).
 - Swept ~115 components and pages: `wheels-*` classes renamed (`wheels-title-lg` → `headline-sm`, `wheels-title-md` → `headline-xs`); legacy colour tokens (`neutral-*`, `primary-*`, `secondary-*`, `tertiary-*`) renamed to the ink/paper/signal-red/signal-blue scale.
 - Header logo and active nav on the new scale; skip-link rebuilt as a pill (ink-100 + paper).
 - **Button.tsx left untouched** per the Phase 3 contract — it still consumes `bg-primary-40` / `bg-secondary-50` / `bg-neutral-*`. The legacy tokens stay defined in `tokens.css` as aliases over the new hexes so Button.tsx renders identically until Phase 4 rebuilds the variant set.
@@ -97,8 +97,8 @@ We executed an 11-sprint Phase-1 build (commit `e464915`) and started a Sixt-aes
 ### Phase 10 (commit `43bbdc9`) — shipped
 - **`/locations`** — inverse hero "Visit us in Hazmieh." Inlined leaner address/hours/contact stack (card-tint, rounded.xl) replacing the deleted `BranchHeroCard`. Browse-cars button is primary (black) so the SearchBar keeps the singular red.
 - **Account shell** — new `<AccountNav />` (label-md uppercase pill-rounded nav; active route fills with ink-100, hover lifts on ink-10). Sticky on lg.
-- **`/account` dashboard** — time-of-day greeting in headline-xl. Upcoming card becomes `card-floating`. Quick-action cards are ink-10 → paper-on-hover with ink-100 border. Recent rows rounded-xl on paper.
-- **`/account/bookings`** + `[ref]` — heading rhythm (overline + headline-xl + lead-md). `<BookingHistoryRow />` rounded-xl on paper; `<BookingDetailPanel />` switches to `card-floating`. Empty + pagination polished with pill-rounded buttons.
+- **`/account` dashboard** — time-of-day greeting in headline-lg. Upcoming card becomes `card-floating`. Quick-action cards are ink-10 → paper-on-hover with ink-100 border. Recent rows rounded-xl on paper.
+- **`/account/bookings`** + `[ref]` — heading rhythm (overline + headline-lg + lead-md). `<BookingHistoryRow />` rounded-xl on paper; `<BookingDetailPanel />` switches to `card-floating`. Empty + pagination polished with pill-rounded buttons.
 - **Account sub-pages** — profile / documents / saved-cars normalized to `card-default` (was elevated/outline) and `card-tint` (was muted). Profile danger-zone moves to the explicit `signal-red` token.
 - **Auth** — layout drops to `bg-ink-10`. `<AuthCard />` rebuilt as paper + rounded-2xl + 48px padding (headline-lg ink-100 title). Submit CTAs promoted to red (`variant="cta"`, 56px) — singular red per screen.
 
@@ -138,13 +138,13 @@ We executed an 11-sprint Phase-1 build (commit `e464915`) and started a Sixt-aes
 - `app/layout.tsx` — swap the three `next/font/google` loaders for `geist/font/sans` + `geist/font/mono`. Drop the `--font-jakarta` / `--font-inter` / `--font-mono` variables; expose `--font-sans` + `--font-mono`.
 - `styles/tokens.css` — full rewrite to INK & SIGNAL:
   - **Colours:** replace `--color-primary-*` and `--color-neutral-*` blocks. Add `--color-ink-100 → ink-05` ramp (14 steps), `--color-paper`, `--color-signal-red*`, `--color-signal-blue*`. Drop `--color-tertiary-*` (no olive sand in new system). Keep `--color-whatsapp`.
-  - **Typography utilities:** delete every `@utility wheels-*` and replace with `display-mega`, `display-2xl`, `display-xl`, `display-lg`, `display-md`, `headline-xl/lg/md/sm/xs`, `lead-xl/lg/md/sm`, `body-lg/md/sm/xs`, `button-lg/md/sm`, `label-lg/md/sm`, `overline`, `field-label`, `field-helper`, `field-error`, `mono-md/lg`, `price-xl/lg/md/sm`. Match the px/weight/lineHeight/letterSpacing exactly from DESIGN.md frontmatter.
+  - **Typography utilities:** delete every `@utility wheels-*` and replace with `display-mega`, `display-2xl`, `display-xl`, `display-lg`, `display-md`, `headline-lg/lg/md/sm/xs`, `lead-xl/lg/md/sm`, `body-lg/md/sm/xs`, `button-lg/md/sm`, `label-lg/md/sm`, `overline`, `field-label`, `field-helper`, `field-error`, `mono-md/lg`, `price-xl/lg/md/sm`. Match the px/weight/lineHeight/letterSpacing exactly from DESIGN.md frontmatter.
   - **Spacing & containers:** keep numeric Tailwind defaults (per the lesson learned earlier); just add the `--container-narrow: 880px`, `--container-default: 1280px`, `--container-wide: 1440px`, `--container-full: 1600px` block.
   - **Elevation:** add `--shadow-elevation-1..4` back, scoped narrowly. The system uses them for `card-floating`, popovers, FAB, and modals only — never on cards.
 - `app/globals.css` — keep the print stylesheet + reduced-motion media query; drop the focus-ring CSS variable usage and rebuild against `--color-focus-ring: var(--color-ink-100)`.
 
 **Component sweep (search-and-replace, one PR commit):**
-- Every component using `wheels-headline-xl` → `headline-xl`, `wheels-body-md` → `body-md`, `wheels-display-2xl` → `display-2xl`, etc. The token names map 1:1 in most cases.
+- Every component using `wheels-headline-lg` → `headline-lg`, `wheels-body-md` → `body-md`, `wheels-display-2xl` → `display-2xl`, etc. The token names map 1:1 in most cases.
 - `text-primary-40` / `bg-primary-40` callsites → semantic tokens: `text-signal-blue` for info, `text-ink-100` for primary, etc.
 - `bg-neutral-95` → `bg-ink-10` (or `bg-surface-subtle`).
 - The `Header.tsx` nav link `text-primary-40` for active state → `text-ink-100` + 2px underline (already 80% there from Phase 1).
@@ -373,7 +373,7 @@ We executed an 11-sprint Phase-1 build (commit `e464915`) and started a Sixt-aes
 
 **Critical files:**
 - **`app/(marketing)/locations/page.tsx`** — single-Hazmieh page restyled. Inverse hero band with `display-xl` "VISIT US IN HAZMIEH." Address + hours + parking notes in `card-tint`. Replace `BranchHeroCard` with a leaner address/hours stack.
-- **`app/(account)/account/page.tsx`** — dashboard. Greeting `headline-xl` "GOOD MORNING, TONI." + upcoming-booking `card-floating` + quick-action chips + recent-bookings list rows.
+- **`app/(account)/account/page.tsx`** — dashboard. Greeting `headline-lg` "GOOD MORNING, TONI." + upcoming-booking `card-floating` + quick-action chips + recent-bookings list rows.
 - **`app/(account)/account/bookings/page.tsx`** + `[ref]/page.tsx` — filter chips, paper rows on `card` surfaces, `<BookingDetailPanel />` restyled with `card-floating` right rail.
 - **`app/(account)/account/profile/page.tsx`** + `documents/page.tsx` + `saved-vehicles/page.tsx` — repaint with new tokens.
 - **`app/(account)/layout.tsx`** — left sidebar with `label-md` uppercase nav, active route pill-rounded ink-100.

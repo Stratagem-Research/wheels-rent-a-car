@@ -130,7 +130,7 @@ typography:
     textTransform: uppercase
 
   # ── HEADLINES — uppercase, Extra Bold (800), tight ───────────────────────
-  headline-xl:
+  headline-lg:
     fontFamily: Geist
     fontSize: 44px
     fontWeight: 800
@@ -838,7 +838,7 @@ The system is voiced through three weights and one variant:
 | `display-2xl`     | 800    | UPPERCASE | Home hero                                                      |
 | `display-xl`      | 800    | UPPERCASE | Page hero on listing/category                                  |
 | `display-lg`      | 800    | UPPERCASE | Editorial section openers                                      |
-| `headline-xl`     | 800    | UPPERCASE | Major section headings                                         |
+| `headline-lg`     | 800    | UPPERCASE | Major section headings                                         |
 | `headline-lg`     | 800    | UPPERCASE | Section sub-headings                                           |
 | `headline-md`     | 800    | UPPERCASE | Card headlines, modal titles                                   |
 | `headline-sm`     | 800    | UPPERCASE | Vehicle card title, accordion question                         |

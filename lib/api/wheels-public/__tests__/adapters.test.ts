@@ -120,6 +120,28 @@ describe("wheels-public/adapters", () => {
       expect(() => BookingRequestPayloadSchema.parse(payload)).not.toThrow();
     });
 
+    it("omits empty licence dates so Wizard does not reject checkout scans-only", () => {
+      const payload = fromBookingDraft(
+        draft({
+          driver: {
+            firstName: "Ada",
+            lastName: "Lovelace",
+            email: "ada@example.com",
+            phone: "+96170123456",
+            dob: "1980-01-01",
+            licenceNumber: "",
+            licenceIssue: "",
+            licenceExpiry: "",
+            country: "LB",
+          },
+        }),
+        { resolveVehicleId: () => 131 },
+      );
+      expect(payload.customer.issue_date).toBeUndefined();
+      expect(payload.customer.expiration_date).toBeUndefined();
+      expect(() => BookingRequestPayloadSchema.parse(payload)).not.toThrow();
+    });
+
     it("converts ISO UTC dates to Beirut local backend strings", () => {
       const payload = fromBookingDraft(draft(), { resolveVehicleId: () => 131 });
       // 2027-04-15T07:00:00Z is Beirut 10:00 (EEST UTC+3)

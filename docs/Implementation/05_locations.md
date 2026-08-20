@@ -25,7 +25,7 @@ The locations module establishes physical presence and trust. The Beirut Airport
 #### 1. Page header
 
 - Background `colors.primary-95`. 24px vertical padding.
-- Heading `headline-xl`: "Our locations".
+- Heading `headline-lg`: "Our locations".
 - Subhead `body-md`: "Pick up your car anywhere in Lebanon — from Beirut Airport to your hotel doorstep."
 
 #### 2. Persistent search bar
@@ -139,7 +139,7 @@ A standardized template for each city branch (Hamra, Downtown, Dbayeh, etc.).
 
 #### 1. Breadcrumb + heading
 
-`Home › Locations › Hamra`. Heading `headline-xl`: "Wheels Hamra".
+`Home › Locations › Hamra`. Heading `headline-lg`: "Wheels Hamra".
 
 #### 2. Two-column hero
 

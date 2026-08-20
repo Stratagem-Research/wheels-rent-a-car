@@ -58,7 +58,7 @@ export default function SavedVehiclesPage() {
     <div className="flex flex-col gap-6">
       <header className="flex items-end justify-between gap-3">
         <div>
-          <h1 className="headline-xl text-ink-100">{t("heading")}</h1>
+          <h1 className="headline-lg text-ink-100">{t("heading")}</h1>
           <p className="body-md text-ink-60 mt-1">
             {vehicles.length === 0 ? t("countNone") : t("countSaved", { count: vehicles.length })}
           </p>
@@ -80,7 +80,7 @@ export default function SavedVehiclesPage() {
         <ul className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3">
           {vehicles.map((v) => (
             <li key={v.id} className="flex flex-col gap-2">
-              <VehicleCard vehicle={v} href={`/vehicles?selected=${v.slug}`} />
+              <VehicleCard vehicle={v} href={`/vehicles?selected=${encodeURIComponent(v.id)}`} />
               <Button variant="tertiary" size="sm" onClick={() => onRemove(v.id)}>
                 {t("remove")}
               </Button>

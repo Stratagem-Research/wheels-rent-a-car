@@ -29,7 +29,7 @@ Category pages (`/vehicles/[category]`) are the same page filtered to one catego
 - **Background:** `colors.primary-95` (very light blue tint), 24px vertical padding.
 - **Container:** `container-max`.
 - **Breadcrumb (only on category pages):** `Home › Vehicles › Sedan`. `body-sm`, neutral-50, last item neutral-10.
-- **Heading:** `headline-xl`. On `/vehicles`: "Our fleet". On `/vehicles/[category]`: "Sedans" (e.g.).
+- **Heading:** `headline-lg`. On `/vehicles`: "Our fleet". On `/vehicles/[category]`: "Sedans" (e.g.).
 - **Subhead:** `body-md`, neutral-50. One line.
   - Default: "Premium cars across Lebanon. Pick a category or browse the full fleet."
   - Per-category copy lives in the CMS.

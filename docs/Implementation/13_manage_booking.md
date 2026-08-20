@@ -22,7 +22,7 @@
 
 ### 1. Page header
 
-- Background `colors.primary-95`. Heading `headline-xl`: "Manage your booking".
+- Background `colors.primary-95`. Heading `headline-lg`: "Manage your booking".
 - Subhead: "Look up your reservation with your booking reference and email."
 
 ### 2. Lookup form

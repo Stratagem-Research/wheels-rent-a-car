@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/Button";
@@ -27,7 +28,7 @@ import { WIZARD_VEHICLE_UNKNOWN } from "@/lib/booking/wizard-vehicle-id";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
 import type { BookingDriver, PaymentMethod, SubmitBookingResponse, User, UserDocument } from "@/types/domain";
-import { Link } from "@/i18n/navigation";
+import { LicenceScanFields } from "@/components/account/LicenceScanFields";
 
 const COUNTRY_CODES = ["LB", "US", "GB", "FR", "DE", "AE", "SA", "OTHER"] as const;
 
@@ -44,6 +45,10 @@ interface CheckoutFormState {
   licenceIssue: string;
   licenceExpiry: string;
   licenceCountry: string;
+  licenceFrontFile: File | null;
+  licenceBackFile: File | null;
+  licenceFrontUrl: string;
+  licenceBackUrl: string;
   // Conditional pickup details
   flightNumber: string;
   deliveryAddress: string;
@@ -69,6 +74,10 @@ const emptyForm = (): CheckoutFormState => ({
   licenceIssue: "",
   licenceExpiry: "",
   licenceCountry: "LB",
+  licenceFrontFile: null,
+  licenceBackFile: null,
+  licenceFrontUrl: "",
+  licenceBackUrl: "",
   flightNumber: "",
   deliveryAddress: "",
   paymentMethod: null,
@@ -206,7 +215,7 @@ export default function CheckoutPage() {
     return (
       <>
         <Stepper current={4} />
-        <div className="mx-auto max-w-[var(--container-full)] px-5 py-10 sm:px-5">
+        <div className="mx-auto max-w-(--container-full) px-4 py-8 sm:px-5">
           <Skeleton className="h-40 rounded-lg" />
         </div>
       </>
@@ -235,9 +244,8 @@ export default function CheckoutPage() {
       e.phone = t("mobileInvalid");
     }
     if (!form.dob) e.dob = t("dobRequired");
-    if (!form.licenceNumber.trim()) e.licenceNumber = t("licenceNumberRequired");
-    if (!form.licenceIssue) e.licenceIssue = t("issueDateRequired");
-    if (!form.licenceExpiry) e.licenceExpiry = t("expiryDateRequired");
+    if (!form.licenceFrontFile && !form.licenceFrontUrl) e.licenceFront = t("licenceFrontRequired");
+    if (!form.licenceBackFile && !form.licenceBackUrl) e.licenceBack = t("licenceBackRequired");
     if (draft.pickup.type === "airport" && !form.flightNumber.trim()) {
       e.flightNumber = t("flightRequired");
     }
@@ -290,6 +298,14 @@ export default function CheckoutPage() {
     };
 
     try {
+      if (session?.user.id) {
+        try {
+          await persistLicenceToProfile(form);
+        } catch {
+          toast.warning(t("licenceProfileSaveFailed"));
+        }
+      }
+
       // Update the draft so confirmation page reads consistent state.
       setDraft(completeDraft);
 
@@ -399,7 +415,7 @@ export default function CheckoutPage() {
     <>
       <Stepper current={4} />
       <HoldTimer onExpire={() => toast.warning(t("holdExpired"))} />
-      <section className="mx-auto max-w-[var(--container-full)] px-5 py-8 sm:px-5 sm:py-10">
+      <section className="mx-auto max-w-(--container-full) px-4 py-6 sm:px-5 sm:py-8">
         <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
           <form
             className="flex flex-col gap-8"
@@ -607,58 +623,19 @@ function DriverLicenceSection({
         {t("licenceHeading")}
       </h2>
       <p className="body-sm text-ink-60 -mt-2">{t("licenceHelper")}</p>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field label={t("licenceNumber")} required error={errors.licenceNumber}>
-          {({ id, describedBy, invalid }) => (
-            <Input
-              id={id}
-              aria-describedby={describedBy}
-              invalid={invalid}
-              value={form.licenceNumber}
-              onChange={(e) => setForm((f) => ({ ...f, licenceNumber: e.target.value }))}
-            />
-          )}
-        </Field>
-        <Field label={t("issuingCountry")} required>
-          {({ id }) => (
-            <Select
-              id={id}
-              value={form.licenceCountry}
-              onChange={(e) => setForm((f) => ({ ...f, licenceCountry: e.target.value }))}
-            >
-              {COUNTRY_CODES.map((code) => (
-                <option key={code} value={code}>
-                  {t(`countries.${code}`)}
-                </option>
-              ))}
-            </Select>
-          )}
-        </Field>
-        <Field label={t("issueDate")} required error={errors.licenceIssue}>
-          {({ id, describedBy, invalid }) => (
-            <Input
-              id={id}
-              type="date"
-              aria-describedby={describedBy}
-              invalid={invalid}
-              value={form.licenceIssue}
-              onChange={(e) => setForm((f) => ({ ...f, licenceIssue: e.target.value }))}
-            />
-          )}
-        </Field>
-        <Field label={t("expiryDate")} required error={errors.licenceExpiry}>
-          {({ id, describedBy, invalid }) => (
-            <Input
-              id={id}
-              type="date"
-              aria-describedby={describedBy}
-              invalid={invalid}
-              value={form.licenceExpiry}
-              onChange={(e) => setForm((f) => ({ ...f, licenceExpiry: e.target.value }))}
-            />
-          )}
-        </Field>
-      </div>
+      <LicenceScanFields
+        frontFile={form.licenceFrontFile}
+        backFile={form.licenceBackFile}
+        frontUrl={form.licenceFrontUrl || undefined}
+        backUrl={form.licenceBackUrl || undefined}
+        onFrontChange={(file) => setForm((f) => ({ ...f, licenceFrontFile: file }))}
+        onBackChange={(file) => setForm((f) => ({ ...f, licenceBackFile: file }))}
+        frontError={errors.licenceFront}
+        backError={errors.licenceBack}
+        frontLabel={t("licenceFront")}
+        backLabel={t("licenceBack")}
+        helper={t("licenceUploadHelper")}
+      />
     </section>
   );
 }
@@ -790,6 +767,9 @@ function applyProfileToForm(form: CheckoutFormState, user: User): CheckoutFormSt
 }
 
 function applyLicenceToForm(form: CheckoutFormState, licence: UserDocument): CheckoutFormState {
+  const frontUrl = licence.scanFrontUrl || licence.scanUrl || "";
+  const backUrl = licence.scanBackUrl || "";
+  const bothSides = Boolean(frontUrl && backUrl);
   return {
     ...form,
     licenceNumber: form.licenceNumber || licence.number,
@@ -799,7 +779,27 @@ function applyLicenceToForm(form: CheckoutFormState, licence: UserDocument): Che
       form.licenceCountry !== "LB" || !licence.issuingCountry
         ? form.licenceCountry
         : normalizeCountryCode(licence.issuingCountry) ?? form.licenceCountry,
+    licenceFrontUrl: bothSides ? form.licenceFrontUrl || frontUrl : form.licenceFrontUrl,
+    licenceBackUrl: bothSides ? form.licenceBackUrl || backUrl : form.licenceBackUrl,
   };
+}
+
+async function persistLicenceToProfile(form: CheckoutFormState): Promise<void> {
+  if (!form.licenceFrontFile && !form.licenceBackFile) return;
+  const body = new FormData();
+  body.set("type", "licence");
+  body.set("number", form.licenceNumber.trim());
+  body.set("issueDate", form.licenceIssue);
+  body.set("expiryDate", form.licenceExpiry);
+  body.set("issuingCountry", form.licenceCountry);
+  if (form.licenceFrontFile) body.set("fileFront", form.licenceFrontFile);
+  if (form.licenceBackFile) body.set("fileBack", form.licenceBackFile);
+  const res = await fetch(endpoints.accountDocuments, {
+    method: "POST",
+    body,
+    credentials: "same-origin",
+  });
+  if (!res.ok) throw new Error("Failed to save licence to profile.");
 }
 
 function normalizeCountryCode(code: string | undefined | null): string | null {

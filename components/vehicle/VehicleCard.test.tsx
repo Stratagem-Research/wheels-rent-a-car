@@ -61,12 +61,10 @@ describe("VehicleCard", () => {
     expect(screen.getByText("$25")).toBeInTheDocument();
   });
 
-  it("links back to /vehicles with ?selected=<slug> for inline expansion", () => {
+  it("links back to /vehicles with ?selected=<id> for inline expansion", () => {
     renderCard(<VehicleCard vehicle={fixture} />);
     const links = screen.getAllByRole("link");
-    expect(links.some((l) => l.getAttribute("href") === "/vehicles?selected=toyota-yaris")).toBe(
-      true,
-    );
+    expect(links.some((l) => l.getAttribute("href") === "/vehicles?selected=test-1")).toBe(true);
   });
 
   it("shows next and previous photo controls when there are multiple images", () => {

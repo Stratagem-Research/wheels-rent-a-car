@@ -33,13 +33,13 @@ test.describe("fleet — inline expansion replaces the PDP", () => {
   });
 
   test("Next on an expanded card routes to /book/extras with search context", async ({ page }) => {
-    const slug = await firstVehicleSlug(page);
+    const selected = await firstVehicleSlug(page);
     await page.goto(
-      `/vehicles?step=1&pickupType=branch&pickupLoc=br-hazmieh&pickupAt=2027-06-01T10%3A00&returnAt=2027-06-04T10%3A00&selected=${slug}`,
+      `/vehicles?step=1&pickupType=branch&pickupLoc=br-hazmieh&pickupAt=2027-06-01T10%3A00&returnAt=2027-06-04T10%3A00&selected=${encodeURIComponent(selected)}`,
     );
     await page.getByRole("button", { name: /^Next/i }).click();
     await expect(page).toHaveURL(/\/book\/extras\?.*vehicleId=/);
-    await expect(page).toHaveURL(new RegExp(`vehicleSlug=${slug}`));
+    await expect(page).toHaveURL(new RegExp(`vehicleId=${selected}`));
     await expect(page).toHaveURL(/pickupAt=2027-06-01T10%3A00/);
   });
 

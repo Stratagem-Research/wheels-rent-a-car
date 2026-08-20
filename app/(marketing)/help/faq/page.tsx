@@ -24,7 +24,7 @@ export default function FaqPage() {
     <>
       <header className="bg-ink-10">
         <div className="mx-auto max-w-[var(--container-default)] px-5 py-10 sm:px-10 sm:py-14">
-          <h1 className="headline-xl text-ink-95">{t("faqHeading")}</h1>
+          <h1 className="headline-lg text-ink-95">{t("faqHeading")}</h1>
           <p className="body-md text-ink-60 mt-2 max-w-2xl">{t("faqSubtitle")}</p>
         </div>
       </header>

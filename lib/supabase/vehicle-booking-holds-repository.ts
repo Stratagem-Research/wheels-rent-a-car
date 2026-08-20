@@ -1,5 +1,7 @@
 import { fromBackendDateTime } from "@/lib/api/wheels-public/datetime";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
+import { composeVehicleTitle } from "@/lib/vehicles/display-name";
+import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type VehicleBookingHoldInput = {
   bookingReference: string;
@@ -140,7 +142,45 @@ function vehicleNameFromRow(row: {
   return fromParts || row.display_name?.trim() || "Unknown vehicle";
 }
 
-export { vehicleNameFromRow as fleetVehicleLabel };
+/** Website-owned brand/model first (admin fleet edits); Wizard sync names as fallback. */
+export function fleetVehicleLabel(
+  wizard?: {
+    display_name?: string | null;
+    brand?: string | null;
+    model?: string | null;
+  } | null,
+  website?: {
+    brand?: string | null;
+    model?: string | null;
+    title?: string | null;
+  } | null,
+): string {
+  const fromWebsite =
+    composeVehicleTitle(website?.brand ?? "", website?.model ?? "") || website?.title?.trim();
+  if (fromWebsite) return fromWebsite;
+  return vehicleNameFromRow(wizard ?? {});
+}
+
+export async function websiteVehicleLabels(
+  supabase: SupabaseClient,
+  frontendIds: Array<string | null | undefined>,
+): Promise<Map<string, string>> {
+  const ids = [...new Set(frontendIds.filter((id): id is string => Boolean(id)))];
+  const labels = new Map<string, string>();
+  if (ids.length === 0) return labels;
+  const { data, error } = await supabase
+    .from("vehicle_metadata")
+    .select("frontend_vehicle_id, brand, model, title")
+    .in("frontend_vehicle_id", ids);
+  if (error) throw new Error(error.message);
+  for (const row of data ?? []) {
+    const label = fleetVehicleLabel(null, row);
+    if (label !== "Unknown vehicle") {
+      labels.set(row.frontend_vehicle_id as string, label);
+    }
+  }
+  return labels;
+}
 
 /** All website booking holds, joined with guest/account identity and fleet name. */
 export async function listAdminBookingHolds(): Promise<AdminBookingHold[]> {
@@ -172,10 +212,14 @@ export async function listAdminBookingHolds(): Promise<AdminBookingHold[]> {
     .select("wizard_vehicle_id, display_name, brand, model")
     .in("wizard_vehicle_id", wizardIds);
 
-  const [usersResult, guestsResult, vehiclesResult] = await Promise.all([
+  const [usersResult, guestsResult, vehiclesResult, websiteByFrontend] = await Promise.all([
     usersQuery,
     guestsQuery,
     vehiclesQuery,
+    websiteVehicleLabels(
+      supabase,
+      rows.map((row) => row.frontend_vehicle_id as string),
+    ),
   ]);
 
   let userRows = usersResult.data ?? [];
@@ -229,7 +273,10 @@ export async function listAdminBookingHolds(): Promise<AdminBookingHold[]> {
       bookingReference,
       wizardVehicleId: row.wizard_vehicle_id as number,
       frontendVehicleId: row.frontend_vehicle_id as string,
-      vehicleName: vehicleById.get(row.wizard_vehicle_id as number) ?? row.frontend_vehicle_id,
+      vehicleName:
+        websiteByFrontend.get(row.frontend_vehicle_id as string) ??
+        vehicleById.get(row.wizard_vehicle_id as number) ??
+        row.frontend_vehicle_id,
       pickupAt: row.pickup_at as string,
       returnAt: row.return_at as string,
       createdAt: row.created_at as string,

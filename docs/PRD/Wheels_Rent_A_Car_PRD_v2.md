@@ -433,7 +433,7 @@ Below: contact form on a paper card (ink-10 band), branch map with selected-stat
 
 **Account shell** has a left sidebar (`<AccountNav />`) with pill-rounded uppercase nav. Active route fills with ink-100; hover lifts to ink-10.
 
-- **`/account`** — time-of-day greeting (`headline-xl` "Good morning, Marc."). Upcoming booking on `card-floating`. Quick-action cards (Browse cars · Manage documents · Update profile). Recent-bookings list rows.
+- **`/account`** — time-of-day greeting (`headline-lg` "Good morning, Marc."). Upcoming booking on `card-floating`. Quick-action cards (Browse cars · Manage documents · Update profile). Recent-bookings list rows.
 - **`/account/bookings`** — filter chips (All · Upcoming · Pending · Completed · Cancelled) with counts. `<BookingHistoryRow />` cards rounded-xl on paper. Pill-rounded pagination.
 - **`/account/bookings/[ref]`** — `<BookingDetailPanel />` rebuilt as `card-floating`. Pending state shows a warning-orange "Next steps" block.
 - **`/account/profile`** + `documents` + `saved-vehicles` — paper section cards (`<Card variant="default" />`).

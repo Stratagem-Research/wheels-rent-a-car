@@ -37,6 +37,14 @@ const PayloadSchema = z.object({
   deleted_ids: z.array(z.string()).optional().default([]),
 });
 
+function firstText(...values: Array<string | null | undefined>): string | null {
+  for (const value of values) {
+    const trimmed = value?.trim();
+    if (trimmed) return trimmed;
+  }
+  return null;
+}
+
 function wizardName(wiz: WizardVehicleRow): string | null {
   const operational = wiz.operational ?? {};
   return (
@@ -50,12 +58,12 @@ function itemFromWizard(wiz: WizardVehicleRow, meta: VehicleMetadataRow | undefi
   const frontendId = frontendVehicleIdFromWizard(wiz.wizard_vehicle_id);
   const defaultSlug = slugifyVehicleName(wiz.display_name) || frontendId;
   const name = wizardName(wiz);
-  const brand = meta?.brand ?? wiz.brand;
-  const model = meta?.model ?? wiz.model;
+  const brand = firstText(meta?.brand, wiz.brand);
+  const model = firstText(meta?.model, wiz.model);
   return {
     frontend_vehicle_id: frontendId,
     slug: meta?.slug ?? defaultSlug,
-    title: meta?.title ?? name,
+    title: firstText(meta?.title, name),
     brand,
     model,
     tagline: meta?.tagline ?? null,

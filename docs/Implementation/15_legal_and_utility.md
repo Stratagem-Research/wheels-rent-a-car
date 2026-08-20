@@ -21,7 +21,7 @@ All three follow the same long-form template (same as `/help/rental-terms` etc. 
 #### 1. Page header
 
 - Background `colors.primary-95`. 24px vertical padding.
-- Heading `headline-xl`: page title (Privacy Policy, Terms & Conditions, Cookie Policy).
+- Heading `headline-lg`: page title (Privacy Policy, Terms & Conditions, Cookie Policy).
 - Subhead: "Last updated: [date]".
 
 #### 2. Two-column body
@@ -108,7 +108,7 @@ Logo only, links home.
 #### 2. Centered illustration + message
 
 - Subtle illustration: an empty road sign or a steering wheel pointing the wrong way.
-- Headline `headline-xl`: "Wrong turn." (or per your copy preference)
+- Headline `headline-lg`: "Wrong turn." (or per your copy preference)
 - Subhead `body-lg`, max 480px: "The page you were looking for doesn't exist or has moved."
 - Primary CTA: `Browse our fleet` (`button-cta` red).
 - Secondary CTA: `Back to home` (`button-secondary` blue).

@@ -489,7 +489,7 @@ Need a chauffeur for an evening out? → /chauffeur
 ### Hero / status block
 
 - Centered, 64px top padding.
-- Status icon (40px) + headline (`headline-xl`).
+- Status icon (40px) + headline (`headline-lg`).
   - Confirmed: green check icon, "Your booking is confirmed".
   - Pending (cash transfer / OMT): amber clock icon, "Your booking is pending".
 - Reference line: "Reference" label + ref in `mono-lg` + copy-to-clipboard icon button.

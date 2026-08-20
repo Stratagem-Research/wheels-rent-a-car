@@ -69,15 +69,9 @@ export function renderNotificationTemplate(
   const vehicle = String(payload.vehicle ?? "");
   switch (template) {
     case "booking_request_received":
-      return {
-        subject: ref
-          ? `We received your booking request — ${ref}`
-          : "We received your booking request",
-        html: `<p>Thank you — we have received your booking request${ref ? ` (<strong>${ref}</strong>)` : ""}.</p>${vehicle ? `<p>Vehicle: ${vehicle}</p>` : ""}<p>Our team will review it and email you once it is approved. This message confirms receipt of your request, not that payment has been verified.</p>`,
-        text: `Thank you — we have received your booking request${ref ? ` (${ref})` : ""}.${vehicle ? ` Vehicle: ${vehicle}.` : ""} Our team will review it and email you once it is approved.`,
-      };
+      return renderRichBookingEmail("requested", ref, vehicle, payload);
     case "booking_confirmation":
-      return renderBookingConfirmation(ref, vehicle, payload);
+      return renderRichBookingEmail("confirmed", ref, vehicle, payload);
     case "booking_cancel_requested":
       return {
         subject: ref ? `Cancellation request received — ${ref}` : "Cancellation request received",
@@ -124,19 +118,63 @@ function strList(payload: Record<string, unknown>, key: string): string[] {
   return Array.isArray(value) ? value.filter((v): v is string => typeof v === "string") : [];
 }
 
+type BookingEmailKind = "requested" | "confirmed";
+
+const BOOKING_EMAIL_COPY: Record<
+  BookingEmailKind,
+  {
+    subject: (ref: string) => string;
+    headline: (ref: string) => string;
+    textHeadline: (ref: string) => string;
+    footer: string;
+    minimalHtml: (ref: string, vehicle: string) => string;
+    minimalText: (ref: string, vehicle: string) => string;
+  }
+> = {
+  requested: {
+    subject: (ref) =>
+      ref ? `We received your booking request — ${ref}` : "We received your booking request",
+    headline: (ref) =>
+      `Thank you — we have received your booking request${ref ? ` (<strong>${escapeHtml(ref)}</strong>)` : ""}.`,
+    textHeadline: (ref) =>
+      `Thank you — we have received your booking request${ref ? ` (${ref})` : ""}.`,
+    footer:
+      "Our team will review it and email you once it is approved. This message confirms receipt of your request, not that payment has been verified.",
+    minimalHtml: (ref, vehicle) =>
+      `<p>Thank you — we have received your booking request${ref ? ` (<strong>${escapeHtml(ref)}</strong>)` : ""}.</p>${vehicle ? `<p>Vehicle: ${escapeHtml(vehicle)}</p>` : ""}<p>Our team will review it and email you once it is approved. This message confirms receipt of your request, not that payment has been verified.</p>`,
+    minimalText: (ref, vehicle) =>
+      `Thank you — we have received your booking request${ref ? ` (${ref})` : ""}.${vehicle ? ` Vehicle: ${vehicle}.` : ""} Our team will review it and email you once it is approved.`,
+  },
+  confirmed: {
+    subject: (ref) => (ref ? `Wheels booking confirmed — ${ref}` : "Wheels booking confirmed"),
+    headline: (ref) =>
+      `Your Wheels booking is confirmed${ref ? ` (<strong>${escapeHtml(ref)}</strong>)` : ""}.`,
+    textHeadline: (ref) => `Your Wheels booking is confirmed${ref ? ` (${ref})` : ""}.`,
+    footer: "We will contact you before pickup with any final details.",
+    minimalHtml: (ref, vehicle) =>
+      `<p>Your Wheels booking is confirmed${ref ? ` (<strong>${escapeHtml(ref)}</strong>)` : ""}.</p>${vehicle ? `<p>Vehicle: ${escapeHtml(vehicle)}</p>` : ""}<p>We will contact you before pickup with any final details.</p>`,
+    minimalText: (ref, vehicle) =>
+      `Your Wheels booking is confirmed${ref ? ` (${ref})` : ""}.${vehicle ? ` Vehicle: ${vehicle}.` : ""}`,
+  },
+};
+
 /**
- * Rich confirmation email — dates/times, driver, extras, protection, full
- * price breakdown, and pickup/return location, when `payload` was built via
- * `buildBookingConfirmationPayload()`. Falls back to the old minimal
- * ref+vehicle message if the caller couldn't attach the rich details (e.g.
- * the booking row wasn't indexed yet) so a confirmation still goes out.
+ * Rich booking email — dates/times, driver, extras, protection, full price
+ * breakdown, and pickup/return location, when `payload` was built via
+ * `buildBookingEmailPayload()`/`buildBookingConfirmationPayload()`. Shared
+ * by the immediate "request received" email and the post-approval
+ * "confirmed" email — same detail, different headline/footer copy. Falls
+ * back to the old minimal ref+vehicle message if the caller couldn't attach
+ * the rich details, so the email still sends either way.
  */
-function renderBookingConfirmation(
+function renderRichBookingEmail(
+  kind: BookingEmailKind,
   ref: string,
   vehicle: string,
   payload: Record<string, unknown>,
 ): { subject: string; html: string; text: string } {
-  const subject = ref ? `Wheels booking confirmed — ${ref}` : "Wheels booking confirmed";
+  const copy = BOOKING_EMAIL_COPY[kind];
+  const subject = copy.subject(ref);
   const pickupDate = str(payload, "pickupDate");
   const pickupTime = str(payload, "pickupTime");
   const returnDate = str(payload, "returnDate");
@@ -146,8 +184,8 @@ function renderBookingConfirmation(
     // No rich payload attached — degrade to the original minimal message.
     return {
       subject,
-      html: `<p>Your Wheels booking is confirmed${ref ? ` (<strong>${escapeHtml(ref)}</strong>)` : ""}.</p>${vehicle ? `<p>Vehicle: ${escapeHtml(vehicle)}</p>` : ""}<p>We will contact you before pickup with any final details.</p>`,
-      text: `Your Wheels booking is confirmed${ref ? ` (${ref})` : ""}.${vehicle ? ` Vehicle: ${vehicle}.` : ""}`,
+      html: copy.minimalHtml(ref, vehicle),
+      text: copy.minimalText(ref, vehicle),
     };
   }
 
@@ -172,7 +210,7 @@ function renderBookingConfirmation(
   const textLine = (label: string, value: string) => (value ? `${label}: ${value}\n` : "");
 
   const html = `
-    <p>Your Wheels booking is confirmed${ref ? ` (<strong>${escapeHtml(ref)}</strong>)` : ""}.</p>
+    <p>${copy.headline(ref)}</p>
     <table cellpadding="0" cellspacing="0">
       ${htmlRow("Vehicle", vehicleLabel)}
       ${htmlRow("Pickup", `${pickupDate} at ${pickupTime}${pickupLocation ? ` — ${pickupLocation}` : ""}`)}
@@ -196,11 +234,11 @@ function renderBookingConfirmation(
       <tr><td style="padding:8px 12px 4px 0;font-weight:bold;">Total</td><td style="font-weight:bold;">${escapeHtml(str(payload, "priceTotal"))}</td></tr>
       ${htmlRow("Security deposit (refundable)", str(payload, "priceDeposit"))}
     </table>
-    <p>We will contact you before pickup with any final details.</p>
+    <p>${copy.footer}</p>
   `;
 
   const text = [
-    `Your Wheels booking is confirmed${ref ? ` (${ref})` : ""}.`,
+    copy.textHeadline(ref),
     "",
     textLine("Vehicle", vehicleLabel),
     textLine("Pickup", `${pickupDate} at ${pickupTime}${pickupLocation ? ` — ${pickupLocation}` : ""}`),
@@ -221,6 +259,7 @@ function renderBookingConfirmation(
     priceDiscount ? textLine("Discount", `-${priceDiscount}`) : "",
     textLine("Total", str(payload, "priceTotal")),
     textLine("Security deposit (refundable)", str(payload, "priceDeposit")),
+    `\n${copy.footer}`,
   ]
     .filter(Boolean)
     .join("\n");

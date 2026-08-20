@@ -25,7 +25,7 @@ export function LegalArticleLayout({ title, lastUpdated, toc, children }: LegalA
     <>
       <header className="bg-signal-blue-bg">
         <div className="mx-auto max-w-[var(--container-default)] px-5 py-10 sm:px-10 sm:py-14">
-          <h1 className="headline-xl text-ink-95">{title}</h1>
+          <h1 className="headline-lg text-ink-95">{title}</h1>
           {lastUpdated ? (
             <p className="label-md text-ink-60 mt-2">
               {t("lastUpdated")}: {lastUpdated}

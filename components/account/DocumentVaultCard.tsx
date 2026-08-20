@@ -42,7 +42,20 @@ export function DocumentVaultCard({
   return (
     <Card variant="default" className="flex flex-col gap-3 p-5">
       <div className="flex items-start gap-4">
-        {document.scanUrl ? (
+        {document.type === "licence" && (document.scanFrontUrl || document.scanBackUrl || document.scanUrl) ? (
+          <div className="flex shrink-0 gap-2">
+            {document.scanFrontUrl || document.scanUrl ? (
+              <DocumentScanPreview
+                scanUrl={(document.scanFrontUrl || document.scanUrl)!}
+                alt={t("licenceFront")}
+                size="sm"
+              />
+            ) : null}
+            {document.scanBackUrl ? (
+              <DocumentScanPreview scanUrl={document.scanBackUrl} alt={t("licenceBack")} size="sm" />
+            ) : null}
+          </div>
+        ) : document.scanUrl ? (
           <DocumentScanPreview
             scanUrl={document.scanUrl}
             alt={t("scanAlt", { title })}
