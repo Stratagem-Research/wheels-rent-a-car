@@ -566,6 +566,7 @@
     "locDeliverPlaceholder": "عنوان الفندق أو الحي, في أيّ مكان في بيروت الكبرى",
     "locDeliverAria": "عنوان التوصيل",
     "locChoose": "اختر موقع الاستلام",
+    "locChooseReturn": "اختر موقع الإرجاع",
     "locAria": "موقع {label}: {summary}",
     "locOpen247": "مفتوح 24/7",
     "locHours": "{open}–{close} معظم الأيام",

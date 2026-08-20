@@ -3,7 +3,7 @@
 import * as React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { addDays, format, parseISO, startOfDay } from "date-fns";
-import { Calendar, ChevronDown, Clock, Edit3, MapPin, Plus, X } from "lucide-react";
+import { Calendar, ChevronDown, Clock, Edit3, MapPin } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
@@ -249,69 +249,40 @@ function ExpandedLayout({
   return (
     <div className={cn(framed && "bg-paper rounded-2xl p-6 shadow-[var(--shadow-elevation-2)]")}>
       <div className="flex flex-col gap-5">
-        {/* Row 1 — full-width pickup. "+ Different return" toggles a paired return. */}
-        <Field
-          label={t("pickupLocation")}
-          action={
-            criteria.return.sameAsPickup ? (
-              <button
-                type="button"
-                onClick={() =>
-                  setCriteria((p) => ({
-                    ...p,
-                    return: { ...p.return, sameAsPickup: false },
-                  }))
-                }
-                className={cn(
-                  "label-md text-ink-60 inline-flex items-center gap-1",
-                  "hover:text-ink-100 focus-visible:text-ink-100",
-                  "focus-visible:outline-ink-100 rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2",
-                )}
-              >
-                <Plus className="size-3.5" aria-hidden="true" /> {t("differentReturnLocation")}
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() =>
-                  setCriteria((p) => ({
-                    ...p,
-                    return: { ...p.return, sameAsPickup: true },
-                  }))
-                }
-                aria-label="Clear different return location"
-                className="label-md hover:text-ink-100 text-ink-60 inline-flex items-center gap-1"
-              >
-                <X className="size-3.5" aria-hidden="true" /> {t("sameAsPickup")}
-              </button>
-            )
-          }
-        >
-          <LocationPicker
-            label="Pickup"
-            branches={branches}
-            value={criteria.pickup}
-            onValueChange={(next) => setCriteria((p) => ({ ...p, pickup: next }))}
-            placesAutocomplete
-            renderTrigger={(summary, isPlaceholder) => (
-              <FieldTrigger
-                icon={<MapPin className="text-ink-60 size-4 shrink-0" aria-hidden="true" />}
-                value={summary}
-                placeholder={isPlaceholder}
-                chevron
-              />
-            )}
-          />
-        </Field>
+        {/* Row 1 — pickup + return locations, both always visible side by side. */}
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label={t("pickupLocation")}>
+            <LocationPicker
+              label="Pickup"
+              branches={branches}
+              value={criteria.pickup}
+              onValueChange={(next) => setCriteria((p) => ({ ...p, pickup: next }))}
+              placesAutocomplete
+              renderTrigger={(summary, isPlaceholder) => (
+                <FieldTrigger
+                  icon={<MapPin className="text-ink-60 size-4 shrink-0" aria-hidden="true" />}
+                  value={summary}
+                  placeholder={isPlaceholder}
+                  chevron
+                />
+              )}
+            />
+          </Field>
 
-        {!criteria.return.sameAsPickup ? (
           <Field label={t("returnLocation")}>
             <LocationPicker
               label="Return"
               branches={branches}
               value={{
                 type: criteria.return.address ? "address-delivery" : "branch",
-                locationId: criteria.return.locationId,
+                // Until the customer explicitly picks a different return
+                // location, mirror the pickup branch instead of showing an
+                // empty picker.
+                locationId:
+                  criteria.return.locationId ??
+                  (criteria.return.sameAsPickup && criteria.pickup.type !== "address-delivery"
+                    ? criteria.pickup.locationId
+                    : undefined),
                 address: criteria.return.address,
               }}
               onValueChange={(next) =>
@@ -334,7 +305,7 @@ function ExpandedLayout({
               )}
             />
           </Field>
-        ) : null}
+        </div>
 
         {/* Row 2 — one date field (picks both pickup + return) + time pair. */}
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

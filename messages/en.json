@@ -736,6 +736,7 @@
     "locDeliverPlaceholder": "Hotel address, neighbourhood, anywhere in Greater Beirut",
     "locDeliverAria": "Delivery address",
     "locChoose": "Choose pickup location",
+    "locChooseReturn": "Choose return location",
     "locAria": "{label} location: {summary}",
     "locOpen247": "Open 24/7",
     "locHours": "{open}–{close} most days",

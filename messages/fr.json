@@ -566,6 +566,7 @@
     "locDeliverPlaceholder": "Adresse d'hôtel, quartier, partout dans le Grand Beyrouth",
     "locDeliverAria": "Adresse de livraison",
     "locChoose": "Choisir le lieu de retrait",
+    "locChooseReturn": "Choisir le lieu de retour",
     "locAria": "Lieu de {label} : {summary}",
     "locOpen247": "Ouvert 24/7",
     "locHours": "{open}–{close} la plupart des jours",

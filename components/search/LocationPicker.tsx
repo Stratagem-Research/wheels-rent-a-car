@@ -75,7 +75,7 @@ export function LocationPicker({
   const [addressDraft, setAddressDraft] = React.useState(value.address ?? "");
   // Ref so the place-selection handler (attached once per mounted element)
   // always sees the latest `choose` without needing the element recreated.
-  const chooseRef = React.useRef<(next: LocationValue) => void>(() => {});
+  const chooseRef = React.useRef<(next: LocationValue) => void>(() => { });
   // Split branches: our physical hub vs airport meet-and-greet locations.
   // Airport branches get their own section + plane icon so the meet-and-
   // greet option is obvious next to the standard pickup hub.
@@ -105,7 +105,7 @@ export function LocationPicker({
 
   const resolved = formatSummary(value, branches);
   const isPlaceholder = resolved === null;
-  const summary = resolved ?? t("locChoose");
+  const summary = resolved ?? (label === "Return" ? t("locChooseReturn") : t("locChoose"));
 
   const choose = (next: LocationValue) => {
     onValueChange(next);
@@ -150,7 +150,7 @@ export function LocationPicker({
           sideOffset={8}
           className={cn(
             "bg-surface border-ink-20 z-50 rounded-xl border p-3",
-            "w-[640px] max-w-[calc(100vw-2rem)]",
+            "w-160 max-w-[calc(100vw-2rem)]",
           )}
         >
           <div className="grid gap-3 sm:grid-cols-[1fr_1fr] sm:gap-4">
@@ -295,7 +295,7 @@ function StationDetails({ branch }: { branch: Branch }) {
         <span className="headline-xs text-ink-95">{branch.name}</span>
       </header>
       <p className="body-sm text-ink-60">{branch.address}</p>
-      {branch.hours.length > 0 ? (
+      {/* {branch.hours.length > 0 ? (
         <div className="mt-1 flex items-start gap-2">
           <Clock className="text-ink-60 mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
           <div className="label-md text-ink-60">
@@ -307,7 +307,7 @@ function StationDetails({ branch }: { branch: Branch }) {
                 })}
           </div>
         </div>
-      ) : null}
+      ) : null} */}
     </aside>
   );
 }
