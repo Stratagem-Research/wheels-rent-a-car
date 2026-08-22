@@ -4,6 +4,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
 import { AdminReplaceListEditor } from "@/components/admin/AdminReplaceListEditor";
 import { InclusionsListEditor } from "@/components/admin/InclusionsListEditor";
+import { PriceCentsInput } from "@/components/admin/PriceCentsInput";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/FormAtoms";
@@ -16,6 +17,7 @@ export function ProtectionTiersEditor({
 }: {
   editor: AdminReplaceListControls<ProtectionTier>;
 }) {
+  const { saving, dirty, save } = editor;
   return (
     <AdminReplaceListEditor editor={editor} loadingMessage="Loading protection tiers…">
       {({ items, update, remove, append }) => (
@@ -25,14 +27,19 @@ export function ProtectionTiersEditor({
               key={item.id}
               title={item.name || "Untitled tier"}
               footer={
-                <Button
-                  type="button"
-                  variant="tertiary"
-                  onClick={() => remove(index, "Remove this tier?")}
-                >
-                  <Trash2 className="size-4" aria-hidden="true" />
-                  Remove tier
-                </Button>
+                <>
+                  <Button
+                    type="button"
+                    variant="tertiary"
+                    onClick={() => remove(index, "Remove this tier?")}
+                  >
+                    <Trash2 className="size-4" aria-hidden="true" />
+                    Remove tier
+                  </Button>
+                  <Button type="button" onClick={() => void save()} loading={saving} disabled={!dirty}>
+                    {dirty ? "Save protection tiers" : "Saved"}
+                  </Button>
+                </>
               }
             >
               <div className="grid gap-4 sm:grid-cols-2">
@@ -56,31 +63,19 @@ export function ProtectionTiersEditor({
                 </Field>
                 <Field label="Per day surcharge (USD)">
                   {({ id }) => (
-                    <Input
+                    <PriceCentsInput
                       id={id}
-                      type="number"
-                      min={0}
-                      step={0.01}
-                      value={(item.perDayCents / 100).toFixed(2)}
-                      onChange={(e) =>
-                        update(index, { perDayCents: Math.round(Number(e.target.value) * 100) })
-                      }
+                      cents={item.perDayCents}
+                      onChange={(perDayCents) => update(index, { perDayCents })}
                     />
                   )}
                 </Field>
                 <Field label="Deductible (USD)">
                   {({ id }) => (
-                    <Input
+                    <PriceCentsInput
                       id={id}
-                      type="number"
-                      min={0}
-                      step={1}
-                      value={(item.deductibleCents / 100).toFixed(0)}
-                      onChange={(e) =>
-                        update(index, {
-                          deductibleCents: Math.round(Number(e.target.value) * 100),
-                        })
-                      }
+                      cents={item.deductibleCents}
+                      onChange={(deductibleCents) => update(index, { deductibleCents })}
                     />
                   )}
                 </Field>

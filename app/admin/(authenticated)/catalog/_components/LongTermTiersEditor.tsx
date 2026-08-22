@@ -4,6 +4,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
 import { AdminReplaceListEditor } from "@/components/admin/AdminReplaceListEditor";
 import { InclusionsListEditor } from "@/components/admin/InclusionsListEditor";
+import { PriceCentsInput } from "@/components/admin/PriceCentsInput";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/FormAtoms";
@@ -19,6 +20,7 @@ export function LongTermTiersEditor({
 }: {
   editor: AdminReplaceListControls<LongTermTier>;
 }) {
+  const { saving, dirty, save } = editor;
   return (
     <AdminReplaceListEditor editor={editor} loadingMessage="Loading long-term tiers…">
       {({ items, update, remove, append }) => (
@@ -28,14 +30,19 @@ export function LongTermTiersEditor({
               key={item.id}
               title={`${item.durationMonths} month${item.durationMonths === 1 ? "" : "s"}`}
               footer={
-                <Button
-                  type="button"
-                  variant="tertiary"
-                  onClick={() => remove(index, "Remove this tier?")}
-                >
-                  <Trash2 className="size-4" aria-hidden="true" />
-                  Remove tier
-                </Button>
+                <>
+                  <Button
+                    type="button"
+                    variant="tertiary"
+                    onClick={() => remove(index, "Remove this tier?")}
+                  >
+                    <Trash2 className="size-4" aria-hidden="true" />
+                    Remove tier
+                  </Button>
+                  <Button type="button" onClick={() => void save()} loading={saving} disabled={!dirty}>
+                    {dirty ? "Save long-term tiers" : "Saved"}
+                  </Button>
+                </>
               }
             >
               <div className="grid gap-4 sm:grid-cols-2">
@@ -69,15 +76,10 @@ export function LongTermTiersEditor({
                 </Field>
                 <Field label="From price (USD/day)">
                   {({ id }) => (
-                    <Input
+                    <PriceCentsInput
                       id={id}
-                      type="number"
-                      min={0}
-                      step={0.01}
-                      value={(item.perDayCents / 100).toFixed(2)}
-                      onChange={(e) =>
-                        update(index, { perDayCents: Math.round(Number(e.target.value) * 100) })
-                      }
+                      cents={item.perDayCents}
+                      onChange={(perDayCents) => update(index, { perDayCents })}
                     />
                   )}
                 </Field>

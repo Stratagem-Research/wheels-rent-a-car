@@ -63,11 +63,11 @@ export default function AdminCatalogPage() {
 
   const toolbar =
     tab === "addons" ? (
-      <AdminReplaceListToolbar editor={addOns} saveLabel="Save add-ons" />
+      <AdminReplaceListToolbar editor={addOns} />
     ) : tab === "protection" ? (
-      <AdminReplaceListToolbar editor={protectionTiers} saveLabel="Save protection tiers" />
+      <AdminReplaceListToolbar editor={protectionTiers} />
     ) : (
-      <AdminReplaceListToolbar editor={longTermTiers} saveLabel="Save long-term tiers" />
+      <AdminReplaceListToolbar editor={longTermTiers} />
     );
 
   return (

@@ -3,6 +3,7 @@
 import { Plus, Trash2 } from "lucide-react";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
 import { AdminReplaceListEditor } from "@/components/admin/AdminReplaceListEditor";
+import { PriceCentsInput } from "@/components/admin/PriceCentsInput";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { Field } from "@/components/ui/FormAtoms";
@@ -20,6 +21,7 @@ const CATEGORIES: AddOnCategory[] = [
 ];
 
 export function AddonsEditor({ editor }: { editor: AdminReplaceListControls<AddOn> }) {
+  const { saving, dirty, save } = editor;
   return (
     <AdminReplaceListEditor editor={editor} loadingMessage="Loading add-ons…">
       {({ items, update, remove, append }) => (
@@ -29,14 +31,19 @@ export function AddonsEditor({ editor }: { editor: AdminReplaceListControls<AddO
               key={item.id}
               title={item.name || "Untitled add-on"}
               footer={
-                <Button
-                  type="button"
-                  variant="tertiary"
-                  onClick={() => remove(index, "Remove this add-on?")}
-                >
-                  <Trash2 className="size-4" aria-hidden="true" />
-                  Remove
-                </Button>
+                <>
+                  <Button
+                    type="button"
+                    variant="tertiary"
+                    onClick={() => remove(index, "Remove this add-on?")}
+                  >
+                    <Trash2 className="size-4" aria-hidden="true" />
+                    Remove
+                  </Button>
+                  <Button type="button" onClick={() => void save()} loading={saving} disabled={!dirty}>
+                    {dirty ? "Save add-ons" : "Saved"}
+                  </Button>
+                </>
               }
             >
               <div className="grid gap-4 sm:grid-cols-2">
@@ -107,7 +114,6 @@ export function AddonsEditor({ editor }: { editor: AdminReplaceListControls<AddO
                 </Field>
                 <Field
                   label="Quantity unit"
-                  helper="GB lets the customer type a data allowance. Price below is per GB for the rental."
                 >
                   {({ id }) => (
                     <Select
@@ -130,15 +136,10 @@ export function AddonsEditor({ editor }: { editor: AdminReplaceListControls<AddO
                 </Field>
                 <Field label={item.quantityUnit === "gb" ? "Price per GB (USD)" : "Price (USD)"}>
                   {({ id }) => (
-                    <Input
+                    <PriceCentsInput
                       id={id}
-                      type="number"
-                      min={0}
-                      step={0.01}
-                      value={(item.priceCents / 100).toFixed(2)}
-                      onChange={(e) =>
-                        update(index, { priceCents: Math.round(Number(e.target.value) * 100) })
-                      }
+                      cents={item.priceCents}
+                      onChange={(priceCents) => update(index, { priceCents })}
                     />
                   )}
                 </Field>

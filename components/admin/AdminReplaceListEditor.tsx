@@ -13,26 +13,20 @@ type AdminReplaceListEditorProps<T> = {
 };
 
 /**
- * Save/Reload toolbar for an admin replace-on-save editor. Rendered by the
- * page (typically in `AdminPageShell`'s `actions` slot, next to the title)
- * rather than by `AdminReplaceListEditor` itself, so the buttons can sit
- * beside the page title instead of above the item list.
+ * Reload toolbar for an admin replace-on-save editor. Rendered by the page
+ * (typically in `AdminPageShell`'s `actions` slot, next to the title) rather
+ * than by `AdminReplaceListEditor` itself, so it sits beside the page title
+ * instead of above the item list.
+ *
+ * Save lives per-card instead of here — each card's own Save button (see
+ * each editor component) calls the same `editor.save()`.
  */
-export function AdminReplaceListToolbar<T>({
-  editor,
-  saveLabel,
-}: {
-  editor: AdminReplaceListControls<T>;
-  saveLabel: string;
-}) {
-  const { saving, dirty, load, save } = editor;
+export function AdminReplaceListToolbar<T>({ editor }: { editor: AdminReplaceListControls<T> }) {
+  const { saving, load } = editor;
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Button variant="tertiary" onClick={() => void load()} disabled={saving}>
         Reload
-      </Button>
-      <Button variant="primary" onClick={() => void save()} loading={saving} disabled={!dirty}>
-        {dirty ? saveLabel : "Saved"}
       </Button>
     </div>
   );
