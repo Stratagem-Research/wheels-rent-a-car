@@ -314,7 +314,7 @@ function draftFromCreate(values: ManualCreateValues, frontendVehicleId: string):
     description: "",
     featuresText: "",
     badgesText: "",
-    media: [],
+    media: values.media,
     operational: normalizeOperational({ ...values.operational }, title),
     wizard_vehicle_id: null,
     wizard_display_name: null,

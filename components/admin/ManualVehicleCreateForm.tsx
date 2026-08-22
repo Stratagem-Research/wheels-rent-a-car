@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
+import { VehicleMediaFields } from "@/components/admin/VehicleMediaFields";
 import { VehicleOperationalFields } from "@/components/admin/VehicleOperationalFields";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/FormAtoms";
@@ -12,12 +13,14 @@ import {
   normalizeOperational,
   type VehicleOperational,
 } from "@/lib/vehicles/vehicle-operational";
+import type { VehicleMediaItem } from "@/lib/vehicles/vehicle-media";
 
 export type ManualCreateValues = {
   unitIds: string[];
   brand: string;
   model: string;
   operational: VehicleOperational;
+  media: VehicleMediaItem[];
 };
 
 function resizeUnitIds(ids: string[], count: number): string[] {
@@ -44,6 +47,11 @@ export function ManualVehicleCreateForm({
     daily_rate: null,
     standard_price: null,
   }));
+  const [media, setMedia] = React.useState<VehicleMediaItem[]>([]);
+  // Photos upload before the car exists, so there's no real frontend_vehicle_id
+  // yet to namespace the storage path with — a stable client-generated id
+  // does the same job and gets discarded once the car is created.
+  const [mediaEntityId] = React.useState(() => `manual-new-${Date.now().toString(36)}`);
   const [error, setError] = React.useState<string | null>(null);
 
   const units = unitIds.length;
@@ -83,6 +91,7 @@ export function ManualVehicleCreateForm({
       brand: brand.trim(),
       model: model.trim(),
       operational: normalizeOperational(operational, fallbackName),
+      media,
     });
   };
 
@@ -151,6 +160,7 @@ export function ManualVehicleCreateForm({
           requireCoreSpecs
           onChange={(patch) => setOperational((prev) => ({ ...prev, ...patch }))}
         />
+        <VehicleMediaFields entityId={mediaEntityId} media={media} onChange={setMedia} />
         <div className="flex justify-end gap-2">
           <Button type="button" variant="tertiary" onClick={onCancel}>
             Cancel
