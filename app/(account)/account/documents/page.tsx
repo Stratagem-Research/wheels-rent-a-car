@@ -255,20 +255,9 @@ function UploadDocumentModal({
 
   const onSubmit = async () => {
     if (!session?.user.id) return;
-    if (isLicence && showFile) {
-      if (mode === "upload" && (!frontFile || !backFile)) {
-        toast.error(t("bothSidesRequired"));
-        return;
-      }
-      if (mode === "replace" && !frontFile && !backFile) {
-        toast.error(t("fileRequired"));
-        return;
-      }
-      if (!hasFront || !hasBack) {
-        toast.error(t("bothSidesRequired"));
-        return;
-      }
-    } else if (requireFile && !file) {
+    // Driver's licence uploads have no required fields — any subset of
+    // scans/number/dates can be saved and filled in later.
+    if (!isLicence && requireFile && !file) {
       toast.error(t("fileRequired"));
       return;
     }
@@ -307,9 +296,7 @@ function UploadDocumentModal({
     <Modal open={open} onOpenChange={onOpenChange}>
       <ModalContent size={isLicence && showFile ? "md" : "sm"}>
         <ModalTitle>{title}</ModalTitle>
-        <ModalDescription>
-          {mode === "edit" ? t("editDescription") : t("uploadDescription")}
-        </ModalDescription>
+
         <div className="mt-4 flex flex-col gap-3">
           {mode === "replace" && !isLicence && existing?.scanUrl ? (
             <div className="flex flex-col gap-2">
@@ -332,6 +319,7 @@ function UploadDocumentModal({
               frontLabel={t("licenceFront")}
               backLabel={t("licenceBack")}
               helper={t("uploadDescription")}
+              required={false}
             />
           ) : null}
           {showFile && !isLicence ? (
@@ -345,12 +333,12 @@ function UploadDocumentModal({
             />
           ) : null}
           <div className="grid grid-cols-2 gap-3">
-            <Field label={t("documentNumber")} required>
+            <Field label={t("documentNumber")} required={!isLicence}>
               {({ id }) => (
                 <Input id={id} value={number} onChange={(e) => setNumber(e.target.value)} />
               )}
             </Field>
-            <Field label={t("issuingCountry")} required>
+            <Field label={t("issuingCountry")} required={!isLicence}>
               {({ id }) => (
                 <Select id={id} value={country} onChange={(e) => setCountry(e.target.value)}>
                   {COUNTRIES.map((c) => (
@@ -361,7 +349,7 @@ function UploadDocumentModal({
                 </Select>
               )}
             </Field>
-            <Field label={t("issueDate")} required>
+            <Field label={t("issueDate")} required={!isLicence}>
               {({ id }) => (
                 <Input
                   id={id}
@@ -371,7 +359,7 @@ function UploadDocumentModal({
                 />
               )}
             </Field>
-            <Field label={t("expiryDate")} required>
+            <Field label={t("expiryDate")} required={!isLicence}>
               {({ id }) => (
                 <Input
                   id={id}
@@ -390,7 +378,7 @@ function UploadDocumentModal({
           <Button
             variant="primary"
             loading={saving}
-            disabled={!number || !issueDate || !expiryDate || saving || !fileOk}
+            disabled={saving || (!isLicence && (!number || !issueDate || !expiryDate || !fileOk))}
             onClick={onSubmit}
           >
             {t("saveDocument")}

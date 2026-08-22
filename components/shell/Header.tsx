@@ -12,7 +12,7 @@ import {
   User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/Sheet";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/Sheet";
 import { AuthCluster } from "./AuthCluster";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 import { useSession } from "@/hooks/useSession";
@@ -287,6 +287,7 @@ function MobileMenu({ onDark }: { onDark: boolean }) {
         </button>
       </SheetTrigger>
       <SheetContent side={isRtl ? "right" : "left"}>
+        <SheetTitle className="sr-only">Menu</SheetTitle>
         <div className="flex flex-col gap-1 pt-2">
           {ready && session ? (
             <>

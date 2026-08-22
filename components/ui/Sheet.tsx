@@ -59,7 +59,7 @@ export const SheetContent = React.forwardRef<
       <Dialog.Content
         ref={ref}
         className={cn(
-          "bg-paper fixed z-50 p-8 shadow-[var(--shadow-elevation-4)]",
+          "bg-paper fixed z-50 p-8 shadow-(--shadow-elevation-4)",
           "transition-transform duration-300 ease-out",
           "focus:outline-none",
           sideClass[side],

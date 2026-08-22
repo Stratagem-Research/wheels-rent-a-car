@@ -19,6 +19,7 @@ export function LicenceScanFields({
   frontLabel,
   backLabel,
   helper,
+  required = true,
 }: {
   frontFile: File | null;
   backFile: File | null;
@@ -31,10 +32,12 @@ export function LicenceScanFields({
   frontLabel: string;
   backLabel: string;
   helper: string;
+  /** Booking checkout requires both scans; account/documents does not. */
+  required?: boolean;
 }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
-      <Field label={frontLabel} required error={frontError}>
+      <Field label={frontLabel} required={required} error={frontError}>
         {({ id, invalid }) => (
           <div className="flex flex-col gap-2">
             {frontUrl && !frontFile ? (
@@ -54,7 +57,7 @@ export function LicenceScanFields({
           </div>
         )}
       </Field>
-      <Field label={backLabel} required error={backError}>
+      <Field label={backLabel} required={required} error={backError}>
         {({ id, invalid }) => (
           <div className="flex flex-col gap-2">
             {backUrl && !backFile ? (
