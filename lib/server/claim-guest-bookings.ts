@@ -61,7 +61,7 @@ async function hydrateAccountFromBookings(userId: string, email: string): Promis
   const country = firstText(meta.country, row.driver_country) ?? "LB";
 
   await supabase.auth.admin.updateUserById(userId, {
-    data: {
+    user_metadata: {
       ...meta,
       ...(firstName ? { first_name: firstName } : {}),
       ...(lastName ? { last_name: lastName } : {}),
