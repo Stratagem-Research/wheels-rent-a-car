@@ -117,9 +117,11 @@ export function VehicleCard({
     <article
       className={cn(
         "group relative flex h-full flex-col overflow-hidden rounded-xl",
-        "cursor-pointer transition-all duration-200",
-        "hover:shadow-[0_4px_24px_rgba(0,0,0,0.18)] hover:-translate-y-0.5",
-        dark ? "bg-ink-95 text-paper" : "bg-paper text-ink-95 border-border border",
+        "cursor-pointer transition-all duration-300 ease-out",
+        "hover:-translate-y-1.5 hover:scale-[1.02]",
+        dark
+          ? "bg-ink-95 text-paper hover:shadow-[0_8px_32px_rgba(0,0,0,0.35),0_0_0_1px_rgba(255,255,255,0.08)]"
+          : "bg-paper text-ink-95 border-border border hover:shadow-[0_8px_32px_rgba(0,0,0,0.12),0_0_0_1px_rgba(0,0,0,0.06)]",
         selected && "outline-signal-red outline outline-2 outline-offset-0",
         className,
       )}

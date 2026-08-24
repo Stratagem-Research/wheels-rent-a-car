@@ -921,8 +921,12 @@
       "tripDate": "Date du trajet",
       "tripDateRequired": "Dites-nous quand a lieu le trajet.",
       "passengersOptional": "Passagers (facultatif)",
+      "passengers": "Passagers",
+      "passengersRequired": "Veuillez indiquer le nombre de passagers.",
       "passengersPlaceholder": "ex. 3",
       "pickupLocationOptional": "Lieu de prise en charge (facultatif)",
+      "pickupLocation": "Lieu de prise en charge",
+      "pickupLocationRequired": "Veuillez indiquer le lieu de prise en charge.",
       "pickupLocationPlaceholder": "Nom de l'hôtel ou adresse"
     },
     "corporate": {

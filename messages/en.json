@@ -1104,8 +1104,12 @@
       "tripDate": "Trip date",
       "tripDateRequired": "Tell us when the trip is.",
       "passengersOptional": "Passengers (optional)",
+      "passengers": "Passengers",
+      "passengersRequired": "Please enter the number of passengers.",
       "passengersPlaceholder": "e.g. 3",
       "pickupLocationOptional": "Pickup location (optional)",
+      "pickupLocation": "Pickup location",
+      "pickupLocationRequired": "Please enter the pickup location.",
       "pickupLocationPlaceholder": "Hotel name or address"
     },
     "corporate": {

@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  Car,
   ChevronDown,
   Droplets,
   BookOpen,
@@ -83,6 +84,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/promotions", label: "Promotions", icon: Megaphone },
       { href: "/admin/catalog", label: "Catalog", icon: Package },
       { href: "/admin/car-wash-bookings", label: "Car wash bookings", icon: Droplets },
+      { href: "/admin/chauffeur-requests", label: "Chauffeur requests", icon: Car },
       { href: "/admin/ops", label: "Ops", icon: Settings2 },
     ],
   },

@@ -89,6 +89,8 @@ export function EnquiryFormChauffeur({
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) e.email = t("emailInvalid");
     if (!form.phone.national.trim()) e.phone = t("mobileRequired");
     if (!form.tripDate) e.tripDate = t("chauffeur.tripDateRequired");
+    if (!form.passengers.trim()) e.passengers = t("chauffeur.passengersRequired");
+    if (!form.pickupLocation.trim()) e.pickupLocation = t("chauffeur.pickupLocationRequired");
     return e;
   };
 
@@ -111,8 +113,8 @@ export function EnquiryFormChauffeur({
         serviceType: form.serviceType,
         vehicleClass: form.vehicleClass,
         tripDate: form.tripDate,
-        passengers: form.passengers ? Number(form.passengers) : undefined,
-        pickupLocation: form.pickupLocation.trim() || undefined,
+        passengers: Number(form.passengers),
+        pickupLocation: form.pickupLocation.trim(),
         notes: form.notes.trim() || undefined,
         marketing: form.marketing,
       });
@@ -209,23 +211,27 @@ export function EnquiryFormChauffeur({
             />
           )}
         </Field>
-        <Field label={t("chauffeur.passengersOptional")}>
-          {({ id }) => (
+        <Field label={t("chauffeur.passengers")} required error={errors.passengers}>
+          {({ id, describedBy, invalid }) => (
             <Input
               id={id}
               type="number"
               min={1}
               max={20}
+              aria-describedby={describedBy}
+              invalid={invalid}
               placeholder={t("chauffeur.passengersPlaceholder")}
               value={form.passengers}
               onChange={(e) => setForm((f) => ({ ...f, passengers: e.target.value }))}
             />
           )}
         </Field>
-        <Field label={t("chauffeur.pickupLocationOptional")}>
-          {({ id }) => (
+        <Field label={t("chauffeur.pickupLocation")} required error={errors.pickupLocation}>
+          {({ id, describedBy, invalid }) => (
             <Input
               id={id}
+              aria-describedby={describedBy}
+              invalid={invalid}
               placeholder={t("chauffeur.pickupLocationPlaceholder")}
               value={form.pickupLocation}
               onChange={(e) => setForm((f) => ({ ...f, pickupLocation: e.target.value }))}

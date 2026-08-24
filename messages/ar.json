@@ -921,8 +921,12 @@
       "tripDate": "تاريخ الرحلة",
       "tripDateRequired": "أخبرنا متى الرحلة.",
       "passengersOptional": "عدد الركّاب (اختياري)",
+      "passengers": "عدد الركّاب",
+      "passengersRequired": "يرجى إدخال عدد الركّاب.",
       "passengersPlaceholder": "مثال: 3",
       "pickupLocationOptional": "مكان الاستلام (اختياري)",
+      "pickupLocation": "مكان الاستلام",
+      "pickupLocationRequired": "يرجى إدخال مكان الاستلام.",
       "pickupLocationPlaceholder": "اسم الفندق أو العنوان"
     },
     "corporate": {
