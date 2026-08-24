@@ -51,6 +51,7 @@ export const endpoints = {
   // Account (auth required)
   account: `${API_BASE}/account`,
   accountProfile: `${API_BASE}/account/profile`,
+  accountChangePassword: `${API_BASE}/account/change-password`,
   accountBookings: `${API_BASE}/account/bookings`,
   accountBookingByRef: (ref: string) => `${API_BASE}/account/bookings/${ref}`,
   accountBookingCancel: (ref: string) => `${API_BASE}/account/bookings/${ref}/cancel`,

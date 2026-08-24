@@ -47,3 +47,11 @@ export async function removeSavedVehicle(
     .eq("vehicle_id", vehicleId);
   if (error) throw error;
 }
+
+export async function removeAllSavedVehicles(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<void> {
+  const { error } = await supabase.from("saved_vehicles").delete().eq("user_id", userId);
+  if (error) throw error;
+}

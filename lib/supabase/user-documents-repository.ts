@@ -160,3 +160,25 @@ export async function deleteUserDocument(
     .eq("id", documentId);
   if (deleteError) throw deleteError;
 }
+
+/** Removes every stored scan + row for a user — used when deleting an account. */
+export async function deleteAllUserDocuments(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<void> {
+  const { data, error } = await supabase
+    .from("user_documents")
+    .select("storage_path, storage_path_front, storage_path_back")
+    .eq("user_id", userId);
+  if (error) throw error;
+
+  const paths = (data ?? [])
+    .flatMap((row) => [row.storage_path, row.storage_path_front, row.storage_path_back])
+    .filter((p): p is string => Boolean(p));
+  if (paths.length) {
+    await supabase.storage.from("user-documents").remove(paths);
+  }
+
+  const { error: deleteError } = await supabase.from("user_documents").delete().eq("user_id", userId);
+  if (deleteError) throw deleteError;
+}

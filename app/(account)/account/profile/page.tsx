@@ -22,6 +22,8 @@ import { toast } from "@/components/ui/Toast";
 import { useSession } from "@/hooks/useSession";
 import { Link } from "@/i18n/navigation";
 import { isValidPhoneNational, phoneValueFromStored, toE164 } from "@/lib/booking/phone";
+import { api, ApiError } from "@/lib/api/client";
+import { endpoints } from "@/lib/api/endpoints";
 
 const COUNTRIES = [
   { code: "LB", name: "Lebanon" },
@@ -213,7 +215,7 @@ export default function ProfilePage() {
       <Card variant="default" className="flex flex-col gap-3">
         <h2 className="headline-md text-signal-red">{t("dangerZone")}</h2>
         <p className="body-sm text-ink-60">{t("dangerDescription")}</p>
-        <DeleteAccountModal onConfirm={signOut}>
+        <DeleteAccountModal accountEmail={session?.user.email ?? ""} onDeleted={signOut}>
           <Button
             variant="tertiary"
             size="sm"
@@ -233,21 +235,52 @@ export default function ProfilePage() {
 
 function ChangePasswordModal({ children }: { children: React.ReactNode }) {
   const t = useTranslations("accountProfile");
+  const [open, setOpen] = React.useState(false);
   const [current, setCurrent] = React.useState("");
   const [next, setNext] = React.useState("");
   const [saving, setSaving] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
-  const onSubmit = async () => {
-    setSaving(true);
-    await new Promise((r) => setTimeout(r, 300));
-    toast.success(t("passwordUpdated"));
+  const reset = () => {
     setCurrent("");
     setNext("");
-    setSaving(false);
+    setError(null);
+  };
+
+  const onSubmit = async () => {
+    if (next.length < 8) {
+      setError(t("passwordTooShort"));
+      return;
+    }
+    setError(null);
+    setSaving(true);
+    try {
+      await api.post(endpoints.accountChangePassword, {
+        currentPassword: current,
+        newPassword: next,
+      });
+      toast.success(t("passwordUpdated"));
+      reset();
+      setOpen(false);
+    } catch (err) {
+      const message =
+        err instanceof ApiError && typeof err.body === "object" && err.body && "message" in err.body
+          ? String((err.body as { message: unknown }).message)
+          : t("passwordUpdateFailed");
+      setError(message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
-    <Modal>
+    <Modal
+      open={open}
+      onOpenChange={(isOpen) => {
+        setOpen(isOpen);
+        if (!isOpen) reset();
+      }}
+    >
       <ModalTrigger asChild>{children}</ModalTrigger>
       <ModalContent size="sm">
         <ModalTitle>{t("changePassword")}</ModalTitle>
@@ -264,7 +297,7 @@ function ChangePasswordModal({ children }: { children: React.ReactNode }) {
               />
             )}
           </Field>
-          <Field label={t("newPassword")} required>
+          <Field label={t("newPassword")} required error={error ?? undefined}>
             {({ id }) => (
               <Input
                 id={id}
@@ -277,8 +310,15 @@ function ChangePasswordModal({ children }: { children: React.ReactNode }) {
           </Field>
         </div>
         <ModalFooter>
-          <Button variant="secondary">{t("cancel")}</Button>
-          <Button variant="primary" loading={saving} onClick={onSubmit}>
+          <Button variant="secondary" onClick={() => setOpen(false)}>
+            {t("cancel")}
+          </Button>
+          <Button
+            variant="primary"
+            loading={saving}
+            disabled={!current || !next}
+            onClick={onSubmit}
+          >
             {t("updatePassword")}
           </Button>
         </ModalFooter>
@@ -288,26 +328,54 @@ function ChangePasswordModal({ children }: { children: React.ReactNode }) {
 }
 
 function DeleteAccountModal({
-  onConfirm,
+  accountEmail,
+  onDeleted,
   children,
 }: {
-  onConfirm: () => Promise<void>;
+  accountEmail: string;
+  onDeleted: () => Promise<void>;
   children: React.ReactNode;
 }) {
   const t = useTranslations("accountProfile");
+  const [open, setOpen] = React.useState(false);
   const [emailEcho, setEmailEcho] = React.useState("");
   const [submitting, setSubmitting] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+
+  const emailMatches =
+    emailEcho.trim().toLowerCase() === accountEmail.trim().toLowerCase() && accountEmail !== "";
 
   const onSubmit = async () => {
+    if (!emailMatches) {
+      setError(t("emailMismatch"));
+      return;
+    }
+    setError(null);
     setSubmitting(true);
-    await new Promise((r) => setTimeout(r, 400));
-    await onConfirm();
-    toast.info(t("accountDeleted"));
-    if (typeof window !== "undefined") window.location.href = "/";
+    try {
+      await api.delete(endpoints.account);
+      // Deletion already invalidated the server session; this just clears
+      // the client-side cache/cookie mirror in sync.
+      await onDeleted();
+      toast.info(t("accountDeleted"));
+      if (typeof window !== "undefined") window.location.href = "/";
+    } catch {
+      setError(t("deleteAccountFailed"));
+      setSubmitting(false);
+    }
   };
 
   return (
-    <Modal>
+    <Modal
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (!next) {
+          setEmailEcho("");
+          setError(null);
+        }
+      }}
+    >
       <ModalTrigger asChild>{children}</ModalTrigger>
       <ModalContent size="sm">
         <ModalTitle>{t("deleteAccountTitle")}</ModalTitle>
@@ -319,10 +387,14 @@ function DeleteAccountModal({
             value={emailEcho}
             onChange={(e) => setEmailEcho(e.target.value)}
             aria-label={t("confirmEmailAria")}
+            invalid={Boolean(error)}
           />
+          {error ? <p className="field-error text-error mt-1">{error}</p> : null}
         </div>
         <ModalFooter>
-          <Button variant="secondary">{t("keepAccount")}</Button>
+          <Button variant="secondary" onClick={() => setOpen(false)}>
+            {t("keepAccount")}
+          </Button>
           <Button
             variant="cta"
             onClick={onSubmit}

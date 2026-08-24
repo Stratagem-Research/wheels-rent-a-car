@@ -1248,7 +1248,11 @@
     "confirmEmailAria": "Confirmer en saisissant votre e-mail",
     "keepAccount": "Conserver le compte",
     "profileSaved": "Profil enregistré.",
-    "profileSaveFailed": "Impossible d'enregistrer votre profil. Veuillez réessayer."
+    "profileSaveFailed": "Impossible d'enregistrer votre profil. Veuillez réessayer.",
+    "passwordTooShort": "Le nouveau mot de passe doit contenir au moins 8 caractères.",
+    "passwordUpdateFailed": "Impossible de mettre à jour le mot de passe. Veuillez réessayer.",
+    "deleteAccountFailed": "Impossible de supprimer votre compte. Veuillez réessayer.",
+    "emailMismatch": "Cela ne correspond pas à l'e-mail de votre compte."
   },
   "accountDocuments": {
     "documentSaved": "Document enregistré.",

@@ -1248,7 +1248,11 @@
     "confirmEmailAria": "أكّد عبر كتابة بريدك الإلكتروني",
     "keepAccount": "الاحتفاظ بالحساب",
     "profileSaved": "تم حفظ الملف الشخصي.",
-    "profileSaveFailed": "تعذّر حفظ ملفك الشخصي. حاول مرة أخرى."
+    "profileSaveFailed": "تعذّر حفظ ملفك الشخصي. حاول مرة أخرى.",
+    "passwordTooShort": "يجب أن تتكون كلمة المرور الجديدة من 8 أحرف على الأقل.",
+    "passwordUpdateFailed": "تعذّر تحديث كلمة المرور. حاول مرة أخرى.",
+    "deleteAccountFailed": "تعذّر حذف حسابك. حاول مرة أخرى.",
+    "emailMismatch": "لا يتطابق هذا مع بريدك الإلكتروني المسجل."
   },
   "accountDocuments": {
     "documentSaved": "تم حفظ المستند.",

@@ -22,7 +22,7 @@ export function AuthCard({ title, subtitle, children, footer, className }: AuthC
     <div className="flex w-full max-w-md flex-col gap-6">
       <Card
         variant="default"
-        className={cn("flex flex-col gap-6 rounded-2xl", "p-8 sm:p-10 lg:p-12", className)}
+        className={cn("flex flex-col gap-6 rounded-2xl", "p-6 sm:p-8 lg:p-10", className)}
       >
         <div className="flex flex-col gap-2">
           <h1 className="headline-lg text-ink-100">{title}</h1>

@@ -378,11 +378,31 @@ export async function claimGuestBookingsForUser(userId: string, email: string): 
   })();
   if (!rows.length) return 0;
 
+  // A reference already present in user_bookings was claimed once before —
+  // possibly by an account that has since been deleted (its row survives
+  // with user_id set to null, see migration 20260821_000001). Don't
+  // re-claim it into whichever new account happens to share that email;
+  // only genuinely unclaimed guest bookings get linked here.
+  const refs = rows
+    .map((row) => (row as Record<string, unknown>).booking_reference as string)
+    .filter(Boolean);
+  const { data: existing, error: existingError } = await supabase
+    .from("user_bookings")
+    .select("booking_reference")
+    .in("booking_reference", refs);
+  if (existingError) throw existingError;
+  const alreadyClaimed = new Set(
+    (existing ?? []).map((row) => row.booking_reference as string),
+  );
+
+  let claimed = 0;
   for (const row of rows) {
     const record = row as Record<string, unknown>;
+    const bookingReference = record.booking_reference as string;
+    if (alreadyClaimed.has(bookingReference)) continue;
     await addUserBooking({
       userId,
-      bookingReference: record.booking_reference as string,
+      bookingReference,
       publicToken: (record.public_token as string | null) ?? null,
       wizardBookingId: (record.wizard_booking_id as number | null) ?? null,
       pickupAt: (record.pickup_at as string | null) ?? null,
@@ -392,9 +412,10 @@ export async function claimGuestBookingsForUser(userId: string, email: string): 
       customerEmail: normalizedEmail,
       ...mapStoredBookingFields(record),
     });
+    claimed += 1;
   }
 
-  return rows.length;
+  return claimed;
 }
 
 /**

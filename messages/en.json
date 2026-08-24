@@ -1431,7 +1431,11 @@
     "confirmEmailAria": "Confirm by typing your email",
     "keepAccount": "Keep account",
     "profileSaved": "Profile saved.",
-    "profileSaveFailed": "Couldn't save your profile. Please try again."
+    "profileSaveFailed": "Couldn't save your profile. Please try again.",
+    "passwordTooShort": "New password must be at least 8 characters.",
+    "passwordUpdateFailed": "Couldn't update your password. Please try again.",
+    "deleteAccountFailed": "Couldn't delete your account. Please try again.",
+    "emailMismatch": "That doesn't match your account email."
   },
   "accountDocuments": {
     "documentSaved": "Document saved.",
