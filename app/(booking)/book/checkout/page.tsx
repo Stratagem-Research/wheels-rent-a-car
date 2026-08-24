@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { ErrorText, Field } from "@/components/ui/FormAtoms";
@@ -25,6 +26,9 @@ import { isValidPhoneNational, phoneValueFromStored, toE164 } from "@/lib/bookin
 import { computePrice, formatUsd } from "@/lib/booking/pricing";
 import { draftToSearchParams } from "@/lib/booking/draft-to-search-params";
 import { WIZARD_VEHICLE_UNKNOWN } from "@/lib/booking/wizard-vehicle-id";
+import { writePendingLicence, writePendingAdditionalDriver } from "@/lib/booking/pending-licence";
+import { ADDITIONAL_DRIVER_ADDON_ID } from "@/lib/booking/addons";
+import { AdditionalDriverFields } from "@/components/booking/AdditionalDriverFields";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
 import type { BookingDriver, PaymentMethod, SubmitBookingResponse, User, UserDocument } from "@/types/domain";
@@ -49,6 +53,13 @@ interface CheckoutFormState {
   licenceBackFile: File | null;
   licenceFrontUrl: string;
   licenceBackUrl: string;
+  // Additional driver (only shown when that add-on is active)
+  additionalDriverFirstName: string;
+  additionalDriverLastName: string;
+  additionalDriverFrontFile: File | null;
+  additionalDriverBackFile: File | null;
+  additionalDriverFrontUrl: string;
+  additionalDriverBackUrl: string;
   // Conditional pickup details
   flightNumber: string;
   deliveryAddress: string;
@@ -78,6 +89,12 @@ const emptyForm = (): CheckoutFormState => ({
   licenceBackFile: null,
   licenceFrontUrl: "",
   licenceBackUrl: "",
+  additionalDriverFirstName: "",
+  additionalDriverLastName: "",
+  additionalDriverFrontFile: null,
+  additionalDriverBackFile: null,
+  additionalDriverFrontUrl: "",
+  additionalDriverBackUrl: "",
   flightNumber: "",
   deliveryAddress: "",
   paymentMethod: null,
@@ -97,6 +114,7 @@ export default function CheckoutPage() {
     ready,
     vehicle,
     showSkeleton,
+    goToStep,
     addOns: ADD_ONS,
     protectionTiers: PROTECTION_TIERS,
     branches: BRANCHES,
@@ -138,6 +156,18 @@ export default function CheckoutPage() {
       })
       .catch(() => {
         // Vault optional — leave licence fields empty if unavailable.
+      });
+
+    void api
+      .get<{ driver: { firstName: string; lastName: string; scanFrontUrl?: string; scanBackUrl?: string } | null }>(
+        endpoints.accountAdditionalDriver,
+      )
+      .then((res) => {
+        if (cancelled || !res.driver) return;
+        setForm((prev) => applyAdditionalDriverToForm(prev, res.driver!));
+      })
+      .catch(() => {
+        // Optional — leave additional-driver fields empty if unavailable.
       });
 
     return () => {
@@ -232,6 +262,10 @@ export default function CheckoutPage() {
     deliveryPricing: DELIVERY_PRICING,
   });
 
+  const hasAdditionalDriver = draft.extras.some(
+    (e) => e.addOnId === ADDITIONAL_DRIVER_ADDON_ID && e.qty > 0,
+  );
+
   const onPaymentMethod = (m: PaymentMethod) => {
     setForm((f) => ({ ...f, paymentMethod: m }));
     track(EVENTS.PAYMENT_METHOD_SELECTED, { method: m });
@@ -261,6 +295,20 @@ export default function CheckoutPage() {
     }
     if (!form.paymentMethod) e.paymentMethod = tPayment("choosePaymentMethod");
     if (!form.termsAccepted) e.terms = t("acceptTerms");
+    if (hasAdditionalDriver) {
+      if (!form.additionalDriverFirstName.trim()) {
+        e.additionalDriverFirstName = t("additionalDriverFirstNameRequired");
+      }
+      if (!form.additionalDriverLastName.trim()) {
+        e.additionalDriverLastName = t("additionalDriverLastNameRequired");
+      }
+      if (!form.additionalDriverFrontFile && !form.additionalDriverFrontUrl) {
+        e.additionalDriverFront = t("licenceFrontRequired");
+      }
+      if (!form.additionalDriverBackFile && !form.additionalDriverBackUrl) {
+        e.additionalDriverBack = t("licenceBackRequired");
+      }
+    }
     return e;
   };
 
@@ -292,7 +340,15 @@ export default function CheckoutPage() {
         licenceIssue: form.licenceIssue,
         licenceExpiry: form.licenceExpiry,
         country: form.country,
+        licenceFrontPath: undefined as string | undefined,
+        licenceBackPath: undefined as string | undefined,
       },
+      additionalDriver: hasAdditionalDriver
+        ? {
+            firstName: form.additionalDriverFirstName.trim(),
+            lastName: form.additionalDriverLastName.trim(),
+          }
+        : undefined,
       flightNumber: draft.pickup.type === "airport" ? form.flightNumber.trim() : undefined,
       paymentMethod: form.paymentMethod ?? undefined,
       marketingConsent: form.marketing,
@@ -306,6 +362,64 @@ export default function CheckoutPage() {
           await persistLicenceToProfile(form);
         } catch {
           toast.warning(t("licenceProfileSaveFailed"));
+        }
+        if (hasAdditionalDriver) {
+          try {
+            await persistAdditionalDriverToProfile(form);
+          } catch {
+            toast.warning(t("additionalDriverProfileSaveFailed"));
+          }
+        }
+      } else {
+        try {
+          const { frontUrl, backUrl, frontPath, backPath } = await uploadGuestScans(
+            form.licenceFrontFile,
+            form.licenceBackFile,
+          );
+          if (frontUrl || backUrl) {
+            writePendingLicence({
+              licenceNumber: form.licenceNumber.trim(),
+              licenceIssue: form.licenceIssue,
+              licenceExpiry: form.licenceExpiry,
+              licenceCountry: form.licenceCountry,
+              licenceFrontUrl: frontUrl,
+              licenceBackUrl: backUrl,
+            });
+          }
+          // Also persist the permanent storage paths onto the booking record
+          // itself — a durable fallback for the account/documents page to
+          // backfill from later, in case the sessionStorage handoff above
+          // (consumed once by the register page) never completes.
+          if (frontPath) completeDraft.driver.licenceFrontPath = frontPath;
+          if (backPath) completeDraft.driver.licenceBackPath = backPath;
+        } catch {
+          // Best-effort — a guest can still add their licence from their
+          // account later, so this never blocks the booking itself.
+        }
+      }
+
+      if (hasAdditionalDriver) {
+        try {
+          const { frontUrl, backUrl, frontPath, backPath } = await uploadGuestScans(
+            form.additionalDriverFrontFile,
+            form.additionalDriverBackFile,
+          );
+          if (!session?.user.id) {
+            writePendingAdditionalDriver({
+              firstName: form.additionalDriverFirstName.trim(),
+              lastName: form.additionalDriverLastName.trim(),
+              licenceFrontUrl: frontUrl,
+              licenceBackUrl: backUrl,
+            });
+          }
+          completeDraft.additionalDriver = {
+            firstName: form.additionalDriverFirstName.trim(),
+            lastName: form.additionalDriverLastName.trim(),
+            ...(frontPath ? { licenceFrontPath: frontPath } : {}),
+            ...(backPath ? { licenceBackPath: backPath } : {}),
+          };
+        } catch {
+          // Best-effort — same as the primary licence above.
         }
       }
 
@@ -428,8 +542,41 @@ export default function CheckoutPage() {
             }}
             noValidate
           >
+            <Button
+              type="button"
+              variant="tertiary"
+              size="sm"
+              className="self-start"
+              onClick={() => goToStep("/book/protection")}
+            >
+              <ArrowLeft className="size-4" aria-hidden="true" /> {t("backToProtection")}
+            </Button>
             <DriverInfoSection form={form} setForm={setForm} errors={errors} />
             <DriverLicenceSection form={form} setForm={setForm} errors={errors} />
+            {hasAdditionalDriver ? (
+              <AdditionalDriverFields
+                firstName={form.additionalDriverFirstName}
+                lastName={form.additionalDriverLastName}
+                onFirstNameChange={(value) =>
+                  setForm((f) => ({ ...f, additionalDriverFirstName: value }))
+                }
+                onLastNameChange={(value) =>
+                  setForm((f) => ({ ...f, additionalDriverLastName: value }))
+                }
+                frontFile={form.additionalDriverFrontFile}
+                backFile={form.additionalDriverBackFile}
+                frontUrl={form.additionalDriverFrontUrl || undefined}
+                backUrl={form.additionalDriverBackUrl || undefined}
+                onFrontChange={(file) =>
+                  setForm((f) => ({ ...f, additionalDriverFrontFile: file }))
+                }
+                onBackChange={(file) => setForm((f) => ({ ...f, additionalDriverBackFile: file }))}
+                firstNameError={errors.additionalDriverFirstName}
+                lastNameError={errors.additionalDriverLastName}
+                frontError={errors.additionalDriverFront}
+                backError={errors.additionalDriverBack}
+              />
+            ) : null}
             {draft.pickup.type === "airport" || draft.pickup.type === "address-delivery" ? (
               <PickupDetailsSection
                 type={draft.pickup.type}
@@ -788,6 +935,48 @@ function applyLicenceToForm(form: CheckoutFormState, licence: UserDocument): Che
   };
 }
 
+function applyAdditionalDriverToForm(
+  form: CheckoutFormState,
+  driver: { firstName: string; lastName: string; scanFrontUrl?: string; scanBackUrl?: string },
+): CheckoutFormState {
+  return {
+    ...form,
+    additionalDriverFirstName: form.additionalDriverFirstName || driver.firstName,
+    additionalDriverLastName: form.additionalDriverLastName || driver.lastName,
+    additionalDriverFrontUrl: form.additionalDriverFrontUrl || driver.scanFrontUrl || "",
+    additionalDriverBackUrl: form.additionalDriverBackUrl || driver.scanBackUrl || "",
+  };
+}
+
+/**
+ * Guest checkout has no account yet to save the scans to — upload them to
+ * booking-scoped storage instead, so "Create account" on the confirmation
+ * page can carry the actual photos over instead of asking to re-upload.
+ */
+async function uploadGuestScans(
+  frontFile: File | null,
+  backFile: File | null,
+): Promise<{ frontUrl?: string; backUrl?: string; frontPath?: string; backPath?: string }> {
+  const uploadSide = async (
+    side: "front" | "back",
+    file: File | null,
+  ): Promise<{ url?: string; path?: string }> => {
+    if (!file) return {};
+    const body = new FormData();
+    body.set("side", side);
+    body.set("file", file);
+    const res = await fetch(endpoints.bookingLicenceScan, { method: "POST", body });
+    if (!res.ok) return {};
+    const data = (await res.json().catch(() => null)) as { url?: string; path?: string } | null;
+    return { url: data?.url, path: data?.path };
+  };
+  const [front, back] = await Promise.all([
+    uploadSide("front", frontFile),
+    uploadSide("back", backFile),
+  ]);
+  return { frontUrl: front.url, backUrl: back.url, frontPath: front.path, backPath: back.path };
+}
+
 async function persistLicenceToProfile(form: CheckoutFormState): Promise<void> {
   if (!form.licenceFrontFile && !form.licenceBackFile) return;
   const body = new FormData();
@@ -804,6 +993,20 @@ async function persistLicenceToProfile(form: CheckoutFormState): Promise<void> {
     credentials: "same-origin",
   });
   if (!res.ok) throw new Error("Failed to save licence to profile.");
+}
+
+async function persistAdditionalDriverToProfile(form: CheckoutFormState): Promise<void> {
+  const body = new FormData();
+  body.set("firstName", form.additionalDriverFirstName.trim());
+  body.set("lastName", form.additionalDriverLastName.trim());
+  if (form.additionalDriverFrontFile) body.set("fileFront", form.additionalDriverFrontFile);
+  if (form.additionalDriverBackFile) body.set("fileBack", form.additionalDriverBackFile);
+  const res = await fetch(endpoints.accountAdditionalDriver, {
+    method: "POST",
+    body,
+    credentials: "same-origin",
+  });
+  if (!res.ok) throw new Error("Failed to save additional driver to profile.");
 }
 
 function normalizeCountryCode(code: string | undefined | null): string | null {

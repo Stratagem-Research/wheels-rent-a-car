@@ -4,16 +4,14 @@ import {
   bookingFromStoredRow,
   hasStoredBookingDetails,
 } from "@/lib/booking/stored-booking";
-import {
-  frontendVehicleIdFromWizard,
-  parseWizardVehicleId,
-} from "@/lib/booking/wizard-vehicle-id";
+import { isManualVehicleId, parseWizardVehicleId } from "@/lib/booking/wizard-vehicle-id";
 import {
   handleBookingLookup,
   handleBookingStatusByToken,
   hydrateLookupVehicle,
 } from "@/lib/server/booking-service";
 import type { UserBookingRow } from "@/lib/supabase/user-bookings-repository";
+import { withSignedAdditionalDriverScans } from "@/lib/supabase/booking-document-scans";
 import type { Booking } from "@/types/domain";
 
 function uniqueEmails(...candidates: (string | null | undefined)[]): string[] {
@@ -40,6 +38,19 @@ export type ResolveAccountBookingOptions = {
   skipLiveLookup?: boolean;
 };
 
+function isManualLinkedRow(row: UserBookingRow): boolean {
+  if (isManualVehicleId(row.frontendVehicleId ?? "")) return true;
+  if (row.wizardVehicleId != null) return false;
+  return parseWizardVehicleId(row.frontendVehicleId ?? "") == null && Boolean(row.frontendVehicleId);
+}
+
+function overlayLiveState(local: Booking, live: Booking): Booking {
+  if (local.state === "cancelled" || local.state === "completed" || local.state === "expired") {
+    return { ...local, publicToken: live.publicToken ?? local.publicToken };
+  }
+  return { ...local, state: live.state, publicToken: live.publicToken ?? local.publicToken };
+}
+
 function wizardIdFromRow(row: UserBookingRow): number | null {
   if (row.wizardVehicleId != null && row.wizardVehicleId > 0) return row.wizardVehicleId;
   return parseWizardVehicleId(row.frontendVehicleId ?? "");
@@ -50,7 +61,7 @@ export async function bookingFromLinkedRow(
   row: UserBookingRow,
   authEmail: string,
 ): Promise<Booking> {
-  const booking = bookingFromStoredRow(row, authEmail);
+  const booking = await withSignedAdditionalDriverScans(bookingFromStoredRow(row, authEmail));
   if (booking.vehicleSnapshot.images.length === 0) {
     booking.vehicleSnapshot.images = [{ ...LOOKUP_PLACEHOLDER_IMAGE }];
   }
@@ -69,7 +80,7 @@ export async function resolveAccountBooking(
   const allowTokenFallback = options.allowTokenFallback ?? true;
   const stored = hasStoredBookingDetails(row);
 
-  if (options.skipLiveLookup) {
+  if (options.skipLiveLookup || isManualLinkedRow(row)) {
     return { booking: await bookingFromLinkedRow(row, authEmail), throttled: false };
   }
 
@@ -83,9 +94,7 @@ export async function resolveAccountBooking(
     try {
       const live = await handleBookingLookup({ ref: row.bookingReference, email });
       return {
-        booking: local
-          ? { ...local, state: live.state, publicToken: live.publicToken ?? local.publicToken }
-          : live,
+        booking: local ? overlayLiveState(local, live) : live,
         throttled: false,
       };
     } catch (err) {
@@ -117,7 +126,7 @@ export async function resolveAccountBooking(
         });
         return {
           booking: local
-            ? { ...local, state: booking.state, publicToken: local.publicToken ?? row.publicToken ?? undefined }
+            ? overlayLiveState(local, { ...booking, publicToken: local.publicToken ?? row.publicToken ?? undefined })
             : await hydrateLookupVehicle(booking, status.vehicle.id),
           throttled: false,
         };

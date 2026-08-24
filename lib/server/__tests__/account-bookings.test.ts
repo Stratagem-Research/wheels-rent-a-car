@@ -123,4 +123,42 @@ describe("resolveAccountBooking", () => {
     expect(mockStatusByToken).not.toHaveBeenCalled();
     expect(result.booking.ref).toBe("WRC-260818-F8Z4");
   });
+
+  it("skips Wizard for website-only cars and uses stored columns", async () => {
+    mockLookup.mockResolvedValue(liveBooking);
+    const result = await resolveAccountBooking(
+      row({
+        publicToken: null,
+        frontendVehicleId: "manual-1",
+        wizardVehicleId: null,
+        vehicleMake: "NISSAN",
+        vehicleModel: "MICRA",
+        paymentMethod: "cash",
+        baseRateCents: 40000,
+        totalCents: 40000,
+        state: "cancelled",
+      }),
+      "auth@example.com",
+    );
+    expect(mockLookup).not.toHaveBeenCalled();
+    expect(result.booking.state).toBe("cancelled");
+    expect(result.booking.price.totalCents).toBe(40000);
+    expect(result.booking.return.datetime).toBe("2026-08-22T10:00:00.000Z");
+  });
+
+  it("does not let a Wizard pending status override a local cancellation", async () => {
+    mockLookup.mockResolvedValue({ ...liveBooking, state: "pending" } as Booking);
+    const result = await resolveAccountBooking(
+      row({
+        vehicleMake: "BMW",
+        paymentMethod: "cash",
+        baseRateCents: 45000,
+        state: "cancelled",
+      }),
+      "auth@example.com",
+      { allowTokenFallback: false },
+    );
+    expect(result.booking.state).toBe("cancelled");
+    expect(result.booking.price.totalCents).toBe(45000);
+  });
 });

@@ -3,6 +3,8 @@
 import * as React from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Stepper } from "@/components/booking/Stepper";
 import { ProtectionTierCard } from "@/components/booking/ProtectionTierCard";
@@ -60,6 +62,15 @@ export default function ProtectionPage() {
       <section className="mx-auto max-w-(--container-full) px-4 py-6 sm:px-5 sm:py-8">
         <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
           <div>
+            <Button
+              type="button"
+              variant="tertiary"
+              size="sm"
+              className="mb-3"
+              onClick={() => goToStep("/book/extras")}
+            >
+              <ArrowLeft className="size-4" aria-hidden="true" /> {t("protection.backToExtras")}
+            </Button>
             <h1 className="headline-lg text-ink-95">{t("protection.heading")}</h1>
             <p className="body-md text-ink-60 mt-1">{t("protection.subtitle")}</p>
 

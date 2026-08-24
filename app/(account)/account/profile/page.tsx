@@ -19,6 +19,7 @@ import {
   ModalTrigger,
 } from "@/components/ui/Modal";
 import { toast } from "@/components/ui/Toast";
+import { DocumentScanPreview } from "@/components/account/DocumentScanPreview";
 import { useSession } from "@/hooks/useSession";
 import { Link } from "@/i18n/navigation";
 import { isValidPhoneNational, phoneValueFromStored, toE164 } from "@/lib/booking/phone";
@@ -210,6 +211,8 @@ export default function ProfilePage() {
         </Button>
       </form>
 
+      <ProfileAdditionalDriverCard />
+
       <hr className="border-border" />
 
       <Card variant="default" className="flex flex-col gap-3">
@@ -230,6 +233,81 @@ export default function ProfilePage() {
         {t("needHelp")} →
       </Link>
     </div>
+  );
+}
+
+function ProfileAdditionalDriverCard() {
+  const t = useTranslations("accountProfile");
+  const tDocs = useTranslations("accountDocuments");
+  const [driver, setDriver] = React.useState<{
+    firstName: string;
+    lastName: string;
+    scanFrontUrl?: string;
+    scanBackUrl?: string;
+  } | null | undefined>(undefined);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await api.get<{
+          driver: {
+            firstName: string;
+            lastName: string;
+            scanFrontUrl?: string;
+            scanBackUrl?: string;
+          } | null;
+        }>(endpoints.accountAdditionalDriver);
+        if (!cancelled) setDriver(res.driver);
+      } catch {
+        if (!cancelled) setDriver(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (driver === undefined) {
+    return <Skeleton className="h-32 rounded-lg" />;
+  }
+
+  const hasDriver = Boolean(driver?.firstName || driver?.scanFrontUrl || driver?.scanBackUrl);
+
+  return (
+    <Card variant="default" className="flex flex-col gap-3">
+      <h2 className="headline-md text-ink-100">{t("additionalDriver")}</h2>
+      {hasDriver && driver ? (
+        <>
+          <p className="body-md text-ink-100">
+            {driver.firstName} {driver.lastName}
+          </p>
+          {driver.scanFrontUrl || driver.scanBackUrl ? (
+            <div className="flex flex-wrap gap-3">
+              {driver.scanFrontUrl ? (
+                <DocumentScanPreview
+                  scanUrl={driver.scanFrontUrl}
+                  alt={tDocs("licenceFront")}
+                  size="md"
+                />
+              ) : null}
+              {driver.scanBackUrl ? (
+                <DocumentScanPreview
+                  scanUrl={driver.scanBackUrl}
+                  alt={tDocs("licenceBack")}
+                  size="md"
+                />
+              ) : null}
+            </div>
+          ) : null}
+        </>
+      ) : (
+        <p className="body-sm text-ink-60">{tDocs("noAdditionalDriver")}</p>
+      )}
+      <Link href="/account/documents" className="label-md text-ink-60 underline-offset-2 hover:underline">
+        {t("manageDocuments")} →
+      </Link>
+    </Card>
   );
 }
 

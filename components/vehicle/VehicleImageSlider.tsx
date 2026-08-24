@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
@@ -10,22 +9,17 @@ import type { VehicleImage } from "@/types/domain";
 
 /**
  * Prev/next photo slider for fleet cards. Controls sit outside any parent
- * <Link> so they don't select the vehicle. Clicking the photo still follows
- * `href` when provided.
+ * <Link> so they don't select the vehicle.
  */
 export function VehicleImageSlider({
   images,
   dark = true,
-  href,
-  scroll,
   sizes,
   priority = false,
   className,
 }: {
   images: VehicleImage[];
   dark?: boolean;
-  href?: string;
-  scroll?: boolean;
   sizes: string;
   priority?: boolean;
   className?: string;
@@ -64,17 +58,7 @@ export function VehicleImageSlider({
   return (
     <div className={cn("relative my-2 w-full", className)}>
       <div className="relative aspect-[16/10] w-full overflow-hidden">
-        {count === 0 ? null : href ? (
-          <Link
-            href={href}
-            scroll={scroll}
-            className="absolute inset-0 overflow-hidden"
-            tabIndex={-1}
-            aria-hidden="true"
-          >
-            {track}
-          </Link>
-        ) : (
+        {count === 0 ? null : (
           <div className="absolute inset-0 overflow-hidden">{track}</div>
         )}
       </div>

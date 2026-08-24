@@ -18,6 +18,14 @@ import { PhoneInput, type PhoneValue } from "@/components/ui/PhoneInput";
 import { useSession } from "@/hooks/useSession";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
+import { phoneValueFromStored } from "@/lib/booking/phone";
+import { endpoints } from "@/lib/api/endpoints";
+import {
+  clearPendingLicence,
+  readPendingLicence,
+  clearPendingAdditionalDriver,
+  readPendingAdditionalDriver,
+} from "@/lib/booking/pending-licence";
 
 export default function RegisterPage() {
   const t = useTranslations("auth");
@@ -25,12 +33,17 @@ export default function RegisterPage() {
   const searchParams = useSearchParams();
   const { signUp } = useSession();
 
-  const [firstName, setFirstName] = React.useState("");
-  const [lastName, setLastName] = React.useState("");
+  // Prefilled from a just-completed guest booking (see the confirmation
+  // page's "Create account" CTA) so this is genuinely one click, not a
+  // second round of typing what checkout already collected.
+  const [firstName, setFirstName] = React.useState(searchParams?.get("firstName") ?? "");
+  const [lastName, setLastName] = React.useState(searchParams?.get("lastName") ?? "");
   const [email, setEmail] = React.useState(searchParams?.get("email") ?? "");
   const [password, setPassword] = React.useState("");
   const [show, setShow] = React.useState(false);
-  const [phone, setPhone] = React.useState<PhoneValue>({ countryIso: "LB", national: "" });
+  const [phone, setPhone] = React.useState<PhoneValue>(() =>
+    phoneValueFromStored(searchParams?.get("phone")),
+  );
   const [terms, setTerms] = React.useState(false);
   const [marketing, setMarketing] = React.useState(false);
 
@@ -75,6 +88,14 @@ export default function RegisterPage() {
         setConfirmationSent(true);
         return;
       }
+      // Booking checkout already collected the licence number/dates/country
+      // and, when uploaded, the actual scan photos (see the confirmation
+      // page's "Create account" CTA + lib/booking/pending-licence) — carry
+      // all of it into the new profile so nothing has to be typed or
+      // re-uploaded a second time. Best-effort: never blocks account
+      // creation if it fails.
+      void saveLicenceFromBooking();
+      void saveAdditionalDriverFromBooking();
       router.push(searchParams?.get("redirect") ?? "/account");
     } catch {
       setErrors({ form: t("register.formError") });
@@ -219,6 +240,75 @@ export default function RegisterPage() {
       </form>
     </AuthCard>
   );
+}
+
+/** Downloads a signed scan URL and returns it as a File for re-upload. */
+async function urlToFile(url: string, filename: string): Promise<File | null> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return new File([blob], filename, { type: blob.type || "application/octet-stream" });
+  } catch {
+    return null;
+  }
+}
+
+async function saveLicenceFromBooking(): Promise<void> {
+  const pending = readPendingLicence();
+  clearPendingLicence();
+  if (!pending) return;
+  const hasAnything =
+    pending.licenceNumber || pending.licenceFrontUrl || pending.licenceBackUrl;
+  if (!hasAnything) return;
+
+  try {
+    const [fileFront, fileBack] = await Promise.all([
+      pending.licenceFrontUrl ? urlToFile(pending.licenceFrontUrl, "licence-front") : null,
+      pending.licenceBackUrl ? urlToFile(pending.licenceBackUrl, "licence-back") : null,
+    ]);
+    const body = new FormData();
+    body.set("type", "licence");
+    body.set("number", pending.licenceNumber);
+    body.set("issueDate", pending.licenceIssue);
+    body.set("expiryDate", pending.licenceExpiry);
+    body.set("issuingCountry", pending.licenceCountry);
+    if (fileFront) body.set("fileFront", fileFront);
+    if (fileBack) body.set("fileBack", fileBack);
+    await fetch(endpoints.accountDocuments, { method: "POST", body, credentials: "same-origin" });
+  } catch {
+    // Best-effort — the customer can still upload their licence from
+    // /account/documents; this never blocks account creation.
+  }
+}
+
+async function saveAdditionalDriverFromBooking(): Promise<void> {
+  const pending = readPendingAdditionalDriver();
+  clearPendingAdditionalDriver();
+  if (!pending) return;
+  const hasAnything = pending.firstName || pending.licenceFrontUrl || pending.licenceBackUrl;
+  if (!hasAnything) return;
+
+  try {
+    const [fileFront, fileBack] = await Promise.all([
+      pending.licenceFrontUrl
+        ? urlToFile(pending.licenceFrontUrl, "additional-driver-front")
+        : null,
+      pending.licenceBackUrl ? urlToFile(pending.licenceBackUrl, "additional-driver-back") : null,
+    ]);
+    const body = new FormData();
+    body.set("firstName", pending.firstName);
+    body.set("lastName", pending.lastName);
+    if (fileFront) body.set("fileFront", fileFront);
+    if (fileBack) body.set("fileBack", fileBack);
+    await fetch(endpoints.accountAdditionalDriver, {
+      method: "POST",
+      body,
+      credentials: "same-origin",
+    });
+  } catch {
+    // Best-effort — never blocks account creation.
+  }
 }
 
 function dialFor(iso: string): string {

@@ -294,7 +294,7 @@ export function VehicleCardExpanded({
             </a>
           </div>
           <Button variant="cta" onClick={() => onConfirm(FLEET_PAY_NOW_RATE)}>
-            {t("next")} →
+            {t("bookNow")} →
           </Button>
         </footer>
       </div>

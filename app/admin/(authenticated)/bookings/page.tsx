@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
@@ -16,7 +17,6 @@ type BookingsResponse = {
     total: number;
     account: number;
     guest: number;
-    holding: number;
   };
 };
 
@@ -166,7 +166,6 @@ export default function AdminBookingsPage() {
     total: windowed.length,
     account: windowed.filter((item) => item.customerType === "account").length,
     guest: windowed.filter((item) => item.customerType === "guest").length,
-    holding: windowed.filter((item) => item.reducingCount).length,
   };
   const rows = windowed.filter((item) => {
     if (sourceFilter === "manual" && !item.isManual) return false;
@@ -201,13 +200,12 @@ export default function AdminBookingsPage() {
       {error ? <p className="body-md text-danger">{error}</p> : null}
       {data ? (
         <div className="flex flex-col gap-6">
-          <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          <ul className="grid gap-2 sm:grid-cols-3">
             {(
               [
                 ["Total", counters.total],
                 ["Account", counters.account],
                 ["Guest", counters.guest],
-                ["Holding a car", counters.holding],
               ] as const
             ).map(([label, value]) => (
               <li key={label} className="bg-paper border-border rounded-lg border px-3 py-2">
@@ -288,7 +286,12 @@ export default function AdminBookingsPage() {
                 header: "Booking",
                 cell: (row) => (
                   <div className="flex flex-col gap-0.5">
-                    <span className="font-medium tracking-wide">{row.bookingReference}</span>
+                    <Link
+                      href={`/admin/bookings/${encodeURIComponent(row.bookingReference)}`}
+                      className="text-ink-100 font-medium tracking-wide underline-offset-2 hover:underline"
+                    >
+                      {row.bookingReference}
+                    </Link>
                     <span className="text-ink-60">
                       {row.wizardBookingId != null ? `Wizard #${row.wizardBookingId}` : "Website"}
                     </span>

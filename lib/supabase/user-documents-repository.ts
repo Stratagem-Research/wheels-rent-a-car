@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { DocumentStatus, DocumentType, UserDocument } from "@/types/domain";
+import { findBookingDocumentScans } from "@/lib/supabase/booking-document-scans";
 
 type DocumentRow = {
   id: string;
@@ -159,6 +160,39 @@ export async function deleteUserDocument(
     .eq("user_id", userId)
     .eq("id", documentId);
   if (deleteError) throw deleteError;
+}
+
+/**
+ * If the account has no licence document yet, looks for one already sitting
+ * on a booking record (guest-checkout scans carried onto user_bookings —
+ * see lib/booking/stored-booking.ts) and copies its storage paths into a
+ * real user_documents row, no re-upload needed since both live in the same
+ * user-documents bucket. Returns the resulting document, or null if there
+ * was nothing to backfill.
+ */
+export async function backfillLicenceFromBooking(
+  supabase: SupabaseClient,
+  userId: string,
+  email?: string,
+): Promise<UserDocument | null> {
+  const existing = await findUserDocument(supabase, userId, "licence");
+  const hasScans = Boolean(
+    existing?.storage_path_front || existing?.storage_path_back || existing?.storage_path,
+  );
+  if (hasScans) return null;
+
+  const scans = await findBookingDocumentScans({ userId, email });
+  if (!scans.licenceFrontPath && !scans.licenceBackPath) return null;
+
+  return upsertUserDocument(supabase, userId, {
+    type: "licence",
+    number: scans.licenceNumber ?? existing?.number ?? "",
+    issueDate: scans.licenceIssue ?? existing?.issue_date ?? "",
+    expiryDate: scans.licenceExpiry ?? existing?.expiry_date ?? "",
+    issuingCountry: scans.licenceCountry ?? existing?.issuing_country ?? "LB",
+    storagePathFront: scans.licenceFrontPath ?? null,
+    storagePathBack: scans.licenceBackPath ?? null,
+  });
 }
 
 /** Removes every stored scan + row for a user — used when deleting an account. */

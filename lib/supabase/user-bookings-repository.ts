@@ -2,6 +2,7 @@ import type { PostgrestError } from "@supabase/supabase-js";
 import {
   compactStoredBookingToDb,
   emptyStoredBookingFields,
+  hasStoredBookingDetails,
   mapStoredBookingFields,
   omitStoredBookingDb,
   STORED_BOOKING_SELECT,
@@ -44,14 +45,122 @@ function isMissingWizardBookingIdColumn(error: PostgrestError): boolean {
   return /wizard_booking_id/i.test(error.message ?? "");
 }
 
+function withoutLicencePathColumns(row: Record<string, unknown>): Record<string, unknown> {
+  const {
+    driver_licence_front_path: _f,
+    driver_licence_back_path: _b,
+    additional_driver_front_path: _af,
+    additional_driver_back_path: _ab,
+    additional_driver_first_name: _an,
+    additional_driver_last_name: _al,
+    ...rest
+  } = row;
+  return rest;
+}
+
+function isMissingLicencePathColumn(error: PostgrestError): boolean {
+  return /driver_licence_(front|back)_path|additional_driver_(front|back)_path|additional_driver_(first|last)_name/i.test(
+    error.message ?? "",
+  );
+}
+
 function isMissingStoredBookingColumn(error: PostgrestError): boolean {
-  return /pickup_at|return_at|frontend_vehicle_id|wizard_vehicle_id|total_cents|vehicle_make|driver_first_name|base_rate_cents|extras|snapshot/i.test(
+  return /pickup_at|return_at|frontend_vehicle_id|wizard_vehicle_id|total_cents|vehicle_make|driver_first_name|driver_licence|additional_driver|base_rate_cents|extras|snapshot/i.test(
     error.message ?? "",
   );
 }
 
 function isMissingCustomerEmailColumn(error: PostgrestError): boolean {
   return /customer_email/i.test(error.message ?? "");
+}
+
+function preferStoredState(a: string | null, b: string | null): string | null {
+  const rank = (state: string | null): number => {
+    if (state === "cancelled" || state === "completed" || state === "expired") return 3;
+    if (state === "confirmed") return 2;
+    if (state === "pending" || state === "draft") return 1;
+    return 0;
+  };
+  return rank(a) >= rank(b) ? a : b;
+}
+
+function mergeIndexedDetails(user: UserBookingRow, indexed: UserBookingRow): UserBookingRow {
+  const indexedRicher = hasStoredBookingDetails(indexed) && !hasStoredBookingDetails(user);
+  const base = indexedRicher ? indexed : user;
+  const other = indexedRicher ? user : indexed;
+  return {
+    ...other,
+    ...base,
+    customerEmail: user.customerEmail ?? indexed.customerEmail,
+    publicToken: user.publicToken ?? indexed.publicToken,
+    createdAt: user.createdAt,
+    pickupAt: user.pickupAt ?? indexed.pickupAt,
+    returnAt: user.returnAt ?? indexed.returnAt,
+    frontendVehicleId: user.frontendVehicleId ?? indexed.frontendVehicleId,
+    wizardVehicleId: user.wizardVehicleId ?? indexed.wizardVehicleId,
+    state: preferStoredState(user.state, indexed.state),
+  };
+}
+
+async function fillMissingDetailsFromGuestIndex(rows: UserBookingRow[]): Promise<UserBookingRow[]> {
+  const needsFill = rows.filter(
+    (row) => !hasStoredBookingDetails(row) || !row.returnAt || !row.state,
+  );
+  if (needsFill.length === 0) return rows;
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("guest_booking_index")
+    .select("*")
+    .in(
+      "booking_reference",
+      needsFill.map((row) => row.bookingReference),
+    );
+  if (error || !data?.length) return rows;
+  const byRef = new Map<string, UserBookingRow>();
+  for (const raw of data) {
+    const mapped = mapGuestBookingRow(raw as unknown as Record<string, unknown>);
+    const existing = byRef.get(mapped.bookingReference);
+    if (!existing || hasStoredBookingDetails(mapped)) {
+      byRef.set(mapped.bookingReference, mapped);
+    }
+  }
+  return rows.map((row) => {
+    const guest = byRef.get(row.bookingReference);
+    return guest ? mergeIndexedDetails(row, guest) : row;
+  });
+}
+
+async function queryUserBookingRows(
+  supabase: import("@supabase/supabase-js").SupabaseClient,
+  userId: string,
+  bookingReference?: string,
+): Promise<UserBookingRow[]> {
+  const run = (select: string) => {
+    let query = supabase.from("user_bookings").select(select).eq("user_id", userId);
+    if (bookingReference) query = query.eq("booking_reference", bookingReference);
+    return query.order("created_at", { ascending: false });
+  };
+
+  const full = await run(USER_BOOKING_SELECT);
+  let mapped: UserBookingRow[] | null = null;
+  if (!full.error) {
+    mapped = (full.data ?? []).map((row) => mapUserBookingRow(row as unknown as Record<string, unknown>));
+  } else if (isMissingCustomerEmailColumn(full.error) || isMissingStoredBookingColumn(full.error)) {
+    const star = await run("*");
+    if (!star.error) {
+      mapped = (star.data ?? []).map((row) => mapUserBookingRow(row as unknown as Record<string, unknown>));
+    } else {
+      const basic = await run(USER_BOOKING_SELECT_BASIC);
+      if (basic.error) throw basic.error;
+      mapped = (basic.data ?? []).map((row) =>
+        mapUserBookingRow(row as unknown as Record<string, unknown>),
+      );
+    }
+  } else {
+    throw full.error;
+  }
+
+  return fillMissingDetailsFromGuestIndex(mapped);
 }
 
 export type UserBookingWrite = {
@@ -64,6 +173,7 @@ export type UserBookingWrite = {
   returnAt?: string | null;
   frontendVehicleId?: string | null;
   wizardVehicleId?: number | null;
+  replace?: boolean;
 } & Partial<StoredBookingFields>;
 
 function detailsDb(input: Partial<StoredBookingFields>): Record<string, unknown> {
@@ -74,37 +184,7 @@ export async function listUserBookings(
   supabase: import("@supabase/supabase-js").SupabaseClient,
   userId: string,
 ): Promise<UserBookingRow[]> {
-  const { data, error } = await supabase
-    .from("user_bookings")
-    .select(USER_BOOKING_SELECT)
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
-  if (error && (isMissingCustomerEmailColumn(error) || isMissingStoredBookingColumn(error))) {
-    const fallback = await supabase
-      .from("user_bookings")
-      .select(USER_BOOKING_SELECT_BASIC)
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false });
-    if (fallback.error) {
-      if (isMissingCustomerEmailColumn(fallback.error)) {
-        const minimal = await supabase
-          .from("user_bookings")
-          .select("booking_reference, public_token, created_at")
-          .eq("user_id", userId)
-          .order("created_at", { ascending: false });
-        if (minimal.error) throw minimal.error;
-        return (minimal.data ?? []).map((row) =>
-          mapUserBookingRow(row as unknown as Record<string, unknown>),
-        );
-      }
-      throw fallback.error;
-    }
-    return (fallback.data ?? []).map((row) =>
-      mapUserBookingRow(row as unknown as Record<string, unknown>),
-    );
-  }
-  if (error) throw error;
-  return (data ?? []).map((row) => mapUserBookingRow(row as unknown as Record<string, unknown>));
+  return queryUserBookingRows(supabase, userId);
 }
 
 /**
@@ -135,9 +215,18 @@ export async function addUserBooking(input: UserBookingWrite): Promise<void> {
 
   const { error } = await supabase
     .from("user_bookings")
-    .upsert(withWizardId, { onConflict: "user_id,booking_reference", ignoreDuplicates: true });
+    .upsert(withWizardId, { onConflict: "user_id,booking_reference", ignoreDuplicates: !input.replace });
 
   if (!error) return;
+
+  if (isMissingLicencePathColumn(error)) {
+    const { error: retryError } = await supabase.from("user_bookings").upsert(
+      withoutLicencePathColumns(withWizardId as Record<string, unknown>),
+      { onConflict: "user_id,booking_reference", ignoreDuplicates: !input.replace },
+    );
+    if (!retryError) return;
+    throw retryError;
+  }
 
   if (isMissingStoredBookingColumn(error)) {
     const withoutDetails = omitStoredBookingDb(withWizardId as Record<string, unknown>);
@@ -194,26 +283,8 @@ export async function getUserBookingRow(
   userId: string,
   bookingReference: string,
 ): Promise<UserBookingRow | null> {
-  const { data, error } = await supabase
-    .from("user_bookings")
-    .select(USER_BOOKING_SELECT)
-    .eq("user_id", userId)
-    .eq("booking_reference", bookingReference)
-    .maybeSingle();
-  if (error && (isMissingCustomerEmailColumn(error) || isMissingStoredBookingColumn(error))) {
-    const fallback = await supabase
-      .from("user_bookings")
-      .select(USER_BOOKING_SELECT_BASIC)
-      .eq("user_id", userId)
-      .eq("booking_reference", bookingReference)
-      .maybeSingle();
-    if (fallback.error) throw fallback.error;
-    if (!fallback.data) return null;
-    return mapUserBookingRow(fallback.data as unknown as Record<string, unknown>);
-  }
-  if (error) throw error;
-  if (!data) return null;
-  return mapUserBookingRow(data as unknown as Record<string, unknown>);
+  const rows = await queryUserBookingRows(supabase, userId, bookingReference);
+  return rows[0] ?? null;
 }
 
 export async function userOwnsBooking(
@@ -259,6 +330,14 @@ export async function indexGuestBooking(input: GuestBookingWrite): Promise<void>
     onConflict: "email,booking_reference",
     ignoreDuplicates: false,
   });
+  if (error && isMissingLicencePathColumn(error)) {
+    const { error: retryError } = await supabase.from("guest_booking_index").upsert(
+      withoutLicencePathColumns(row as Record<string, unknown>),
+      { onConflict: "email,booking_reference", ignoreDuplicates: false },
+    );
+    if (!retryError) return;
+    throw retryError;
+  }
   if (error && isMissingStoredBookingColumn(error)) {
     const withoutDetails = omitStoredBookingDb(row as Record<string, unknown>);
     delete withoutDetails.pickup_at;
@@ -313,6 +392,44 @@ export async function getIndexedGuestBooking(
   return mapGuestBookingRow(data as unknown as Record<string, unknown>);
 }
 
+/** Guest index first, then account row for the same ref + email (confirmation / manage-booking). */
+export async function findIndexedBookingByRefAndEmail(
+  bookingReference: string,
+  email: string,
+): Promise<UserBookingRow | null> {
+  const guest = await getIndexedGuestBooking(bookingReference, email);
+  if (guest) return guest;
+
+  const ref = bookingReference.trim();
+  const normalizedEmail = email.trim().toLowerCase();
+  if (!ref || !normalizedEmail) return null;
+  const supabase = getSupabaseAdminClient();
+  const full = await supabase
+    .from("user_bookings")
+    .select(USER_BOOKING_SELECT)
+    .eq("booking_reference", ref)
+    .eq("customer_email", normalizedEmail)
+    .limit(1)
+    .maybeSingle();
+  if (!full.error && full.data) {
+    return mapUserBookingRow(full.data as unknown as Record<string, unknown>);
+  }
+  if (full.error && (isMissingCustomerEmailColumn(full.error) || isMissingStoredBookingColumn(full.error))) {
+    const star = await supabase
+      .from("user_bookings")
+      .select("*")
+      .eq("booking_reference", ref)
+      .limit(5);
+    if (star.error) return null;
+    const match = (star.data ?? []).find((row) => {
+      const mapped = mapUserBookingRow(row as unknown as Record<string, unknown>);
+      return (mapped.customerEmail ?? mapped.driverEmail ?? "").trim().toLowerCase() === normalizedEmail;
+    });
+    return match ? mapUserBookingRow(match as unknown as Record<string, unknown>) : null;
+  }
+  return null;
+}
+
 /** First guest index row for this ref, else a linked user_bookings row. */
 export async function findIndexedBookingByReference(
   bookingReference: string,
@@ -324,39 +441,63 @@ export async function findIndexedBookingByReference(
     .from("guest_booking_index")
     .select(GUEST_BOOKING_SELECT)
     .eq("booking_reference", ref)
-    .limit(1)
-    .maybeSingle();
-  if (!guest.error && guest.data)
-    return mapGuestBookingRow(guest.data as unknown as Record<string, unknown>);
-  if (guest.error && !isMissingStoredBookingColumn(guest.error)) throw guest.error;
+    .limit(1);
+  if (!guest.error && guest.data?.[0]) {
+    return mapGuestBookingRow(guest.data[0] as unknown as Record<string, unknown>);
+  }
+  if (guest.error && isMissingStoredBookingColumn(guest.error)) {
+    const fallback = await supabase
+      .from("guest_booking_index")
+      .select("*")
+      .eq("booking_reference", ref)
+      .limit(1);
+    if (fallback.error) throw fallback.error;
+    if (fallback.data?.[0]) {
+      return mapGuestBookingRow(fallback.data[0] as unknown as Record<string, unknown>);
+    }
+  } else if (guest.error) {
+    throw guest.error;
+  }
 
   const user = await supabase
     .from("user_bookings")
     .select(USER_BOOKING_SELECT)
     .eq("booking_reference", ref)
-    .limit(1)
-    .maybeSingle();
+    .limit(1);
   if (user.error && (isMissingCustomerEmailColumn(user.error) || isMissingStoredBookingColumn(user.error))) {
     const fallback = await supabase
       .from("user_bookings")
-      .select(USER_BOOKING_SELECT_BASIC)
+      .select("*")
       .eq("booking_reference", ref)
-      .limit(1)
-      .maybeSingle();
-    if (fallback.error) throw fallback.error;
-    if (!fallback.data) return null;
-    return mapUserBookingRow(fallback.data as unknown as Record<string, unknown>);
+      .limit(1);
+    if (fallback.error) {
+      const basic = await supabase
+        .from("user_bookings")
+        .select(USER_BOOKING_SELECT_BASIC)
+        .eq("booking_reference", ref)
+        .limit(1);
+      if (basic.error) throw basic.error;
+      if (!basic.data?.[0]) return null;
+      return mapUserBookingRow(basic.data[0] as unknown as Record<string, unknown>);
+    }
+    if (!fallback.data?.[0]) return null;
+    return mapUserBookingRow(fallback.data[0] as unknown as Record<string, unknown>);
   }
   if (user.error) throw user.error;
-  if (!user.data) return null;
-  return mapUserBookingRow(user.data as unknown as Record<string, unknown>);
+  if (!user.data?.[0]) return null;
+  return mapUserBookingRow(user.data[0] as unknown as Record<string, unknown>);
 }
 
 export async function updateStoredBookingState(bookingReference: string, state: string): Promise<void> {
   const supabase = getSupabaseAdminClient();
   const ref = bookingReference.trim();
-  await supabase.from("guest_booking_index").update({ state }).eq("booking_reference", ref);
-  await supabase.from("user_bookings").update({ state }).eq("booking_reference", ref);
+  const [guest, user] = await Promise.all([
+    supabase.from("guest_booking_index").update({ state }).eq("booking_reference", ref),
+    supabase.from("user_bookings").update({ state }).eq("booking_reference", ref),
+  ]);
+  if (guest.error && user.error) {
+    throw guest.error;
+  }
 }
 
 export async function claimGuestBookingsForUser(userId: string, email: string): Promise<number> {
@@ -368,38 +509,40 @@ export async function claimGuestBookingsForUser(userId: string, email: string): 
     .eq("email", normalizedEmail);
   const rows = await (async () => {
     if (!error) return data ?? [];
-    if (!isMissingStoredBookingColumn(error)) throw error;
-    const fallback = await supabase
-      .from("guest_booking_index")
-      .select("booking_reference, public_token, wizard_booking_id")
-      .eq("email", normalizedEmail);
+    if (!isMissingStoredBookingColumn(error) && !isMissingLicencePathColumn(error)) throw error;
+    const fallback = await supabase.from("guest_booking_index").select("*").eq("email", normalizedEmail);
     if (fallback.error) throw fallback.error;
     return fallback.data ?? [];
   })();
   if (!rows.length) return 0;
 
-  // A reference already present in user_bookings was claimed once before —
-  // possibly by an account that has since been deleted (its row survives
-  // with user_id set to null, see migration 20260821_000001). Don't
-  // re-claim it into whichever new account happens to share that email;
-  // only genuinely unclaimed guest bookings get linked here.
   const refs = rows
     .map((row) => (row as Record<string, unknown>).booking_reference as string)
     .filter(Boolean);
   const { data: existing, error: existingError } = await supabase
     .from("user_bookings")
-    .select("booking_reference")
+    .select("*")
     .in("booking_reference", refs);
   if (existingError) throw existingError;
-  const alreadyClaimed = new Set(
-    (existing ?? []).map((row) => row.booking_reference as string),
+  const existingByRef = new Map(
+    (existing ?? []).map((row) => [
+      row.booking_reference as string,
+      mapUserBookingRow(row as unknown as Record<string, unknown>),
+    ]),
+  );
+  const ownerByRef = new Map(
+    (existing ?? []).map((row) => [row.booking_reference as string, row.user_id as string | null]),
   );
 
   let claimed = 0;
   for (const row of rows) {
     const record = row as Record<string, unknown>;
     const bookingReference = record.booking_reference as string;
-    if (alreadyClaimed.has(bookingReference)) continue;
+    const owner = ownerByRef.get(bookingReference);
+    if (owner && owner !== userId) continue;
+    if (owner === null) continue;
+    const linked = existingByRef.get(bookingReference);
+    if (linked && hasStoredBookingDetails(linked) && linked.returnAt) continue;
     await addUserBooking({
       userId,
       bookingReference,
@@ -410,6 +553,7 @@ export async function claimGuestBookingsForUser(userId: string, email: string): 
       frontendVehicleId: (record.frontend_vehicle_id as string | null) ?? null,
       wizardVehicleId: (record.wizard_vehicle_id as number | null) ?? null,
       customerEmail: normalizedEmail,
+      replace: true,
       ...mapStoredBookingFields(record),
     });
     claimed += 1;

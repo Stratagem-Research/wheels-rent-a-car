@@ -50,6 +50,36 @@ describe("user-bookings-repository guest index", () => {
     );
   });
 
+  it("indexGuestBooking keeps vehicle, dates, and price when licence path columns are missing", async () => {
+    mockUpsert
+      .mockReturnValueOnce({
+        error: {
+          code: "42703",
+          message: "column guest_booking_index.driver_licence_front_path does not exist",
+        },
+      })
+      .mockReturnValueOnce({ error: null });
+    mockFrom.mockReturnValue({ upsert: mockUpsert });
+
+    await indexGuestBooking({
+      email: "guest@example.com",
+      bookingReference: "WRC-260824-P7MQ",
+      pickupAt: "2026-08-26T10:00:00.000Z",
+      returnAt: "2026-08-28T10:00:00.000Z",
+      vehicleMake: "Kia",
+      vehicleModel: "Picanto",
+      totalCents: 13986,
+      driverLicenceFrontPath: "guest-checkout/abc/front.jpg",
+    });
+
+    expect(mockUpsert).toHaveBeenCalledTimes(2);
+    const retryPayload = mockUpsert.mock.calls[1]?.[0] as Record<string, unknown>;
+    expect(retryPayload.vehicle_make).toBe("Kia");
+    expect(retryPayload.total_cents).toBe(13986);
+    expect(retryPayload.pickup_at).toBeTruthy();
+    expect(retryPayload).not.toHaveProperty("driver_licence_front_path");
+  });
+
   it("claimGuestBookingsForUser upserts each indexed row into user_bookings", async () => {
     const userBookingsUpsert = vi.fn().mockReturnValue({ error: null });
     mockFrom.mockImplementation((table: string) => {
@@ -76,7 +106,12 @@ describe("user-bookings-repository guest index", () => {
         };
       }
       if (table === "user_bookings") {
-        return { upsert: userBookingsUpsert };
+        return {
+          select: () => ({
+            in: () => Promise.resolve({ data: [], error: null }),
+          }),
+          upsert: userBookingsUpsert,
+        };
       }
       throw new Error(`unexpected table ${table}`);
     });
@@ -92,7 +127,7 @@ describe("user-bookings-repository guest index", () => {
         wizard_booking_id: 1,
         customer_email: "guest@example.com",
       },
-      { onConflict: "user_id,booking_reference", ignoreDuplicates: true },
+      { onConflict: "user_id,booking_reference", ignoreDuplicates: false },
     );
   });
 

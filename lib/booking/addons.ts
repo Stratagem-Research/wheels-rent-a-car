@@ -1,6 +1,9 @@
 import { formatUsd } from "@/lib/booking/pricing";
 import type { AddOn } from "@/types/domain";
 
+/** Once this add-on is active, the extras step asks for the second driver's details. */
+export const ADDITIONAL_DRIVER_ADDON_ID = "ao-extra-driver";
+
 export function addOnUnitPriceLabel(addOn: AddOn): string {
   if (addOn.priceCents === 0) return "Free";
   const unit =

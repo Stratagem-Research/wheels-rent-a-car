@@ -116,7 +116,9 @@ export function VehicleCard({
   return (
     <article
       className={cn(
-        "group relative flex h-full flex-col overflow-hidden rounded-xl transition-shadow duration-200",
+        "group relative flex h-full flex-col overflow-hidden rounded-xl",
+        "cursor-pointer transition-all duration-200",
+        "hover:shadow-[0_4px_24px_rgba(0,0,0,0.18)] hover:-translate-y-0.5",
         dark ? "bg-ink-95 text-paper" : "bg-paper text-ink-95 border-border border",
         selected && "outline-signal-red outline outline-2 outline-offset-0",
         className,
@@ -199,15 +201,18 @@ export function VehicleCard({
         </ul>
       </Link>
 
-      <div className="px-5 sm:px-6">
+      <Link
+        href={detailHref}
+        scroll={scrollOnClick}
+        tabIndex={-1}
+        className="block px-5 sm:px-6"
+      >
         <VehicleImageSlider
           images={vehicle.images}
           dark={dark}
-          href={detailHref}
-          scroll={scrollOnClick}
           sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
         />
-      </div>
+      </Link>
 
       <Link
         href={detailHref}

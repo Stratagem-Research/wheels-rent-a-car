@@ -2,7 +2,13 @@
 
 import * as React from "react";
 import { addDays, format } from "date-fns";
-import type { BookingDraft, BookingExtra, BookingPickup, BookingReturn } from "@/types/domain";
+import type {
+  AdditionalDriver,
+  BookingDraft,
+  BookingExtra,
+  BookingPickup,
+  BookingReturn,
+} from "@/types/domain";
 
 /**
  * Booking draft state per 00_global.md §20.
@@ -89,6 +95,7 @@ export interface UseBookingDraftReturn {
   upsertExtra: (extra: BookingExtra) => void;
   removeExtra: (addOnId: string) => void;
   setProtection: (tierId: string) => void;
+  setAdditionalDriver: (driver: AdditionalDriver | undefined) => void;
   clear: typeof clearBookingDraft;
   /** True once we've hydrated from sessionStorage on the client. */
   ready: boolean;
@@ -174,6 +181,12 @@ export function useBookingDraft(): UseBookingDraftReturn {
     [setDraft],
   );
 
+  const setAdditionalDriver = React.useCallback(
+    (driver: AdditionalDriver | undefined) =>
+      setDraft((d) => ({ ...d, additionalDriver: driver })),
+    [setDraft],
+  );
+
   return {
     draft,
     setDraft,
@@ -183,6 +196,7 @@ export function useBookingDraft(): UseBookingDraftReturn {
     upsertExtra,
     removeExtra,
     setProtection,
+    setAdditionalDriver,
     clear: clearBookingDraft,
     ready,
   };

@@ -75,28 +75,97 @@ export function renderNotificationTemplate(
     case "booking_cancel_requested":
       return {
         subject: ref ? `Cancellation request received — ${ref}` : "Cancellation request received",
-        html: `<p>We received your cancellation request${ref ? ` for <strong>${ref}</strong>` : ""}. Our team will review it and email you once it is processed.</p>`,
+        html: brandShell(
+          `<h1 style="margin:0 0 16px 0; font-size:22px; font-weight:800; color:#0a0a0a;">Cancellation request received</h1><p style="margin:0; font-size:15px; line-height:1.6; color:#404040;">We received your cancellation request${ref ? ` for <strong style="color:#0a0a0a;">${escapeHtml(ref)}</strong>` : ""}. Our team will review it and email you once it is processed.</p>`,
+        ),
         text: `We received your cancellation request${ref ? ` for ${ref}` : ""}.`,
       };
     case "booking_cancelled":
       return {
         subject: ref ? `Wheels booking cancelled — ${ref}` : "Wheels booking cancelled",
-        html: `<p>Your Wheels booking has been cancelled${ref ? ` (<strong>${ref}</strong>)` : ""}.</p>${vehicle ? `<p>Vehicle: ${vehicle}</p>` : ""}<p>If you did not request this, please contact us.</p>`,
+        html: brandShell(
+          `<h1 style="margin:0 0 16px 0; font-size:22px; font-weight:800; color:#0a0a0a;">Booking cancelled</h1><p style="margin:0 0 8px 0; font-size:15px; line-height:1.6; color:#404040;">Your Wheels booking has been cancelled${ref ? ` (<strong style="color:#0a0a0a;">${escapeHtml(ref)}</strong>)` : ""}.</p>${vehicle ? `<p style="margin:0 0 8px 0; font-size:15px; line-height:1.6; color:#404040;">Vehicle: ${escapeHtml(vehicle)}</p>` : ""}<p style="margin:0; font-size:15px; line-height:1.6; color:#404040;">If you did not request this, please contact us.</p>`,
+        ),
         text: `Your Wheels booking has been cancelled${ref ? ` (${ref})` : ""}.${vehicle ? ` Vehicle: ${vehicle}.` : ""}`,
       };
     case "booking_change_requested":
       return {
         subject: ref ? `Change request received — ${ref}` : "Change request received",
-        html: `<p>We received your booking change request${ref ? ` for <strong>${ref}</strong>` : ""}. Our team will review it and contact you shortly.</p>`,
+        html: brandShell(
+          `<h1 style="margin:0 0 16px 0; font-size:22px; font-weight:800; color:#0a0a0a;">Change request received</h1><p style="margin:0; font-size:15px; line-height:1.6; color:#404040;">We received your booking change request${ref ? ` for <strong style="color:#0a0a0a;">${escapeHtml(ref)}</strong>` : ""}. Our team will review it and contact you shortly.</p>`,
+        ),
         text: `We received your booking change request${ref ? ` for ${ref}` : ""}.`,
       };
     default:
       return {
         subject: "Wheels notification",
-        html: `<p>${template}</p><pre>${JSON.stringify(payload, null, 2)}</pre>`,
+        html: brandShell(`<p style="margin:0; font-size:15px; color:#404040;">${escapeHtml(template)}</p>`),
         text: `${template}\n${JSON.stringify(payload)}`,
       };
   }
+}
+
+const EMAIL_FONT =
+  "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+
+/**
+ * Wraps an email body in the Wheels ink/paper/signal-red shell — wordmark
+ * band, red hairline, card, footer — matching the rest of the site and the
+ * branded Supabase auth templates (docs/email-templates/). Table-based
+ * layout + inline styles throughout: required for Outlook/Gmail parity.
+ */
+function brandShell(bodyHtml: string): string {
+  return `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body style="margin:0; padding:0; background-color:#f5f5f5; -webkit-text-size-adjust:100%;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f5f5f5;">
+      <tr>
+        <td align="center" style="padding:40px 16px;">
+          <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="width:600px; max-width:600px; background-color:#ffffff;">
+            <tr>
+              <td align="center" style="background-color:#000000; padding:28px 32px;">
+                <span style="font-family:${EMAIL_FONT}; font-size:15px; font-weight:700; letter-spacing:3px; color:#ffffff; text-transform:uppercase;">
+                  Wheels&nbsp;Rent&nbsp;A&nbsp;Car
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td style="background-color:#c8102e; height:4px; line-height:4px; font-size:0;">&nbsp;</td>
+            </tr>
+            <tr>
+              <td style="padding:40px; font-family:${EMAIL_FONT}; color:#0a0a0a;">
+                ${bodyHtml}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:0 40px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                  <tr><td style="border-top:1px solid #e5e5e5; font-size:0; line-height:0;">&nbsp;</td></tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px 40px 36px 40px; font-family:${EMAIL_FONT};">
+                <p style="margin:0; font-size:12px; line-height:1.6; color:#a3a3a3;">
+                  Wheels Rent A Car · Hazmieh, Beirut, Lebanon · <a href="https://wa.me/9613100200" style="color:#a3a3a3;">WhatsApp support</a>
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+}
+
+/** Uppercase red eyebrow label used above each section (price breakdown, etc). */
+function emailEyebrow(label: string): string {
+  return `<p style="margin:24px 0 8px 0; font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#c8102e;">${escapeHtml(label)}</p>`;
 }
 
 function escapeHtml(value: string): string {
@@ -135,24 +204,28 @@ const BOOKING_EMAIL_COPY: Record<
     subject: (ref) =>
       ref ? `We received your booking request — ${ref}` : "We received your booking request",
     headline: (ref) =>
-      `Thank you — we have received your booking request${ref ? ` (<strong>${escapeHtml(ref)}</strong>)` : ""}.`,
+      `Thank you — we have received your booking request${ref ? ` (<strong style="color:#0a0a0a;">${escapeHtml(ref)}</strong>)` : ""}.`,
     textHeadline: (ref) =>
       `Thank you — we have received your booking request${ref ? ` (${ref})` : ""}.`,
     footer:
       "Our team will review it and email you once it is approved. This message confirms receipt of your request, not that payment has been verified.",
     minimalHtml: (ref, vehicle) =>
-      `<p>Thank you — we have received your booking request${ref ? ` (<strong>${escapeHtml(ref)}</strong>)` : ""}.</p>${vehicle ? `<p>Vehicle: ${escapeHtml(vehicle)}</p>` : ""}<p>Our team will review it and email you once it is approved. This message confirms receipt of your request, not that payment has been verified.</p>`,
+      brandShell(
+        `<p style="margin:0 0 12px 0; font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#c8102e;">Request received</p><h1 style="margin:0 0 16px 0; font-size:24px; line-height:1.3; font-weight:800; color:#0a0a0a;">Thank you — we've got your booking request</h1><p style="margin:0 0 8px 0; font-size:15px; line-height:1.6; color:#404040;">${ref ? `Reference <strong style="color:#0a0a0a;">${escapeHtml(ref)}</strong>` : ""}${vehicle ? `${ref ? " · " : ""}Vehicle: ${escapeHtml(vehicle)}` : ""}</p><p style="margin:0; font-size:15px; line-height:1.6; color:#404040;">Our team will review it and email you once it is approved. This message confirms receipt of your request, not that payment has been verified.</p>`,
+      ),
     minimalText: (ref, vehicle) =>
       `Thank you — we have received your booking request${ref ? ` (${ref})` : ""}.${vehicle ? ` Vehicle: ${vehicle}.` : ""} Our team will review it and email you once it is approved.`,
   },
   confirmed: {
     subject: (ref) => (ref ? `Wheels booking confirmed — ${ref}` : "Wheels booking confirmed"),
     headline: (ref) =>
-      `Your Wheels booking is confirmed${ref ? ` (<strong>${escapeHtml(ref)}</strong>)` : ""}.`,
+      `Your Wheels booking is confirmed${ref ? ` (<strong style="color:#0a0a0a;">${escapeHtml(ref)}</strong>)` : ""}.`,
     textHeadline: (ref) => `Your Wheels booking is confirmed${ref ? ` (${ref})` : ""}.`,
     footer: "We will contact you before pickup with any final details.",
     minimalHtml: (ref, vehicle) =>
-      `<p>Your Wheels booking is confirmed${ref ? ` (<strong>${escapeHtml(ref)}</strong>)` : ""}.</p>${vehicle ? `<p>Vehicle: ${escapeHtml(vehicle)}</p>` : ""}<p>We will contact you before pickup with any final details.</p>`,
+      brandShell(
+        `<p style="margin:0 0 12px 0; font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#c8102e;">Booking confirmed</p><h1 style="margin:0 0 16px 0; font-size:24px; line-height:1.3; font-weight:800; color:#0a0a0a;">You're all set</h1><p style="margin:0 0 8px 0; font-size:15px; line-height:1.6; color:#404040;">${ref ? `Reference <strong style="color:#0a0a0a;">${escapeHtml(ref)}</strong>` : ""}${vehicle ? `${ref ? " · " : ""}Vehicle: ${escapeHtml(vehicle)}` : ""}</p><p style="margin:0; font-size:15px; line-height:1.6; color:#404040;">We will contact you before pickup with any final details.</p>`,
+      ),
     minimalText: (ref, vehicle) =>
       `Your Wheels booking is confirmed${ref ? ` (${ref})` : ""}.${vehicle ? ` Vehicle: ${vehicle}.` : ""}`,
   },
@@ -205,13 +278,22 @@ function renderRichBookingEmail(
   const priceDiscount = str(payload, "priceDiscount");
 
   const htmlRow = (label: string, value: string) =>
-    value ? `<tr><td style="padding:4px 12px 4px 0;color:#666;">${label}</td><td>${escapeHtml(value)}</td></tr>` : "";
+    value
+      ? `<tr><td style="padding:6px 16px 6px 0; font-size:14px; color:#737373; white-space:nowrap; vertical-align:top;">${escapeHtml(label)}</td><td style="padding:6px 0; font-size:14px; color:#0a0a0a;">${escapeHtml(value)}</td></tr>`
+      : "";
 
   const textLine = (label: string, value: string) => (value ? `${label}: ${value}\n` : "");
 
-  const html = `
-    <p>${copy.headline(ref)}</p>
-    <table cellpadding="0" cellspacing="0">
+  const eyebrowLabel = kind === "requested" ? "Request received" : "Booking confirmed";
+  const headlineText =
+    kind === "requested" ? "Thank you — we've got your booking request" : "You're all set";
+
+  const html = brandShell(`
+    <p style="margin:0 0 12px 0; font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#c8102e;">${eyebrowLabel}</p>
+    <h1 style="margin:0 0 12px 0; font-size:24px; line-height:1.3; font-weight:800; color:#0a0a0a;">${headlineText}</h1>
+    <p style="margin:0 0 24px 0; font-size:15px; line-height:1.6; color:#404040;">${copy.headline(ref)}</p>
+    ${emailEyebrow("Trip details")}
+    <table cellpadding="0" cellspacing="0" style="width:100%; border-collapse:collapse;">
       ${htmlRow("Vehicle", vehicleLabel)}
       ${htmlRow("Pickup", `${pickupDate} at ${pickupTime}${pickupLocation ? ` — ${pickupLocation}` : ""}`)}
       ${htmlRow("Return", `${returnDate} at ${returnTime}${returnLocation ? ` — ${returnLocation}` : ""}`)}
@@ -222,20 +304,24 @@ function renderRichBookingEmail(
       ${htmlRow("Protection plan", protectionName ? `${protectionName}${protectionPriceLabel ? ` (${protectionPriceLabel})` : ""}` : "")}
       ${htmlRow("Payment method", paymentMethod)}
     </table>
-    ${extrasLines.length > 0 ? `<p><strong>Selected extras</strong></p><ul>${extrasLines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>` : ""}
-    <p><strong>Price breakdown</strong></p>
-    <table cellpadding="0" cellspacing="0">
+    ${
+      extrasLines.length > 0
+        ? `${emailEyebrow("Selected extras")}<ul style="margin:0; padding-left:18px; font-size:14px; line-height:1.7; color:#0a0a0a;">${extrasLines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>`
+        : ""
+    }
+    ${emailEyebrow("Price breakdown")}
+    <table cellpadding="0" cellspacing="0" style="width:100%; border-collapse:collapse;">
       ${htmlRow("Base rate", str(payload, "priceBaseRate"))}
       ${htmlRow("Extras", str(payload, "priceExtras"))}
       ${htmlRow("Protection", str(payload, "priceProtection"))}
       ${htmlRow("Taxes", str(payload, "priceTaxes"))}
       ${htmlRow("Fees", str(payload, "priceFees"))}
       ${priceDiscount ? htmlRow("Discount", `-${priceDiscount}`) : ""}
-      <tr><td style="padding:8px 12px 4px 0;font-weight:bold;">Total</td><td style="font-weight:bold;">${escapeHtml(str(payload, "priceTotal"))}</td></tr>
+      <tr><td style="padding:12px 16px 6px 0; font-size:15px; font-weight:800; color:#0a0a0a; border-top:1px solid #e5e5e5;">Total</td><td style="padding:12px 0 6px 0; font-size:15px; font-weight:800; color:#0a0a0a; border-top:1px solid #e5e5e5;">${escapeHtml(str(payload, "priceTotal"))}</td></tr>
       ${htmlRow("Security deposit (refundable)", str(payload, "priceDeposit"))}
     </table>
-    <p>${copy.footer}</p>
-  `;
+    <p style="margin:28px 0 0 0; font-size:14px; line-height:1.6; color:#737373;">${copy.footer}</p>
+  `);
 
   const text = [
     copy.textHeadline(ref),

@@ -14,6 +14,7 @@ import { Stepper } from "@/components/booking/Stepper";
 import { ConfirmationStatusBlock } from "@/components/booking/ConfirmationStatusBlock";
 import { BookingStatusPoller } from "@/components/booking/BookingStatusPoller";
 import { BookingSelfServiceActions } from "@/components/account/BookingSelfServiceActions";
+import { AdditionalDriverDetail } from "@/components/account/BookingDetailPanel";
 import { isValidBookingRef } from "@/lib/booking/ref";
 import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
@@ -21,7 +22,7 @@ import { formatUsd } from "@/lib/booking/pricing";
 import { clearBookingDraft } from "@/hooks/useBookingDraft";
 import { useBookingCatalog } from "@/hooks/useBookingCatalog";
 import { useSession } from "@/hooks/useSession";
-import type { Booking, BookingState } from "@/types/domain";
+import type { Booking, BookingDriver, BookingState } from "@/types/domain";
 
 /**
  * /book/confirmation/[ref] — step 5 per 04_booking_flow.md.
@@ -36,6 +37,7 @@ import type { Booking, BookingState } from "@/types/domain";
  */
 export default function ConfirmationPage() {
   const t = useTranslations("bookingFlow.confirmation");
+  const tDetail = useTranslations("bookingDetail");
   const params = useParams<{ ref: string }>();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -172,6 +174,17 @@ export default function ConfirmationPage() {
               </p>
             </div>
 
+            {booking.additionalDriver &&
+            (booking.additionalDriver.firstName ||
+              booking.additionalDriver.lastName ||
+              booking.additionalDriver.licenceFrontUrl ||
+              booking.additionalDriver.licenceBackUrl) ? (
+              <div>
+                <h3 className="text-ink-50 mb-2 overline">{tDetail("additionalDriver")}</h3>
+                <AdditionalDriverDetail driver={booking.additionalDriver} />
+              </div>
+            ) : null}
+
             {booking.extras.length > 0 ? (
               <div>
                 <h3 className="text-ink-50 mb-2 overline">{t("addons")}</h3>
@@ -229,7 +242,7 @@ export default function ConfirmationPage() {
 
         <NextSteps booking={booking} pickupBranch={pickupBranch?.name} />
 
-        <AccountUpsell email={booking.driver.email} />
+        <AccountUpsell driver={booking.driver} />
 
         <CrossSell />
 
@@ -279,14 +292,26 @@ function NextSteps({
   if (booking.pickup.type === "address-delivery" && booking.pickup.address) {
     items.push(t("stepDeliverTo", { address: booking.pickup.address }));
   }
-  if (booking.paymentMethod === "cash") {
-    items.push(t("stepBringCash"));
-  }
-  if (booking.state === "pending" && booking.paymentMethod === "transfer") {
-    items.push(t("stepSendTransfer"));
-  }
-  if (booking.state === "pending" && booking.paymentMethod === "omt") {
-    items.push(t("stepPayOmt"));
+  // What to expect/bring at handover differs by how they paid: cash needs
+  // physical currency, transfer/OMT are verified in person so bring proof,
+  // and the online gateways (Whish, NEO card) already cleared electronically
+  // — nothing more to bring for those.
+  switch (booking.paymentMethod) {
+    case "cash":
+      items.push(t("stepBringCash"));
+      break;
+    case "transfer":
+      items.push(t("stepBringTransferReceipt"));
+      break;
+    case "omt":
+      items.push(t("stepBringOmtReceipt"));
+      break;
+    case "whish-online":
+    case "neo":
+      items.push(t("stepPaymentConfirmedOnline"));
+      break;
+    default:
+      break;
   }
 
   return (
@@ -304,12 +329,24 @@ function NextSteps({
   );
 }
 
-function AccountUpsell({ email }: { email: string }) {
+function AccountUpsell({ driver }: { driver: BookingDriver }) {
   const t = useTranslations("bookingFlow.confirmation");
   const { session, ready } = useSession();
 
   // Guest-only CTA — skip while session hydrates and whenever already signed in.
   if (!ready || session) return null;
+
+  // One click really means one click: seed /register with what the guest
+  // already typed at checkout instead of asking for it all again. Licence
+  // details (including the actual scan photos, when uploaded at checkout)
+  // travel separately via sessionStorage — see lib/booking/pending-licence —
+  // since signed scan URLs are too long for a query string.
+  const registerParams = new URLSearchParams({
+    email: driver.email,
+    firstName: driver.firstName,
+    lastName: driver.lastName,
+    ...(driver.phone ? { phone: driver.phone } : {}),
+  });
 
   return (
     <section className="mt-10">
@@ -320,12 +357,12 @@ function AccountUpsell({ email }: { email: string }) {
         <div className="min-w-0">
           <h2 className="headline-sm">{t("upsellHeading")}</h2>
           <p className="body-sm text-paper/85 break-words">
-            {t("upsellBody", { email })}
+            {t("upsellBody", { email: driver.email })}
           </p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-3">
           <Button asChild variant="cta" size="md">
-            <Link href={`/register?email=${encodeURIComponent(email)}`}>{t("createAccount")}</Link>
+            <Link href={`/register?${registerParams.toString()}`}>{t("createAccount")}</Link>
           </Button>
           <Button
             asChild

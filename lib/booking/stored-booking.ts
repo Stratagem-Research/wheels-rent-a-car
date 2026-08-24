@@ -37,6 +37,12 @@ export type StoredBookingFields = {
   driverLicenceIssue: string | null;
   driverLicenceExpiry: string | null;
   driverCountry: string | null;
+  driverLicenceFrontPath: string | null;
+  driverLicenceBackPath: string | null;
+  additionalDriverFirstName: string | null;
+  additionalDriverLastName: string | null;
+  additionalDriverFrontPath: string | null;
+  additionalDriverBackPath: string | null;
   flightNumber: string | null;
   paymentMethod: string | null;
   marketingConsent: boolean | null;
@@ -79,6 +85,12 @@ export const STORED_BOOKING_DB_KEYS = [
   "driver_licence_issue",
   "driver_licence_expiry",
   "driver_country",
+  "driver_licence_front_path",
+  "driver_licence_back_path",
+  "additional_driver_first_name",
+  "additional_driver_last_name",
+  "additional_driver_front_path",
+  "additional_driver_back_path",
   "flight_number",
   "payment_method",
   "marketing_consent",
@@ -124,6 +136,12 @@ export function emptyStoredBookingFields(): StoredBookingFields {
     driverLicenceIssue: null,
     driverLicenceExpiry: null,
     driverCountry: null,
+    driverLicenceFrontPath: null,
+    driverLicenceBackPath: null,
+    additionalDriverFirstName: null,
+    additionalDriverLastName: null,
+    additionalDriverFrontPath: null,
+    additionalDriverBackPath: null,
     flightNumber: null,
     paymentMethod: null,
     marketingConsent: null,
@@ -172,6 +190,12 @@ export function storedBookingFromDomain(booking: Booking): StoredBookingFields {
     driverLicenceIssue: booking.driver?.licenceIssue ?? null,
     driverLicenceExpiry: booking.driver?.licenceExpiry ?? null,
     driverCountry: booking.driver?.country ?? null,
+    driverLicenceFrontPath: booking.driver?.licenceFrontPath ?? null,
+    driverLicenceBackPath: booking.driver?.licenceBackPath ?? null,
+    additionalDriverFirstName: booking.additionalDriver?.firstName ?? null,
+    additionalDriverLastName: booking.additionalDriver?.lastName ?? null,
+    additionalDriverFrontPath: booking.additionalDriver?.licenceFrontPath ?? null,
+    additionalDriverBackPath: booking.additionalDriver?.licenceBackPath ?? null,
     flightNumber: booking.flightNumber ?? null,
     paymentMethod: booking.paymentMethod ?? null,
     marketingConsent: booking.marketingConsent ?? null,
@@ -216,6 +240,12 @@ export function storedBookingToDb(fields: StoredBookingFields): Record<string, u
     driver_licence_issue: fields.driverLicenceIssue,
     driver_licence_expiry: fields.driverLicenceExpiry,
     driver_country: fields.driverCountry,
+    driver_licence_front_path: fields.driverLicenceFrontPath,
+    driver_licence_back_path: fields.driverLicenceBackPath,
+    additional_driver_first_name: fields.additionalDriverFirstName,
+    additional_driver_last_name: fields.additionalDriverLastName,
+    additional_driver_front_path: fields.additionalDriverFrontPath,
+    additional_driver_back_path: fields.additionalDriverBackPath,
     flight_number: fields.flightNumber,
     payment_method: fields.paymentMethod,
     marketing_consent: fields.marketingConsent,
@@ -272,6 +302,12 @@ export function mapStoredBookingFields(row: Record<string, unknown>): StoredBook
     driverLicenceIssue: asString(row.driver_licence_issue),
     driverLicenceExpiry: asString(row.driver_licence_expiry),
     driverCountry: asString(row.driver_country),
+    driverLicenceFrontPath: asString(row.driver_licence_front_path),
+    driverLicenceBackPath: asString(row.driver_licence_back_path),
+    additionalDriverFirstName: asString(row.additional_driver_first_name),
+    additionalDriverLastName: asString(row.additional_driver_last_name),
+    additionalDriverFrontPath: asString(row.additional_driver_front_path),
+    additionalDriverBackPath: asString(row.additional_driver_back_path),
     flightNumber: asString(row.flight_number),
     paymentMethod: asString(row.payment_method),
     marketingConsent: asBool(row.marketing_consent),
@@ -418,7 +454,22 @@ export function bookingFromStoredRow(row: StoredBookingIdentity, authEmail: stri
       licenceIssue: row.driverLicenceIssue ?? "",
       licenceExpiry: row.driverLicenceExpiry ?? "",
       country: row.driverCountry ?? "LB",
+      ...(row.driverLicenceFrontPath ? { licenceFrontPath: row.driverLicenceFrontPath } : {}),
+      ...(row.driverLicenceBackPath ? { licenceBackPath: row.driverLicenceBackPath } : {}),
     },
+    ...(row.additionalDriverFirstName ||
+    row.additionalDriverLastName ||
+    row.additionalDriverFrontPath ||
+    row.additionalDriverBackPath
+      ? {
+          additionalDriver: {
+            firstName: row.additionalDriverFirstName ?? "",
+            lastName: row.additionalDriverLastName ?? "",
+            ...(row.additionalDriverFrontPath ? { licenceFrontPath: row.additionalDriverFrontPath } : {}),
+            ...(row.additionalDriverBackPath ? { licenceBackPath: row.additionalDriverBackPath } : {}),
+          },
+        }
+      : {}),
     ...(row.flightNumber ? { flightNumber: row.flightNumber } : {}),
     paymentMethod: asPayment(row.paymentMethod),
     marketingConsent: row.marketingConsent ?? false,

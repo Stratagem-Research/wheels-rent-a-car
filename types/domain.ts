@@ -242,6 +242,25 @@ export interface BookingDriver {
   licenceIssue: ISODate;
   licenceExpiry: ISODate;
   country: CountryCode;
+  /** Guest-checkout scan storage paths (user-documents bucket) — local-only,
+   *  never sent to Wizard — carried onto the booking so a profile created
+   *  later can backfill the licence photos from booking history. */
+  licenceFrontPath?: string;
+  licenceBackPath?: string;
+}
+
+/**
+ * Captured at checkout when the "Additional driver" add-on is active — just
+ * enough to add them to the rental agreement: name + their own licence
+ * scans. No number/dates typed in, unlike the primary driver's licence.
+ */
+export interface AdditionalDriver {
+  firstName: string;
+  lastName: string;
+  licenceFrontUrl?: string;
+  licenceBackUrl?: string;
+  licenceFrontPath?: string;
+  licenceBackPath?: string;
 }
 
 export type PaymentMethod = "card" | "cash" | "transfer" | "omt" | "whish-online" | "neo";
@@ -253,6 +272,8 @@ export interface BookingDraft {
   extras: BookingExtra[];
   protectionTierId?: string;
   driver?: BookingDriver;
+  /** Set when the "Additional driver" add-on (ao-extra-driver) is active. */
+  additionalDriver?: AdditionalDriver;
   /** Required when pickup.type === "airport". */
   flightNumber?: string;
   paymentMethod?: PaymentMethod;
@@ -295,6 +316,7 @@ export interface Booking {
   extras: BookingExtra[];
   protectionTierId: string;
   driver: BookingDriver;
+  additionalDriver?: AdditionalDriver;
   flightNumber?: string;
   paymentMethod: PaymentMethod;
   marketingConsent: boolean;

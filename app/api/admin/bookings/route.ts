@@ -11,7 +11,6 @@ export async function GET(request: Request) {
       total: items.length,
       account: items.filter((item) => item.customerType === "account").length,
       guest: items.filter((item) => item.customerType === "guest").length,
-      holding: items.filter((item) => item.reducingCount).length,
     };
     return NextResponse.json({ items, counters });
   } catch (error) {

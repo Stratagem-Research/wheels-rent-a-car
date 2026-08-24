@@ -17,6 +17,8 @@ import {
   parseWizardVehicleId,
 } from "@/lib/booking/wizard-vehicle-id";
 import { bookingFromStoredRow, storedBookingFromDomain } from "@/lib/booking/stored-booking";
+import { getAdditionalDriverStoragePaths } from "@/lib/supabase/additional-drivers-repository";
+import { withSignedAdditionalDriverScans } from "@/lib/supabase/booking-document-scans";
 import { buildBookingEmailPayload } from "@/lib/server/booking-confirmation";
 import { validatePromoCodeFromRow } from "@/lib/booking/promo";
 import {
@@ -42,7 +44,7 @@ import { listVehicleWizardMap } from "@/lib/supabase/admin-repository";
 import {
   addUserBooking,
   claimGuestBookingsForUser,
-  getIndexedGuestBooking,
+  findIndexedBookingByRefAndEmail,
   indexGuestBooking,
 } from "@/lib/supabase/user-bookings-repository";
 import {
@@ -480,6 +482,23 @@ export async function handleBookingSubmit(
     wizardBookingId: response.data.booking_id,
     userId: options?.userId,
   });
+
+  // OMT has no payment callback — the customer pays in person using the
+  // booking reference itself as the transaction code (see the confirmation
+  // page's "bring your OMT receipt" step). Wizard only learns the reference
+  // once this create call returns, so push it back as a follow-up sync —
+  // best-effort, never blocks the booking that already succeeded.
+  if (draft.paymentMethod === "omt") {
+    await dispatchWizardSync(booking.ref, {
+      lifecycleState: "pending",
+      paymentMethod: "omt",
+      paymentReference: booking.ref,
+      message: `OMT payment code for reconciliation: ${booking.ref}.`,
+    }).catch((err) => {
+      console.error("[booking-submit] OMT payment-reference sync failed", err);
+    });
+  }
+
   return { booking };
 }
 
@@ -494,6 +513,20 @@ async function persistBookingRecords(input: {
   userId?: string;
 }): Promise<void> {
   const { booking, draft, vehicle, frontendVehicleId } = input;
+  if (input.userId && booking.additionalDriver) {
+    const vault = await getAdditionalDriverStoragePaths(input.userId).catch(() => null);
+    if (vault) {
+      booking.additionalDriver = {
+        ...booking.additionalDriver,
+        ...(booking.additionalDriver.licenceFrontPath || !vault.frontPath
+          ? {}
+          : { licenceFrontPath: vault.frontPath }),
+        ...(booking.additionalDriver.licenceBackPath || !vault.backPath
+          ? {}
+          : { licenceBackPath: vault.backPath }),
+      };
+    }
+  }
   try {
     await addVehicleBookingHold({
       bookingReference: booking.ref,
@@ -575,17 +608,21 @@ function isWebsiteOnlyIndexedBooking(row: {
 }
 
 export async function handleBookingLookup(body: LookupBookingRequest): Promise<Booking> {
-  const local = await getIndexedGuestBooking(body.ref, body.email).catch(() => null);
+  const local = await findIndexedBookingByRefAndEmail(body.ref, body.email).catch(() => null);
   if (local && isWebsiteOnlyIndexedBooking(local)) {
     const booking = bookingFromStoredRow(local, body.email);
     if (booking.vehicleSnapshot.images.length === 0) {
       booking.vehicleSnapshot.images = [{ ...LOOKUP_PLACEHOLDER_IMAGE }];
     }
-    return booking;
+    return withSignedAdditionalDriverScans(booking);
   }
 
   const response = await getBookingByReferenceEmail(body.ref, body.email);
-  return hydrateLookupVehicle(toBookingFromLookup(response.data), response.data.vehicle.id);
+  const live = await hydrateLookupVehicle(toBookingFromLookup(response.data), response.data.vehicle.id);
+  if (!local) return live;
+  const stored = await withSignedAdditionalDriverScans(bookingFromStoredRow(local, body.email));
+  if (!stored.additionalDriver) return live;
+  return { ...live, additionalDriver: stored.additionalDriver };
 }
 
 /** Prefer website catalog (`wiz-{id}`) over fixture fallback for lookup UIs. */

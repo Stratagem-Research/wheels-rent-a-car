@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAccountUser } from "@/lib/server/account-auth";
-import { findUserDocument, listUserDocuments, upsertUserDocument } from "@/lib/supabase/user-documents-repository";
+import { findUserDocument, listUserDocuments, upsertUserDocument, backfillLicenceFromBooking } from "@/lib/supabase/user-documents-repository";
+import { findBookingDocumentScans, signedStorageUrl } from "@/lib/supabase/booking-document-scans";
 import type { DocumentType } from "@/types/domain";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -12,7 +13,41 @@ export async function GET() {
   if (!auth.ok) return auth.response;
 
   try {
+    await backfillLicenceFromBooking(auth.supabase, auth.user.id, auth.user.email ?? undefined).catch(
+      () => null,
+    );
     const items = await listUserDocuments(auth.supabase, auth.user.id);
+    const licence = items.find((item) => item.type === "licence");
+    const hasLicenceScans = Boolean(licence?.scanFrontUrl || licence?.scanBackUrl || licence?.scanUrl);
+    if (!hasLicenceScans) {
+      const scans = await findBookingDocumentScans({
+        userId: auth.user.id,
+        email: auth.user.email,
+      });
+      const [scanFrontUrl, scanBackUrl] = await Promise.all([
+        signedStorageUrl(scans.licenceFrontPath),
+        signedStorageUrl(scans.licenceBackPath),
+      ]);
+      if (scanFrontUrl || scanBackUrl) {
+        const overlay = {
+          id: licence?.id ?? "booking-licence",
+          userId: auth.user.id,
+          type: "licence" as const,
+          number: scans.licenceNumber ?? licence?.number ?? "",
+          issueDate: scans.licenceIssue ?? licence?.issueDate ?? "",
+          expiryDate: scans.licenceExpiry ?? licence?.expiryDate ?? "",
+          issuingCountry: scans.licenceCountry ?? licence?.issuingCountry ?? "LB",
+          scanUrl: scanFrontUrl,
+          scanFrontUrl,
+          scanBackUrl,
+          status: licence?.status ?? "pending",
+          uploadedAt: licence?.uploadedAt ?? new Date().toISOString(),
+        };
+        return NextResponse.json({
+          items: [...items.filter((item) => item.type !== "licence"), overlay],
+        });
+      }
+    }
     return NextResponse.json({ items });
   } catch {
     return NextResponse.json({ message: "Failed to load documents." }, { status: 500 });
@@ -91,23 +126,6 @@ export async function POST(request: Request) {
         return NextResponse.json({ message: uploaded.error }, { status: 500 });
       }
       storagePath = uploaded.path;
-    }
-
-    if (parsedType.data === "licence") {
-      const hasFront = Boolean(
-        storagePathFront || existing?.storage_path_front || existing?.storage_path,
-      );
-      const hasBack = Boolean(storagePathBack || existing?.storage_path_back);
-      const uploading =
-        (fileFront instanceof File && fileFront.size > 0) ||
-        (fileBack instanceof File && fileBack.size > 0) ||
-        !existing;
-      if (uploading && (!hasFront || !hasBack)) {
-        return NextResponse.json(
-          { message: "Front and back of the driver's licence are required." },
-          { status: 400 },
-        );
-      }
     }
 
     const saved = await upsertUserDocument(auth.supabase, auth.user.id, {

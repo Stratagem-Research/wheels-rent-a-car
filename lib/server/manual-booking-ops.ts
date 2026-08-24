@@ -49,21 +49,20 @@ export async function confirmManualBooking(bookingReference: string): Promise<{ 
     vehicle: vehicleLabel(row),
     payload: { state: "confirmed", source: "admin", ...richPayload },
   });
-  await appendBookingState(row.bookingReference, "confirmed", { source: "admin" }).catch(() => undefined);
-  await updateStoredBookingState(row.bookingReference, "confirmed").catch(() => undefined);
+  await appendBookingState(row.bookingReference, "confirmed", { source: "admin" });
+  await updateStoredBookingState(row.bookingReference, "confirmed");
   return result;
 }
 
 export async function cancelManualBooking(bookingReference: string): Promise<{ enqueued: boolean }> {
   const row = await requireManualRow(bookingReference);
   await deleteVehicleBookingHold(row.bookingReference);
-  const result = await enqueueBookingTemplateOnce("booking_cancelled", {
+  await updateStoredBookingState(row.bookingReference, "cancelled");
+  await appendBookingState(row.bookingReference, "cancelled", { source: "admin" });
+  return enqueueBookingTemplateOnce("booking_cancelled", {
     bookingReference: row.bookingReference,
     recipient: recipientEmail(row),
     vehicle: vehicleLabel(row),
     payload: { state: "cancelled", source: "admin" },
   });
-  await appendBookingState(row.bookingReference, "cancelled", { source: "admin" }).catch(() => undefined);
-  await updateStoredBookingState(row.bookingReference, "cancelled").catch(() => undefined);
-  return result;
 }

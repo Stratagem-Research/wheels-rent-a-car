@@ -19,10 +19,18 @@ import { toast } from "@/components/ui/Toast";
 import { DocumentVaultCard } from "@/components/account/DocumentVaultCard";
 import { DocumentScanPreview } from "@/components/account/DocumentScanPreview";
 import { LicenceScanFields } from "@/components/account/LicenceScanFields";
+import { Card } from "@/components/ui/Card";
 import { useSession } from "@/hooks/useSession";
 import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
 import type { DocumentType, UserDocument } from "@/types/domain";
+
+type AdditionalDriverRecord = {
+  firstName: string;
+  lastName: string;
+  scanFrontUrl?: string;
+  scanBackUrl?: string;
+};
 
 const COUNTRIES = [
   { code: "LB", name: "Lebanon" },
@@ -43,7 +51,31 @@ export default function DocumentsPage() {
     (async () => {
       try {
         const res = await api.get<{ items: UserDocument[] }>(endpoints.accountDocuments);
-        if (!cancelled) setDocs(res.items);
+        if (cancelled) return;
+        setDocs(res.items);
+
+        // No licence on file yet — check whether one of this customer's own
+        // bookings already carries scan images (guest checkout before they
+        // had an account) and fill the profile from those automatically.
+        if (!res.items.some((d) => d.type === "licence" && (d.scanFrontUrl || d.scanBackUrl || d.scanUrl))) {
+          try {
+            const backfill = await api.post<{ document: UserDocument | null }>(
+              endpoints.accountDocumentsBackfillLicence,
+              {},
+            );
+            if (!cancelled && backfill.document?.scanFrontUrl) {
+              setDocs((curr) => [
+                ...(curr ?? []).filter((d) => d.type !== "licence"),
+                backfill.document as UserDocument,
+              ]);
+            } else if (!cancelled) {
+              const refreshed = await api.get<{ items: UserDocument[] }>(endpoints.accountDocuments);
+              if (!cancelled) setDocs(refreshed.items);
+            }
+          } catch {
+            // Best-effort — the customer can still upload their licence manually.
+          }
+        }
       } catch {
         if (!cancelled) setDocs([]);
       }
@@ -110,7 +142,180 @@ export default function DocumentsPage() {
         onSave={onSaveDoc}
         onDelete={onDeleteDoc}
       />
+
+      <AdditionalDriverSection />
     </div>
+  );
+}
+
+function AdditionalDriverSection() {
+  const t = useTranslations("accountDocuments");
+  const [driver, setDriver] = React.useState<AdditionalDriverRecord | null | undefined>(undefined);
+  const [modalOpen, setModalOpen] = React.useState(false);
+
+  const load = React.useCallback(async () => {
+    try {
+      const res = await api.get<{ driver: AdditionalDriverRecord | null }>(
+        endpoints.accountAdditionalDriver,
+      );
+      setDriver(res.driver);
+    } catch {
+      setDriver(null);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    void load();
+  }, [load]);
+
+  const hasDriver = Boolean(driver?.firstName || driver?.scanFrontUrl || driver?.scanBackUrl);
+
+  return (
+    <section aria-labelledby="dv-additional-driver" className="flex flex-col gap-3">
+      <h2 id="dv-additional-driver" className="text-ink-50 overline">
+        {t("additionalDriverSection")}
+      </h2>
+      {driver === undefined ? (
+        <Skeleton className="h-32 rounded-lg" />
+      ) : hasDriver ? (
+        <Card variant="default" className="flex flex-col gap-3 p-5">
+          <div className="flex items-start gap-4">
+            {driver!.scanFrontUrl || driver!.scanBackUrl ? (
+              <div className="flex shrink-0 gap-2">
+                {driver!.scanFrontUrl ? (
+                  <DocumentScanPreview scanUrl={driver!.scanFrontUrl} alt={t("licenceFront")} size="sm" />
+                ) : null}
+                {driver!.scanBackUrl ? (
+                  <DocumentScanPreview scanUrl={driver!.scanBackUrl} alt={t("licenceBack")} size="sm" />
+                ) : null}
+              </div>
+            ) : null}
+            <div className="min-w-0 flex-1">
+              <h3 className="headline-xs text-ink-95">
+                {driver!.firstName} {driver!.lastName}
+              </h3>
+            </div>
+          </div>
+          <div>
+            <Button variant="tertiary" size="sm" onClick={() => setModalOpen(true)}>
+              {t("editDetails")}
+            </Button>
+          </div>
+        </Card>
+      ) : (
+        <Card variant="outline" className="flex flex-col items-start gap-3 p-5">
+          <div>
+            <h3 className="headline-xs text-ink-95">{t("additionalDriverCardTitle")}</h3>
+            <p className="body-sm text-ink-60">{t("noAdditionalDriver")}</p>
+          </div>
+          <Button variant="secondary" size="sm" onClick={() => setModalOpen(true)}>
+            {t("addAdditionalDriver")}
+          </Button>
+        </Card>
+      )}
+
+      <AdditionalDriverModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        existing={driver ?? null}
+        onSave={(saved) => setDriver(saved)}
+      />
+    </section>
+  );
+}
+
+function AdditionalDriverModal({
+  open,
+  onOpenChange,
+  existing,
+  onSave,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  existing: AdditionalDriverRecord | null;
+  onSave: (saved: AdditionalDriverRecord) => void;
+}) {
+  const t = useTranslations("accountDocuments");
+  const [firstName, setFirstName] = React.useState(existing?.firstName ?? "");
+  const [lastName, setLastName] = React.useState(existing?.lastName ?? "");
+  const [frontFile, setFrontFile] = React.useState<File | null>(null);
+  const [backFile, setBackFile] = React.useState<File | null>(null);
+  const [saving, setSaving] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!open) return;
+    setFirstName(existing?.firstName ?? "");
+    setLastName(existing?.lastName ?? "");
+    setFrontFile(null);
+    setBackFile(null);
+  }, [open, existing]);
+
+  const onSubmit = async () => {
+    setSaving(true);
+    try {
+      const form = new FormData();
+      form.set("firstName", firstName.trim());
+      form.set("lastName", lastName.trim());
+      if (frontFile) form.set("fileFront", frontFile);
+      if (backFile) form.set("fileBack", backFile);
+      const res = await fetch(endpoints.accountAdditionalDriver, {
+        method: "POST",
+        body: form,
+        credentials: "same-origin",
+      });
+      if (!res.ok) throw new Error("Save failed");
+      const data = (await res.json()) as { driver: AdditionalDriverRecord };
+      onSave(data.driver);
+      toast.success(t("documentSaved"));
+      onOpenChange(false);
+    } catch {
+      toast.error(t("saveFailed"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Modal open={open} onOpenChange={onOpenChange}>
+      <ModalContent size="md">
+        <ModalTitle>{t("additionalDriverCardTitle")}</ModalTitle>
+        <ModalDescription>{t("additionalDriverModalDescription")}</ModalDescription>
+        <div className="mt-4 flex flex-col gap-3">
+          <div className="grid grid-cols-2 gap-3">
+            <Field label={t("additionalDriverFirstName")}>
+              {({ id }) => (
+                <Input id={id} value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+              )}
+            </Field>
+            <Field label={t("additionalDriverLastName")}>
+              {({ id }) => (
+                <Input id={id} value={lastName} onChange={(e) => setLastName(e.target.value)} />
+              )}
+            </Field>
+          </div>
+          <LicenceScanFields
+            frontFile={frontFile}
+            backFile={backFile}
+            frontUrl={existing?.scanFrontUrl}
+            backUrl={existing?.scanBackUrl}
+            onFrontChange={setFrontFile}
+            onBackChange={setBackFile}
+            frontLabel={t("licenceFront")}
+            backLabel={t("licenceBack")}
+            helper={t("uploadDescription")}
+            required={false}
+          />
+        </div>
+        <ModalFooter>
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+            {t("cancel")}
+          </Button>
+          <Button variant="primary" loading={saving} onClick={onSubmit}>
+            {t("saveDocument")}
+          </Button>
+        </ModalFooter>
+      </ModalContent>
+    </Modal>
   );
 }
 

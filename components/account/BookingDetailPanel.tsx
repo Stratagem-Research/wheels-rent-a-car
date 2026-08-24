@@ -7,9 +7,10 @@ import { Badge } from "@/components/ui/Badge";
 import { ADD_ONS, PROTECTION_TIERS } from "@/lib/api/fixtures/catalog";
 import { BRANCHES } from "@/lib/api/fixtures/branches";
 import { formatUsd } from "@/lib/booking/pricing";
-import type { Booking, BookingState } from "@/types/domain";
+import type { AdditionalDriver, Booking, BookingState } from "@/types/domain";
 import { Link } from "@/i18n/navigation";
 import { formatDateTimeByLocale } from "@/lib/i18n/format";
+import { DocumentScanPreview } from "@/components/account/DocumentScanPreview";
 
 const STATE_BADGE: Record<
   BookingState,
@@ -32,6 +33,7 @@ export function BookingDetailPanel({ booking }: { booking: Booking }) {
   const locale = useLocale();
   const tAccount = useTranslations("account");
   const tDetail = useTranslations("bookingDetail");
+  const tSummary = useTranslations("bookingSummary");
   const hero = booking.vehicleSnapshot.images[0];
   const pickupBranch = BRANCHES.find((b) => b.id === booking.pickup.locationId);
   const returnBranch = BRANCHES.find((b) => b.id === booking.return.locationId);
@@ -90,16 +92,25 @@ export function BookingDetailPanel({ booking }: { booking: Booking }) {
         </p>
       </Section>
 
+      {booking.additionalDriver &&
+      (booking.additionalDriver.firstName ||
+        booking.additionalDriver.lastName ||
+        booking.additionalDriver.licenceFrontUrl ||
+        booking.additionalDriver.licenceBackUrl) ? (
+        <Section title={tDetail("additionalDriver")}>
+          <AdditionalDriverDetail driver={booking.additionalDriver} />
+        </Section>
+      ) : null}
+
       {booking.extras.length > 0 ? (
         <Section title={tDetail("addons")}>
           <ul className="body-sm text-ink-80 flex flex-col gap-1">
             {booking.extras.map((extra) => {
               const addOn = ADD_ONS.find((a) => a.id === extra.addOnId);
-              if (!addOn) return null;
               return (
                 <li key={extra.addOnId}>
                   {extra.qty > 1 ? `${extra.qty} × ` : ""}
-                  {addOn.name}
+                  {addOn?.name ?? extra.addOnId}
                 </li>
               );
             })}
@@ -115,9 +126,22 @@ export function BookingDetailPanel({ booking }: { booking: Booking }) {
 
       <hr className="border-border" />
 
-      <div id="booking-payment" className="flex items-baseline justify-between scroll-mt-24">
-        <span className="headline-xs text-ink-100">{tDetail("total")}</span>
-        <span className="price-lg text-ink-100">{formatUsd(booking.price.totalCents)}</span>
+      <div id="booking-payment" className="flex flex-col gap-2 scroll-mt-24">
+        <h3 className="text-ink-50 overline">{tDetail("total")}</h3>
+        <dl className="body-sm text-ink-80 flex flex-col gap-2">
+          <PriceLine label={tSummary("baseRate")} value={formatUsd(booking.price.baseRateCents)} />
+          <PriceLine label={tSummary("addons")} value={formatUsd(booking.price.extrasCents)} />
+          <PriceLine label={tSummary("protection")} value={formatUsd(booking.price.protectionCents)} />
+          <PriceLine label={tSummary("fees")} value={formatUsd(booking.price.feesCents)} />
+          <PriceLine label={tSummary("taxes11")} value={formatUsd(booking.price.taxesCents)} />
+          <PriceLine label={tSummary("promoDiscount")} value={formatUsd(booking.price.discountCents)} />
+          <PriceLine label={tDetail("total")} value={formatUsd(booking.price.totalCents)} emphasis />
+          <PriceLine
+            label={tSummary("depositAtPickup")}
+            value={formatUsd(booking.price.depositCents)}
+            muted
+          />
+        </dl>
       </div>
 
       {booking.state === "pending" ? <PendingNextSteps booking={booking} /> : null}
@@ -132,11 +156,69 @@ export function BookingDetailPanel({ booking }: { booking: Booking }) {
   );
 }
 
+export function AdditionalDriverDetail({ driver }: { driver: AdditionalDriver }) {
+  const tDetail = useTranslations("bookingDetail");
+  return (
+    <>
+      {driver.firstName || driver.lastName ? (
+        <p className="body-md text-ink-100">
+          {driver.firstName} {driver.lastName}
+        </p>
+      ) : null}
+      {driver.licenceFrontUrl || driver.licenceBackUrl ? (
+        <div className="mt-2 flex flex-wrap gap-3">
+          {driver.licenceFrontUrl ? (
+            <DocumentScanPreview
+              scanUrl={driver.licenceFrontUrl}
+              alt={tDetail("licenceFront")}
+              size="md"
+            />
+          ) : null}
+          {driver.licenceBackUrl ? (
+            <DocumentScanPreview
+              scanUrl={driver.licenceBackUrl}
+              alt={tDetail("licenceBack")}
+              size="md"
+            />
+          ) : null}
+        </div>
+      ) : null}
+    </>
+  );
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
       <h3 className="text-ink-50 mb-1 overline">{title}</h3>
       {children}
+    </div>
+  );
+}
+
+function PriceLine({
+  label,
+  value,
+  emphasis,
+  muted,
+}: {
+  label: string;
+  value: string;
+  emphasis?: boolean;
+  muted?: boolean;
+}) {
+  return (
+    <div
+      className={
+        emphasis
+          ? "headline-xs text-ink-100 flex items-baseline justify-between gap-3"
+          : muted
+            ? "text-ink-60 flex items-baseline justify-between gap-3"
+            : "flex items-baseline justify-between gap-3"
+      }
+    >
+      <dt>{label}</dt>
+      <dd className="tabular-nums">{value}</dd>
     </div>
   );
 }

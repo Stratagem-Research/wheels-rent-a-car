@@ -24,6 +24,7 @@ export const endpoints = {
   bookingRate: `${API_BASE}/booking/rate`,
   bookingQuote: `${API_BASE}/booking/quote`,
   bookingSubmit: `${API_BASE}/booking/submit`,
+  bookingLicenceScan: `${API_BASE}/booking/licence-scan`,
   bookingLookup: `${API_BASE}/booking/lookup`,
   bookingStatus: `${API_BASE}/booking/status`,
   bookingPublicLookup: (reference: string) =>
@@ -56,6 +57,8 @@ export const endpoints = {
   accountBookingByRef: (ref: string) => `${API_BASE}/account/bookings/${ref}`,
   accountBookingCancel: (ref: string) => `${API_BASE}/account/bookings/${ref}/cancel`,
   accountDocuments: `${API_BASE}/account/documents`,
+  accountDocumentsBackfillLicence: `${API_BASE}/account/documents/backfill-licence`,
+  accountAdditionalDriver: `${API_BASE}/account/additional-driver`,
   accountDocumentById: (id: string) => `${API_BASE}/account/documents/${id}`,
   accountSavedVehicles: `${API_BASE}/account/saved`,
   accountSavedVehicleById: (vehicleId: string) => `${API_BASE}/account/saved/${vehicleId}`,

@@ -12,6 +12,7 @@ import { useBookingFunnelPage } from "@/hooks/useBookingFunnelPage";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
 import { isWifiDataPlan } from "@/lib/api/fixtures/catalog";
+import { ADDITIONAL_DRIVER_ADDON_ID } from "@/lib/booking/addons";
 import type { AddOnCategory } from "@/types/domain";
 
 const CATEGORY_ORDER: { id: AddOnCategory; titleKey: string }[] = [
@@ -27,6 +28,7 @@ export default function ExtrasPage() {
   const {
     draft,
     upsertExtra,
+    setAdditionalDriver,
     vehicle,
     showSkeleton,
     goToStep,
@@ -67,6 +69,9 @@ export default function ExtrasPage() {
     }
     upsertExtra({ addOnId, qty });
     if (qty > 0) track(EVENTS.EXTRAS_ADDED, { addOnId, qty });
+    if (addOnId === ADDITIONAL_DRIVER_ADDON_ID && qty <= 0) {
+      setAdditionalDriver(undefined);
+    }
   };
 
   return (
@@ -81,7 +86,6 @@ export default function ExtrasPage() {
               </a>
             </Button>
             <h1 className="headline-lg text-ink-95">{t("extras.heading")}</h1>
-            <p className="body-md text-ink-60 mt-1">{t("extras.subtitle")}</p>
 
             <div className="mt-8 flex flex-col gap-8">
               {CATEGORY_ORDER.map((cat) => {

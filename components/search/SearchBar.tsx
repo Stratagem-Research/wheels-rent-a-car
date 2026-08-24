@@ -273,6 +273,7 @@ function ExpandedLayout({
             <LocationPicker
               label="Return"
               branches={branches}
+              placesAutocomplete
               value={{
                 type: criteria.return.address ? "address-delivery" : "branch",
                 // Until the customer explicitly picks a different return

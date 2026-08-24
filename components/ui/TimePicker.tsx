@@ -1,10 +1,24 @@
 "use client";
 
 import * as React from "react";
+import * as Dialog from "@radix-ui/react-dialog";
 import * as Popover from "@radix-ui/react-popover";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Clock } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = React.useState(false);
+  React.useEffect(() => {
+    const mql = window.matchMedia("(max-width: 640px)");
+    const update = () => setIsMobile(mql.matches);
+    update();
+    mql.addEventListener("change", update);
+    return () => mql.removeEventListener("change", update);
+  }, []);
+  return isMobile;
+}
 
 /*
  * Time picker — Sixt-aesthetic popover with a 2-column pill grid.
@@ -107,45 +121,117 @@ export function TimePicker({
     else evening.push(slot);
   }
 
+  const isMobile = useIsMobile();
+
   const select = (slot: string) => {
     if (minTime && slot < minTime) return;
     onValueChange?.(slot);
     onOpenChange?.(false);
   };
 
-  return (
-    <Popover.Root open={open} onOpenChange={onOpenChange}>
-      <Popover.Trigger asChild>
-        {renderTrigger ? (
-          (renderTrigger(formatSlot(display), isPlaceholder) as React.ReactElement)
-        ) : (
-          <button
-            id={id}
-            type="button"
-            disabled={disabled}
-            data-invalid={invalid || undefined}
-            aria-describedby={aria["aria-describedby"]}
+  const triggerButton = renderTrigger ? (
+    (renderTrigger(formatSlot(display), isPlaceholder) as React.ReactElement)
+  ) : (
+    <button
+      id={id}
+      type="button"
+      disabled={disabled}
+      data-invalid={invalid || undefined}
+      aria-describedby={aria["aria-describedby"]}
+      className={cn(
+        "bg-surface flex h-13 w-full items-center gap-3 rounded-md px-4 text-left",
+        "border transition-colors duration-150 ease-out",
+        "focus-visible:outline-ink-100 focus-visible:outline-2 focus-visible:outline-offset-0",
+        invalid ? "border-error border-[1.5px]" : "border-ink-20 hover:border-ink-80 border",
+        disabled && "bg-ink-10 cursor-not-allowed",
+        className,
+      )}
+    >
+      <Clock aria-hidden="true" className="text-ink-60 size-4 shrink-0" />
+      <span
+        className={cn(
+          "body-md flex-1 tabular-nums",
+          isPlaceholder ? "text-ink-50" : "text-ink-95",
+        )}
+      >
+        {formatSlot(display)}
+      </span>
+    </button>
+  );
+
+  const slotsContent = (
+    <>
+      <header className="headline-xs text-ink-95 mb-3 text-center">
+        {title ?? t("timeTitle")}
+      </header>
+
+      {day.length > 0 && (
+        <Section label={t("timeDay")} slots={day} value={value} minTime={minTime} onSelect={select} />
+      )}
+      {evening.length > 0 && (
+        <Section
+          label={t("timeEvening")}
+          slots={evening}
+          value={value}
+          minTime={minTime}
+          onSelect={select}
+        />
+      )}
+
+      {showOffHours && offHours.length > 0 ? (
+        <Section
+          label={t("timeOffHours")}
+          slots={offHours}
+          value={value}
+          minTime={minTime}
+          onSelect={select}
+        />
+      ) : offHours.length > 0 ? (
+        <button
+          type="button"
+          onClick={() => setShowOffHours(true)}
+          className="label-md hover:text-ink-95 text-ink-60 mt-3 inline-flex items-center gap-1.5 underline-offset-2 hover:underline"
+        >
+          <Clock aria-hidden="true" className="size-3.5" />
+          {t("time24h")}
+        </button>
+      ) : null}
+    </>
+  );
+
+  if (isMobile) {
+    return (
+      <Dialog.Root open={open} onOpenChange={onOpenChange}>
+        <Dialog.Trigger asChild>{triggerButton}</Dialog.Trigger>
+        <Dialog.Portal>
+          <Dialog.Overlay
             className={cn(
-              "bg-surface flex h-13 w-full items-center gap-3 rounded-md px-4 text-left",
-              "border transition-colors duration-150 ease-out",
-              "focus-visible:outline-ink-100 focus-visible:outline-2 focus-visible:outline-offset-0",
-              invalid ? "border-error border-[1.5px]" : "border-ink-20 hover:border-ink-80 border",
-              disabled && "bg-ink-10 cursor-not-allowed",
-              className,
+              "fixed inset-0 z-50 bg-[rgba(0,0,0,0.72)]",
+              "transition-opacity duration-300 ease-out",
+              "data-[state=closed]:opacity-0 data-[state=open]:opacity-100",
+            )}
+          />
+          <Dialog.Content
+            className={cn(
+              "bg-surface fixed inset-x-0 bottom-0 z-50 max-h-[85dvh] w-full overflow-y-auto rounded-t-3xl p-4",
+              "transition-transform duration-300 ease-out focus:outline-none",
+              "data-[state=closed]:translate-y-full data-[state=open]:translate-y-0",
             )}
           >
-            <Clock aria-hidden="true" className="text-ink-60 size-4 shrink-0" />
-            <span
-              className={cn(
-                "body-md flex-1 tabular-nums",
-                isPlaceholder ? "text-ink-50" : "text-ink-95",
-              )}
-            >
-              {formatSlot(display)}
-            </span>
-          </button>
-        )}
-      </Popover.Trigger>
+            <Dialog.Title asChild>
+              <VisuallyHidden>{title ?? t("timeTitle")}</VisuallyHidden>
+            </Dialog.Title>
+            <div aria-hidden="true" className="bg-ink-20 mx-auto mb-4 h-1 w-12 rounded-full" />
+            {slotsContent}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+    );
+  }
+
+  return (
+    <Popover.Root open={open} onOpenChange={onOpenChange}>
+      <Popover.Trigger asChild>{triggerButton}</Popover.Trigger>
       <Popover.Portal>
         <Popover.Content
           align="start"
@@ -155,41 +241,7 @@ export function TimePicker({
             "max-h-[420px] overflow-y-auto",
           )}
         >
-          <header className="headline-xs text-ink-95 mb-3 text-center">
-            {title ?? t("timeTitle")}
-          </header>
-
-          {day.length > 0 && (
-            <Section label={t("timeDay")} slots={day} value={value} minTime={minTime} onSelect={select} />
-          )}
-          {evening.length > 0 && (
-            <Section
-              label={t("timeEvening")}
-              slots={evening}
-              value={value}
-              minTime={minTime}
-              onSelect={select}
-            />
-          )}
-
-          {showOffHours && offHours.length > 0 ? (
-            <Section
-              label={t("timeOffHours")}
-              slots={offHours}
-              value={value}
-              minTime={minTime}
-              onSelect={select}
-            />
-          ) : offHours.length > 0 ? (
-            <button
-              type="button"
-              onClick={() => setShowOffHours(true)}
-              className="label-md hover:text-ink-95 text-ink-60 mt-3 inline-flex items-center gap-1.5 underline-offset-2 hover:underline"
-            >
-              <Clock aria-hidden="true" className="size-3.5" />
-              {t("time24h")}
-            </button>
-          ) : null}
+          {slotsContent}
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>

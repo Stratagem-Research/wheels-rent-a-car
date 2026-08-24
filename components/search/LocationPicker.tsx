@@ -208,7 +208,7 @@ export function LocationPicker({
 
           <div className="bg-border my-3 h-px" />
 
-          <Section title={t("locDeliver")}>
+          <Section title={t("locDeliver")} bold>
             <div className="px-1 pb-1">
               {placesAutocomplete ? (
                 <GooglePlaceAutocompleteField
@@ -243,10 +243,13 @@ export function LocationPicker({
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, bold, children }: { title: string; bold?: boolean; children: React.ReactNode }) {
   return (
     <section className="py-1">
-      <div className="label-md text-ink-50 px-3 pt-1 pb-1.5 tracking-wide uppercase">{title}</div>
+      <div className={cn(
+        "label-md px-3 pt-1 pb-1.5 tracking-wide uppercase",
+        bold ? "text-ink-95 font-bold" : "text-ink-50",
+      )}>{title}</div>
       {children}
     </section>
   );

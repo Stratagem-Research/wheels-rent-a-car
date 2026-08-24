@@ -58,6 +58,10 @@ vi.mock("@/lib/server/public-content", () => ({
     .mockResolvedValue([
       { id: "wiz-131", slug: "test", make: "T", model: "T", dailyRateFromCents: 2500 },
     ]),
+  getPublicBranches: vi.fn().mockResolvedValue([]),
+  getPublicDeliveryPricing: vi
+    .fn()
+    .mockResolvedValue({ baseFeeCents: 1000, freeRadiusKm: 5, perKmCents: 150 }),
 }));
 
 vi.mock("@/lib/supabase/admin-repository", () => ({
@@ -80,6 +84,15 @@ vi.mock("@/lib/supabase/user-bookings-repository", () => ({
   addUserBooking: vi.fn().mockResolvedValue(undefined),
   indexGuestBooking: vi.fn().mockResolvedValue(undefined),
   getIndexedGuestBooking: vi.fn().mockResolvedValue(null),
+  findIndexedBookingByRefAndEmail: vi.fn().mockResolvedValue(null),
+}));
+
+vi.mock("@/lib/supabase/additional-drivers-repository", () => ({
+  getAdditionalDriverStoragePaths: vi.fn().mockResolvedValue(null),
+}));
+
+vi.mock("@/lib/supabase/booking-document-scans", () => ({
+  withSignedAdditionalDriverScans: async <T>(booking: T) => booking,
 }));
 
 const mockAddVehicleBookingHold = vi.fn();
@@ -98,7 +111,7 @@ vi.mock("@/lib/server/notifications", () => ({
 import { emptyStoredBookingFields } from "@/lib/booking/stored-booking";
 import {
   addUserBooking,
-  getIndexedGuestBooking,
+  findIndexedBookingByRefAndEmail,
   indexGuestBooking,
 } from "@/lib/supabase/user-bookings-repository";
 import { getPublicVehicles } from "@/lib/server/public-content";
@@ -110,7 +123,7 @@ import {
 } from "../booking-service";
 
 const mockAddUserBooking = vi.mocked(addUserBooking);
-const mockGetIndexedGuestBooking = vi.mocked(getIndexedGuestBooking);
+const mockFindIndexedBookingByRefAndEmail = vi.mocked(findIndexedBookingByRefAndEmail);
 
 function completeDraft(): BookingDraft {
   return {
@@ -145,7 +158,7 @@ describe("booking-service handleBookingSubmit", () => {
     });
     mockIsVehicleHeld.mockResolvedValue(false);
     mockAddVehicleBookingHold.mockResolvedValue(undefined);
-    mockGetIndexedGuestBooking.mockResolvedValue(null);
+    mockFindIndexedBookingByRefAndEmail.mockResolvedValue(null);
     mockCreateBookingRequest.mockResolvedValue({
       data: {
         reference: "WRC-260721-TEST",
@@ -285,7 +298,7 @@ describe("booking-service handleBookingSubmit", () => {
   });
 
   it("looks up manual bookings from the guest index without Wizard", async () => {
-    mockGetIndexedGuestBooking.mockResolvedValueOnce({
+    mockFindIndexedBookingByRefAndEmail.mockResolvedValueOnce({
       ...emptyStoredBookingFields(),
       bookingReference: "WRC-260819-MAN1",
       publicToken: null,

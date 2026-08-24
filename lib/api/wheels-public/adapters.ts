@@ -295,6 +295,12 @@ export function serializeAddonsAndProtectionAsNotes({
 
   if (draft.flightNumber) lines.push(`Flight: ${draft.flightNumber}`);
 
+  if (draft.paymentMethod === "omt") {
+    lines.push(
+      "Payment: OMT — customer will pay in person using this booking's own reference as the transaction code; match by reference for reconciliation.",
+    );
+  }
+
   if (draft.promoCode) lines.push(`Promo code: ${draft.promoCode}`);
 
   if (draft.whatsappOptIn) lines.push("Customer opted into WhatsApp updates.");
@@ -406,6 +412,7 @@ export function toInternalBooking(data: BookingData, options: ToInternalBookingO
     extras: draft.extras,
     protectionTierId: draft.protectionTierId ?? "pt-basic",
     driver: draft.driver,
+    ...(draft.additionalDriver ? { additionalDriver: draft.additionalDriver } : {}),
     flightNumber: draft.flightNumber,
     paymentMethod: draft.paymentMethod,
     marketingConsent: draft.marketingConsent,

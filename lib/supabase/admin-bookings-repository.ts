@@ -7,7 +7,14 @@ import {
   type HoldCustomerType,
   type HoldInventoryStatus,
 } from "@/lib/supabase/vehicle-booking-holds-repository";
+import { findIndexedBookingByReference } from "@/lib/supabase/user-bookings-repository";
+import { bookingFromStoredRow } from "@/lib/booking/stored-booking";
+import { LOOKUP_PLACEHOLDER_IMAGE } from "@/lib/booking/lookup-adapter";
 import { frontendVehicleIdFromWizard } from "@/lib/booking/wizard-vehicle-id";
+import { findBookingDocumentScans, signedStorageUrl } from "@/lib/supabase/booking-document-scans";
+import { findUserDocument } from "@/lib/supabase/user-documents-repository";
+import { getAdditionalDriver } from "@/lib/supabase/additional-drivers-repository";
+import type { Booking } from "@/types/domain";
 
 export type AdminWebsiteBooking = {
   bookingReference: string;
@@ -283,4 +290,178 @@ export async function listAdminWebsiteBookings(): Promise<AdminWebsiteBooking[]>
       };
     })
     .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+}
+
+export type AdminBookingDetail = {
+  booking: Booking;
+  customerType: HoldCustomerType;
+  email: string | null;
+  holdStatus: HoldInventoryStatus | null;
+  reducingCount: boolean;
+  paymentStatus: string | null;
+  lifecycleState: string | null;
+  frontendVehicleId: string | null;
+  isManual: boolean;
+  wizardBookingId: number | null;
+  vehicleName: string | null;
+  licenceFrontUrl?: string;
+  licenceBackUrl?: string;
+  additionalDriverName?: string | null;
+  additionalDriverFrontUrl?: string;
+  additionalDriverBackUrl?: string;
+};
+
+/** One website booking (guest or account) with stored columns for the admin detail page. */
+export async function getAdminBookingDetail(bookingReference: string): Promise<AdminBookingDetail | null> {
+  const ref = bookingReference.trim();
+  if (!ref) return null;
+  const row = await findIndexedBookingByReference(ref);
+  if (!row) return null;
+
+  const supabase = getSupabaseAdminClient();
+  const [userHit, guestHit, holdHit, timelineHit, paymentHit, websiteByFrontend] = await Promise.all([
+    supabase
+      .from("user_bookings")
+      .select("user_id, wizard_booking_id, customer_email")
+      .eq("booking_reference", ref)
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("guest_booking_index")
+      .select("email, wizard_booking_id")
+      .eq("booking_reference", ref)
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("vehicle_booking_holds")
+      .select("pickup_at, return_at")
+      .eq("booking_reference", ref)
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("booking_state_timeline")
+      .select("state")
+      .eq("booking_reference", ref)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    supabase
+      .from("payment_events")
+      .select("status")
+      .eq("booking_reference", ref)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+    websiteVehicleLabels(supabase, [
+      row.frontendVehicleId,
+      row.wizardVehicleId != null ? frontendVehicleIdFromWizard(row.wizardVehicleId) : null,
+    ]),
+  ]);
+
+  const email =
+    (row.driverEmail && row.driverEmail.trim()) ||
+    (row.customerEmail && row.customerEmail.trim()) ||
+    (userHit.data?.customer_email as string | null) ||
+    (guestHit.data?.email as string | null) ||
+    null;
+  const booking = bookingFromStoredRow(row, email ?? "");
+  if (booking.vehicleSnapshot.images.length === 0) {
+    booking.vehicleSnapshot.images = [{ ...LOOKUP_PLACEHOLDER_IMAGE }];
+  }
+  const frontendId =
+    row.frontendVehicleId ||
+    (row.wizardVehicleId != null ? frontendVehicleIdFromWizard(row.wizardVehicleId) : null);
+  const vehicleName =
+    (frontendId ? websiteByFrontend.get(frontendId) : undefined) ||
+    [row.vehicleMake, row.vehicleModel].filter(Boolean).join(" ") ||
+    null;
+  if (vehicleName && (booking.vehicleSnapshot.make === "Vehicle" || !booking.vehicleSnapshot.model)) {
+    const parts = vehicleName.split(" ");
+    booking.vehicleSnapshot.make = parts[0] ?? vehicleName;
+    booking.vehicleSnapshot.model = parts.slice(1).join(" ");
+  }
+
+  const pickupAt = (holdHit.data?.pickup_at as string | null) ?? row.pickupAt;
+  const returnAt = (holdHit.data?.return_at as string | null) ?? row.returnAt;
+  const holdStatus =
+    pickupAt && returnAt ? holdInventoryStatus(pickupAt, returnAt, new Date()) : null;
+  const hasAccount = Boolean(userHit.data?.user_id);
+  const customerType: HoldCustomerType = hasAccount ? "account" : guestHit.data ? "guest" : "unknown";
+  const wizardBookingId =
+    (userHit.data?.wizard_booking_id as number | null) ??
+    (guestHit.data?.wizard_booking_id as number | null) ??
+    null;
+
+  const scans = await findBookingDocumentScans({
+    bookingReference: ref,
+    userId: (userHit.data?.user_id as string | null) ?? null,
+    email,
+  });
+  let licenceFrontPath = row.driverLicenceFrontPath ?? scans.licenceFrontPath;
+  let licenceBackPath = row.driverLicenceBackPath ?? scans.licenceBackPath;
+  const userId = (userHit.data?.user_id as string | null) ?? null;
+  if ((!licenceFrontPath && !licenceBackPath) && userId) {
+    const vault = await findUserDocument(supabase, userId, "licence").catch(() => null);
+    licenceFrontPath = vault?.storage_path_front ?? vault?.storage_path ?? licenceFrontPath;
+    licenceBackPath = vault?.storage_path_back ?? licenceBackPath;
+  }
+
+  let additionalFrontPath = scans.additionalFrontPath ?? row.additionalDriverFrontPath;
+  let additionalBackPath = scans.additionalBackPath ?? row.additionalDriverBackPath;
+  let additionalDriverName =
+    [scans.additionalFirstName ?? row.additionalDriverFirstName, scans.additionalLastName ?? row.additionalDriverLastName]
+      .filter(Boolean)
+      .join(" ") || null;
+  const extraDriver = userId ? await getAdditionalDriver(supabase, userId).catch(() => null) : null;
+  if (extraDriver) {
+    additionalDriverName =
+      additionalDriverName || `${extraDriver.firstName} ${extraDriver.lastName}`.trim() || null;
+  }
+
+  const [licenceFrontUrl, licenceBackUrl, additionalFromPathFront, additionalFromPathBack] =
+    await Promise.all([
+      signedStorageUrl(licenceFrontPath),
+      signedStorageUrl(licenceBackPath),
+      signedStorageUrl(additionalFrontPath),
+      signedStorageUrl(additionalBackPath),
+    ]);
+  const additionalDriverFrontUrl = additionalFromPathFront || extraDriver?.scanFrontUrl;
+  const additionalDriverBackUrl = additionalFromPathBack || extraDriver?.scanBackUrl;
+
+  const additionalFirst =
+    scans.additionalFirstName ?? row.additionalDriverFirstName ?? extraDriver?.firstName ?? "";
+  const additionalLast =
+    scans.additionalLastName ?? row.additionalDriverLastName ?? extraDriver?.lastName ?? "";
+  if (additionalFirst || additionalLast || additionalDriverFrontUrl || additionalDriverBackUrl) {
+    booking.additionalDriver = {
+      firstName: additionalFirst,
+      lastName: additionalLast,
+      ...(additionalDriverFrontUrl ? { licenceFrontUrl: additionalDriverFrontUrl } : {}),
+      ...(additionalDriverBackUrl ? { licenceBackUrl: additionalDriverBackUrl } : {}),
+      ...(additionalFrontPath ? { licenceFrontPath: additionalFrontPath } : {}),
+      ...(additionalBackPath ? { licenceBackPath: additionalBackPath } : {}),
+    };
+  }
+
+  return {
+    booking,
+    customerType,
+    email,
+    holdStatus,
+    reducingCount: holdStatus != null && holdStatus !== "ended",
+    paymentStatus: (paymentHit.data?.status as string | null) ?? null,
+    lifecycleState: (timelineHit.data?.state as string | null) || row.state,
+    frontendVehicleId: row.frontendVehicleId,
+    isManual: isManualIndexedBooking({
+      frontendVehicleId: row.frontendVehicleId,
+      wizardVehicleId: row.wizardVehicleId,
+    }),
+    wizardBookingId,
+    vehicleName,
+    licenceFrontUrl,
+    licenceBackUrl,
+    additionalDriverName,
+    additionalDriverFrontUrl,
+    additionalDriverBackUrl,
+  };
 }

@@ -269,7 +269,17 @@ function RangeView({
       onRangeChange?.({ from, to });
       return;
     }
-    // First click of a fresh pick (nothing local yet, or a Reset-cleared blank).
+
+    // First click — if the parent already has a committed return date and
+    // the new pickup is before it, keep the return so the customer doesn't
+    // have to re-pick it every time they adjust the pickup.
+    if (!localRange && rangeValue?.to && isBefore(triggerDate, rangeValue.to)) {
+      setLocalRange(null);
+      onRangeChange?.({ from: triggerDate, to: rangeValue.to });
+      return;
+    }
+
+    // Otherwise start a fresh two-click pick.
     setLocalRange({ from: triggerDate, to: undefined });
   };
 

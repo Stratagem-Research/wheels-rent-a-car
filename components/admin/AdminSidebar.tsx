@@ -5,8 +5,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   Droplets,
   BookOpen,
   Building2,
@@ -60,28 +58,75 @@ export function useAdminSidebarCollapsed() {
  * pushes back to /admin/login.
  */
 
-const NAV_ITEMS: Array<{
+type NavItem = {
   href: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-}> = [
-    { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/admin/trips", label: "Trips", icon: MapPinned },
-    { href: "/admin/itineraries", label: "Itineraries", icon: MapIcon },
-    { href: "/admin/faqs", label: "FAQs", icon: HelpCircle },
-    { href: "/admin/corporate", label: "Corporate", icon: Building2 },
-    { href: "/admin/car-wash", label: "Car wash", icon: Droplets },
-    { href: "/admin/about", label: "About", icon: Info },
-    { href: "/admin/leads", label: "Leads", icon: Users },
-    { href: "/admin/users", label: "Users", icon: UserCircle },
-    { href: "/admin/bookings", label: "Bookings", icon: BookOpen },
-    { href: "/admin/fleet", label: "Fleet", icon: Route },
-    { href: "/admin/locations", label: "Locations", icon: MapPinned },
-    { href: "/admin/promotions", label: "Promotions", icon: Megaphone },
-    { href: "/admin/catalog", label: "Catalog", icon: Package },
-    { href: "/admin/reviews", label: "Reviews", icon: Star },
-    { href: "/admin/ops", label: "Ops", icon: Settings2 },
-  ];
+};
+
+type NavGroup = {
+  heading: string;
+  items: NavItem[];
+};
+
+const TOP_ITEM: NavItem = { href: "/admin", label: "Dashboard", icon: LayoutDashboard };
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    heading: "Data",
+    items: [
+      { href: "/admin/bookings", label: "Bookings", icon: BookOpen },
+      { href: "/admin/users", label: "Users", icon: UserCircle },
+      { href: "/admin/leads", label: "Leads", icon: Users },
+      { href: "/admin/fleet", label: "Fleet", icon: Route },
+      { href: "/admin/locations", label: "Locations", icon: MapPinned },
+      { href: "/admin/promotions", label: "Promotions", icon: Megaphone },
+      { href: "/admin/catalog", label: "Catalog", icon: Package },
+      { href: "/admin/car-wash-bookings", label: "Car wash bookings", icon: Droplets },
+      { href: "/admin/ops", label: "Ops", icon: Settings2 },
+    ],
+  },
+  {
+    heading: "Content",
+    items: [
+      { href: "/admin/trips", label: "Trips", icon: MapPinned },
+      { href: "/admin/itineraries", label: "Itineraries", icon: MapIcon },
+      { href: "/admin/faqs", label: "FAQs", icon: HelpCircle },
+      { href: "/admin/corporate", label: "Corporate", icon: Building2 },
+      { href: "/admin/car-wash", label: "Car wash", icon: Droplets },
+      { href: "/admin/about", label: "About", icon: Info },
+      { href: "/admin/reviews", label: "Reviews", icon: Star },
+    ],
+  },
+];
+
+const ALL_NAV_ITEMS: NavItem[] = [TOP_ITEM, ...NAV_GROUPS.flatMap((g) => g.items)];
+
+function renderNavLink(
+  { href, label, icon: Icon }: NavItem,
+  pathname: string | null,
+  collapsed: boolean,
+) {
+  const active = pathname === href || (href !== "/admin" && pathname?.startsWith(href));
+  return (
+    <Link
+      key={href}
+      href={href}
+      title={collapsed ? label : undefined}
+      aria-label={collapsed ? label : undefined}
+      className={cn(
+        "label-md rounded-pill inline-flex h-8 items-center gap-3 transition-colors duration-150",
+        collapsed ? "justify-center px-0" : "px-4",
+        active
+          ? "bg-paper text-ink-100"
+          : "text-paper/70 hover:text-paper hover:bg-white/10",
+      )}
+    >
+      <Icon className="size-3 shrink-0" aria-hidden="true" />
+      {collapsed ? null : label}
+    </Link>
+  );
+}
 
 export function AdminSidebar({
   collapsed,
@@ -106,26 +151,7 @@ export function AdminSidebar({
       )}
       aria-label="Admin navigation"
     >
-      <button
-        type="button"
-        onClick={onToggleCollapsed}
-        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        aria-expanded={!collapsed}
-        className={cn(
-          "bg-paper text-ink-100 border-border absolute top-1/2 -right-3.5 z-30",
-          "inline-flex size-7 -translate-y-1/2 items-center justify-center rounded-full border",
-          "shadow-(--shadow-elevation-1) transition-colors hover:bg-ink-10",
-          "focus-visible:outline-ink-100 focus-visible:outline-2 focus-visible:outline-offset-2",
-        )}
-      >
-        {collapsed ? (
-          <ChevronRight className="size-3.5" aria-hidden="true" />
-        ) : (
-          <ChevronLeft className="size-3.5" aria-hidden="true" />
-        )}
-      </button>
-
-      <div className="flex shrink-0 items-center border-b border-white/10 px-6 py-5">
+      <div className="flex shrink-0 items-center border-b border-white/10 px-5 py-4">
         <Link
           href="/admin"
           className={cn("inline-flex flex-col gap-0.5", collapsed && "items-center")}
@@ -140,28 +166,20 @@ export function AdminSidebar({
           )}
         </Link>
       </div>
-      <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overscroll-y-contain p-4">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || (href !== "/admin" && pathname?.startsWith(href));
-          return (
-            <Link
-              key={href}
-              href={href}
-              title={collapsed ? label : undefined}
-              aria-label={collapsed ? label : undefined}
-              className={cn(
-                "label-md rounded-pill inline-flex h-10 items-center gap-3 transition-colors duration-150",
-                collapsed ? "justify-center px-0" : "px-4",
-                active
-                  ? "bg-paper text-ink-100"
-                  : "text-paper/70 hover:text-paper hover:bg-white/10",
-              )}
-            >
-              <Icon className="size-4 shrink-0" aria-hidden="true" />
-              {collapsed ? null : label}
-            </Link>
-          );
-        })}
+      <nav className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain scrollbar-none p-3">
+        {renderNavLink(TOP_ITEM, pathname, collapsed)}
+        {NAV_GROUPS.map((group) => (
+          <div key={group.heading} className="mt-2">
+            {!collapsed && (
+              <span className="label-xs text-paper/40 mb-0.5 block px-4 uppercase tracking-wider">
+                {group.heading}
+              </span>
+            )}
+            <div className="flex flex-col">
+              {group.items.map((item) => renderNavLink(item, pathname, collapsed))}
+            </div>
+          </div>
+        ))}
       </nav>
       <div className="shrink-0 border-t border-white/10 p-4">
         <button
@@ -186,7 +204,7 @@ export function AdminSidebar({
 export function AdminMobileBar() {
   const pathname = usePathname();
   const router = useRouter();
-  const item = NAV_ITEMS.find(
+  const item = ALL_NAV_ITEMS.find(
     (i) => pathname === i.href || (i.href !== "/admin" && pathname?.startsWith(i.href)),
   );
   const activeHref = item?.href ?? "/admin";
@@ -212,7 +230,7 @@ export function AdminMobileBar() {
             "focus-visible:outline-paper focus-visible:outline-2 focus-visible:outline-offset-2",
           )}
         >
-          {NAV_ITEMS.map(({ href, label }) => (
+          {ALL_NAV_ITEMS.map(({ href, label }) => (
             <option key={href} value={href} className="text-ink-100">
               {label}
             </option>
