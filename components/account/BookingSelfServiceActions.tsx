@@ -57,38 +57,38 @@ export function BookingSelfServiceActions({
   const labels =
     context === "confirmation"
       ? {
-          addToCalendar: tConfirmation("addToCalendar"),
-          viewInvoice: tConfirmation("viewInvoice"),
-          modify: tConfirmation("modify"),
-          cancel: tConfirmation("cancel"),
-          needChange: tConfirmation("needChange"),
-          preferChat: tConfirmation("preferChat"),
-          whatsappUs: tConfirmation("whatsappUs"),
-          actions: null as string | null,
-          needHelp: null as string | null,
-        }
+        addToCalendar: tConfirmation("addToCalendar"),
+        viewInvoice: tConfirmation("viewInvoice"),
+        modify: tConfirmation("modify"),
+        cancel: tConfirmation("cancel"),
+        needChange: tConfirmation("needChange"),
+        preferChat: tConfirmation("preferChat"),
+        whatsappUs: tConfirmation("whatsappUs"),
+        actions: null as string | null,
+        needHelp: null as string | null,
+      }
       : {
-          addToCalendar: tAccount("addToCalendar"),
-          viewInvoice: tAccount("viewInvoice"),
-          modify: tAccount("modifyBooking"),
-          cancel: tAccount("cancelBooking"),
-          needChange: null as string | null,
-          preferChat: null as string | null,
-          whatsappUs: tAccount("chatOnWhatsapp"),
-          actions: tAccount("actions"),
-          needHelp: tAccount("needHelp"),
-        };
+        addToCalendar: tAccount("addToCalendar"),
+        viewInvoice: tAccount("viewInvoice"),
+        modify: tAccount("modifyBooking"),
+        cancel: tAccount("cancelBooking"),
+        needChange: null as string | null,
+        preferChat: null as string | null,
+        whatsappUs: tAccount("chatOnWhatsapp"),
+        actions: tAccount("actions"),
+        needHelp: tAccount("needHelp"),
+      };
 
   const primaryActions = (
     <>
-      <Button
+      {/* <Button
         variant="primary"
         size="md"
         className="w-full justify-center sm:w-auto"
         onClick={onAddToCalendar}
       >
         <CalendarIcon className="size-4 shrink-0" aria-hidden="true" /> {labels.addToCalendar}
-      </Button>
+      </Button> */}
       <Button
         variant="secondary"
         size="md"

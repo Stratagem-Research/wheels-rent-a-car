@@ -108,6 +108,7 @@ vi.mock("@/lib/server/notifications", () => ({
   enqueueNotification: (...args: unknown[]) => mockEnqueueNotification(...args),
 }));
 
+import { getBookingByReferenceEmail } from "@/lib/api/wheels-public";
 import { emptyStoredBookingFields } from "@/lib/booking/stored-booking";
 import {
   addUserBooking,
@@ -124,6 +125,7 @@ import {
 
 const mockAddUserBooking = vi.mocked(addUserBooking);
 const mockFindIndexedBookingByRefAndEmail = vi.mocked(findIndexedBookingByRefAndEmail);
+const mockGetBookingByReferenceEmail = vi.mocked(getBookingByReferenceEmail);
 
 function completeDraft(): BookingDraft {
   return {
@@ -320,6 +322,43 @@ describe("booking-service handleBookingSubmit", () => {
     expect(booking.ref).toBe("WRC-260819-MAN1");
     expect(booking.vehicle.vehicleId).toBe("manual-abc");
     expect(booking.vehicleSnapshot.make).toBe("T");
+  });
+
+  it("overlays stored payment method onto Wizard lookup", async () => {
+    mockFindIndexedBookingByRefAndEmail.mockResolvedValueOnce({
+      ...emptyStoredBookingFields(),
+      bookingReference: "WRC-260721-TEST",
+      publicToken: "tok",
+      customerEmail: "test@example.com",
+      createdAt: "2026-07-21T10:00:00.000Z",
+      pickupAt: "2026-07-21T10:00:00.000Z",
+      returnAt: "2026-07-24T10:00:00.000Z",
+      frontendVehicleId: "wiz-131",
+      wizardVehicleId: 131,
+      paymentMethod: "omt",
+      extras: [],
+      totalCents: 0,
+    });
+    mockGetBookingByReferenceEmail.mockResolvedValueOnce({
+      data: {
+        reference: "WRC-260721-TEST",
+        status: "pending",
+        start_date_time: "2026-07-21 10:00",
+        end_date_time: "2026-07-24 10:00",
+        customer: {
+          name: "Test User",
+          email: "test@example.com",
+          phone_number: "+96170000000",
+        },
+        vehicle: { id: 131, name: "NISSAN MICRA" },
+        amount: 100,
+      },
+    } as never);
+    const booking = await handleBookingLookup({
+      ref: "WRC-260721-TEST",
+      email: "test@example.com",
+    });
+    expect(booking.paymentMethod).toBe("omt");
   });
 
   it("books a sibling unit when the selected Wizard id is unknown", async () => {

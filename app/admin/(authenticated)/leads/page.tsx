@@ -7,7 +7,7 @@ import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { fetchAdminLeads, type AdminLeadsResponse, updateAdminLeadStatus } from "@/lib/admin/store";
 
-type LeadKind = "long-term" | "corporate" | "chauffeur" | "car-wash" | "fleet-partnership";
+type LeadKind = "corporate" | "fleet-partnership";
 type LeadStatus = "new" | "in-progress" | "won" | "lost";
 
 function StatusControls({
@@ -110,7 +110,7 @@ export default function AdminLeadsPage() {
     <AdminPageShell
       eyebrow="CRM"
       title="Leads inbox"
-      description="Track long-term, corporate, chauffeur, car wash, and fleet partnership enquiries in one place."
+      description="Corporate and fleet partnership enquiries. Long-term, chauffeur, and car wash have their own pages under Data."
       actions={
         <Button variant="tertiary" onClick={() => void refresh()}>
           <RefreshCcw className="size-4" aria-hidden="true" />
@@ -146,34 +146,6 @@ export default function AdminLeadsPage() {
           </ul>
 
           <section className="flex flex-col gap-3">
-            <h2 className="headline-sm text-ink-100">Long-term enquiries</h2>
-            <AdminDataTable
-              rows={data.longTerm}
-              rowKey={(row) => row.id}
-              columns={[
-                { header: "Name", cell: (row) => row.full_name },
-                { header: "Email", cell: (row) => row.email, width: "24%" },
-                {
-                  header: "Duration",
-                  cell: (row) => `${row.duration_months} months`,
-                  width: "12%",
-                },
-                { header: "Status", cell: (row) => row.status, width: "10%" },
-              ]}
-              rowActions={(row) => (
-                <StatusControls
-                  id={row.id}
-                  kind="long-term"
-                  status={row.status}
-                  owner={row.owner}
-                  adminNotes={row.admin_notes}
-                  onSaved={refresh}
-                />
-              )}
-            />
-          </section>
-
-          <section className="flex flex-col gap-3">
             <h2 className="headline-sm text-ink-100">Corporate enquiries</h2>
             <AdminDataTable
               rows={data.corporate}
@@ -188,55 +160,6 @@ export default function AdminLeadsPage() {
                 <StatusControls
                   id={row.id}
                   kind="corporate"
-                  status={row.status}
-                  owner={row.owner}
-                  adminNotes={row.admin_notes}
-                  onSaved={refresh}
-                />
-              )}
-            />
-          </section>
-
-          <section className="flex flex-col gap-3">
-            <h2 className="headline-sm text-ink-100">Chauffeur enquiries</h2>
-            <AdminDataTable
-              rows={data.chauffeur}
-              rowKey={(row) => row.id}
-              columns={[
-                { header: "Name", cell: (row) => row.full_name },
-                { header: "Email", cell: (row) => row.email, width: "24%" },
-                { header: "Service", cell: (row) => row.service_type ?? "—", width: "14%" },
-                { header: "Status", cell: (row) => row.status, width: "10%" },
-              ]}
-              rowActions={(row) => (
-                <StatusControls
-                  id={row.id}
-                  kind="chauffeur"
-                  status={row.status}
-                  owner={row.owner}
-                  adminNotes={row.admin_notes}
-                  onSaved={refresh}
-                />
-              )}
-            />
-          </section>
-
-          <section className="flex flex-col gap-3">
-            <h2 className="headline-sm text-ink-100">Car wash enquiries</h2>
-            <AdminDataTable
-              rows={data.carWash}
-              rowKey={(row) => row.id}
-              columns={[
-                { header: "Name", cell: (row) => row.full_name },
-                { header: "Email", cell: (row) => row.email, width: "22%" },
-                { header: "Package", cell: (row) => row.package_id ?? "—", width: "14%" },
-                { header: "Date", cell: (row) => row.preferred_date ?? "—", width: "12%" },
-                { header: "Status", cell: (row) => row.status, width: "10%" },
-              ]}
-              rowActions={(row) => (
-                <StatusControls
-                  id={row.id}
-                  kind="car-wash"
                   status={row.status}
                   owner={row.owner}
                   adminNotes={row.admin_notes}

@@ -172,7 +172,7 @@ export default function AdminBookingDetailPage() {
     >
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <div className="flex flex-col gap-6">
-          <BookingDetailPanel booking={booking} />
+          <BookingDetailPanel booking={booking} variant="admin" />
           {detail.licenceFrontUrl || detail.licenceBackUrl ? (
             <section className="bg-paper border-border flex flex-col gap-3 rounded-xl border p-5">
               <h2 className="headline-xs text-ink-100">Main Driver licence scans</h2>

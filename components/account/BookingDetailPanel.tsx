@@ -26,10 +26,17 @@ const STATE_BADGE: Record<
 
 /**
  * Booking detail panel — the rich read-only view of a single booking.
- * Reused on the confirmation page (Sprint 6), manage-booking (Sprint 8),
- * and the account booking-detail route below.
+ * Reused on manage-booking, account booking-detail, and admin booking detail.
+ * Customer-facing guidance (pending next steps + cancellation policy link)
+ * is hidden in the admin variant.
  */
-export function BookingDetailPanel({ booking }: { booking: Booking }) {
+export function BookingDetailPanel({
+  booking,
+  variant = "customer",
+}: {
+  booking: Booking;
+  variant?: "customer" | "admin";
+}) {
   const locale = useLocale();
   const tAccount = useTranslations("account");
   const tDetail = useTranslations("bookingDetail");
@@ -39,6 +46,7 @@ export function BookingDetailPanel({ booking }: { booking: Booking }) {
   const returnBranch = BRANCHES.find((b) => b.id === booking.return.locationId);
   const tier = PROTECTION_TIERS.find((t) => t.id === booking.protectionTierId);
   const badge = STATE_BADGE[booking.state];
+  const showGuidance = variant === "customer";
 
   return (
     <Card variant="floating" className="flex flex-col gap-5">
@@ -144,14 +152,16 @@ export function BookingDetailPanel({ booking }: { booking: Booking }) {
         </dl>
       </div>
 
-      {booking.state === "pending" ? <PendingNextSteps booking={booking} /> : null}
+      {showGuidance && booking.state === "pending" ? <PendingNextSteps booking={booking} /> : null}
 
-      <Link
-        href={`/help/cancellation-policy`}
-        className="label-md text-ink-60 underline-offset-2 hover:underline"
-      >
-        {tDetail("cancellationPolicy")} →
-      </Link>
+      {showGuidance ? (
+        <Link
+          href={`/help/cancellation-policy`}
+          className="label-md text-ink-60 underline-offset-2 hover:underline"
+        >
+          {tDetail("cancellationPolicy")} →
+        </Link>
+      ) : null}
     </Card>
   );
 }

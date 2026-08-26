@@ -529,7 +529,7 @@ export default function AdminFleetPage() {
     <AdminPageShell
       eyebrow="Fleet"
       title="Vehicle metadata"
-      description="Sync fleet from Wizard or add a car here. Brand, model, and photos are website-owned and are not overwritten by later syncs."
+      description="Sync fleet from Wizard or add a car here."
       actions={
         <>
           <Button
@@ -599,7 +599,7 @@ export default function AdminFleetPage() {
                 </Chip>
               ))}
             </div>
-            <Field label="Search" className="min-w-0 w-full sm:w-72">
+            <Field label="" className="min-w-0 w-full sm:w-72">
               {({ id }) => (
                 <Input
                   id={id}

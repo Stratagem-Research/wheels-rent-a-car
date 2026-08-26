@@ -77,7 +77,7 @@ export default function ExtrasPage() {
   return (
     <>
       <Stepper current={2} />
-      <section className="mx-auto max-w-(--container-full) px-4 py-6 sm:px-5 sm:py-8">
+      <section className="mx-auto max-w-(--container-full) px-4 py-6 sm:px-5 sm:pb-8 sm:pt-4">
         <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
           <div>
             <Button asChild variant="tertiary" size="sm" className="mb-3">
@@ -87,7 +87,7 @@ export default function ExtrasPage() {
             </Button>
             <h1 className="headline-lg text-ink-95">{t("extras.heading")}</h1>
 
-            <div className="mt-8 flex flex-col gap-8">
+            <div className="mt-6 flex flex-col gap-8">
               {CATEGORY_ORDER.map((cat) => {
                 const items = ADD_ONS.filter((a) => a.category === cat.id);
                 if (items.length === 0) return null;

@@ -17,17 +17,17 @@ const OPTION_META: {
   labelKey: string;
   taglineKey: string;
 }[] = [
-  { value: "cash", icon: Wallet, labelKey: "cashLabel", taglineKey: "cashTagline" },
-  { value: "transfer", icon: Building2, labelKey: "transferLabel", taglineKey: "transferTagline" },
-  { value: "omt", icon: Coins, labelKey: "omtLabel", taglineKey: "omtTagline" },
-  {
-    value: "whish-online",
-    icon: Smartphone,
-    labelKey: "whishOnlineLabel",
-    taglineKey: "whishOnlineTagline",
-  },
-  { value: "neo", icon: CreditCard, labelKey: "neoLabel", taglineKey: "neoTagline" },
-];
+    { value: "cash", icon: Wallet, labelKey: "cashLabel", taglineKey: "cashTagline" },
+    { value: "transfer", icon: Building2, labelKey: "transferLabel", taglineKey: "transferTagline" },
+    { value: "omt", icon: Coins, labelKey: "omtLabel", taglineKey: "omtTagline" },
+    {
+      value: "whish-online",
+      icon: Smartphone,
+      labelKey: "whishOnlineLabel",
+      taglineKey: "whishOnlineTagline",
+    },
+    { value: "neo", icon: CreditCard, labelKey: "neoLabel", taglineKey: "neoTagline" },
+  ];
 
 export interface PaymentMethodSelectorProps {
   value: PaymentMethod | null;
@@ -191,7 +191,7 @@ function OmtPanel() {
   return (
     <Card variant="tint" className="p-4">
       <ul className="body-sm text-ink-80 flex flex-col gap-1">
-        <li>· {t("omtBranchLine")}</li>
+        {/* <li>· {t("omtBranchLine")}</li> */}
         <li>· {t("omtCodeLine")}</li>
       </ul>
     </Card>

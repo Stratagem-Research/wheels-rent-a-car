@@ -89,7 +89,7 @@ export default function AdminDashboardPage() {
       eyebrow: "Pipeline",
       title: "Leads",
       count: `${leadCounts.total} total · ${leadCounts.new} new`,
-      body: "Long-term, corporate, and chauffeur enquiries.",
+      body: "Corporate and fleet partnership enquiries.",
     },
     {
       href: "/admin/bookings",

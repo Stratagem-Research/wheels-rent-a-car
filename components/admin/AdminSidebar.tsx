@@ -4,8 +4,11 @@ import * as React from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
+  CalendarRange,
   Car,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Droplets,
   BookOpen,
   Building2,
@@ -85,6 +88,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/catalog", label: "Catalog", icon: Package },
       { href: "/admin/car-wash-bookings", label: "Car wash bookings", icon: Droplets },
       { href: "/admin/chauffeur-requests", label: "Chauffeur requests", icon: Car },
+      { href: "/admin/long-term-quotes", label: "Long-term quotes", icon: CalendarRange },
       { href: "/admin/ops", label: "Ops", icon: Settings2 },
     ],
   },
@@ -153,7 +157,7 @@ export function AdminSidebar({
       )}
       aria-label="Admin navigation"
     >
-      <div className="flex shrink-0 items-center border-b border-white/10 px-5 py-4">
+      <div className="flex shrink-0 items-center border-b border-white/10 px-5 pt-5 pb-3">
         <Link
           href="/admin"
           className={cn("inline-flex flex-col gap-0.5", collapsed && "items-center")}
@@ -183,7 +187,7 @@ export function AdminSidebar({
           </div>
         ))}
       </nav>
-      <div className="shrink-0 border-t border-white/10 p-4">
+      <div className="shrink-0 border-t border-white/10 p-3">
         <button
           type="button"
           onClick={onSignOut}
@@ -198,6 +202,26 @@ export function AdminSidebar({
           {collapsed ? null : "Sign out"}
         </button>
       </div>
+
+      <button
+        type="button"
+        onClick={onToggleCollapsed}
+        aria-expanded={!collapsed}
+        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        className={cn(
+          "bg-white hover:bg-white/80 text-ink-80 hover:text-ink-80 absolute top-1/2 left-full z-30",
+          "flex size-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center",
+          "rounded-full border border-white/15 shadow-sm transition-colors",
+          "focus-visible:outline-paper focus-visible:outline-2 focus-visible:outline-offset-2",
+        )}
+      >
+        {collapsed ? (
+          <ChevronRight className="size-3.5" aria-hidden="true" />
+        ) : (
+          <ChevronLeft className="size-3.5" aria-hidden="true" />
+        )}
+      </button>
     </aside>
   );
 }

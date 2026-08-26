@@ -1,15 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import {
-  listCarWashLeads,
-  listChauffeurLeads,
   listCorporateLeads,
   listFleetPartnershipLeads,
-  listLongTermLeads,
   updateLeadStatus,
   writeAdminAuditLog,
 } from "@/lib/supabase/admin-repository";
-import { listContactLeads, updateContactLeadStatus } from "@/lib/supabase/contact-repository";
+import { updateContactLeadStatus } from "@/lib/supabase/contact-repository";
 import { requireAdminCsrf, requireAdminSession } from "@/lib/server/admin-api";
 
 const LeadStatusSchema = z.enum(["new", "in-progress", "won", "lost"]);
@@ -34,15 +31,11 @@ export async function GET(request: Request) {
   const auth = requireAdminSession(request, ["content-editor", "ops-admin"]);
   if (!auth.ok) return auth.response;
   try {
-    const [longTerm, corporate, chauffeur, carWash, fleetPartnership, contact] = await Promise.all([
-      listLongTermLeads(),
+    const [corporate, fleetPartnership] = await Promise.all([
       listCorporateLeads(),
-      listChauffeurLeads(),
-      listCarWashLeads(),
       listFleetPartnershipLeads(),
-      listContactLeads(),
     ]);
-    const all = [...longTerm, ...corporate, ...chauffeur, ...carWash, ...fleetPartnership, ...contact];
+    const all = [...corporate, ...fleetPartnership];
     const counters = {
       total: all.length,
       new: all.filter((item) => item.status === "new").length,
@@ -52,12 +45,8 @@ export async function GET(request: Request) {
     };
     return NextResponse.json({
       counters,
-      longTerm,
       corporate,
-      chauffeur,
-      carWash,
       fleetPartnership,
-      contact,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to load leads.";

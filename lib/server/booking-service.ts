@@ -620,9 +620,29 @@ export async function handleBookingLookup(body: LookupBookingRequest): Promise<B
   const response = await getBookingByReferenceEmail(body.ref, body.email);
   const live = await hydrateLookupVehicle(toBookingFromLookup(response.data), response.data.vehicle.id);
   if (!local) return live;
+  // Wizard lookup has no payment method / extras / licence scans — overlay
+  // website-owned fields from the guest/user index so confirmation next
+  // steps and OMT copy match what the customer chose at checkout.
   const stored = await withSignedAdditionalDriverScans(bookingFromStoredRow(local, body.email));
-  if (!stored.additionalDriver) return live;
-  return { ...live, additionalDriver: stored.additionalDriver };
+  return {
+    ...live,
+    paymentMethod: stored.paymentMethod || live.paymentMethod,
+    ...(stored.extras.length > 0 ? { extras: stored.extras } : {}),
+    ...(stored.protectionTierId ? { protectionTierId: stored.protectionTierId } : {}),
+    ...(stored.additionalDriver ? { additionalDriver: stored.additionalDriver } : {}),
+    ...(stored.price.totalCents > 0 ? { price: stored.price } : {}),
+    pickup: {
+      ...live.pickup,
+      ...(stored.pickup.type ? { type: stored.pickup.type } : {}),
+      ...(stored.pickup.locationId ? { locationId: stored.pickup.locationId } : {}),
+      ...(stored.pickup.address ? { address: stored.pickup.address } : {}),
+    },
+    return: {
+      ...live.return,
+      ...(stored.return.locationId ? { locationId: stored.return.locationId } : {}),
+      ...(stored.return.address ? { address: stored.return.address } : {}),
+    },
+  };
 }
 
 /** Prefer website catalog (`wiz-{id}`) over fixture fallback for lookup UIs. */

@@ -5,7 +5,7 @@ import { Check, Clock, Copy } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/Toast";
-import type { BookingState } from "@/types/domain";
+import type { BookingState, PaymentMethod } from "@/types/domain";
 
 /**
  * Confirmation status hero per 04_booking_flow.md step 5.
@@ -14,16 +14,23 @@ import type { BookingState } from "@/types/domain";
  *   pending   → amber clock + "Your booking is pending"
  *
  * Booking ref renders in JetBrains Mono with a copy-to-clipboard button.
+ * For OMT, the same reference is the payment code used at the branch.
  */
 
 export interface ConfirmationStatusBlockProps {
   state: BookingState;
   bookingRef: string;
+  paymentMethod?: PaymentMethod;
 }
 
-export function ConfirmationStatusBlock({ state, bookingRef }: ConfirmationStatusBlockProps) {
+export function ConfirmationStatusBlock({
+  state,
+  bookingRef,
+  paymentMethod,
+}: ConfirmationStatusBlockProps) {
   const t = useTranslations("booking");
   const isPending = state === "pending";
+  const isOmt = paymentMethod === "omt";
 
   return (
     <section
@@ -46,10 +53,25 @@ export function ConfirmationStatusBlock({ state, bookingRef }: ConfirmationStatu
         {isPending ? t("pendingTitle") : t("confirmedTitle")}
       </h1>
       <div className="flex flex-col items-center gap-1">
-        <span className="label-md text-ink-50 tracking-wider uppercase">{t("reference")}</span>
+        <span className="label-md text-ink-50 tracking-wider uppercase">
+          {isOmt ? t("omtReference") : t("reference")}
+        </span>
         <CopyableRef value={bookingRef} />
+        {isOmt ? (
+          <p className="body-sm text-ink-60 mt-1 max-w-md">{t("omtReferenceHint")}</p>
+        ) : null}
       </div>
-      {isPending ? <p className="body-md text-ink-60 max-w-md">{t("pendingBody")}</p> : null}
+      {isPending ? (
+        <p className="body-md text-ink-60 max-w-md">
+          {paymentMethod === "omt"
+            ? t("pendingBodyOmt")
+            : paymentMethod === "transfer"
+              ? t("pendingBodyTransfer")
+              : paymentMethod === "cash"
+                ? t("pendingBodyCash")
+                : t("pendingBody")}
+        </p>
+      ) : null}
     </section>
   );
 }

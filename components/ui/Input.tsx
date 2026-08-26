@@ -25,7 +25,7 @@ const wrapperVariants = cva(
     variants: {
       variant: {
         default: cn(
-          "bg-paper rounded-lg h-12 px-[16px] body-md text-ink-95",
+          "bg-paper rounded-lg h-10 px-[15px] body-md text-ink-95",
           "focus-within:border-ink-100",
         ),
         search: cn(

@@ -120,7 +120,11 @@ export default function ConfirmationPage() {
         publicToken={statusToken || booking.publicToken || null}
         onStateChange={onBookingStateChange}
       />
-      <ConfirmationStatusBlock state={booking.state} bookingRef={booking.ref} />
+      <ConfirmationStatusBlock
+        state={booking.state}
+        bookingRef={booking.ref}
+        paymentMethod={booking.paymentMethod}
+      />
 
       <section className="mx-auto max-w-[var(--container-full)] px-5 py-12 sm:px-5 sm:py-16">
         <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)]">
@@ -283,35 +287,45 @@ function NextSteps({
 }) {
   const t = useTranslations("bookingFlow.confirmation");
   const items: string[] = [];
-  items.push(t("stepBringLicence"));
-  items.push(t("stepHaveRef"));
-  items.push(t("stepWhatsapp24h"));
+
+  // Payment-method steps first — these are what the customer needs right now.
+  switch (booking.paymentMethod) {
+    case "omt":
+      items.push(t("stepOmtPayWithRef"));
+      items.push(t("stepOmtRefIsCode"));
+      break;
+    case "transfer":
+      items.push(t("stepTransferPay"));
+      break;
+    case "cash":
+      items.push(t("stepBringCash"));
+      break;
+    case "whish-online":
+    case "neo":
+    case "card":
+      items.push(t("stepPaymentConfirmedOnline"));
+      break;
+    default:
+      break;
+  }
+
+  items.push(
+    booking.paymentMethod === "card" ||
+      booking.paymentMethod === "whish-online" ||
+      booking.paymentMethod === "neo"
+      ? t("stepBringLicenceAndCard")
+      : t("stepBringLicence"),
+  );
+
+  if (booking.paymentMethod !== "omt") {
+    items.push(t("stepHaveRef"));
+  }
+
   if (booking.pickup.type === "branch" && pickupBranch) {
     items.push(t("stepPickupAt", { branch: pickupBranch }));
   }
   if (booking.pickup.type === "address-delivery" && booking.pickup.address) {
     items.push(t("stepDeliverTo", { address: booking.pickup.address }));
-  }
-  // What to expect/bring at handover differs by how they paid: cash needs
-  // physical currency, transfer/OMT are verified in person so bring proof,
-  // and the online gateways (Whish, NEO card) already cleared electronically
-  // — nothing more to bring for those.
-  switch (booking.paymentMethod) {
-    case "cash":
-      items.push(t("stepBringCash"));
-      break;
-    case "transfer":
-      items.push(t("stepBringTransferReceipt"));
-      break;
-    case "omt":
-      items.push(t("stepBringOmtReceipt"));
-      break;
-    case "whish-online":
-    case "neo":
-      items.push(t("stepPaymentConfirmedOnline"));
-      break;
-    default:
-      break;
   }
 
   return (

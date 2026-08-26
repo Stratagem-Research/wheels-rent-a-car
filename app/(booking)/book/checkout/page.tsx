@@ -345,9 +345,9 @@ export default function CheckoutPage() {
       },
       additionalDriver: hasAdditionalDriver
         ? {
-            firstName: form.additionalDriverFirstName.trim(),
-            lastName: form.additionalDriverLastName.trim(),
-          }
+          firstName: form.additionalDriverFirstName.trim(),
+          lastName: form.additionalDriverLastName.trim(),
+        }
         : undefined,
       flightNumber: draft.pickup.type === "airport" ? form.flightNumber.trim() : undefined,
       paymentMethod: form.paymentMethod ?? undefined,
@@ -532,10 +532,10 @@ export default function CheckoutPage() {
     <>
       <Stepper current={4} />
       <HoldTimer onExpire={() => toast.warning(t("holdExpired"))} />
-      <section className="mx-auto max-w-(--container-full) px-4 py-6 sm:px-5 sm:py-8">
+      <section className="mx-auto max-w-(--container-full) px-4 py-6 sm:px-5 sm:pb-8 sm:pt-4">
         <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
           <form
-            className="flex flex-col gap-8"
+            className="flex flex-col gap-6"
             onSubmit={(e) => {
               e.preventDefault();
               onSubmit();
