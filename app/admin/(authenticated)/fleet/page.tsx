@@ -567,7 +567,6 @@ export default function AdminFleetPage() {
       <section className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h2 className="headline-md text-ink-100">Vehicle metadata</h2>
             <p className="body-sm text-ink-60 mt-1">
               {loading
                 ? "Loading…"

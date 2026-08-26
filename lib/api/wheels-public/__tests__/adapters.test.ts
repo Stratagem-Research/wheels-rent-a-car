@@ -274,6 +274,21 @@ describe("wheels-public/adapters", () => {
       });
       expect(notes).toMatchSnapshot();
     });
+
+    it("adds a reconciliation line for transfer, matching the omt one", () => {
+      const omtNotes = serializeAddonsAndProtectionAsNotes({
+        draft: draft({ paymentMethod: "omt" }),
+        addOns: ADD_ONS,
+        tiers: PROTECTION_TIERS,
+      });
+      const transferNotes = serializeAddonsAndProtectionAsNotes({
+        draft: draft({ paymentMethod: "transfer" }),
+        addOns: ADD_ONS,
+        tiers: PROTECTION_TIERS,
+      });
+      expect(omtNotes).toMatch(/match by reference for reconciliation/);
+      expect(transferNotes).toMatch(/match by reference for reconciliation/);
+    });
   });
 
   describe("toInternalBooking", () => {

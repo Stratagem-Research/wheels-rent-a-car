@@ -104,7 +104,7 @@ export async function listHeldFrontendVehicleIds(range?: {
 }
 
 export type HoldInventoryStatus = "on-rent" | "upcoming" | "ended";
-export type HoldCustomerType = "account" | "guest" | "unknown";
+export type HoldCustomerType = "account" | "guest" | "unknown" | "account_deleted";
 
 export function holdInventoryStatus(
   pickupAt: string,

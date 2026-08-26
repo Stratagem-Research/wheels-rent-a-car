@@ -301,6 +301,12 @@ export function serializeAddonsAndProtectionAsNotes({
     );
   }
 
+  if (draft.paymentMethod === "transfer") {
+    lines.push(
+      "Payment: Bank transfer — customer will send a bank transfer and share the receipt; match by reference for reconciliation.",
+    );
+  }
+
   if (draft.promoCode) lines.push(`Promo code: ${draft.promoCode}`);
 
   if (draft.whatsappOptIn) lines.push("Customer opted into WhatsApp updates.");

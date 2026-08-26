@@ -162,6 +162,7 @@ export async function buildBookingEmailPayload(booking: Booking): Promise<Record
     driverPhone: booking.driver.phone,
     flightNumber: booking.flightNumber ?? "",
     paymentMethod: PAYMENT_METHOD_LABELS[booking.paymentMethod] ?? booking.paymentMethod,
+    paymentMethodCode: booking.paymentMethod,
     extrasLines,
     protectionName: tier?.name ?? "",
     protectionPriceLabel: tier

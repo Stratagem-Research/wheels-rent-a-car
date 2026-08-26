@@ -53,6 +53,41 @@ describe("notification-provider", () => {
     expect(content.html).toContain("NISSAN MICRA");
   });
 
+  it("adds an OMT/transfer reconciliation note to the rich booking email, but not for other payment methods", () => {
+    const richPayload = {
+      ref: "WRC-260826-AB12",
+      vehicle: "Toyota Yaris",
+      pickupDate: "26 Aug 2026",
+      pickupTime: "10:00",
+      returnDate: "30 Aug 2026",
+      returnTime: "10:00",
+    };
+
+    const omt = renderNotificationTemplate("booking_confirmation", {
+      ...richPayload,
+      paymentMethod: "OMT / Whish / Bob Finance",
+      paymentMethodCode: "omt",
+    });
+    expect(omt.html).toContain("WRC-260826-AB12");
+    expect(omt.html.toLowerCase()).toContain("omt payment code");
+    expect(omt.text.toLowerCase()).toContain("omt payment code");
+
+    const transfer = renderNotificationTemplate("booking_confirmation", {
+      ...richPayload,
+      paymentMethod: "Bank transfer",
+      paymentMethodCode: "transfer",
+    });
+    expect(transfer.html.toLowerCase()).toContain("bank transfer so we can match");
+
+    const cash = renderNotificationTemplate("booking_confirmation", {
+      ...richPayload,
+      paymentMethod: "Cash on pickup",
+      paymentMethodCode: "cash",
+    });
+    expect(cash.html.toLowerCase()).not.toContain("payment code");
+    expect(cash.html.toLowerCase()).not.toContain("match your payment");
+  });
+
   it("logs instead of sending when no SMTP/Resend in non-production", async () => {
     const info = vi.spyOn(console, "info").mockImplementation(() => undefined);
     const result = await sendEmailNotification({

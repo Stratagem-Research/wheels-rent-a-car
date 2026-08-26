@@ -20,7 +20,7 @@ type BookingsResponse = {
   };
 };
 
-type CustomerFilter = "all" | "account" | "guest";
+type CustomerFilter = "all" | "account" | "account_deleted" | "guest";
 type HoldFilter = "all" | "holding" | "not-holding";
 type RangeFilter = "7" | "30" | "90" | "all";
 type SourceFilter = "all" | "wizard" | "manual";
@@ -61,8 +61,9 @@ function BeirutDateTime({ iso }: { iso: string | null }) {
 
 function customerLabel(type: HoldCustomerType): string {
   if (type === "account") return "Account";
+  if (type === "account_deleted") return "Account (deleted)";
   if (type === "guest") return "Guest";
-  return "Unlinked";
+  return "—";
 }
 
 function holdStatusLabel(status: HoldInventoryStatus | null): string {
@@ -165,6 +166,7 @@ export default function AdminBookingsPage() {
   const counters = {
     total: windowed.length,
     account: windowed.filter((item) => item.customerType === "account").length,
+    accountDeleted: windowed.filter((item) => item.customerType === "account_deleted").length,
     guest: windowed.filter((item) => item.customerType === "guest").length,
   };
   const rows = windowed.filter((item) => {
@@ -200,11 +202,12 @@ export default function AdminBookingsPage() {
       {error ? <p className="body-md text-danger">{error}</p> : null}
       {data ? (
         <div className="flex flex-col gap-6">
-          <ul className="grid gap-2 sm:grid-cols-3">
+          <ul className="grid gap-2 sm:grid-cols-4">
             {(
               [
                 ["Total", counters.total],
                 ["Account", counters.account],
+                ["Account (deleted)", counters.accountDeleted],
                 ["Guest", counters.guest],
               ] as const
             ).map(([label, value]) => (
@@ -253,6 +256,7 @@ export default function AdminBookingsPage() {
               >
                 <option value="all">All customers</option>
                 <option value="account">Account</option>
+                <option value="account_deleted">Account (deleted)</option>
                 <option value="guest">Guest</option>
               </Select>
             </div>

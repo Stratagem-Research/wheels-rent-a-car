@@ -60,7 +60,9 @@ export async function POST(request: Request) {
       maxAge: 60 * 60 * 24 * 14,
       path: "/",
     });
-    return applySupabaseCookies(response);
   }
-  return response;
+  // Even without a session (email confirmation pending), signUp() may have set a
+  // PKCE code-verifier cookie via setAll — it must be flushed or the confirmation
+  // link's exchangeCodeForSession will fail for lack of the verifier.
+  return applySupabaseCookies(response);
 }

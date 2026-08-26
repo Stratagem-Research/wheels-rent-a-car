@@ -272,6 +272,13 @@ function renderRichBookingEmail(
   const returnLocation = str(payload, "returnLocation");
   const flightNumber = str(payload, "flightNumber");
   const paymentMethod = str(payload, "paymentMethod");
+  const paymentMethodCode = str(payload, "paymentMethodCode");
+  const paymentNote =
+    paymentMethodCode === "omt"
+      ? `Use this booking's reference — ${ref} — as your OMT payment code when paying at any OMT branch.`
+      : paymentMethodCode === "transfer"
+        ? `Include this booking's reference — ${ref} — with your bank transfer so we can match your payment.`
+        : "";
   const protectionName = str(payload, "protectionName");
   const protectionPriceLabel = str(payload, "protectionPriceLabel");
   const extrasLines = strList(payload, "extrasLines");
@@ -305,6 +312,11 @@ function renderRichBookingEmail(
       ${htmlRow("Payment method", paymentMethod)}
     </table>
     ${
+      paymentNote
+        ? `<p style="margin:16px 0 0 0; padding:12px 16px; font-size:14px; line-height:1.6; color:#0a0a0a; background:#f5f5f5; border-radius:8px;">${escapeHtml(paymentNote)}</p>`
+        : ""
+    }
+    ${
       extrasLines.length > 0
         ? `${emailEyebrow("Selected extras")}<ul style="margin:0; padding-left:18px; font-size:14px; line-height:1.7; color:#0a0a0a;">${extrasLines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>`
         : ""
@@ -335,6 +347,7 @@ function renderRichBookingEmail(
     textLine("Phone", driverPhone),
     textLine("Protection plan", protectionName ? `${protectionName}${protectionPriceLabel ? ` (${protectionPriceLabel})` : ""}` : ""),
     textLine("Payment method", paymentMethod),
+    paymentNote ? `\n${paymentNote}\n` : "",
     extrasLines.length > 0 ? `\nSelected extras:\n${extrasLines.map((l) => `- ${l}`).join("\n")}\n` : "",
     "\nPrice breakdown:",
     textLine("Base rate", str(payload, "priceBaseRate")),

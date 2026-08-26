@@ -141,7 +141,10 @@ export default function AdminUsersPage() {
             <Accordion type="single" collapsible value={expanded} onValueChange={onExpand}>
               {data.items.map((user) => (
                 <AccordionItem key={user.id} value={user.id} className="px-4">
-                  <AccordionTrigger className="grid grid-cols-1 gap-1 py-4 sm:grid-cols-[2fr_2fr_1.2fr_1fr_1fr] sm:items-center sm:gap-3">
+                  <AccordionTrigger
+                    hideChevron
+                    className="grid grid-cols-1 gap-1 py-4 sm:grid-cols-[2fr_2fr_1.2fr_1fr_1fr] sm:items-center sm:gap-3"
+                  >
                     <span className="headline-xs text-ink-95">
                       {[user.firstName, user.lastName].filter(Boolean).join(" ") || "—"}
                     </span>

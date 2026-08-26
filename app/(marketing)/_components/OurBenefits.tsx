@@ -96,7 +96,7 @@ export function OurBenefits() {
 
   return (
     <Reveal as="section" className="bg-ink-10">
-      <div className="mx-auto max-w-[var(--container-default)] px-5 py-16 sm:px-10 lg:py-32">
+      <div className="mx-auto max-w-(--container-default) px-5 py-16 sm:px-10 lg:py-28">
         <div className="mb-10 flex max-w-2xl flex-col gap-4 lg:mb-14">
           <p className="text-ink-60 overline">{t("eyebrow")}</p>
           <h2 className="display-md text-ink-100 text-[clamp(32px,4.5vw,56px)] leading-[1]">

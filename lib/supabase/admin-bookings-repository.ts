@@ -47,7 +47,7 @@ export async function listAdminWebsiteBookings(): Promise<AdminWebsiteBooking[]>
   const supabase = getSupabaseAdminClient();
 
   const usersSelect =
-    "booking_reference, user_id, public_token, wizard_booking_id, customer_email, created_at, pickup_at, return_at, frontend_vehicle_id, wizard_vehicle_id";
+    "booking_reference, user_id, public_token, wizard_booking_id, customer_email, account_deleted_at, created_at, pickup_at, return_at, frontend_vehicle_id, wizard_vehicle_id";
   const guestsSelect =
     "booking_reference, email, wizard_booking_id, created_at, pickup_at, return_at, frontend_vehicle_id, wizard_vehicle_id";
   const [usersResult, guestsResult, holdsResult, timelineResult, paymentsResult] = await Promise.all([
@@ -71,7 +71,7 @@ export async function listAdminWebsiteBookings(): Promise<AdminWebsiteBooking[]>
   ]);
 
   let userRows = usersResult.data ?? [];
-  if (usersResult.error && /customer_email|wizard_booking_id|pickup_at|return_at|frontend_vehicle_id|wizard_vehicle_id/i.test(usersResult.error.message ?? "")) {
+  if (usersResult.error && /customer_email|wizard_booking_id|pickup_at|return_at|frontend_vehicle_id|wizard_vehicle_id|account_deleted_at/i.test(usersResult.error.message ?? "")) {
     const fallback = await supabase
       .from("user_bookings")
       .select("booking_reference, user_id, public_token, created_at")
@@ -81,6 +81,7 @@ export async function listAdminWebsiteBookings(): Promise<AdminWebsiteBooking[]>
       ...row,
       customer_email: null,
       wizard_booking_id: null,
+      account_deleted_at: null,
       pickup_at: null,
       return_at: null,
       frontend_vehicle_id: null,
@@ -173,6 +174,7 @@ export async function listAdminWebsiteBookings(): Promise<AdminWebsiteBooking[]>
     bookingReference: string;
     wizardBookingId: number | null;
     hasAccount: boolean;
+    accountDeletedAt: string | null;
     accountEmail: string | null;
     guestEmail: string | null;
     customerName: string | null;
@@ -191,6 +193,7 @@ export async function listAdminWebsiteBookings(): Promise<AdminWebsiteBooking[]>
         bookingReference: partial.bookingReference,
         wizardBookingId: partial.wizardBookingId ?? null,
         hasAccount: partial.hasAccount ?? false,
+        accountDeletedAt: partial.accountDeletedAt ?? null,
         accountEmail: partial.accountEmail ?? null,
         guestEmail: partial.guestEmail ?? null,
         customerName: partial.customerName ?? null,
@@ -205,6 +208,7 @@ export async function listAdminWebsiteBookings(): Promise<AdminWebsiteBooking[]>
     existing.createdAt = earlierIso(existing.createdAt, partial.createdAt);
     if (partial.wizardBookingId != null) existing.wizardBookingId = partial.wizardBookingId;
     if (partial.hasAccount) existing.hasAccount = true;
+    if (partial.accountDeletedAt) existing.accountDeletedAt = partial.accountDeletedAt;
     if (partial.accountEmail) existing.accountEmail = partial.accountEmail;
     if (partial.guestEmail) existing.guestEmail = partial.guestEmail;
     if (partial.customerName) existing.customerName = partial.customerName;
@@ -219,7 +223,10 @@ export async function listAdminWebsiteBookings(): Promise<AdminWebsiteBooking[]>
     upsert({
       bookingReference: row.booking_reference as string,
       wizardBookingId: (row.wizard_booking_id as number | null) ?? null,
-      hasAccount: true,
+      // user_id is null once the owning account is deleted (on-delete-set-null
+      // FK) — the row survives, but it's no longer an "account" booking.
+      hasAccount: Boolean(userId),
+      accountDeletedAt: (row.account_deleted_at as string | null) ?? null,
       accountEmail: (row.customer_email as string | null) ?? null,
       customerName: userId ? nameByUserId.get(userId) ?? null : null,
       createdAt: row.created_at as string,
@@ -259,9 +266,11 @@ export async function listAdminWebsiteBookings(): Promise<AdminWebsiteBooking[]>
         row.pickupAt && row.returnAt ? holdInventoryStatus(row.pickupAt, row.returnAt, now) : null;
       const customerType: HoldCustomerType = row.hasAccount
         ? "account"
-        : row.guestEmail
-          ? "guest"
-          : "unknown";
+        : row.accountDeletedAt
+          ? "account_deleted"
+          : row.guestEmail
+            ? "guest"
+            : "unknown";
       const frontendId =
         row.frontendVehicleId ||
         (row.wizardVehicleId != null ? frontendVehicleIdFromWizard(row.wizardVehicleId) : null);
@@ -322,7 +331,7 @@ export async function getAdminBookingDetail(bookingReference: string): Promise<A
   const [userHit, guestHit, holdHit, timelineHit, paymentHit, websiteByFrontend] = await Promise.all([
     supabase
       .from("user_bookings")
-      .select("user_id, wizard_booking_id, customer_email")
+      .select("user_id, wizard_booking_id, customer_email, account_deleted_at")
       .eq("booking_reference", ref)
       .limit(1)
       .maybeSingle(),
@@ -386,7 +395,13 @@ export async function getAdminBookingDetail(bookingReference: string): Promise<A
   const holdStatus =
     pickupAt && returnAt ? holdInventoryStatus(pickupAt, returnAt, new Date()) : null;
   const hasAccount = Boolean(userHit.data?.user_id);
-  const customerType: HoldCustomerType = hasAccount ? "account" : guestHit.data ? "guest" : "unknown";
+  const customerType: HoldCustomerType = hasAccount
+    ? "account"
+    : userHit.data?.account_deleted_at
+      ? "account_deleted"
+      : guestHit.data
+        ? "guest"
+        : "unknown";
   const wizardBookingId =
     (userHit.data?.wizard_booking_id as number | null) ??
     (guestHit.data?.wizard_booking_id as number | null) ??

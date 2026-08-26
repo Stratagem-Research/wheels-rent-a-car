@@ -81,7 +81,6 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { href: "/admin/bookings", label: "Bookings", icon: BookOpen },
       { href: "/admin/users", label: "Users", icon: UserCircle },
-      { href: "/admin/leads", label: "Leads", icon: Users },
       { href: "/admin/fleet", label: "Fleet", icon: Route },
       { href: "/admin/locations", label: "Locations", icon: MapPinned },
       { href: "/admin/promotions", label: "Promotions", icon: Megaphone },
@@ -90,6 +89,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/chauffeur-requests", label: "Chauffeur requests", icon: Car },
       { href: "/admin/long-term-quotes", label: "Long-term quotes", icon: CalendarRange },
       { href: "/admin/ops", label: "Ops", icon: Settings2 },
+      { href: "/admin/leads", label: "Leads", icon: Users },
     ],
   },
   {

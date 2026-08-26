@@ -13,8 +13,9 @@ import type { HoldCustomerType, HoldInventoryStatus } from "@/lib/supabase/vehic
 
 function customerLabel(type: HoldCustomerType): string {
   if (type === "account") return "Account";
+  if (type === "account_deleted") return "Account (deleted)";
   if (type === "guest") return "Guest";
-  return "Unlinked";
+  return "—";
 }
 
 function holdStatusLabel(status: HoldInventoryStatus | null): string {

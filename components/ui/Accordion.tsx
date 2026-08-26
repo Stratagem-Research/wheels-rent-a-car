@@ -22,8 +22,8 @@ export const AccordionItem = React.forwardRef<
 
 export const AccordionTrigger = React.forwardRef<
   React.ElementRef<typeof RadixAccordion.Trigger>,
-  React.ComponentPropsWithoutRef<typeof RadixAccordion.Trigger>
->(function AccordionTrigger({ className, children, ...props }, ref) {
+  React.ComponentPropsWithoutRef<typeof RadixAccordion.Trigger> & { hideChevron?: boolean }
+>(function AccordionTrigger({ className, children, hideChevron, ...props }, ref) {
   return (
     <RadixAccordion.Header className="flex">
       <RadixAccordion.Trigger
@@ -38,13 +38,15 @@ export const AccordionTrigger = React.forwardRef<
         {...props}
       >
         {children}
-        <ChevronDown
-          aria-hidden="true"
-          className={cn(
-            "text-ink-60 size-5 shrink-0 transition-transform duration-200",
-            "group-data-[state=open]:text-ink-100 group-data-[state=open]:rotate-180",
-          )}
-        />
+        {hideChevron ? null : (
+          <ChevronDown
+            aria-hidden="true"
+            className={cn(
+              "text-ink-60 size-5 shrink-0 transition-transform duration-200",
+              "group-data-[state=open]:text-ink-100 group-data-[state=open]:rotate-180",
+            )}
+          />
+        )}
       </RadixAccordion.Trigger>
     </RadixAccordion.Header>
   );

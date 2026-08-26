@@ -20,7 +20,10 @@ import { removeAllSavedVehicles } from "@/lib/supabase/saved-vehicles-repository
  *   null` (see migration 20260821_000001), so the booking survives with
  *   `user_id = null` — still visible in the admin bookings dashboard,
  *   still carrying its own `customer_email`/vehicle/date snapshot, but no
- *   longer reachable from any account's own booking list.
+ *   longer reachable from any account's own booking list. `account_deleted_at`
+ *   is stamped on those rows first (see migration 20260826_000001) so admin
+ *   can tell a deleted account apart from a booking that was never linked
+ *   to one — both would otherwise look identical once `user_id` is null.
  * - `guest_booking_index` is left alone too — `claimGuestBookingsForUser`
  *   now skips any reference already present in `user_bookings` (regardless
  *   of user_id), so a booking claimed once never gets silently re-claimed
@@ -43,6 +46,19 @@ export async function DELETE() {
   }
 
   const admin = getSupabaseAdminClient();
+  // Stamp before the auth user is gone — the FK's on-delete-set-null then
+  // just clears user_id, and this is the only record telling apart "this
+  // booking's account was deleted" from "this booking was never linked".
+  // Non-fatal: the account delete itself must still proceed even if this
+  // write fails (e.g. migration 20260826_000001 not yet applied).
+  const { error: stampError } = await admin
+    .from("user_bookings")
+    .update({ account_deleted_at: new Date().toISOString() })
+    .eq("user_id", userId);
+  if (stampError) {
+    console.warn("[account.delete] failed to stamp account_deleted_at (non-fatal)", stampError.message);
+  }
+
   const { error: deleteError } = await admin.auth.admin.deleteUser(userId);
   if (deleteError) {
     return NextResponse.json(
