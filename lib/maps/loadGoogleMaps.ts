@@ -30,3 +30,19 @@ export function loadGooglePlaces(): Promise<google.maps.PlacesLibrary> | null {
   }
   return placesLibraryPromise;
 }
+
+/** Loads the Geocoding library — used to reverse-geocode the browser's
+ *  geolocation coordinates into a human-readable address for "deliver to
+ *  me". Shares the same memoized `setOptions` call as `loadGooglePlaces`. */
+let geocodingLibraryPromise: Promise<google.maps.GeocodingLibrary> | null = null;
+
+export function loadGoogleGeocoding(): Promise<google.maps.GeocodingLibrary> | null {
+  const key = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.trim();
+  if (!key) return null;
+
+  if (!geocodingLibraryPromise) {
+    setOptions({ key, v: "weekly" });
+    geocodingLibraryPromise = importLibrary("geocoding");
+  }
+  return geocodingLibraryPromise;
+}

@@ -3,12 +3,13 @@
 
 import * as React from "react";
 import * as Popover from "@radix-ui/react-popover";
-import { ChevronDown, MapPin, Building2, History as HistoryIcon, Clock, Plane } from "lucide-react";
+import { ChevronDown, MapPin, Building2, History as HistoryIcon, Clock, Plane, Search, LocateFixed } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/Input";
+import { toast } from "@/components/ui/Toast";
 import { readLastSearch } from "@/lib/search/persistence";
-import { loadGooglePlaces } from "@/lib/maps/loadGoogleMaps";
+import { loadGooglePlaces, loadGoogleGeocoding } from "@/lib/maps/loadGoogleMaps";
 import type { Branch, PickupType } from "@/types/domain";
 
 /**
@@ -118,6 +119,43 @@ export function LocationPicker({
     chooseRef.current({ type: "address-delivery", ...next });
   }, []);
 
+  const [locating, setLocating] = React.useState(false);
+
+  const useMyLocation = React.useCallback(() => {
+    if (!("geolocation" in navigator)) {
+      toast.error(t("locGeoUnsupported"));
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude: lat, longitude: lng } = position.coords;
+        void (async () => {
+          try {
+            const geocoding = await loadGoogleGeocoding();
+            const geocoder = geocoding ? new geocoding.Geocoder() : null;
+            const result = geocoder ? (await geocoder.geocode({ location: { lat, lng } })).results[0] : null;
+            onPlaceSelected({
+              address: result?.formatted_address ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}`,
+              lat,
+              lng,
+              placeId: result?.place_id,
+            });
+          } catch {
+            toast.error(t("locGeoFailed"));
+          } finally {
+            setLocating(false);
+          }
+        })();
+      },
+      () => {
+        setLocating(false);
+        toast.error(t("locGeoDenied"));
+      },
+      { enableHighAccuracy: true, timeout: 10_000 },
+    );
+  }, [onPlaceSelected, t]);
+
   return (
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger asChild>
@@ -149,7 +187,7 @@ export function LocationPicker({
           align="start"
           sideOffset={8}
           className={cn(
-            "bg-surface border-ink-20 z-50 rounded-xl border p-3",
+            "bg-surface border-ink-20 z-50 rounded-xl border py-3 px-4",
             "w-150 max-w-[calc(100vw-3rem)]",
           )}
         >
@@ -206,12 +244,12 @@ export function LocationPicker({
             {focusedBranch ? <StationDetails branch={focusedBranch} /> : null}
           </div>
 
-          <div className="bg-ink-10 border-ink-30 mt-3 rounded-lg border p-3">
+          <div className="bg-mauve-100 mt-3 rounded-lg p-4 ">
             <div className="flex items-center gap-1.5 pb-2">
-              <MapPin className="text-ink-80 size-3.5 shrink-0" aria-hidden="true" />
-              <span className="label-sm text-ink-80 font-semibold tracking-wide uppercase">{t("locDeliver")}</span>
+              <MapPin className="text-ink-90 size-3.5 shrink-0" aria-hidden="true" />
+              <span className="headline-xs text-ink-90  font-bold tracking-wide uppercase">{t("locDeliver")}</span>
             </div>
-            <div className="overflow-hidden rounded-lg border border-ink-30 bg-white [&_input::placeholder]:text-xs [&_input::placeholder]:text-ink-50">
+            <div className="rounded-xl border border-ink-20 bg-white [&_input::placeholder]:text-xs [&_input::placeholder]:text-ink-50">
               {placesAutocomplete ? (
                 <GooglePlaceAutocompleteField
                   placeholder={t("locDeliverPlaceholder")}
@@ -220,6 +258,9 @@ export function LocationPicker({
                   onFallbackChange={setAddressDraft}
                   onFallbackCommit={(address) => choose({ type: "address-delivery", address })}
                   onSelect={onPlaceSelected}
+                  onUseMyLocation={useMyLocation}
+                  locating={locating}
+                  locateAriaLabel={t("locUseMyLocation")}
                 />
               ) : (
                 <Input
@@ -232,10 +273,13 @@ export function LocationPicker({
                       choose({ type: "address-delivery", address: addressDraft.trim() });
                     }
                   }}
-                  startAdornment={<MapPin className="size-4" aria-hidden="true" />}
+                  startAdornment={<Search className="size-4" aria-hidden="true" />}
+                  endAdornment={
+                    <LocateMeButton onClick={useMyLocation} locating={locating} ariaLabel={t("locUseMyLocation")} />
+                  }
                   aria-label={t("locDeliverAria")}
                   autoComplete="off"
-                  className="border-0 rounded-none shadow-none focus-within:outline-none focus-within:shadow-none"
+                  className="border-0 rounded-2xl shadow-none focus-within:outline-none focus-within:shadow-none"
                 />
               )}
             </div>
@@ -280,10 +324,10 @@ function Option({
       onFocus={onFocus}
       onMouseEnter={onMouseEnter}
       className={cn(
-        "flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left",
+        "flex w-full items-center gap-3 rounded-md px-3 py-2 text-left",
         "hover:bg-ink-10 transition-colors duration-100",
         "focus-visible:outline-ink-100 focus-visible:outline-2 focus-visible:outline-offset-0",
-        selected && "bg-ink-10",
+        selected && "bg-mauve-100",
       )}
     >
       <span className="text-ink-60">{icon}</span>
@@ -295,25 +339,13 @@ function Option({
 function StationDetails({ branch }: { branch: Branch }) {
   const t = useTranslations("searchUi");
   return (
-    <aside className="bg-ink-10 flex flex-col gap-2 rounded-md p-4 lg:mt-2">
+    <aside className="bg-mauve-100 flex flex-col gap-2 rounded-md p-4 lg:mt-2">
       <header className="flex items-center gap-2">
         <Building2 className="text-ink-60 size-4 shrink-0" aria-hidden="true" />
         <span className="headline-xs text-ink-95">{branch.name}</span>
       </header>
       <p className="body-sm text-ink-60">{branch.address}</p>
-      {/* {branch.hours.length > 0 ? (
-        <div className="mt-1 flex items-start gap-2">
-          <Clock className="text-ink-60 mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
-          <div className="label-md text-ink-60">
-            {branch.hours[0]?.open24h
-              ? t("locOpen247")
-              : t("locHours", {
-                  open: branch.hours[0]?.open ?? "—",
-                  close: branch.hours[0]?.close ?? "—",
-                })}
-          </div>
-        </div>
-      ) : null} */}
+
     </aside>
   );
 }
@@ -356,6 +388,9 @@ function GooglePlaceAutocompleteField({
   onFallbackChange,
   onFallbackCommit,
   onSelect,
+  onUseMyLocation,
+  locating,
+  locateAriaLabel,
 }: {
   placeholder: string;
   ariaLabel: string;
@@ -363,6 +398,9 @@ function GooglePlaceAutocompleteField({
   onFallbackChange: (next: string) => void;
   onFallbackCommit: (address: string) => void;
   onSelect: (next: { address: string; lat?: number; lng?: number; placeId?: string }) => void;
+  onUseMyLocation: () => void;
+  locating: boolean;
+  locateAriaLabel: string;
 }) {
   const [ready, setReady] = React.useState(false);
   // Refs so the mount callback (created once) always sees latest props
@@ -424,12 +462,43 @@ function GooglePlaceAutocompleteField({
               onFallbackCommit(fallbackValue.trim());
             }
           }}
-          startAdornment={<MapPin className="size-4" aria-hidden="true" />}
+          startAdornment={<Search className="size-4" aria-hidden="true" />}
           aria-label={ariaLabel}
           autoComplete="off"
-          className="border rounded-xl shadow-none"
+          className="border rounded-2xl shadow-none"
         />
       )}
+      <div className="absolute top-1/2 right-1.5 -translate-y-1/2">
+        <LocateMeButton onClick={onUseMyLocation} locating={locating} ariaLabel={locateAriaLabel} />
+      </div>
     </div>
+  );
+}
+
+/** Black pill icon-button that triggers browser geolocation → reverse
+ *  geocode, sitting inside the delivery-address field (both the Google
+ *  element and the plain-Input fallback render it via `endAdornment`). */
+function LocateMeButton({
+  onClick,
+  locating,
+  ariaLabel,
+}: {
+  onClick: () => void;
+  locating: boolean;
+  ariaLabel: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={locating}
+      aria-label={ariaLabel}
+      className={cn(
+        "bg-secondary-50 text-paper flex size-7 shrink-0 items-center justify-center rounded-full",
+        "transition-opacity hover:opacity-90 disabled:opacity-60",
+      )}
+    >
+      <LocateFixed className={cn("size-3.5", locating && "animate-pulse")} aria-hidden="true" />
+    </button>
   );
 }
