@@ -19,7 +19,7 @@ export interface AuthCardProps {
 
 export function AuthCard({ title, subtitle, children, footer, className }: AuthCardProps) {
   return (
-    <div className="flex w-full max-w-md flex-col gap-6">
+    <div className="flex w-full max-w-lg flex-col gap-6">
       <Card
         variant="default"
         className={cn("flex flex-col gap-6 rounded-2xl", "p-6 sm:p-8 lg:p-10", className)}

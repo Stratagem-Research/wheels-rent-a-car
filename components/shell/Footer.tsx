@@ -148,14 +148,14 @@ export function Footer() {
             </Link>
             <LocaleSwitcher variant="footer" />
             <div className="flex items-center gap-2">
-              <SocialIcon href="https://instagram.com/" label="Instagram">
+              <SocialIcon href="https://www.instagram.com/wheelsrentacar.lb?igsi=c3Bwem1lNnNxM2Jm&utm_source=qr" label="Instagram">
                 <InstagramGlyph />
               </SocialIcon>
-              <SocialIcon href="https://facebook.com/" label="Facebook">
+              <SocialIcon href="https://www.facebook.com/share/1DadsyiQ7h/?mibextid=wwXIfr" label="Facebook">
                 <FacebookGlyph />
               </SocialIcon>
-              <SocialIcon href="https://linkedin.com/" label="LinkedIn">
-                <LinkedInGlyph />
+              <SocialIcon href="https://www.tiktok.com/@wheelsrentacar.lb?_r=1&_t=ZS-99GBZYQ0UCL" label="TikTok">
+                <TikTokGlyph />
               </SocialIcon>
             </div>
           </div>
@@ -255,10 +255,10 @@ function FacebookGlyph() {
   );
 }
 
-function LinkedInGlyph() {
+function TikTokGlyph() {
   return (
     <svg viewBox="0 0 24 24" className="size-4" fill="currentColor" aria-hidden="true">
-      <path d="M4.98 3.5C4.98 4.88 3.88 6 2.5 6S0 4.88 0 3.5 1.12 1 2.5 1s2.48 1.12 2.48 2.5ZM.22 8h4.55v14H.22V8Zm7.5 0h4.36v1.9h.06c.61-1.15 2.1-2.36 4.32-2.36 4.62 0 5.47 3.04 5.47 7v7.46h-4.55v-6.62c0-1.58-.03-3.6-2.2-3.6-2.2 0-2.54 1.72-2.54 3.49v6.73H7.72V8Z" />
+      <path d="M19.59 6.69a4.83 4.83 0 0 1-4.77-4.77V0h-3.22v16.54a2.9 2.9 0 0 1-2.9 2.62 2.9 2.9 0 0 1-2.9-2.9 2.9 2.9 0 0 1 2.9-2.9c.28 0 .55.04.8.11V10.1a6.1 6.1 0 0 0-.8-.05 6.12 6.12 0 0 0-6.12 6.12 6.12 6.12 0 0 0 6.12 6.12 6.12 6.12 0 0 0 6.12-6.12V8.69a8.03 8.03 0 0 0 4.77 1.56V6.99a4.84 4.84 0 0 1-2-.3Z" />
     </svg>
   );
 }

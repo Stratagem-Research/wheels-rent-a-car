@@ -159,12 +159,8 @@ export function TimePicker({
     </button>
   );
 
-  const slotsContent = (
+  const slotsBody = (
     <>
-      <header className="headline-xs text-ink-95 mb-3 text-center">
-        {title ?? t("timeTitle")}
-      </header>
-
       {day.length > 0 && (
         <Section label={t("timeDay")} slots={day} value={value} minTime={minTime} onSelect={select} />
       )}
@@ -177,7 +173,6 @@ export function TimePicker({
           onSelect={select}
         />
       )}
-
       {showOffHours && offHours.length > 0 ? (
         <Section
           label={t("timeOffHours")}
@@ -198,6 +193,17 @@ export function TimePicker({
       ) : null}
     </>
   );
+
+  const slotsContent = (
+    <>
+      <header className="headline-xs text-ink-95 mb-3 text-center">
+        {title ?? t("timeTitle")}
+      </header>
+      {slotsBody}
+    </>
+  );
+
+  const slotsContentWithoutHeader = slotsBody;
 
   if (isMobile) {
     return (
@@ -236,12 +242,16 @@ export function TimePicker({
         <Popover.Content
           align="start"
           sideOffset={8}
-          className={cn(
-            "bg-surface border-ink-20 z-50 w-[320px] max-w-[calc(100vw-2rem)] rounded-xl border p-4",
-            "max-h-[420px] overflow-y-auto",
-          )}
+          className="bg-surface border-ink-20 z-50 flex w-[240px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-xl border"
         >
-          {slotsContent}
+          <div className="p-3 pb-2">
+            <header className="headline-xs text-ink-95 text-center">
+              {title ?? t("timeTitle")}
+            </header>
+          </div>
+          <div className="overflow-y-auto rounded-b-xl px-3 pb-3 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-track]:bg-ink-10 [&::-webkit-scrollbar-thumb]:bg-ink-20 [&::-webkit-scrollbar-thumb]:rounded-full" style={{ maxHeight: "320px" }}>
+            {slotsContentWithoutHeader}
+          </div>
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>
@@ -276,7 +286,7 @@ function Section({
               onClick={() => onSelect(slot)}
               aria-pressed={active}
               className={cn(
-                "body-md inline-flex h-10 items-center justify-center rounded-md tabular-nums transition-colors duration-100",
+                "body-sm inline-flex h-8 items-center justify-center rounded-md tabular-nums transition-colors duration-100",
                 unavailable
                   ? "bg-ink-10 text-ink-40 cursor-not-allowed"
                   : active

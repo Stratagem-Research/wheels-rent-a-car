@@ -141,15 +141,12 @@ export function DatePopover({
 
   const calendarBody =
     mode === "single" ? (
-      <DayPicker
-        mode="single"
-        selected={value}
-        onSelect={onValueChange}
-        disabled={(d) => isBefore(startOfDay(d), startOfDay(min)) || isAfter(startOfDay(d), startOfDay(max))}
-        numberOfMonths={monthCount}
-        showOutsideDays={false}
-        classNames={dayPickerClasses}
-        components={dayPickerComponents}
+      <SingleView
+        value={value}
+        onValueChange={onValueChange}
+        min={min}
+        max={max}
+        monthCount={monthCount}
       />
     ) : (
       <RangeView
@@ -215,6 +212,64 @@ export function DatePopover({
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>
+  );
+}
+
+function SingleView({
+  value,
+  onValueChange,
+  min,
+  max,
+  monthCount,
+}: {
+  value?: Date;
+  onValueChange?: (next: Date | undefined) => void;
+  min: Date;
+  max: Date;
+  monthCount: number;
+}) {
+  const t = useTranslations("searchUi");
+  const [currentMonth, setCurrentMonth] = React.useState<Date>(() => value ?? new Date());
+
+  return (
+    <>
+      <div className="border-ink-15 mb-4 flex items-center justify-between gap-3 border-b pb-3">
+        <span className="headline-xs text-ink-100">
+          {value ? format(value, "d MMM yyyy") : t("dateSelect")}
+        </span>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setCurrentMonth((d) => addMonths(d, -1))}
+            aria-label={t("datePrevMonth")}
+            className="border-ink-20 text-ink-80 hover:bg-ink-10 hover:text-ink-100 focus-visible:outline-ink-100 inline-flex size-8 items-center justify-center rounded-full border focus-visible:outline-2"
+          >
+            <ChevronLeft className="size-4" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setCurrentMonth((d) => addMonths(d, 1))}
+            aria-label={t("dateNextMonth")}
+            className="border-ink-20 text-ink-80 hover:bg-ink-10 hover:text-ink-100 focus-visible:outline-ink-100 inline-flex size-8 items-center justify-center rounded-full border focus-visible:outline-2"
+          >
+            <ChevronRight className="size-4" aria-hidden="true" />
+          </button>
+        </div>
+      </div>
+      <DayPicker
+        mode="single"
+        month={currentMonth}
+        onMonthChange={setCurrentMonth}
+        hideNavigation
+        selected={value}
+        onSelect={onValueChange}
+        disabled={(d) => isBefore(startOfDay(d), startOfDay(min)) || isAfter(startOfDay(d), startOfDay(max))}
+        numberOfMonths={monthCount}
+        showOutsideDays={false}
+        classNames={dayPickerClasses}
+        components={dayPickerComponents}
+      />
+    </>
   );
 }
 

@@ -26,14 +26,14 @@ export const Slider = React.forwardRef<
       )}
       {...props}
     >
-      <RadixSlider.Track className="bg-ink-20 relative h-1.5 grow rounded-full">
+      <RadixSlider.Track className="bg-ink-20 relative h-1 grow rounded-full">
         <RadixSlider.Range className="bg-ink-95 absolute h-full rounded-full" />
       </RadixSlider.Track>
       {Array.from({ length: thumbCount }).map((_, i) => (
         <RadixSlider.Thumb
           key={i}
           className={cn(
-            "bg-surface border-ink-95 block size-5 rounded-full border-2",
+            "bg-surface border-ink-95 block size-4 rounded-full border-2",
             "shadow-[0_1px_3px_rgba(0,0,0,0.15)]",
             "transition-shadow duration-150 ease-out",
             "hover:shadow-[0_2px_6px_rgba(0,0,0,0.2)]",

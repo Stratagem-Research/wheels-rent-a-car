@@ -71,7 +71,7 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(fu
   return (
     <div
       className={cn(
-        "bg-surface flex h-13 w-full items-center rounded-md",
+        "bg-surface flex h-10 w-full items-center rounded-md",
         "border transition-colors duration-150 ease-out",
         "focus-within:outline-ink-100 focus-within:outline-2 focus-within:outline-offset-0",
         "focus-within:shadow-[0_0_0_4px_var(--color-signal-blue-bg)]",

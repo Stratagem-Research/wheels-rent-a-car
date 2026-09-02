@@ -150,7 +150,7 @@ export function LocationPicker({
           sideOffset={8}
           className={cn(
             "bg-surface border-ink-20 z-50 rounded-xl border p-3",
-            "w-160 max-w-[calc(100vw-2rem)]",
+            "w-150 max-w-[calc(100vw-3rem)]",
           )}
         >
           <div className="grid gap-3 sm:grid-cols-[1fr_1fr] sm:gap-4">
@@ -206,10 +206,12 @@ export function LocationPicker({
             {focusedBranch ? <StationDetails branch={focusedBranch} /> : null}
           </div>
 
-          <div className="bg-border my-3 h-px" />
-
-          <Section title={t("locDeliver")} bold>
-            <div className="px-1 pb-1">
+          <div className="bg-ink-10 border-ink-30 mt-3 rounded-lg border p-3">
+            <div className="flex items-center gap-1.5 pb-2">
+              <MapPin className="text-ink-80 size-3.5 shrink-0" aria-hidden="true" />
+              <span className="label-sm text-ink-80 font-semibold tracking-wide uppercase">{t("locDeliver")}</span>
+            </div>
+            <div className="overflow-hidden rounded-lg border border-ink-30 bg-white [&_input::placeholder]:text-xs [&_input::placeholder]:text-ink-50">
               {placesAutocomplete ? (
                 <GooglePlaceAutocompleteField
                   placeholder={t("locDeliverPlaceholder")}
@@ -233,10 +235,11 @@ export function LocationPicker({
                   startAdornment={<MapPin className="size-4" aria-hidden="true" />}
                   aria-label={t("locDeliverAria")}
                   autoComplete="off"
+                  className="border-0 rounded-none shadow-none focus-within:outline-none focus-within:shadow-none"
                 />
               )}
             </div>
-          </Section>
+          </div>
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>
@@ -292,7 +295,7 @@ function Option({
 function StationDetails({ branch }: { branch: Branch }) {
   const t = useTranslations("searchUi");
   return (
-    <aside className="bg-ink-10 flex flex-col gap-2 rounded-md p-4">
+    <aside className="bg-ink-10 flex flex-col gap-2 rounded-md p-4 lg:mt-2">
       <header className="flex items-center gap-2">
         <Building2 className="text-ink-60 size-4 shrink-0" aria-hidden="true" />
         <span className="headline-xs text-ink-95">{branch.name}</span>
@@ -424,6 +427,7 @@ function GooglePlaceAutocompleteField({
           startAdornment={<MapPin className="size-4" aria-hidden="true" />}
           aria-label={ariaLabel}
           autoComplete="off"
+          className="border rounded-xl shadow-none"
         />
       )}
     </div>

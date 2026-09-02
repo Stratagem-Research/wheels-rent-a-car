@@ -140,3 +140,35 @@ body {
 [dir="rtl"] .lucide-arrow-up-right {
   transform: scaleX(-1);
 }
+
+/* Google PlaceAutocompleteElement — delivery address field in LocationPicker */
+.wheels-place-autocomplete {
+  width: 100%;
+  border-radius: 0.5rem;
+  font-size: 0.8125rem;
+  --gmpx-font-size: 0.8125rem;
+  --gmpx-border-radius: 0.5rem;
+}
+.wheels-place-autocomplete::part(input) {
+  font-size: 0.8125rem;
+  border-radius: 0.5rem;
+}
+.wheels-place-autocomplete input::placeholder {
+  font-size: 0.75rem;
+}
+.wheels-place-autocomplete:focus,
+.wheels-place-autocomplete:focus-visible,
+.wheels-place-autocomplete input:focus,
+.wheels-place-autocomplete input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.wheels-place-autocomplete::part(input):focus,
+.wheels-place-autocomplete::part(input):focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.wheels-place-autocomplete::part(focus-ring) {
+  border-color: var(--color-ink-100) !important;
+  border-radius: 1.5rem !important;
+}

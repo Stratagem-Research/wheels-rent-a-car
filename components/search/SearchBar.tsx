@@ -118,7 +118,7 @@ export function SearchBar({ variant = "expanded", branches, className }: SearchB
 
   return (
     <>
-      <div className="lg:hidden">
+      <div className="md:hidden">
         <Sheet>
           <SheetTrigger asChild>
             <button
@@ -156,7 +156,7 @@ export function SearchBar({ variant = "expanded", branches, className }: SearchB
           </SheetContent>
         </Sheet>
       </div>
-      <div className={cn("hidden lg:block", className)}>
+      <div className={cn("hidden md:block", className)}>
         {variant === "expanded" ? (
           <ExpandedLayout
             criteria={criteria}
@@ -232,6 +232,7 @@ function ExpandedLayout({
   // Chain dates → pickup-time so picking both dates closes the calendar
   // and opens the time picker — smooth one-after-the-other flow.
   const [datesOpen, setDatesOpen] = React.useState(false);
+  const [returnDateOpen, setReturnDateOpen] = React.useState(false);
   const [pickupTimeOpen, setPickupTimeOpen] = React.useState(false);
   const [returnTimeOpen, setReturnTimeOpen] = React.useState(false);
 
@@ -247,10 +248,10 @@ function ExpandedLayout({
   })();
 
   return (
-    <div className={cn(framed && "bg-paper rounded-2xl p-6 shadow-[var(--shadow-elevation-2)]")}>
-      <div className="flex flex-col gap-5">
+    <div className={cn(framed && "bg-paper rounded-2xl p-4 shadow-[var(--shadow-elevation-2)] md:p-5")}>
+      <div className="flex flex-col gap-3 md:gap-4">
         {/* Row 1 — pickup + return locations, both always visible side by side. */}
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-2 sm:grid-cols-2 md:gap-3">
           <Field label={t("pickupLocation")}>
             <LocationPicker
               label="Pickup"
@@ -260,7 +261,7 @@ function ExpandedLayout({
               placesAutocomplete
               renderTrigger={(summary, isPlaceholder) => (
                 <FieldTrigger
-                  icon={<MapPin className="text-ink-60 size-4 shrink-0" aria-hidden="true" />}
+                  icon={<MapPin className="text-ink-60 size-3.5 shrink-0" aria-hidden="true" />}
                   value={summary}
                   placeholder={isPlaceholder}
                   chevron
@@ -298,7 +299,7 @@ function ExpandedLayout({
               }
               renderTrigger={(summary, isPlaceholder) => (
                 <FieldTrigger
-                  icon={<MapPin className="text-ink-60 size-4 shrink-0" aria-hidden="true" />}
+                  icon={<MapPin className="text-ink-60 size-3.5 shrink-0" aria-hidden="true" />}
                   value={summary}
                   placeholder={isPlaceholder}
                   chevron
@@ -308,9 +309,9 @@ function ExpandedLayout({
           </Field>
         </div>
 
-        {/* Row 2 — one date field (picks both pickup + return) + time pair. */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Field label={t("dates")} className="col-span-2">
+        {/* Row 2 — pickup date+time, return date+time. */}
+        <div className="grid grid-cols-2 gap-2 md:gap-3 lg:grid-cols-4">
+          <Field label={t("pickupDate")}>
             <DatePopover
               mode="range"
               open={datesOpen}
@@ -327,16 +328,14 @@ function ExpandedLayout({
                   returnDate: r.to ? format(r.to, "yyyy-MM-dd") : p.returnDate,
                 }));
                 if (r.from && r.to) {
-                  // Both dates picked from the same calendar — close it and
-                  // hand off to the pickup-time picker.
                   setDatesOpen(false);
                   setPickupTimeOpen(true);
                 }
               }}
               renderTrigger={(_display, _isPlaceholder) => (
                 <FieldTrigger
-                  icon={<Calendar className="text-ink-60 size-4 shrink-0" aria-hidden="true" />}
-                  value={`${formatDateShortByLocale(criteria.pickupDate, locale)} – ${formatDateShortByLocale(criteria.returnDate, locale)}`}
+                  icon={<Calendar className="text-ink-60 size-3.5 shrink-0" aria-hidden="true" />}
+                  value={formatDateShortByLocale(criteria.pickupDate, locale)}
                   placeholder={false}
                 />
               )}
@@ -353,9 +352,34 @@ function ExpandedLayout({
               minTime={pickupMinTime}
               renderTrigger={(display, isPlaceholder) => (
                 <FieldTrigger
-                  icon={<Clock className="text-ink-60 size-4 shrink-0" aria-hidden="true" />}
+                  icon={<Clock className="text-ink-60 size-3.5 shrink-0" aria-hidden="true" />}
                   value={display}
                   placeholder={isPlaceholder}
+                />
+              )}
+            />
+          </Field>
+
+          <Field label={t("returnDate")}>
+            <DatePopover
+              mode="single"
+              numberOfMonths={2}
+              open={returnDateOpen}
+              onOpenChange={setReturnDateOpen}
+              min={startOfDay(addDays(parseISO(criteria.pickupDate), 1))}
+              value={parseISO(criteria.returnDate)}
+              onValueChange={(d) => {
+                if (d) {
+                  setCriteria((p) => ({ ...p, returnDate: format(d, "yyyy-MM-dd") }));
+                  setReturnDateOpen(false);
+                  setReturnTimeOpen(true);
+                }
+              }}
+              renderTrigger={(_display, _isPlaceholder) => (
+                <FieldTrigger
+                  icon={<Calendar className="text-ink-60 size-3.5 shrink-0" aria-hidden="true" />}
+                  value={formatDateShortByLocale(criteria.returnDate, locale)}
+                  placeholder={false}
                 />
               )}
             />
@@ -371,7 +395,7 @@ function ExpandedLayout({
               minTime={returnMinTime}
               renderTrigger={(display, isPlaceholder) => (
                 <FieldTrigger
-                  icon={<Clock className="text-ink-60 size-4 shrink-0" aria-hidden="true" />}
+                  icon={<Clock className="text-ink-60 size-3.5 shrink-0" aria-hidden="true" />}
                   value={display}
                   placeholder={isPlaceholder}
                 />
@@ -387,7 +411,7 @@ function ExpandedLayout({
         ) : null}
 
         {/* Row 3 — promo collapsible + single red CTA. */}
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex-1">
             {promoOpen ? (
               <Input
@@ -495,9 +519,9 @@ function Field({
   className?: string;
 }) {
   return (
-    <div className={cn("flex min-w-0 flex-col gap-1.5", className)}>
+    <div className={cn("flex min-w-0 flex-col gap-1", className)}>
       <div className="flex items-baseline justify-between gap-2">
-        <span className="field-label text-ink-60">{label}</span>
+        <span className="field-label text-ink-60 text-[11px]">{label}</span>
         {action}
       </div>
       {children}
@@ -520,7 +544,7 @@ const FieldTrigger = React.forwardRef<
       ref={ref}
       type="button"
       className={cn(
-        "bg-paper flex h-14 w-full items-center gap-2 rounded-lg px-4 text-left",
+        "bg-paper flex h-11 w-full items-center gap-2 rounded-lg px-3 text-left",
         "border-border hover:border-ink-100 border transition-colors duration-150",
         "focus-visible:outline-ink-100 focus-visible:outline-2 focus-visible:outline-offset-0",
         "data-[state=open]:border-ink-100",
@@ -531,13 +555,13 @@ const FieldTrigger = React.forwardRef<
       {icon}
       <span
         className={cn(
-          "body-md min-w-0 flex-1 truncate",
+          "body-sm min-w-0 flex-1 truncate",
           placeholder ? "text-ink-50" : "text-ink-95",
         )}
       >
         {value}
       </span>
-      {chevron ? <ChevronDown className="text-ink-60 size-4 shrink-0" aria-hidden="true" /> : null}
+      {chevron ? <ChevronDown className="text-ink-60 size-3.5 shrink-0" aria-hidden="true" /> : null}
     </button>
   );
 });

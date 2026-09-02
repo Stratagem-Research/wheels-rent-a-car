@@ -27,25 +27,63 @@ import {
   readPendingAdditionalDriver,
 } from "@/lib/booking/pending-licence";
 
+const DRAFT_KEY = "wheels.register.draft";
+
+function readDraft() {
+  try {
+    const raw = sessionStorage.getItem(DRAFT_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, string>) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveDraft(fields: Record<string, string>) {
+  try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(fields)); } catch { /* quota */ }
+}
+
+function clearDraft() {
+  try { sessionStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
+}
+
 export default function RegisterPage() {
   const t = useTranslations("auth");
   const router = useRouter();
   const searchParams = useSearchParams();
   const { signUp } = useSession();
 
+  const draft = typeof window !== "undefined" ? readDraft() : null;
+
   // Prefilled from a just-completed guest booking (see the confirmation
   // page's "Create account" CTA) so this is genuinely one click, not a
   // second round of typing what checkout already collected.
-  const [firstName, setFirstName] = React.useState(searchParams?.get("firstName") ?? "");
-  const [lastName, setLastName] = React.useState(searchParams?.get("lastName") ?? "");
-  const [email, setEmail] = React.useState(searchParams?.get("email") ?? "");
-  const [password, setPassword] = React.useState("");
+  const [firstName, setFirstName] = React.useState(draft?.firstName ?? searchParams?.get("firstName") ?? "");
+  const [lastName, setLastName] = React.useState(draft?.lastName ?? searchParams?.get("lastName") ?? "");
+  const [email, setEmail] = React.useState(draft?.email ?? searchParams?.get("email") ?? "");
+  const [password, setPassword] = React.useState(draft?.password ?? "");
   const [show, setShow] = React.useState(false);
   const [phone, setPhone] = React.useState<PhoneValue>(() =>
-    phoneValueFromStored(searchParams?.get("phone")),
+    draft?.phoneNational
+      ? { countryIso: draft.phoneIso ?? "LB", national: draft.phoneNational }
+      : phoneValueFromStored(searchParams?.get("phone")),
   );
-  const [terms, setTerms] = React.useState(false);
-  const [marketing, setMarketing] = React.useState(false);
+  const [terms, setTerms] = React.useState(draft?.terms === "true");
+  const [marketing, setMarketing] = React.useState(draft?.marketing === "true");
+
+  // Persist form to sessionStorage on every change so navigating to
+  // terms/privacy and back restores all fields.
+  React.useEffect(() => {
+    saveDraft({
+      firstName,
+      lastName,
+      email,
+      password,
+      phoneIso: phone.countryIso,
+      phoneNational: phone.national ?? "",
+      terms: String(terms),
+      marketing: String(marketing),
+    });
+  }, [firstName, lastName, email, password, phone, terms, marketing]);
 
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [submitting, setSubmitting] = React.useState(false);
@@ -83,6 +121,7 @@ export default function RegisterPage() {
           : undefined,
         marketing,
       });
+      clearDraft();
       track(EVENTS.ACCOUNT_CREATED);
       if (result.requiresEmailConfirmation) {
         setConfirmationSent(true);

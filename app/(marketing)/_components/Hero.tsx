@@ -60,7 +60,7 @@ export async function Hero({ branches }: { branches: Branch[] }) {
 
         {/* Search bar — paper card-floating, lifts cleanly off the photo. */}
         <div className="flex w-full flex-col items-center gap-4">
-          <div className="w-full">
+          <div className="w-full lg:px-8">
             <SearchBar branches={branches} variant="expanded" />
           </div>
           <ul className="label-md text-paper/85 mt-2 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
