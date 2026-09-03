@@ -186,9 +186,11 @@ export function LocationPicker({
         <Popover.Content
           align="start"
           sideOffset={8}
+          collisionPadding={16}
           className={cn(
             "bg-surface border-ink-20 z-50 rounded-xl border py-3 px-4",
             "w-150 max-w-[calc(100vw-3rem)]",
+            "max-h-[var(--radix-popover-content-available-height)] overflow-y-auto",
           )}
         >
           <div className="grid gap-3 sm:grid-cols-[1fr_1fr] sm:gap-4">
