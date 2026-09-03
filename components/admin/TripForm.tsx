@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
+import { AdminImageUpload } from "@/components/admin/AdminImageUpload";
 import { useTrips } from "@/lib/admin/useAdminStore";
 import { writeTrips } from "@/lib/admin/store";
 import type { Trip, TripRegion, VehicleCategory } from "@/types/domain";
@@ -162,7 +163,7 @@ export function TripForm({ slug }: TripFormProps) {
     <form onSubmit={onSubmit} noValidate>
       <AdminFormShell
         title={isEdit ? "Edit trip" : "New trip"}
-        helper="All fields are required unless marked optional. Cover images sit under /public/images/Trips Images/."
+        helper="All fields are required unless marked optional. Cover images upload to Supabase Storage."
         footer={
           <>
             {isEdit ? (
@@ -298,19 +299,21 @@ export function TripForm({ slug }: TripFormProps) {
           )}
         </Field>
 
-        <Field
-          label="Cover image path"
-          required
-          error={errors.coverImage}
-          helper="e.g. /images/Trips Images/cedars.jpg"
-        >
-          {({ id, describedBy, invalid }) => (
-            <Input
-              id={id}
-              aria-describedby={describedBy}
-              invalid={invalid}
-              value={form.coverImage.src}
-              onChange={(e) => update("coverImage", { ...form.coverImage, src: e.target.value })}
+        <Field label="Cover image" required error={errors.coverImage}>
+          {() => (
+            <AdminImageUpload
+              kind="trip"
+              entityId={form.slug.trim() || "trip"}
+              currentUrl={form.coverImage.src || undefined}
+              onUploaded={(result) =>
+                update("coverImage", {
+                  ...form.coverImage,
+                  src: result.url,
+                  width: result.width ?? form.coverImage.width,
+                  height: result.height ?? form.coverImage.height,
+                })
+              }
+              onRemoved={() => update("coverImage", { ...form.coverImage, src: "" })}
             />
           )}
         </Field>

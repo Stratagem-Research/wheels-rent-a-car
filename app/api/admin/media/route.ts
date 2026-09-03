@@ -8,10 +8,10 @@ import {
   type CmsMediaKind,
 } from "@/lib/supabase/cms-media-storage";
 
-const KindSchema = z.enum(["vehicle", "team"]);
+const KindSchema = z.enum(["vehicle", "team", "trip"]);
 
 const BodySchema = z.object({
-  kind: z.enum(["vehicle", "team"]),
+  kind: z.enum(["vehicle", "team", "trip"]),
   url: z.string().url().optional(),
   path: z.string().min(1).optional(),
 });
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const parsed = KindSchema.safeParse(url.searchParams.get("kind") ?? "");
   if (!parsed.success) {
-    return NextResponse.json({ message: "kind must be vehicle or team." }, { status: 400 });
+    return NextResponse.json({ message: "kind must be vehicle, team, or trip." }, { status: 400 });
   }
 
   try {

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { getAdminCsrfHeader } from "@/lib/admin/csrf";
 import { cn } from "@/lib/utils";
 
-type UploadKind = "vehicle" | "team";
+type UploadKind = "vehicle" | "team" | "trip";
 
 export type AdminImageUploadResult = {
   url: string;

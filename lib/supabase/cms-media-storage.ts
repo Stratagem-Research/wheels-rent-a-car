@@ -1,6 +1,6 @@
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
-export type CmsMediaKind = "vehicle" | "team";
+export type CmsMediaKind = "vehicle" | "team" | "trip";
 
 export const CMS_MEDIA_MAX_BYTES = 5 * 1024 * 1024;
 export const CMS_MEDIA_MIME_TYPES = new Set([
@@ -13,6 +13,13 @@ export const CMS_MEDIA_MIME_TYPES = new Set([
 const BUCKET_BY_KIND: Record<CmsMediaKind, string> = {
   vehicle: "cms-vehicle-media",
   team: "cms-team-photos",
+  trip: "cms-trip-media",
+};
+
+const PREFIX_BY_KIND: Record<CmsMediaKind, string> = {
+  vehicle: "vehicles",
+  team: "team",
+  trip: "trips",
 };
 
 function sanitizeSegment(value: string): string {
@@ -58,7 +65,7 @@ export async function uploadCmsMedia(input: {
   if (!check.ok) throw new Error(check.message);
 
   const bucket = BUCKET_BY_KIND[input.kind];
-  const prefix = input.kind === "vehicle" ? "vehicles" : "team";
+  const prefix = PREFIX_BY_KIND[input.kind];
   const ext = extensionFor(input.contentType, input.fileName);
   const path = `${prefix}/${sanitizeSegment(input.entityId)}/${Date.now()}.${ext}`;
 
@@ -110,7 +117,7 @@ export async function listCmsMedia(
   kind: CmsMediaKind,
 ): Promise<Array<{ url: string; path: string }>> {
   const bucket = BUCKET_BY_KIND[kind];
-  const prefix = kind === "vehicle" ? "vehicles" : "team";
+  const prefix = PREFIX_BY_KIND[kind];
   const supabase = getSupabaseAdminClient();
   const paths = (await listStoragePaths(bucket, prefix)).sort((a, b) => b.localeCompare(a));
   return paths.map((path) => {
