@@ -11,7 +11,13 @@ import { SessionProvider } from "@/components/providers/SessionProvider";
 import { isRtlLocale, routing } from "@/i18n/routing";
 import "./globals.css";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
+  // No title.template: every page's title (translated or admin-edited via
+  // /admin/seo) already embeds "· Wheels Rent A Car" itself — a template
+  // would double it up.
   title: "Wheels Rent A Car · Premium Car Rental in Lebanon",
   description:
     "Rent a premium car in Lebanon. Pickup at our Hazmieh hub, 24/7 WhatsApp support, free cancellation. Book online in under 90 seconds.",
@@ -30,6 +36,20 @@ export const metadata: Metadata = {
       ar: "/ar",
       fr: "/fr",
     },
+  },
+  openGraph: {
+    type: "website",
+    siteName: "Wheels Rent A Car",
+    images: [
+      {
+        url: encodeURI("/images/Hero Images/ramy-kabalan-mF4_MHgp4ps-unsplash.jpg"),
+        width: 1200,
+        height: 630,
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
   },
 };
 

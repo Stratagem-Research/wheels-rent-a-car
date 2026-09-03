@@ -1,8 +1,9 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { getPublicBranches, getPublicDeliveryPricing, getPublicVehicles } from "@/lib/server/public-content";
 import { handleBookingAvailability } from "@/lib/server/booking-service";
 import { vehiclesQueryWithDefaultWindow } from "@/lib/search/criteria";
+import { resolvePageMetadata } from "@/lib/seo/resolve-metadata";
 import { VehiclesClient } from "./_components/VehiclesClient";
 import type { Vehicle } from "@/types/domain";
 
@@ -13,8 +14,14 @@ import type { Vehicle } from "@/types/domain";
  */
 
 export async function generateMetadata() {
-  const t = await getTranslations("meta");
-  return { title: t("vehiclesTitle"), description: t("vehiclesDescription") };
+  const [locale, t] = await Promise.all([getLocale(), getTranslations("meta")]);
+  return resolvePageMetadata({
+    pageKey: "/vehicles",
+    locale,
+    fallbackTitle: t("vehiclesTitle"),
+    fallbackDescription: t("vehiclesDescription"),
+    path: "/vehicles",
+  });
 }
 
 interface PageProps {

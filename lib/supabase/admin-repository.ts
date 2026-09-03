@@ -9,6 +9,7 @@ import type {
 import { isLocalizedString, isLocalizedStringArray, toLocalizedString } from "@/lib/i18n/localized";
 import { parseVehicleMedia, toPublicVehicleImages } from "@/lib/vehicles/vehicle-media";
 import { composeVehicleTitle } from "@/lib/vehicles/display-name";
+import { deletePageSeoByKeys, ensureVehicleSeoRows, vehiclePageKey } from "@/lib/supabase/seo-repository";
 
 export type AdminLeadStatus = "new" | "in-progress" | "won" | "lost";
 
@@ -400,16 +401,45 @@ export async function upsertVehicleMetadata(items: VehicleMetadataRow[]): Promis
     { onConflict: "frontend_vehicle_id" },
   );
   if (error) throw new Error(error.message);
+
+  // Surface every added/synced vehicle model in /admin/seo without a manual
+  // step — one row per slug, since units of the same model share one page.
+  // Best-effort: SEO bookkeeping never blocks fleet metadata from saving.
+  await ensureVehicleSeoRows(
+    items.map((item) => ({
+      slug: item.slug,
+      label: item.title || [item.brand, item.model].filter(Boolean).join(" ") || item.slug,
+    })),
+  ).catch(() => undefined);
 }
 
 export async function deleteVehicleMetadataByIds(frontendVehicleIds: string[]): Promise<void> {
   if (frontendVehicleIds.length === 0) return;
   const supabase = getSupabaseAdminClient();
+
+  const { data: toDelete } = await supabase
+    .from("vehicle_metadata")
+    .select("slug")
+    .in("frontend_vehicle_id", frontendVehicleIds);
+  const candidateSlugs = [...new Set((toDelete ?? []).map((row) => row.slug as string))];
+
   const { error } = await supabase
     .from("vehicle_metadata")
     .delete()
     .in("frontend_vehicle_id", frontendVehicleIds);
   if (error) throw new Error(error.message);
+
+  // Only drop the page_seo row for a slug once no unit still uses it — a
+  // slug is shared across every unit of the same model.
+  if (candidateSlugs.length > 0) {
+    const { data: stillUsed } = await supabase
+      .from("vehicle_metadata")
+      .select("slug")
+      .in("slug", candidateSlugs);
+    const stillUsedSlugs = new Set((stillUsed ?? []).map((row) => row.slug as string));
+    const orphanedSlugs = candidateSlugs.filter((slug) => !stillUsedSlugs.has(slug));
+    await deletePageSeoByKeys(orphanedSlugs.map(vehiclePageKey)).catch(() => undefined);
+  }
 }
 
 function isMissingTableError(message: string): boolean {

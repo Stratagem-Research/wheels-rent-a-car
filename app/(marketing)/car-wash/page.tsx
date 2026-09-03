@@ -18,6 +18,7 @@ import { TierCardCarWash } from "@/components/marketing/TierCardCarWash";
 import { PAGE_HERO_IMAGES } from "@/lib/marketing/hero-images";
 import { EnquiryFormCarWash } from "@/components/leads/EnquiryFormCarWash";
 import { useCarWashCatalog } from "@/hooks/useCarWashCatalog";
+import { ServiceJsonLd } from "@/components/seo/ServiceJsonLd";
 import { whatsAppHref } from "@/lib/whatsapp";
 
 const TRUST_ICONS = [
@@ -185,19 +186,5 @@ export default function CarWashPage() {
 
       <ServiceJsonLd name={t("jsonLdName")} description={t("jsonLdDescription")} />
     </>
-  );
-}
-
-function ServiceJsonLd({ name, description }: { name: string; description: string }) {
-  const data = {
-    "@context": "https://schema.org",
-    "@type": "Service",
-    name,
-    description,
-    provider: { "@type": "Organization", name: "Wheels Rent A Car" },
-    areaServed: "Lebanon",
-  };
-  return (
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />
   );
 }

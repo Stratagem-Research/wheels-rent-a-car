@@ -20,6 +20,7 @@ import {
   Megaphone,
   Package,
   Route,
+  Search,
   Settings2,
   Star,
   Users,
@@ -102,6 +103,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/car-wash", label: "Car wash", icon: Droplets },
       { href: "/admin/about", label: "About", icon: Info },
       { href: "/admin/reviews", label: "Reviews", icon: Star },
+      { href: "/admin/seo", label: "SEO", icon: Search },
     ],
   },
 ];

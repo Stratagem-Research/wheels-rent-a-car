@@ -1,7 +1,7 @@
 import { Phone, MessageCircle, MapPin, ParkingCircle } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Card } from "@/components/ui/Card";
 import { PageHero } from "@/components/marketing/PageHero";
 import { PAGE_HERO_IMAGES, HAZMIEH_BRANCH_IMAGE } from "@/lib/marketing/hero-images";
@@ -17,10 +17,17 @@ import { SearchBar } from "@/components/search/SearchBar";
 import type { Branch } from "@/types/domain";
 import { getPublicBranches, getPublicVehicles } from "@/lib/server/public-content";
 import { whatsAppHref } from "@/lib/whatsapp";
+import { resolvePageMetadata } from "@/lib/seo/resolve-metadata";
 
 export async function generateMetadata() {
-  const t = await getTranslations("meta");
-  return { title: t("locationsTitle"), description: t("locationsDescription") };
+  const [locale, t] = await Promise.all([getLocale(), getTranslations("meta")]);
+  return resolvePageMetadata({
+    pageKey: "/locations",
+    locale,
+    fallbackTitle: t("locationsTitle"),
+    fallbackDescription: t("locationsDescription"),
+    path: "/locations",
+  });
 }
 
 function localBusinessJsonLd(branch: Branch) {

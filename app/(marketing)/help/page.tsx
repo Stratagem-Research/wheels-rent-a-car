@@ -14,6 +14,7 @@ import { HELP_TOPICS, type HelpTopicIconName } from "@/lib/content/help";
 import { HELP_TOPIC_T } from "@/lib/supabase/seed-i18n";
 import { whatsAppHref } from "@/lib/whatsapp";
 import { Link } from "@/i18n/navigation";
+import { resolvePageMetadata } from "@/lib/seo/resolve-metadata";
 
 function pick(value: string, t: { ar: string; fr: string } | undefined, locale: string): string {
   if (locale === "ar") return t?.ar ?? value;
@@ -34,8 +35,14 @@ const ICON_MAP: Record<
 };
 
 export async function generateMetadata() {
-  const t = await getTranslations("meta");
-  return { title: t("helpTitle"), description: t("helpDescription") };
+  const [locale, t] = await Promise.all([getLocale(), getTranslations("meta")]);
+  return resolvePageMetadata({
+    pageKey: "/help",
+    locale,
+    fallbackTitle: t("helpTitle"),
+    fallbackDescription: t("helpDescription"),
+    path: "/help",
+  });
 }
 
 export default async function HelpHubPage() {

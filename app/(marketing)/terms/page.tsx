@@ -1,9 +1,16 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { LegalArticle } from "@/components/help/LegalArticle";
+import { resolvePageMetadata } from "@/lib/seo/resolve-metadata";
 
 export async function generateMetadata() {
-  const t = await getTranslations("meta");
-  return { title: t("termsTitle"), description: t("termsDescription") };
+  const [locale, t] = await Promise.all([getLocale(), getTranslations("meta")]);
+  return resolvePageMetadata({
+    pageKey: "/terms",
+    locale,
+    fallbackTitle: t("termsTitle"),
+    fallbackDescription: t("termsDescription"),
+    path: "/terms",
+  });
 }
 
 export default function TermsPage() {

@@ -18,6 +18,7 @@ import { PageHero } from "@/components/marketing/PageHero";
 import { PAGE_HERO_IMAGES } from "@/lib/marketing/hero-images";
 import { EnquiryFormCorporate } from "@/components/leads/EnquiryFormCorporate";
 import { useCorporateTiers } from "@/lib/admin/useAdminStore";
+import { ServiceJsonLd } from "@/components/seo/ServiceJsonLd";
 import { whatsAppHref } from "@/lib/whatsapp";
 import { getLocalizedString, getLocalizedStringArray } from "@/lib/i18n/localized";
 
@@ -230,19 +231,5 @@ export default function CorporatePage() {
 
       <ServiceJsonLd name={t("jsonLdName")} description={t("jsonLdDescription")} />
     </>
-  );
-}
-
-function ServiceJsonLd({ name, description }: { name: string; description: string }) {
-  const data = {
-    "@context": "https://schema.org",
-    "@type": "Service",
-    name,
-    description,
-    provider: { "@type": "Organization", name: "Wheels Rent A Car" },
-    areaServed: "Lebanon",
-  };
-  return (
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />
   );
 }

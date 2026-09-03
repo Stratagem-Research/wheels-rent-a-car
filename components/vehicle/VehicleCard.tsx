@@ -10,7 +10,7 @@ import { SaveVehicleButton } from "@/components/vehicle/SaveVehicleButton";
 import { VehicleImageSlider } from "@/components/vehicle/VehicleImageSlider";
 import { formatUsd, perDayRate, rentalDays } from "@/lib/booking/pricing";
 import { FLEET_PAY_NOW_RATE } from "@/lib/vehicles/fleet-card-rates";
-import { vehicleDisplayName } from "@/lib/vehicles/display-name";
+import { bodyClassKey, vehicleDisplayName } from "@/lib/vehicles/display-name";
 import type { Vehicle, VehicleBadge } from "@/types/domain";
 
 /*
@@ -301,29 +301,4 @@ function splitPrice(cents: number): { dollars: string; cents: string } {
   const dollars = Math.floor(cents / 100);
   const remainder = Math.round(cents % 100);
   return { dollars: String(dollars), cents: String(remainder).padStart(2, "0") };
-}
-
-/** Sixt-style class badge: combines size class + body shape. Returns a key
- * into the `fleet` message namespace so the label localizes. */
-function bodyClassKey(v: Vehicle): string {
-  switch (v.category) {
-    case "economy":
-      return v.doors === 5 ? "classStandardHatch" : "classEconomySedan";
-    case "compact":
-      return v.doors === 5 ? "classCompactHatch" : "classCompactSedan";
-    case "sedan":
-      return "classStandardSedan";
-    case "suv":
-      return "classCompactSuv";
-    case "4x4":
-      return "classOffroad4x4";
-    case "luxury":
-      return "classLuxurySuv";
-    case "7-seater":
-      return "classSevenSeater";
-    case "convertible":
-      return "classConvertible";
-    default:
-      return "classStandardSedan";
-  }
 }

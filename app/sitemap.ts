@@ -1,6 +1,12 @@
 import type { MetadataRoute } from "next";
 import { HELP_ARTICLES } from "@/lib/content/help";
 import { routing } from "@/i18n/routing";
+import { getPublicVehicles } from "@/lib/server/public-content";
+
+// getPublicVehicles() hits Supabase/Wizard fresh on every call (no caching
+// layer) — cache the sitemap route itself so a crawler doesn't trigger a
+// full-catalog fetch on every hit.
+export const revalidate = 3600;
 
 /**
  * Sitemap per 00_global.md §14. Daily revalidation comes from
@@ -17,11 +23,11 @@ function url(path: string): string {
   return `${siteUrl}${path}`;
 }
 
-function localized(path: string): string[] {
-  return routing.locales.map((locale) => `/${locale}${path === "/" ? "" : path}`);
+function languageAlternates(path: string): Record<string, string> {
+  return Object.fromEntries(routing.locales.map((locale) => [locale, url(path)]));
 }
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
   const staticRoutes = [
@@ -45,28 +51,38 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/cookies",
   ];
 
-  // Per-vehicle and per-category slug URLs were removed in Phase 7 — /vehicles
-  // is now the single canonical results page. Filters (category, sort, auto)
-  // ride on query params and stay out of the sitemap by design.
+  // One page per slug, not per inventory unit — several units of the same
+  // brand/model share a single /vehicles/[slug] page.
+  const vehicles = await getPublicVehicles().catch(() => []);
+  const vehicleRoutes = [...new Set(vehicles.map((v) => `/vehicles/${v.slug}`))];
 
   const helpArticleRoutes = Object.keys(HELP_ARTICLES).map((s) => `/help/${s}`);
 
+  // `localePrefix: "never"` (i18n/routing.ts) means every locale serves the
+  // same unprefixed URL — locale-prefixed sitemap entries (/en/..., /ar/...)
+  // get 302-redirected by proxy.ts, wasting crawl budget. One entry per path,
+  // with `alternates.languages` communicating the hreflang relationship.
   return [
-    ...staticRoutes.flatMap((path) =>
-      localized(path).map((localizedPath) => ({
-        url: url(localizedPath),
-        lastModified: now,
-        changeFrequency: "weekly" as const,
-        priority: path === "/" ? 1 : 0.7,
-      })),
-    ),
-    ...helpArticleRoutes.flatMap((path) =>
-      localized(path).map((localizedPath) => ({
-        url: url(localizedPath),
-        lastModified: now,
-        changeFrequency: "monthly" as const,
-        priority: 0.4,
-      })),
-    ),
+    ...staticRoutes.map((path) => ({
+      url: url(path),
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: path === "/" ? 1 : 0.7,
+      alternates: { languages: languageAlternates(path) },
+    })),
+    ...helpArticleRoutes.map((path) => ({
+      url: url(path),
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: 0.4,
+      alternates: { languages: languageAlternates(path) },
+    })),
+    ...vehicleRoutes.map((path) => ({
+      url: url(path),
+      lastModified: now,
+      changeFrequency: "weekly" as const,
+      priority: 0.6,
+      alternates: { languages: languageAlternates(path) },
+    })),
   ];
 }

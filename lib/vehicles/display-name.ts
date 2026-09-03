@@ -13,3 +13,28 @@ export function vehicleDisplayName(
 ): string {
   return composeVehicleTitle(vehicle.make, vehicle.model) || vehicle.title?.trim() || "Vehicle";
 }
+
+/** Sixt-style class badge: combines size class + body shape. Returns a key
+ * into the `fleet` message namespace so the label localizes. */
+export function bodyClassKey(v: Pick<Vehicle, "category" | "doors">): string {
+  switch (v.category) {
+    case "economy":
+      return v.doors === 5 ? "classStandardHatch" : "classEconomySedan";
+    case "compact":
+      return v.doors === 5 ? "classCompactHatch" : "classCompactSedan";
+    case "sedan":
+      return "classStandardSedan";
+    case "suv":
+      return "classCompactSuv";
+    case "4x4":
+      return "classOffroad4x4";
+    case "luxury":
+      return "classLuxurySuv";
+    case "7-seater":
+      return "classSevenSeater";
+    case "convertible":
+      return "classConvertible";
+    default:
+      return "classStandardSedan";
+  }
+}

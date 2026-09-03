@@ -10,6 +10,7 @@ import {
   upsertWizardVehicles,
   type UpsertWizardVehicleInput,
 } from "@/lib/supabase/wizard-vehicles-repository";
+import { ensureVehicleSeoRows } from "@/lib/supabase/seo-repository";
 
 export type WizardVehicleSyncResult = {
   source: "vehicles_sync_endpoint";
@@ -128,6 +129,20 @@ export async function syncWizardVehiclesFromApi(
       displayName: row.display_name,
     });
   }
+
+  // Surface synced vehicle models in /admin/seo without a manual step — one
+  // row per slug (matching ensureVehicleMetadataStub's slug above), since
+  // units of the same model share one /vehicles/[slug] page. Best-effort —
+  // never blocks the Wizard sync from completing.
+  await ensureVehicleSeoRows(
+    websiteRows.map((row) => {
+      const frontendId = frontendVehicleIdFromWizard(row.wizard_vehicle_id);
+      return {
+        slug: slugifyVehicleName(row.display_name) || frontendId,
+        label: row.display_name,
+      };
+    }),
+  ).catch(() => undefined);
 
   return {
     source: "vehicles_sync_endpoint",

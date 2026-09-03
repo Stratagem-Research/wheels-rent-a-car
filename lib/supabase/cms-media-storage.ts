@@ -1,6 +1,6 @@
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
-export type CmsMediaKind = "vehicle" | "team" | "trip";
+export type CmsMediaKind = "vehicle" | "team" | "trip" | "seo";
 
 export const CMS_MEDIA_MAX_BYTES = 5 * 1024 * 1024;
 export const CMS_MEDIA_MIME_TYPES = new Set([
@@ -14,12 +14,14 @@ const BUCKET_BY_KIND: Record<CmsMediaKind, string> = {
   vehicle: "cms-vehicle-media",
   team: "cms-team-photos",
   trip: "cms-trip-media",
+  seo: "cms-seo-media",
 };
 
 const PREFIX_BY_KIND: Record<CmsMediaKind, string> = {
   vehicle: "vehicles",
   team: "team",
   trip: "trips",
+  seo: "seo",
 };
 
 function sanitizeSegment(value: string): string {

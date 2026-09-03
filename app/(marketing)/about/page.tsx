@@ -9,10 +9,17 @@ import { PageHero } from "@/components/marketing/PageHero";
 import { PAGE_HERO_IMAGES } from "@/lib/marketing/hero-images";
 import { getPublicAboutContent, getPublicBranches } from "@/lib/server/public-content";
 import { getLocalizedString, getLocalizedStringArray } from "@/lib/i18n/localized";
+import { resolvePageMetadata } from "@/lib/seo/resolve-metadata";
 
 export async function generateMetadata() {
-  const t = await getTranslations("meta");
-  return { title: t("aboutTitle"), description: t("aboutDescription") };
+  const [locale, t] = await Promise.all([getLocale(), getTranslations("meta")]);
+  return resolvePageMetadata({
+    pageKey: "/about",
+    locale,
+    fallbackTitle: t("aboutTitle"),
+    fallbackDescription: t("aboutDescription"),
+    path: "/about",
+  });
 }
 
 export default async function AboutPage() {

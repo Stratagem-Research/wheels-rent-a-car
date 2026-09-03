@@ -7,7 +7,10 @@ import { Button } from "@/components/ui/Button";
 import { getAdminCsrfHeader } from "@/lib/admin/csrf";
 import { cn } from "@/lib/utils";
 
-type UploadKind = "vehicle" | "team" | "trip";
+type UploadKind = "vehicle" | "team" | "trip" | "seo";
+
+/** Kinds whose upload widget offers a "browse existing storage" library. */
+const BROWSABLE_KINDS: ReadonlySet<UploadKind> = new Set(["vehicle", "seo"]);
 
 export type AdminImageUploadResult = {
   url: string;
@@ -35,12 +38,13 @@ type AdminImageUploadProps = {
   showHint?: boolean;
 };
 
-let vehicleLibraryPromise: Promise<StoredImage[]> | null = null;
+const libraryPromises = new Map<UploadKind, Promise<StoredImage[]>>();
 
-function loadVehicleLibrary(force = false): Promise<StoredImage[]> {
-  if (force) vehicleLibraryPromise = null;
-  if (!vehicleLibraryPromise) {
-    vehicleLibraryPromise = fetch("/api/admin/media?kind=vehicle", { cache: "no-store" })
+function loadMediaLibrary(kind: UploadKind, force = false): Promise<StoredImage[]> {
+  if (force) libraryPromises.delete(kind);
+  let promise = libraryPromises.get(kind);
+  if (!promise) {
+    promise = fetch(`/api/admin/media?kind=${kind}`, { cache: "no-store" })
       .then(async (res) => {
         if (!res.ok) {
           const data = (await res.json().catch(() => ({}))) as { message?: string };
@@ -50,11 +54,12 @@ function loadVehicleLibrary(force = false): Promise<StoredImage[]> {
         return Array.isArray(data.items) ? data.items : [];
       })
       .catch((err) => {
-        vehicleLibraryPromise = null;
+        libraryPromises.delete(kind);
         throw err;
       });
+    libraryPromises.set(kind, promise);
   }
-  return vehicleLibraryPromise;
+  return promise;
 }
 
 export function AdminImageUpload({
@@ -72,14 +77,14 @@ export function AdminImageUpload({
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [library, setLibrary] = React.useState<StoredImage[]>([]);
-  const [libraryLoading, setLibraryLoading] = React.useState(kind === "vehicle");
+  const [libraryLoading, setLibraryLoading] = React.useState(BROWSABLE_KINDS.has(kind));
   const [libraryOpen, setLibraryOpen] = React.useState(false);
 
   const refreshLibrary = React.useCallback(async (force = false) => {
-    if (kind !== "vehicle") return;
+    if (!BROWSABLE_KINDS.has(kind)) return;
     setLibraryLoading(true);
     try {
-      const items = await loadVehicleLibrary(force);
+      const items = await loadMediaLibrary(kind, force);
       setLibrary(items);
     } catch {
       setLibrary([]);
@@ -118,7 +123,7 @@ export function AdminImageUpload({
         height: data.height ?? 900,
         path: data.path,
       });
-      if (kind === "vehicle") void refreshLibrary(true);
+      if (BROWSABLE_KINDS.has(kind)) void refreshLibrary(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed.");
     } finally {
@@ -150,7 +155,7 @@ export function AdminImageUpload({
     onUploaded({
       url: item.url,
       path: item.path,
-      alt: "Vehicle",
+      alt: kind === "vehicle" ? "Vehicle" : "Image",
       width: 1600,
       height: 900,
     });
@@ -158,7 +163,7 @@ export function AdminImageUpload({
   }
 
   function renderStorageLibraryToggle() {
-    if (kind !== "vehicle") return null;
+    if (!BROWSABLE_KINDS.has(kind)) return null;
     if (libraryLoading) {
       return <p className="body-xs text-ink-60">Loading uploaded images…</p>;
     }
@@ -207,7 +212,7 @@ export function AdminImageUpload({
   );
 
   const libraryGrid =
-    kind === "vehicle" && libraryOpen && library.length > 0 ? (
+    BROWSABLE_KINDS.has(kind) && libraryOpen && library.length > 0 ? (
       <div className="border-border relative w-full rounded-lg border p-2 pt-9">
         <button
           type="button"

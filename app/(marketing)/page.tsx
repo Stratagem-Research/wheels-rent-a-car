@@ -5,9 +5,10 @@ import { Featured4 } from "./_components/Featured4";
 import { ExploreLebanon } from "./_components/ExploreLebanon";
 import { ServicePromos } from "./_components/ServicePromos";
 import { Reviews } from "./_components/Reviews";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { NewsletterPopup } from "@/components/consent/NewsletterPopup";
 import { getFeaturedVehicles, getPublicBranches, getPublicReviews } from "@/lib/server/public-content";
+import { resolvePageMetadata } from "@/lib/seo/resolve-metadata";
 
 /**
  * Home page — INK & SIGNAL rebuild per /docs/Implementation/landingpage.md.
@@ -23,8 +24,14 @@ import { getFeaturedVehicles, getPublicBranches, getPublicReviews } from "@/lib/
  */
 
 export async function generateMetadata() {
-  const t = await getTranslations("meta");
-  return { title: t("homeTitle"), description: t("homeDescription") };
+  const [locale, t] = await Promise.all([getLocale(), getTranslations("meta")]);
+  return resolvePageMetadata({
+    pageKey: "/",
+    locale,
+    fallbackTitle: t("homeTitle"),
+    fallbackDescription: t("homeDescription"),
+    path: "/",
+  });
 }
 
 const jsonLd = {

@@ -1,7 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { X, DoorOpen, Users, Briefcase, Check } from "lucide-react";
+import Link from "next/link";
+import { X, DoorOpen, Users, Briefcase, Check, ExternalLink } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
@@ -157,6 +158,19 @@ export function VehicleCardExpanded({
       style={{ backgroundImage: CARD_GRADIENT_DARK }}
     >
       <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+        <Link
+          href={`/vehicles/${vehicle.slug}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={t("pdpViewFullDetails")}
+          className={cn(
+            "inline-flex size-9 items-center justify-center rounded-full",
+            "text-paper bg-white/10 hover:bg-white/20",
+            "focus-visible:outline-paper focus-visible:outline-2 focus-visible:outline-offset-2",
+          )}
+        >
+          <ExternalLink className="size-4" aria-hidden="true" />
+        </Link>
         <SaveVehicleButton
           vehicleId={vehicle.id}
           vehicleLabel={vehicleLabel}

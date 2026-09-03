@@ -1,18 +1,17 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import { LegalArticle } from "@/components/help/LegalArticle";
 import { resolvePageMetadata } from "@/lib/seo/resolve-metadata";
 
 export async function generateMetadata() {
   const [locale, t] = await Promise.all([getLocale(), getTranslations("meta")]);
   return resolvePageMetadata({
-    pageKey: "/cookies",
+    pageKey: "/trips",
     locale,
-    fallbackTitle: t("cookiesTitle"),
-    fallbackDescription: t("cookiesDescription"),
-    path: "/cookies",
+    fallbackTitle: t("tripsTitle"),
+    fallbackDescription: t("tripsDescription"),
+    path: "/trips",
   });
 }
 
-export default function CookiesPage() {
-  return <LegalArticle slug="cookies" />;
+export default function Layout({ children }: { children: React.ReactNode }) {
+  return children;
 }

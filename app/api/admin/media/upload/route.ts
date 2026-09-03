@@ -7,7 +7,7 @@ import {
   type CmsMediaKind,
 } from "@/lib/supabase/cms-media-storage";
 
-const KindSchema = z.enum(["vehicle", "team", "trip"]);
+const KindSchema = z.enum(["vehicle", "team", "trip", "seo"]);
 
 function mimeFromFileName(name: string): string | null {
   const ext = name.split(".").pop()?.toLowerCase();
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
   const kindParsed = KindSchema.safeParse(String(form.get("kind") ?? ""));
   if (!kindParsed.success) {
-    return NextResponse.json({ message: "kind must be vehicle, team, or trip." }, { status: 400 });
+    return NextResponse.json({ message: "kind must be vehicle, team, trip, or seo." }, { status: 400 });
   }
   const kind = kindParsed.data as CmsMediaKind;
   const entityId = String(form.get("entityId") ?? "item").trim() || "item";

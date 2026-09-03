@@ -18,6 +18,7 @@ import { PageHero } from "@/components/marketing/PageHero";
 import { PAGE_HERO_IMAGES } from "@/lib/marketing/hero-images";
 import { VehicleCard } from "@/components/vehicle/VehicleCard";
 import { EnquiryFormLongTerm } from "@/components/leads/EnquiryFormLongTerm";
+import { ServiceJsonLd } from "@/components/seo/ServiceJsonLd";
 import { useLongTermCatalog } from "@/hooks/useLongTermCatalog";
 import { whatsAppHref } from "@/lib/whatsapp";
 
@@ -188,19 +189,5 @@ export default function LongTermPage() {
 
       <ServiceJsonLd name={t("jsonLdName")} description={t("jsonLdDescription")} />
     </>
-  );
-}
-
-function ServiceJsonLd({ name, description }: { name: string; description: string }) {
-  const data = {
-    "@context": "https://schema.org",
-    "@type": "Service",
-    name,
-    description,
-    provider: { "@type": "Organization", name: "Wheels Rent A Car" },
-    areaServed: "Lebanon",
-  };
-  return (
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />
   );
 }
