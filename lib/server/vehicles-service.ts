@@ -1,6 +1,7 @@
 import type { Vehicle } from "@/types/domain";
 import { frontendVehicleIdFromWizard, parseWizardVehicleId } from "@/lib/booking/wizard-vehicle-id";
 import { getPublicVehicles } from "@/lib/server/public-content";
+import { listHeldFrontendVehicleIds } from "@/lib/supabase/vehicle-booking-holds-repository";
 import {
   applyFilters,
   computeFacets,
@@ -10,8 +11,22 @@ import {
 } from "@/lib/vehicles/filter";
 import { groupVehiclesByModel } from "@/lib/vehicles/group-by-model";
 
+/**
+ * Catalog vehicles, minus any unit currently out on an active/upcoming
+ * booking (website hold — see vehicle_booking_holds). The admin fleet record
+ * itself is untouched; a unit reappears here as soon as its hold is released
+ * (booking cancelled or the trip ends).
+ */
+async function getBrowsableVehicles(): Promise<Vehicle[]> {
+  const [vehicles, heldIds] = await Promise.all([
+    getPublicVehicles(),
+    listHeldFrontendVehicleIds(),
+  ]);
+  return vehicles.filter((v) => !heldIds.has(v.id));
+}
+
 export async function listVehiclesFromQuery(searchParams: URLSearchParams) {
-  const vehicles = await getPublicVehicles();
+  const vehicles = await getBrowsableVehicles();
   const filters = parseFiltersFromSearch(searchParams, DEFAULT_FILTERS);
   const filtered = sortFiltered(
     groupVehiclesByModel(applyFilters(vehicles, filters)),
@@ -35,12 +50,12 @@ export async function listVehiclesFromQuery(searchParams: URLSearchParams) {
 }
 
 export async function getFeaturedVehicles(limit = 8): Promise<Vehicle[]> {
-  const vehicles = await getPublicVehicles();
+  const vehicles = await getBrowsableVehicles();
   return groupVehiclesByModel(vehicles).slice(0, limit);
 }
 
 export async function getSimilarVehicles(slug: string, limit = 6): Promise<Vehicle[]> {
-  const vehicles = groupVehiclesByModel(await getPublicVehicles());
+  const vehicles = groupVehiclesByModel(await getBrowsableVehicles());
   const seed = vehicles.find((v) => v.slug === slug);
   const items = (
     seed ? vehicles.filter((v) => v.category === seed.category && v.slug !== slug) : vehicles.slice(0, 6)
@@ -49,7 +64,7 @@ export async function getSimilarVehicles(slug: string, limit = 6): Promise<Vehic
 }
 
 export async function getLongTermPopularVehicles(limit = 6): Promise<Vehicle[]> {
-  const vehicles = groupVehiclesByModel(await getPublicVehicles());
+  const vehicles = groupVehiclesByModel(await getBrowsableVehicles());
   return vehicles.filter((v) => ["sedan", "suv"].includes(v.category)).slice(0, limit);
 }
 
@@ -71,6 +86,6 @@ export async function getVehicleById(id: string): Promise<Vehicle | null> {
 }
 
 export async function getLocationVehicles(_slug: string, limit = 6): Promise<Vehicle[]> {
-  const vehicles = groupVehiclesByModel(await getPublicVehicles());
+  const vehicles = groupVehiclesByModel(await getBrowsableVehicles());
   return vehicles.slice(0, limit);
 }

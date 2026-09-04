@@ -350,6 +350,7 @@ export default function AdminFleetPage() {
   const [heldIds, setHeldIds] = React.useState<Set<string>>(() => new Set());
   const [sourceFilter, setSourceFilter] = React.useState<SourceFilter>("all");
   const [addUnitIds, setAddUnitIds] = React.useState<Record<string, string>>({});
+  const [addUnitErrors, setAddUnitErrors] = React.useState<Record<string, string>>({});
 
   const allGroups = React.useMemo(
     () => groupDraftsByModel(drafts.map((draft, index) => ({ draft, index }))),
@@ -424,19 +425,43 @@ export default function AdminFleetPage() {
   };
 
   const addUnitToGroup = (source: MetaDraft, groupSaveKey: string) => {
-    const storedId = normalizeManualUnitId(addUnitIds[groupSaveKey] ?? "");
+    const raw = (addUnitIds[groupSaveKey] ?? "").trim();
+    const storedId = normalizeManualUnitId(raw);
     if (!storedId) {
-      setError("Enter a unit id (letters, numbers, dots, dashes, underscores — not a Wizard id).");
+      const message = /^\d+$/.test(raw.replace(/^manual-/i, ""))
+        ? `"${raw}" is just a number, which is reserved for synced Wizard vehicle ids. Add a letter, e.g. "${raw}A" or "UNIT-${raw}".`
+        : "Enter a unit id using letters, numbers, dots, dashes, or underscores.";
+      setAddUnitErrors((prev) => ({ ...prev, [groupSaveKey]: message }));
+      toast.error(message);
       return;
     }
     if (drafts.some((draft) => draft.frontend_vehicle_id === storedId) || deletedIds.includes(storedId)) {
-      setError("That unit id is already in the fleet.");
+      const message = `Unit id "${displayManualUnitId(storedId)}" is already in the fleet — pick a different one.`;
+      setAddUnitErrors((prev) => ({ ...prev, [groupSaveKey]: message }));
+      toast.error(message);
       return;
     }
     setDrafts((list) => [...list, addManualUnit(source, storedId)]);
     setAddUnitIds((prev) => ({ ...prev, [groupSaveKey]: "" }));
+    setAddUnitErrors((prev) => ({ ...prev, [groupSaveKey]: "" }));
     setSelectedUnitIds((prev) => ({ ...prev, [groupSaveKey]: storedId }));
+    toast.success(`Added unit "${displayManualUnitId(storedId)}".`);
+  };
+
+  const removeUnitFromGroup = async (unitId: string) => {
+    if (!confirm(`Remove unit "${displayManualUnitId(unitId)}" from the fleet?`)) return;
+    setDeletedIds((prev) => [...prev, unitId]);
+    setDrafts((list) => list.filter((draft) => draft.frontend_vehicle_id !== unitId));
     setError(null);
+    try {
+      await putMetadata([], [unitId]);
+      setDeletedIds((prev) => prev.filter((id) => id !== unitId));
+      toast.success(`Removed unit "${displayManualUnitId(unitId)}".`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to remove unit.";
+      setError(message);
+      toast.error(message);
+    }
   };
 
   const removeGroup = async (indices: number[]) => {
@@ -688,28 +713,72 @@ export default function AdminFleetPage() {
                 )}
               </Field>
               {isWebsiteGroup ? (
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-                  <Field label="Add unit id" className="min-w-0 flex-1">
-                    {({ id }) => (
-                      <Input
-                        id={id}
-                        value={addUnitIds[groupSaveKey] ?? ""}
-                        placeholder="MICRA-2"
-                        onChange={(e) =>
-                          setAddUnitIds((prev) => ({ ...prev, [groupSaveKey]: e.target.value }))
-                        }
-                      />
-                    )}
-                  </Field>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    disabled={busy || !(addUnitIds[groupSaveKey] ?? "").trim()}
-                    onClick={() => addUnitToGroup(draft, groupSaveKey)}
-                  >
-                    <Plus className="size-4" aria-hidden="true" />
-                    Add unit
-                  </Button>
+                <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+                    <Field label="Add unit id" className="min-w-0 flex-1">
+                      {({ id }) => (
+                        <Input
+                          id={id}
+                          value={addUnitIds[groupSaveKey] ?? ""}
+                          placeholder="e.g. MICRA-2 (not a plain number)"
+                          aria-invalid={Boolean(addUnitErrors[groupSaveKey])}
+                          onChange={(e) => {
+                            setAddUnitIds((prev) => ({ ...prev, [groupSaveKey]: e.target.value }));
+                            setAddUnitErrors((prev) => ({ ...prev, [groupSaveKey]: "" }));
+                          }}
+                        />
+                      )}
+                    </Field>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={busy || !(addUnitIds[groupSaveKey] ?? "").trim()}
+                      onClick={() => addUnitToGroup(draft, groupSaveKey)}
+                    >
+                      <Plus className="size-4" aria-hidden="true" />
+                      Add unit
+                    </Button>
+                  </div>
+                  {addUnitErrors[groupSaveKey] ? (
+                    <p className="body-sm text-danger">{addUnitErrors[groupSaveKey]}</p>
+                  ) : (
+                    <p className="body-sm text-ink-60">
+                      Plain numbers are reserved for synced Wizard vehicles — include a letter (e.g.
+                      “MICRA-2”).
+                    </p>
+                  )}
+                  <ul className="flex flex-wrap gap-2">
+                    {group.map(({ draft: unit }) => {
+                      const isHeld = heldIds.has(unit.frontend_vehicle_id);
+                      return (
+                        <li
+                          key={unit.frontend_vehicle_id}
+                          className="border-border bg-paper flex items-center gap-2 rounded-pill border py-1 pr-1 pl-3"
+                        >
+                          <span className="label-sm">
+                            {displayManualUnitId(unit.frontend_vehicle_id)}
+                            {isHeld ? " · booked" : ""}
+                          </span>
+                          <button
+                            type="button"
+                            className="text-ink-60 hover:text-danger disabled:hover:text-ink-60 rounded-full p-1 disabled:cursor-not-allowed disabled:opacity-40"
+                            disabled={busy || isHeld}
+                            title={
+                              isHeld
+                                ? "This unit is currently on a booking — cancel or wait for the trip to end first."
+                                : `Remove ${displayManualUnitId(unit.frontend_vehicle_id)}`
+                            }
+                            onClick={() => void removeUnitFromGroup(unit.frontend_vehicle_id)}
+                          >
+                            <Trash2 className="size-3.5" aria-hidden="true" />
+                            <span className="sr-only">
+                              Remove {displayManualUnitId(unit.frontend_vehicle_id)}
+                            </span>
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
                 </div>
               ) : null}
               <div className="grid gap-4 sm:grid-cols-2">

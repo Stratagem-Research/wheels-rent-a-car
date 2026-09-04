@@ -606,13 +606,20 @@ export default function CheckoutPage() {
                 onCheckedChange={(c) => setForm((f) => ({ ...f, termsAccepted: c === true }))}
                 label={t.rich("agreeTerms", {
                   terms: (chunks) => (
-                    <Link href="/terms" className="text-ink-100 underline-offset-2 hover:underline">
+                    <Link
+                      href="/terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-ink-100 underline-offset-2 hover:underline"
+                    >
                       {chunks}
                     </Link>
                   ),
                   privacy: (chunks) => (
                     <Link
                       href="/privacy"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-ink-100 underline-offset-2 hover:underline"
                     >
                       {chunks}
