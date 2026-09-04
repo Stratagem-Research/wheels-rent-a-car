@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useRouter } from "next/navigation";
 import { AdminMobileBar, AdminSidebar, useAdminSidebarCollapsed } from "@/components/admin/AdminSidebar";
+import { ConfirmDialogProvider } from "@/components/admin/ConfirmDialog";
 import { getAdminSession } from "@/lib/admin/auth";
 import { cn } from "@/lib/utils";
 
@@ -39,17 +40,19 @@ export default function AdminAuthenticatedLayout({ children }: { children: React
   }
 
   return (
-    <div
-      className={cn(
-        "bg-ink-05 min-h-screen transition-[padding] duration-200 ease-out",
-        collapsed ? "lg:pl-18" : "lg:pl-60",
-      )}
-    >
-      <AdminSidebar collapsed={collapsed} onToggleCollapsed={toggle} />
-      <div className="min-w-0">
-        <AdminMobileBar />
-        <main>{children}</main>
+    <ConfirmDialogProvider>
+      <div
+        className={cn(
+          "bg-ink-05 min-h-screen transition-[padding] duration-200 ease-out",
+          collapsed ? "lg:pl-18" : "lg:pl-60",
+        )}
+      >
+        <AdminSidebar collapsed={collapsed} onToggleCollapsed={toggle} />
+        <div className="min-w-0">
+          <AdminMobileBar />
+          <main>{children}</main>
+        </div>
       </div>
-    </div>
+    </ConfirmDialogProvider>
   );
 }

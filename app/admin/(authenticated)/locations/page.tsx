@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/Select";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
+import { useConfirmDialog } from "@/components/admin/ConfirmDialog";
 import type { Branch, BranchHours, DeliveryPricingSettings } from "@/types/domain";
 import { DEFAULT_DELIVERY_PRICING_SETTINGS } from "@/lib/booking/delivery-pricing";
 
@@ -31,6 +32,7 @@ const DAYS = [
 ];
 
 export default function AdminLocationsPage() {
+  const confirmDialog = useConfirmDialog();
   const [items, setItems] = React.useState<Branch[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
@@ -81,8 +83,8 @@ export default function AdminLocationsPage() {
       },
     ]);
 
-  const removeBranch = (index: number) => {
-    if (!confirm("Remove this branch?")) return;
+  const removeBranch = async (index: number) => {
+    if (!(await confirmDialog({ title: "Remove this branch?", confirmLabel: "Remove" }))) return;
     setItems((list) => list.filter((_, i) => i !== index));
   };
 
@@ -250,7 +252,7 @@ export default function AdminLocationsPage() {
             />
 
             <div className="border-border flex justify-end border-t pt-4">
-              <Button type="button" variant="tertiary" onClick={() => removeBranch(i)}>
+              <Button type="button" variant="tertiary" onClick={() => void removeBranch(i)}>
                 <Trash2 className="size-4" aria-hidden="true" />
                 Remove this branch
               </Button>

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
+import { useConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { useFaqs } from "@/lib/admin/useAdminStore";
 import { writeFaqs } from "@/lib/admin/store";
 import type { FaqEntry, FaqGroup } from "@/types/domain";
@@ -26,6 +27,7 @@ import { getLocalizedString, updateLocalizedString } from "@/lib/i18n/localized"
  * /help and the page-local accordions where the central store is read.
  */
 export default function AdminFaqsPage() {
+  const confirmDialog = useConfirmDialog();
   const faqs = useFaqs();
   const [activeLocale, setActiveLocale] = React.useState<CmsLocale>("en");
   const newEntryCounter = React.useRef(0);
@@ -73,8 +75,12 @@ export default function AdminFaqsPage() {
     );
   };
 
-  const deleteGroup = (id: string) => {
-    if (!confirm("Delete this section and all its questions?")) return;
+  const deleteGroup = async (id: string) => {
+    const ok = await confirmDialog({
+      title: "Delete this section and all its questions?",
+      confirmLabel: "Delete",
+    });
+    if (!ok) return;
     const next = faqs.filter((g) => g.id !== id);
     void persistFaqs(next);
     if (activeId === id) setActiveId(next[0]?.id ?? null);
@@ -93,9 +99,9 @@ export default function AdminFaqsPage() {
     setEditingEntry(null);
   };
 
-  const deleteEntry = (entryId: string) => {
+  const deleteEntry = async (entryId: string) => {
     if (!activeGroup) return;
-    if (!confirm("Delete this question?")) return;
+    if (!(await confirmDialog({ title: "Delete this question?", confirmLabel: "Delete" }))) return;
     const next = faqs.map((g) =>
       g.id === activeGroup.id ? { ...g, entries: g.entries.filter((e) => e.id !== entryId) } : g,
     );
@@ -182,7 +188,7 @@ export default function AdminFaqsPage() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => deleteGroup(g.id)}
+                      onClick={() => void deleteGroup(g.id)}
                       aria-label={`Delete ${getLocalizedString(g.title, activeLocale)}`}
                       className={cn(
                         "inline-flex size-7 items-center justify-center rounded-full hover:cursor-pointer",
@@ -262,7 +268,7 @@ export default function AdminFaqsPage() {
                           <Button
                             variant="tertiary"
                             size="sm"
-                            onClick={() => deleteEntry(entry.id)}
+                            onClick={() => void deleteEntry(entry.id)}
                             aria-label="Delete"
                           >
                             <Trash2 className="size-4" aria-hidden="true" />

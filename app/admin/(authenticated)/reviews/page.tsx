@@ -9,11 +9,13 @@ import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
+import { useConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { fetchAdminReviews, writeAdminReviews } from "@/lib/admin/catalog-store";
 import type { Review } from "@/types/domain";
 
 /** /admin/reviews — homepage reviews marquee. */
 export default function AdminReviewsPage() {
+  const confirmDialog = useConfirmDialog();
   const [items, setItems] = React.useState<Review[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
@@ -42,6 +44,12 @@ export default function AdminReviewsPage() {
 
   const update = (index: number, patch: Partial<Review>) => {
     setItems((prev) => prev.map((item, i) => (i === index ? { ...item, ...patch } : item)));
+    setDirty(true);
+  };
+
+  const removeReview = async (index: number) => {
+    if (!(await confirmDialog({ title: "Remove this review?", confirmLabel: "Remove" }))) return;
+    setItems((prev) => prev.filter((_, i) => i !== index));
     setDirty(true);
   };
 
@@ -152,11 +160,7 @@ export default function AdminReviewsPage() {
                 <Button
                   type="button"
                   variant="tertiary"
-                  onClick={() => {
-                    if (!confirm("Remove this review?")) return;
-                    setItems((prev) => prev.filter((_, i) => i !== index));
-                    setDirty(true);
-                  }}
+                  onClick={() => void removeReview(index)}
                 >
                   <Trash2 className="size-4" aria-hidden="true" />
                   Remove

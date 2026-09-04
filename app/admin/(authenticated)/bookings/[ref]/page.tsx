@@ -4,6 +4,7 @@ import * as React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
+import { useConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { BookingDetailPanel } from "@/components/account/BookingDetailPanel";
 import { DocumentScanPreview } from "@/components/account/DocumentScanPreview";
 import { getAdminCsrfHeader } from "@/lib/admin/csrf";
@@ -32,6 +33,7 @@ function rateLabel(type: string, mileage: string): string {
 }
 
 export default function AdminBookingDetailPage() {
+  const confirmDialog = useConfirmDialog();
   const params = useParams<{ ref: string }>();
   const router = useRouter();
   const ref = decodeURIComponent(params?.ref ?? "");
@@ -66,11 +68,15 @@ export default function AdminBookingDetailPage() {
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const runManualAction = async (action: "confirm" | "cancel") => {
-    const confirmed = window.confirm(
-      action === "confirm"
-        ? `Confirm ${ref}? The customer will get the same confirmation email as a Wizard approval.`
-        : `Cancel ${ref}? The customer will be emailed and the fleet hold will be released.`,
-    );
+    const confirmed = await confirmDialog({
+      title: action === "confirm" ? `Confirm ${ref}?` : `Cancel ${ref}?`,
+      description:
+        action === "confirm"
+          ? "The customer will get the same confirmation email as a Wizard approval."
+          : "The customer will be emailed and the fleet hold will be released.",
+      confirmLabel: action === "confirm" ? "Confirm booking" : "Cancel booking",
+      danger: action === "cancel",
+    });
     if (!confirmed) return;
     setActing(action);
     try {

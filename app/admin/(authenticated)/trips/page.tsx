@@ -6,17 +6,24 @@ import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
+import { useConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { useTrips } from "@/lib/admin/useAdminStore";
 import { writeTrips } from "@/lib/admin/store";
 import { getLocalizedString, getLocalizedStringArray } from "@/lib/i18n/localized";
 
 /** /admin/trips — trips list view. */
 export default function AdminTripsPage() {
+  const confirmDialog = useConfirmDialog();
   const trips = useTrips();
   const router = useRouter();
 
   const onDelete = async (slug: string) => {
-    if (!confirm("Delete this trip? This cannot be undone.")) return;
+    const ok = await confirmDialog({
+      title: "Delete this trip?",
+      description: "This cannot be undone.",
+      confirmLabel: "Delete",
+    });
+    if (!ok) return;
     try {
       await writeTrips(trips.filter((t) => t.slug !== slug));
     } catch (error) {

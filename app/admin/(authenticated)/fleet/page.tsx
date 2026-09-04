@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { toast } from "@/components/ui/Toast";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
+import { useConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { VehicleMediaFields } from "@/components/admin/VehicleMediaFields";
 import {
   ManualVehicleCreateForm,
@@ -337,6 +338,7 @@ function addManualUnit(source: MetaDraft, frontendVehicleId: string): MetaDraft 
 }
 
 export default function AdminFleetPage() {
+  const confirmDialog = useConfirmDialog();
   const [drafts, setDrafts] = React.useState<MetaDraft[]>([]);
   const [deletedIds, setDeletedIds] = React.useState<string[]>([]);
   const [search, setSearch] = React.useState("");
@@ -449,7 +451,12 @@ export default function AdminFleetPage() {
   };
 
   const removeUnitFromGroup = async (unitId: string) => {
-    if (!confirm(`Remove unit "${displayManualUnitId(unitId)}" from the fleet?`)) return;
+    const ok = await confirmDialog({
+      title: `Remove unit "${displayManualUnitId(unitId)}"?`,
+      description: "This unit is removed from the fleet immediately. This cannot be undone.",
+      confirmLabel: "Remove unit",
+    });
+    if (!ok) return;
     setDeletedIds((prev) => [...prev, unitId]);
     setDrafts((list) => list.filter((draft) => draft.frontend_vehicle_id !== unitId));
     setError(null);
@@ -469,7 +476,12 @@ export default function AdminFleetPage() {
     const n = indices.length;
     const label = first ? vehicleCardTitle(first) : "this model";
     const unitLabel = n === 1 ? "unit" : "units";
-    if (!confirm(`Remove website metadata for ${n} ${label} ${unitLabel}?`)) return;
+    const ok = await confirmDialog({
+      title: `Remove website metadata for ${n} ${label} ${unitLabel}?`,
+      description: "This cannot be undone.",
+      confirmLabel: "Remove",
+    });
+    if (!ok) return;
     const drop = new Set(indices);
     const removedIds = indices
       .map((i) => drafts[i]?.frontend_vehicle_id)

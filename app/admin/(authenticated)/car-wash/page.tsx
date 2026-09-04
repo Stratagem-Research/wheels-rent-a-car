@@ -9,12 +9,14 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
+import { useConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { fetchAdminCarWashPackages, writeAdminCarWashPackages } from "@/lib/admin/catalog-store";
 import type { CarWashPackage } from "@/types/domain";
 import type { CmsLocale } from "@/lib/i18n/localized";
 import { getLocalizedString, updateLocalizedString } from "@/lib/i18n/localized";
 
 export default function AdminCarWashPage() {
+  const confirmDialog = useConfirmDialog();
   const [packages, setPackages] = React.useState<CarWashPackage[]>([]);
   const [working, setWorking] = React.useState<CarWashPackage[]>([]);
   const [dirty, setDirty] = React.useState(false);
@@ -65,8 +67,8 @@ export default function AdminCarWashPage() {
     setDirty(true);
   };
 
-  const removePackage = (id: string) => {
-    if (!confirm("Remove this package?")) return;
+  const removePackage = async (id: string) => {
+    if (!(await confirmDialog({ title: "Remove this package?", confirmLabel: "Remove" }))) return;
     setWorking((w) => w.filter((p) => p.id !== id));
     setDirty(true);
   };
@@ -329,7 +331,7 @@ export default function AdminCarWashPage() {
               />
             </div>
             <div className="border-border flex justify-end border-t pt-4">
-              <Button type="button" variant="tertiary" onClick={() => removePackage(pkg.id)}>
+              <Button type="button" variant="tertiary" onClick={() => void removePackage(pkg.id)}>
                 <Trash2 className="size-4" aria-hidden="true" />
                 Remove package
               </Button>

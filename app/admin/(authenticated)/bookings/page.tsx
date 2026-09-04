@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
+import { useConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { getAdminCsrfHeader } from "@/lib/admin/csrf";
 import type { AdminWebsiteBooking } from "@/lib/supabase/admin-bookings-repository";
 import type { HoldCustomerType, HoldInventoryStatus } from "@/lib/supabase/vehicle-booking-holds-repository";
@@ -74,6 +75,7 @@ function holdStatusLabel(status: HoldInventoryStatus | null): string {
 }
 
 export default function AdminBookingsPage() {
+  const confirmDialog = useConfirmDialog();
   const [data, setData] = React.useState<BookingsResponse | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -110,11 +112,15 @@ export default function AdminBookingsPage() {
   /* eslint-enable react-hooks/set-state-in-effect */
 
   const runManualAction = async (bookingReference: string, action: "confirm" | "cancel") => {
-    const confirmed = window.confirm(
-      action === "confirm"
-        ? `Confirm ${bookingReference}? The customer will get the same confirmation email as a Wizard approval.`
-        : `Cancel ${bookingReference}? The customer will be emailed and the fleet hold will be released.`,
-    );
+    const confirmed = await confirmDialog({
+      title: action === "confirm" ? `Confirm ${bookingReference}?` : `Cancel ${bookingReference}?`,
+      description:
+        action === "confirm"
+          ? "The customer will get the same confirmation email as a Wizard approval."
+          : "The customer will be emailed and the fleet hold will be released.",
+      confirmLabel: action === "confirm" ? "Confirm booking" : "Cancel booking",
+      danger: action === "cancel",
+    });
     if (!confirmed) return;
     setActing({ ref: bookingReference, action });
     try {

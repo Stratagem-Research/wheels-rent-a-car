@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
+import { useConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { useCorporateTiers } from "@/lib/admin/useAdminStore";
 import { writeCorporateTiers } from "@/lib/admin/store";
 import type { CorporateTier } from "@/types/domain";
@@ -27,6 +28,7 @@ import {
  * inclusions, popular flag, CTA label. Persists via `writeCorporateTiers()` (Supabase).
  */
 export default function AdminCorporatePage() {
+  const confirmDialog = useConfirmDialog();
   const tiers = useCorporateTiers();
   const [working, setWorking] = React.useState<CorporateTier[]>(tiers);
   const [dirty, setDirty] = React.useState(false);
@@ -95,8 +97,8 @@ export default function AdminCorporatePage() {
     setDirty(true);
   };
 
-  const removeTier = (id: string) => {
-    if (!confirm("Remove this tier?")) return;
+  const removeTier = async (id: string) => {
+    if (!(await confirmDialog({ title: "Remove this tier?", confirmLabel: "Remove" }))) return;
     setWorking((w) => w.filter((t) => t.id !== id));
     setDirty(true);
   };
@@ -292,7 +294,7 @@ export default function AdminCorporatePage() {
             </div>
 
             <div className="border-border flex justify-end border-t pt-4">
-              <Button type="button" variant="tertiary" onClick={() => removeTier(tier.id)}>
+              <Button type="button" variant="tertiary" onClick={() => void removeTier(tier.id)}>
                 <Trash2 className="size-4" aria-hidden="true" />
                 Remove this tier
               </Button>

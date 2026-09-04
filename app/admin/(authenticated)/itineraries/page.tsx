@@ -6,6 +6,7 @@ import { Plus, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
+import { useConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { useItineraries } from "@/lib/admin/useAdminStore";
 import { writeItineraries } from "@/lib/admin/store";
 import { formatUsd } from "@/lib/booking/pricing";
@@ -13,11 +14,17 @@ import { getLocalizedString } from "@/lib/i18n/localized";
 
 /** /admin/itineraries — chauffeur itineraries list view. */
 export default function AdminItinerariesPage() {
+  const confirmDialog = useConfirmDialog();
   const itineraries = useItineraries();
   const router = useRouter();
 
   const onDelete = async (slug: string) => {
-    if (!confirm("Delete this itinerary? This cannot be undone.")) return;
+    const ok = await confirmDialog({
+      title: "Delete this itinerary?",
+      description: "This cannot be undone.",
+      confirmLabel: "Delete",
+    });
+    if (!ok) return;
     try {
       await writeItineraries(itineraries.filter((i) => i.slug !== slug));
     } catch (error) {
