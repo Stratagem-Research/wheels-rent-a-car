@@ -2,8 +2,12 @@ import { z } from "zod";
 
 const PublicEnvSchema = z.object({
   NEXT_PUBLIC_SITE_URL: z.string().url().default("http://localhost:3000"),
-  NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
-  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(1),
+  // Defaults let the app boot in dev/CI without Supabase provisioned.
+  // Queries against the placeholder URL fail gracefully and fall back to
+  // fixtures (see lib/server/public-content.ts). `pnpm env:check` is the
+  // explicit production gate that requires real values before deploy.
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url().default("http://localhost:54321"),
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(1).default("placeholder-anon-key"),
 });
 
 const ServerEnvSchema = z.object({

@@ -14,6 +14,17 @@ describe("server/env", () => {
     expect(() => getPublicEnv()).not.toThrow();
   });
 
+  it("falls back to defaults when Supabase env is absent (dev/CI)", () => {
+    delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+    delete process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+    delete process.env.NEXT_PUBLIC_SITE_URL;
+
+    const env = getPublicEnv();
+    expect(env.NEXT_PUBLIC_SUPABASE_URL).toBe("http://localhost:54321");
+    expect(env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY).toBe("placeholder-anon-key");
+    expect(env.NEXT_PUBLIC_SITE_URL).toBe("http://localhost:3000");
+  });
+
   it("validates server env", () => {
     vi.stubEnv("SUPABASE_SERVICE_ROLE_KEY", "srk");
     vi.stubEnv("DATABASE_URL", "postgres://postgres:pw@localhost:5432/postgres");
