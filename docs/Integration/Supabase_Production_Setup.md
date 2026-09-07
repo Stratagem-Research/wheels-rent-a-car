@@ -16,7 +16,6 @@ This runs `pnpm db:migrate` and `pnpm security:rls:negative`. Re-running migrati
 
 **RLS verification (2026-07-27):** `pnpm security:rls:negative` passes against the current shared dev/staging project. Re-run on the dedicated production project after step 1.
 
-Adam confirmed (2026-07-25) that the website team creates the initial production Supabase project, shares credentials, and ensures full transfer to Wheels at handover.
 
 ## Prerequisites
 
@@ -100,5 +99,4 @@ Document and share via secure channel:
 ## Related docs
 
 - `docs/Integration/Handoff_Env_Variables.md`
-- `docs/Integration/LaunchGate_Security_Report.md`
-- `docs/Integration/Email_to_Adam_Production_Followup.md`
+- `docs/Integration/Handoff_Server_Requirements.md`

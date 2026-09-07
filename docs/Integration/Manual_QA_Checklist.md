@@ -4,7 +4,7 @@ Status: Ready to execute on staging URL
 Owner: Website Team  
 Last updated: 2026-07-27
 
-Run after staging deploy (`docs/Integration/Staging_Deploy_Checklist.md`).
+Run after staging deploy.
 
 ## Local automated coverage (2026-07-27)
 
@@ -64,4 +64,4 @@ The following were verified locally before staging; check off on staging URL aft
 | Role | Name | Date | Pass? |
 | --- | --- | --- | --- |
 | Website | | | |
-| Wheels / Adam | | | |
+| Wheels  | | | |

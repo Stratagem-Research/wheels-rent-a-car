@@ -169,7 +169,7 @@ describe("wheels-public/adapters", () => {
     });
 
 
-    it("sends structured rate fields per Adam P0 contract", () => {
+    it("sends structured rate fields ", () => {
       const payload = fromBookingDraft(draft(), {
         resolveVehicleId: () => 131,
         addOns: ADD_ONS,
@@ -311,7 +311,6 @@ describe("wheels-public/adapters", () => {
         clock: () => new Date("2026-05-20T10:00:00.000Z"),
       });
       expect(result.ref).toBe(successData.reference);
-      // Cash/offline stay pending until Wizard approval (Adam Aug 9).
       expect(result.state).toBe("pending");
       expect(result.price.totalCents).toBe(successData.amount * 100);
       expect(result.vehicleSnapshot.slug).toBe(yaris.slug);

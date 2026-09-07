@@ -1,6 +1,6 @@
 # Wizard → website booking status webhook
 
-Status: Implemented 2026-08-10 (Adam Aug 9 confirmation timing)  
+Status: Implemented 2026-08-10  
 Endpoint: `POST /api/wizard/webhooks/booking-status`
 
 ## Auth
@@ -38,4 +38,5 @@ Authorization: Bearer <WHEELS_INTERNAL_API_TOKEN or WIZARD_API_TOKEN>
 
 Hold release is **not** inferred from polling. Wizard must POST cancel here.  
 
-See [Adam_Response_Notifications_And_SMTP.md](./Adam_Response_Notifications_And_SMTP.md).
+Hold release is **not** inferred from polling. Wizard must POST cancel here.
+

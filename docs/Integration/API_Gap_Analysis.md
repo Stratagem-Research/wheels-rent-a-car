@@ -1,6 +1,6 @@
-# Wheels API Gap Analysis (Post-Adam Clarifications)
+# Wheels API Gap Analysis (Post-Clarifications)
 
-Status: updated 2026-06-22 after Adam demo URL + vehicle sync reply (see `Adam_Response_Demo_And_Vehicle_Sync.md`).
+Status: updated 2026-06-22 after demo URL + vehicle sync reply.
 
 ## Delivered and verified
 
@@ -11,9 +11,9 @@ Status: updated 2026-06-22 after Adam demo URL + vehicle sync reply (see `Adam_R
 - Internal sync-status endpoint contract path confirmed.
 - Website-side Supabase + hybrid payment integration scaffolding landed in repo.
 
-## Confirmed by Adam (2026-06-22) — website-owned
+## Confirmed (2026-06-22) — website-owned
 
-Adam explicitly confirmed these remain on the website side. See `Adam_Response_System_Boundaries.md`.
+These remain on the website side.
 
 - Vehicle metadata/media CMS (photos, slugs, badges, descriptions).
 - Customer-facing checkout validation (including required email).
@@ -25,7 +25,7 @@ Adam explicitly confirmed these remain on the website side. See `Adam_Response_S
 
 Wizard supplies operational vehicle IDs; website enriches with marketing data.
 
-## Confirmed by Adam (2026-06-22) — Wizard-owned
+## Confirmed (2026-06-22) — Wizard-owned
 
 - Operational vehicles, availability, bookings, internal status, fleet blocking.
 - Canonical booking reference and `public_token`.
@@ -41,7 +41,7 @@ Wizard supplies operational vehicle IDs; website enriches with marketing data.
 
 Implementation: `lib/api/wheels-public/sync-status.ts` (`cancel_requested` → `sync_type: cancel_request`, `status: pending_approval`).
 
-## Vehicle sync (Adam 2026-06-30 — endpoint confirmed)
+## Vehicle sync (2026-06-30 — endpoint confirmed)
 
 Wizard is the source of truth for operational vehicles. The website syncs via API into `wizard_vehicles`, then enriches with `vehicle_metadata` (photos, slugs, badges, SEO).
 
@@ -51,11 +51,11 @@ Flow: Wizard vehicle → sync API → Supabase → marketing enrichment → book
 - `GET /api/public/vehicles` is reserved for an optional future public list, not the sync source.
 - **Manual `vehicle_wizard_map`:** staging-only fallback; deprecated for production.
 
-See [Adam_Response_Vehicle_Sync_Endpoint.md](./Adam_Response_Vehicle_Sync_Endpoint.md) and [Wizard_Vehicle_Sync_Endpoint.md](./Wizard_Vehicle_Sync_Endpoint.md).
+See [Wizard_Vehicle_Sync_Endpoint.md](./Wizard_Vehicle_Sync_Endpoint.md).
 
 Implementation: `lib/server/wizard-vehicle-sync.ts`, `lib/api/wheels-public/client.ts` (`syncVehicles`), `lib/booking/wizard-vehicle-id.ts`.
 
-## Confirmed by Adam (2026-06-22) — promo codes
+## Confirmed (2026-06-22) — promo codes
 
 Website-side promo validation at launch. Wizard receives code/discount in booking payload only.
 

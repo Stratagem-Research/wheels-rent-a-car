@@ -75,7 +75,7 @@ export const VehicleAvailabilityResponseSchema = z.object({
   data: PublicVehicleSchema,
 });
 
-// ── GET /api/v1/vehicles/sync — internal fleet sync (Adam 2026-06-30) ───
+// ── GET /api/v1/vehicles/sync — internal fleet sync ───
 //
 // Server-to-server, bearer-authenticated. Returns only non-sensitive vehicle
 // data (no license plates, notes, or customer/operational private fields).

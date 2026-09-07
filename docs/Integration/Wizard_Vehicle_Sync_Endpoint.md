@@ -1,6 +1,6 @@
 # Wizard vehicle sync endpoint (confirmed 2026-06-30)
 
-Adam confirmed the vehicle sync source is the **internal** server-to-server
+Vehicle sync source is the **internal** server-to-server
 endpoint, not the public vehicle list.
 
 ## Contract

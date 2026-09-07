@@ -31,7 +31,7 @@
 - `PAYMENT_METHOD_WHISH_ONLINE` (default `false`)
 - `PAYMENT_METHOD_NEO` (default `false`)
 - `WEBSITE_URL`
-- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_ENCRYPTION` (`tls` | `ssl` | `none`) — **preferred** (Adam Aug 9: Wheels domain SMTP)
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_ENCRYPTION` (`tls` | `ssl` | `none`) — **preferred** ( Wheels domain SMTP)
 - `NOTIFICATION_FROM_EMAIL`, `NOTIFICATION_FROM_NAME`
 - `NOTIFICATION_PROVIDER_KEY` / `RESEND_API_KEY` — optional fallback only (not required for launch)
 - `NOTIFICATION_CRON_SECRET` (optional bearer for `/api/notifications/process`)
@@ -63,7 +63,7 @@ Retired demo host `lucid-mclean...` must not be used.
 every auth redirect/callback URL. It **must** be the real production domain
 before go-live — local defaults to `http://localhost:3000`.
 
-Per Adam (2026-06-22), production origins are env-driven on the website side
+production origins are env-driven on the website side
 (not hardcoded). Current production values:
 
 - `https://wheelsrentacar.com.lb`
