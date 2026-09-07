@@ -20,8 +20,8 @@ test.describe("fleet — inline expansion replaces the PDP", () => {
     await firstCard.click();
     await expect(page).toHaveURL(/\/vehicles\?.*selected=[a-z0-9-]+/);
 
-    // Expanded panel exposes the singular red "Next" CTA.
-    await expect(page.getByRole("button", { name: /^Next/i })).toBeVisible();
+    // Expanded panel exposes the singular red CTA (bookNow i18n key = "Book Now").
+    await expect(page.getByRole("button", { name: /Book Now/i })).toBeVisible();
   });
 
   test("?selected= auto-expands the matching card on load @smoke", async ({ page }) => {
@@ -37,7 +37,7 @@ test.describe("fleet — inline expansion replaces the PDP", () => {
     await page.goto(
       `/vehicles?step=1&pickupType=branch&pickupLoc=br-hazmieh&pickupAt=2027-06-01T10%3A00&returnAt=2027-06-04T10%3A00&selected=${encodeURIComponent(selected)}`,
     );
-    await page.getByRole("button", { name: /^Next/i }).click();
+    await page.getByRole("button", { name: /Book Now/i }).click();
     await expect(page).toHaveURL(/\/book\/extras\?.*vehicleId=/);
     await expect(page).toHaveURL(new RegExp(`vehicleId=${selected}`));
     await expect(page).toHaveURL(/pickupAt=2027-06-01T10%3A00/);

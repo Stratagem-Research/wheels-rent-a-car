@@ -16,9 +16,9 @@ test.describe("booking funnel front half", () => {
       .getByRole("link", { name: /Select/i })
       .first()
       .click();
-    await expect(page.getByRole("button", { name: /Next →/i })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Book Now/i })).toBeVisible();
 
-    await page.getByRole("button", { name: /Next →/i }).click();
+    await page.getByRole("button", { name: /Book Now/i }).click();
     await expect(page).toHaveURL(/\/book\/extras/);
     await expect(page.getByRole("progressbar", { name: /Booking progress/i })).toHaveAttribute(
       "aria-valuenow",

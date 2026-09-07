@@ -8,10 +8,12 @@ test.describe("home", () => {
     await expect(page.getByRole("heading", { name: /Drive Lebanon/i })).toBeVisible();
 
     // Search bar's red CTA — clicking should navigate to the funnel.
+    // /book/select-vehicle is a client-side shim that immediately
+    // router.replace's to /vehicles?step=1&..., so assert the final URL.
     const showCars = page.getByRole("button", { name: /Show cars/i }).first();
     await expect(showCars).toBeVisible();
     await showCars.click();
-    await expect(page).toHaveURL(/\/book\/select-vehicle\?/);
+    await expect(page).toHaveURL(/\/vehicles\?.*step=1/);
   });
 
   test("categories section renders the four wordmark cards", async ({ page }) => {
