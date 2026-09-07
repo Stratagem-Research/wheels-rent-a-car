@@ -94,8 +94,22 @@ export function AdminImageUpload({
   }, [kind]);
 
   React.useEffect(() => {
-    void refreshLibrary();
-  }, [refreshLibrary]);
+    if (!BROWSABLE_KINDS.has(kind)) return;
+    let cancelled = false;
+    loadMediaLibrary(kind)
+      .then((items) => {
+        if (!cancelled) setLibrary(items);
+      })
+      .catch(() => {
+        if (!cancelled) setLibrary([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLibraryLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [kind]);
 
   async function uploadFile(file: File) {
     setBusy(true);

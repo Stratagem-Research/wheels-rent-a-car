@@ -74,18 +74,32 @@ export default function AdminUsersPage() {
   const [detailError, setDetailError] = React.useState<Record<string, string>>({});
   const [detailLoading, setDetailLoading] = React.useState<Record<string, boolean>>({});
 
-  const load = React.useCallback((targetPage: number) => {
+  const [activePage, setActivePage] = React.useState(page);
+  if (activePage !== page) {
+    setActivePage(page);
     setLoading(true);
     setError(null);
-    readJson<UsersResponse>(`/api/admin/users?page=${targetPage}&perPage=${PER_PAGE}`)
-      .then(setData)
-      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load accounts."))
-      .finally(() => setLoading(false));
-  }, []);
+  }
 
   React.useEffect(() => {
-    load(page);
-  }, [load, page]);
+    let cancelled = false;
+    readJson<UsersResponse>(`/api/admin/users?page=${page}&perPage=${PER_PAGE}`)
+      .then((next) => {
+        if (!cancelled) {
+          setData(next);
+          setError(null);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load accounts.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [page]);
 
   const onExpand = (value: string) => {
     setExpanded(value);

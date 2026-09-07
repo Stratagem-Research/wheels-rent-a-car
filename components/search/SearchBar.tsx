@@ -60,20 +60,19 @@ export function SearchBar({ variant = "expanded", branches, className }: SearchB
   const [criteria, setCriteriaState] = React.useState<SearchCriteria>(
     () => urlCriteria ?? storedCriteria,
   );
-
-  React.useEffect(() => {
-    const fromUrl = searchParams
-      ? queryToSearch(new URLSearchParams(searchParams.toString()))
-      : null;
-    if (fromUrl) setCriteriaState(fromUrl);
-  }, [urlKey, searchParams]);
-
-  React.useEffect(() => {
-    const fromUrl = searchParams
-      ? queryToSearch(new URLSearchParams(searchParams.toString()))
-      : null;
-    if (!fromUrl) setCriteriaState(storedCriteria);
-  }, [urlKey, searchParams, storedCriteria]);
+  const hasUrl = Boolean(urlCriteria);
+  const sourceKey = hasUrl ? `url:${urlKey}` : "stored";
+  const [appliedSourceKey, setAppliedSourceKey] = React.useState(sourceKey);
+  const [appliedStored, setAppliedStored] = React.useState(storedCriteria);
+  if (hasUrl && appliedSourceKey !== `url:${urlKey}`) {
+    setAppliedSourceKey(`url:${urlKey}`);
+    setAppliedStored(storedCriteria);
+    setCriteriaState(urlCriteria!);
+  } else if (!hasUrl && (appliedSourceKey !== "stored" || appliedStored !== storedCriteria)) {
+    setAppliedSourceKey("stored");
+    setAppliedStored(storedCriteria);
+    setCriteriaState(storedCriteria);
+  }
 
   const setCriteria = React.useCallback(
     (next: SearchCriteria | ((prev: SearchCriteria) => SearchCriteria)) => {

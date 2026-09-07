@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { motion } from "framer-motion";
 import { staggerContainer, staggerItem } from "@/lib/motion/variants";
@@ -525,7 +526,7 @@ function EmptyState({ heading, body, reset }: { heading: string; body: string; r
       <p className="body-md text-ink-60 max-w-md">{body}</p>
       <div className="mt-2 flex gap-3">
         <Button asChild variant="primary" size="sm">
-          <a href="/vehicles">{reset}</a>
+          <Link href="/vehicles">{reset}</Link>
         </Button>
       </div>
     </div>

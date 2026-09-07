@@ -153,20 +153,20 @@ function AdditionalDriverSection() {
   const [driver, setDriver] = React.useState<AdditionalDriverRecord | null | undefined>(undefined);
   const [modalOpen, setModalOpen] = React.useState(false);
 
-  const load = React.useCallback(async () => {
-    try {
-      const res = await api.get<{ driver: AdditionalDriverRecord | null }>(
-        endpoints.accountAdditionalDriver,
-      );
-      setDriver(res.driver);
-    } catch {
-      setDriver(null);
-    }
-  }, []);
-
   React.useEffect(() => {
-    void load();
-  }, [load]);
+    let cancelled = false;
+    void api
+      .get<{ driver: AdditionalDriverRecord | null }>(endpoints.accountAdditionalDriver)
+      .then((res) => {
+        if (!cancelled) setDriver(res.driver);
+      })
+      .catch(() => {
+        if (!cancelled) setDriver(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const hasDriver = Boolean(driver?.firstName || driver?.scanFrontUrl || driver?.scanBackUrl);
 
@@ -235,20 +235,30 @@ function AdditionalDriverModal({
   existing: AdditionalDriverRecord | null;
   onSave: (saved: AdditionalDriverRecord) => void;
 }) {
+  return (
+    <Modal open={open} onOpenChange={onOpenChange}>
+      {open ? (
+        <AdditionalDriverModalForm existing={existing} onOpenChange={onOpenChange} onSave={onSave} />
+      ) : null}
+    </Modal>
+  );
+}
+
+function AdditionalDriverModalForm({
+  existing,
+  onOpenChange,
+  onSave,
+}: {
+  existing: AdditionalDriverRecord | null;
+  onOpenChange: (open: boolean) => void;
+  onSave: (saved: AdditionalDriverRecord) => void;
+}) {
   const t = useTranslations("accountDocuments");
   const [firstName, setFirstName] = React.useState(existing?.firstName ?? "");
   const [lastName, setLastName] = React.useState(existing?.lastName ?? "");
   const [frontFile, setFrontFile] = React.useState<File | null>(null);
   const [backFile, setBackFile] = React.useState<File | null>(null);
   const [saving, setSaving] = React.useState(false);
-
-  React.useEffect(() => {
-    if (!open) return;
-    setFirstName(existing?.firstName ?? "");
-    setLastName(existing?.lastName ?? "");
-    setFrontFile(null);
-    setBackFile(null);
-  }, [open, existing]);
 
   const onSubmit = async () => {
     setSaving(true);
@@ -276,8 +286,7 @@ function AdditionalDriverModal({
   };
 
   return (
-    <Modal open={open} onOpenChange={onOpenChange}>
-      <ModalContent size="md">
+    <ModalContent size="md">
         <ModalTitle>{t("additionalDriverCardTitle")}</ModalTitle>
         <ModalDescription>{t("additionalDriverModalDescription")}</ModalDescription>
         <div className="mt-4 flex flex-col gap-3">
@@ -315,7 +324,6 @@ function AdditionalDriverModal({
           </Button>
         </ModalFooter>
       </ModalContent>
-    </Modal>
   );
 }
 
@@ -423,6 +431,34 @@ function UploadDocumentModal({
   existing: UserDocument | null;
   onSave: (saved: UserDocument) => void;
 }) {
+  return (
+    <Modal open={open} onOpenChange={onOpenChange}>
+      {open ? (
+        <UploadDocumentModalForm
+          mode={mode}
+          docType={docType}
+          existing={existing}
+          onOpenChange={onOpenChange}
+          onSave={onSave}
+        />
+      ) : null}
+    </Modal>
+  );
+}
+
+function UploadDocumentModalForm({
+  mode,
+  docType,
+  existing,
+  onOpenChange,
+  onSave,
+}: {
+  mode: ModalMode;
+  docType: DocumentType;
+  existing: UserDocument | null;
+  onOpenChange: (open: boolean) => void;
+  onSave: (saved: UserDocument) => void;
+}) {
   const t = useTranslations("accountDocuments");
   const { session } = useSession();
   const [file, setFile] = React.useState<File | null>(null);
@@ -433,17 +469,6 @@ function UploadDocumentModal({
   const [expiryDate, setExpiryDate] = React.useState(existing?.expiryDate ?? "");
   const [country, setCountry] = React.useState(existing?.issuingCountry ?? "LB");
   const [saving, setSaving] = React.useState(false);
-
-  React.useEffect(() => {
-    if (!open) return;
-    setFile(null);
-    setFrontFile(null);
-    setBackFile(null);
-    setNumber(existing?.number ?? "");
-    setIssueDate(existing?.issueDate ?? "");
-    setExpiryDate(existing?.expiryDate ?? "");
-    setCountry(existing?.issuingCountry ?? "LB");
-  }, [open, existing]);
 
   const title =
     mode === "edit" ? t("editDocument") : mode === "replace" ? t("replaceDocument") : t("uploadDocument");
@@ -498,8 +523,7 @@ function UploadDocumentModal({
   };
 
   return (
-    <Modal open={open} onOpenChange={onOpenChange}>
-      <ModalContent size={isLicence && showFile ? "md" : "sm"}>
+    <ModalContent size={isLicence && showFile ? "md" : "sm"}>
         <ModalTitle>{title}</ModalTitle>
 
         <div className="mt-4 flex flex-col gap-3">
@@ -590,6 +614,5 @@ function UploadDocumentModal({
           </Button>
         </ModalFooter>
       </ModalContent>
-    </Modal>
   );
 }

@@ -1,5 +1,28 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import type { BookingDraft } from "@/types/domain";
+import type { BookingDraft, Vehicle } from "@/types/domain";
+
+const { testVehicle } = vi.hoisted(() => {
+  function testVehicle(overrides: Partial<Vehicle> & Pick<Vehicle, "id">): Vehicle {
+    return {
+      slug: "test",
+      make: "T",
+      model: "T",
+      year: 2024,
+      category: "economy",
+      transmission: "automatic",
+      fuel: "petrol",
+      seats: 5,
+      doors: 4,
+      bags: 2,
+      features: [],
+      images: [],
+      dailyRateFromCents: 2500,
+      ownsInFleet: true,
+      ...overrides,
+    };
+  }
+  return { testVehicle };
+});
 
 const mockGetAvailability = vi.fn();
 const mockGetVehicleAvailability = vi.fn();
@@ -53,11 +76,7 @@ vi.mock("@/lib/supabase/catalog-repository", () => ({
 }));
 
 vi.mock("@/lib/server/public-content", () => ({
-  getPublicVehicles: vi
-    .fn()
-    .mockResolvedValue([
-      { id: "wiz-131", slug: "test", make: "T", model: "T", dailyRateFromCents: 2500 },
-    ]),
+  getPublicVehicles: vi.fn().mockResolvedValue([testVehicle({ id: "wiz-131" })]),
   getPublicBranches: vi.fn().mockResolvedValue([]),
   getPublicDeliveryPricing: vi
     .fn()
@@ -270,9 +289,7 @@ describe("booking-service handleBookingSubmit", () => {
   });
 
   it("does not query wizard map for manual vehicles", async () => {
-    vi.mocked(getPublicVehicles).mockResolvedValueOnce([
-      { id: "manual-abc", slug: "test", make: "T", model: "T", dailyRateFromCents: 2500 },
-    ]);
+    vi.mocked(getPublicVehicles).mockResolvedValueOnce([testVehicle({ id: "manual-abc" })]);
     const result = await handleVerifyVehicleAvailability({
       vehicleId: "manual-abc",
       pickup: completeDraft().pickup,
@@ -284,9 +301,7 @@ describe("booking-service handleBookingSubmit", () => {
   });
 
   it("submits manual website-only vehicles without calling Wizard", async () => {
-    vi.mocked(getPublicVehicles).mockResolvedValueOnce([
-      { id: "manual-abc", slug: "test", make: "T", model: "T", dailyRateFromCents: 2500 },
-    ]);
+    vi.mocked(getPublicVehicles).mockResolvedValueOnce([testVehicle({ id: "manual-abc" })]);
     const draft = completeDraft();
     draft.vehicle = { vehicleId: "manual-abc", rate: { type: "best-price", mileage: "capped-200km" } };
     const result = await handleBookingSubmit({ draft });
@@ -363,8 +378,8 @@ describe("booking-service handleBookingSubmit", () => {
 
   it("books a sibling unit when the selected Wizard id is unknown", async () => {
     vi.mocked(getPublicVehicles).mockResolvedValueOnce([
-      { id: "wiz-131", slug: "micra", make: "NISSAN", model: "MICRA", dailyRateFromCents: 2000 },
-      { id: "wiz-132", slug: "micra", make: "NISSAN", model: "MICRA", dailyRateFromCents: 2000 },
+      testVehicle({ id: "wiz-131", slug: "micra", make: "NISSAN", model: "MICRA", dailyRateFromCents: 2000 }),
+      testVehicle({ id: "wiz-132", slug: "micra", make: "NISSAN", model: "MICRA", dailyRateFromCents: 2000 }),
     ]);
     mockGetVehicleAvailability.mockImplementation(async (id: unknown) => {
       if (id === 131) {

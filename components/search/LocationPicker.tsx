@@ -112,7 +112,9 @@ export function LocationPicker({
     onValueChange(next);
     setOpen(false);
   };
-  chooseRef.current = choose;
+  React.useEffect(() => {
+    chooseRef.current = choose;
+  });
 
   const onPlaceSelected = React.useCallback((next: { address: string; lat?: number; lng?: number; placeId?: string }) => {
     setAddressDraft(next.address);
@@ -408,7 +410,9 @@ function GooglePlaceAutocompleteField({
   // Refs so the mount callback (created once) always sees latest props
   // without needing the custom element torn down and recreated.
   const onSelectRef = React.useRef(onSelect);
-  onSelectRef.current = onSelect;
+  React.useEffect(() => {
+    onSelectRef.current = onSelect;
+  });
 
   const mountElement = React.useCallback((container: HTMLDivElement | null) => {
     if (!container) return;

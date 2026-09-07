@@ -127,23 +127,27 @@ export default function CheckoutPage() {
   const firedStarted = React.useRef(false);
   const verifiedAvailability = React.useRef(false);
 
-  // Prefill empty fields from draft.driver and/or logged-in profile + licence vault.
-  // Safe to re-run: only fills blanks (won’t clobber typed values). No “done” ref —
-  // React Strict Mode remounts wipe state but leave refs, which would skip fill.
-  React.useEffect(() => {
-    if (!ready || !sessionReady) return;
-
-    const driver = draft?.driver;
-    const user = session?.user;
-
+  const driver = draft?.driver;
+  const user = session?.user;
+  const prefillReady = ready && sessionReady;
+  const prefillKey = prefillReady
+    ? `${user?.id ?? "guest"}:${driver?.firstName ?? ""}:${driver?.lastName ?? ""}:${driver?.email ?? ""}:${driver?.phone ?? ""}`
+    : "";
+  const [appliedPrefillKey, setAppliedPrefillKey] = React.useState("");
+  if (prefillReady && prefillKey !== appliedPrefillKey) {
+    setAppliedPrefillKey(prefillKey);
     setForm((prev) => {
       let next = prev;
       if (driver) next = applyDriverToForm(next, driver);
       if (user) next = applyProfileToForm(next, user);
       return next;
     });
+  }
 
-    if (!user) return;
+  // Prefill licence / additional-driver fields from the vault. setState lives in
+  // the async callbacks — not the effect body — so it stays off the cascading-render path.
+  React.useEffect(() => {
+    if (!ready || !sessionReady || !session?.user) return;
 
     let cancelled = false;
     void api
@@ -173,7 +177,7 @@ export default function CheckoutPage() {
     return () => {
       cancelled = true;
     };
-  }, [ready, sessionReady, session?.user?.id, draft?.driver]);
+  }, [ready, sessionReady, session?.user]);
 
   // Re-check Wizard availability before the customer fills the form.
   React.useEffect(() => {

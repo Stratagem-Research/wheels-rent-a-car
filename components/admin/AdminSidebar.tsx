@@ -31,28 +31,41 @@ import { cn } from "@/lib/utils";
 import { signOut } from "@/lib/admin/auth";
 
 const COLLAPSE_STORAGE_KEY = "wheels.admin.sidebarCollapsed";
+const collapsedListeners = new Set<() => void>();
+
+function subscribeCollapsed(onStoreChange: () => void) {
+  collapsedListeners.add(onStoreChange);
+  window.addEventListener("storage", onStoreChange);
+  return () => {
+    collapsedListeners.delete(onStoreChange);
+    window.removeEventListener("storage", onStoreChange);
+  };
+}
+
+function getCollapsedSnapshot() {
+  return window.localStorage.getItem(COLLAPSE_STORAGE_KEY) === "1";
+}
+
+function getCollapsedServerSnapshot() {
+  return false;
+}
 
 /** Persisted collapse state, shared by the sidebar and the layout (which
  *  needs it too, to size the content area's left offset to match). */
 export function useAdminSidebarCollapsed() {
-  const [collapsed, setCollapsed] = React.useState(false);
-  const [hydrated, setHydrated] = React.useState(false);
-
-  React.useEffect(() => {
-    setCollapsed(window.localStorage.getItem(COLLAPSE_STORAGE_KEY) === "1");
-    setHydrated(true);
-  }, []);
+  const collapsed = React.useSyncExternalStore(
+    subscribeCollapsed,
+    getCollapsedSnapshot,
+    getCollapsedServerSnapshot,
+  );
 
   const toggle = React.useCallback(() => {
-    setCollapsed((prev) => {
-      const next = !prev;
-      window.localStorage.setItem(COLLAPSE_STORAGE_KEY, next ? "1" : "0");
-      return next;
-    });
+    const next = window.localStorage.getItem(COLLAPSE_STORAGE_KEY) !== "1";
+    window.localStorage.setItem(COLLAPSE_STORAGE_KEY, next ? "1" : "0");
+    collapsedListeners.forEach((listener) => listener());
   }, []);
 
-  // Avoid a flash of the collapsed layout before localStorage is read.
-  return { collapsed: hydrated ? collapsed : false, toggle };
+  return { collapsed, toggle };
 }
 
 /*

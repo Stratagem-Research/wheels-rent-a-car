@@ -91,8 +91,24 @@ export default function AdminLongTermQuotesPage() {
   }, []);
 
   React.useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    let cancelled = false;
+    void fetchLongTermQuotes()
+      .then((next) => {
+        if (!cancelled) {
+          setLeads(next);
+          setError(null);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load.");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <AdminPageShell
