@@ -32,6 +32,18 @@ function client() {
 }
 
 describe("wheels-public/client", () => {
+  describe("createWheelsPublicClient", () => {
+    it("throws when NEXT_PUBLIC_WHEELS_API_BASE_URL is missing", () => {
+      const previous = process.env.NEXT_PUBLIC_WHEELS_API_BASE_URL;
+      delete process.env.NEXT_PUBLIC_WHEELS_API_BASE_URL;
+      try {
+        expect(() => createWheelsPublicClient()).toThrow(/NEXT_PUBLIC_WHEELS_API_BASE_URL is required/);
+      } finally {
+        process.env.NEXT_PUBLIC_WHEELS_API_BASE_URL = previous;
+      }
+    });
+  });
+
   describe("getAvailability", () => {
     it("sends the documented query params and parses the response", async () => {
       let capturedUrl = "";

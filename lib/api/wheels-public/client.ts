@@ -278,15 +278,32 @@ export function createWheelsInternalClient(
   };
 }
 
-// ── Default singleton ───────────────────────────────────────────────────
+// ── Default singleton (lazy) ────────────────────────────────────────────
+// Next.js imports this module while collecting page data. Don't require the
+// public API URL until a request actually calls the client.
 
-const defaultClient = createWheelsPublicClient();
+let defaultClient: WheelsPublicClient | undefined;
 
-export const getAvailability = defaultClient.getAvailability;
-export const getVehicleAvailability = defaultClient.getVehicleAvailability;
-export const createBookingRequest = defaultClient.createBookingRequest;
-export const getBookingByReferenceEmail = defaultClient.getBookingByReferenceEmail;
-export const getBookingStatusByToken = defaultClient.getBookingStatusByToken;
+function getDefaultClient(): WheelsPublicClient {
+  defaultClient ??= createWheelsPublicClient();
+  return defaultClient;
+}
+
+export const getAvailability: WheelsPublicClient["getAvailability"] = (query) =>
+  getDefaultClient().getAvailability(query);
+export const getVehicleAvailability: WheelsPublicClient["getVehicleAvailability"] = (
+  vehicleId,
+  query,
+) => getDefaultClient().getVehicleAvailability(vehicleId, query);
+export const createBookingRequest: WheelsPublicClient["createBookingRequest"] = (payload) =>
+  getDefaultClient().createBookingRequest(payload);
+export const getBookingByReferenceEmail: WheelsPublicClient["getBookingByReferenceEmail"] = (
+  reference,
+  email,
+) => getDefaultClient().getBookingByReferenceEmail(reference, email);
+export const getBookingStatusByToken: WheelsPublicClient["getBookingStatusByToken"] = (
+  publicToken,
+) => getDefaultClient().getBookingStatusByToken(publicToken);
 
 // ── Internals ───────────────────────────────────────────────────────────
 
