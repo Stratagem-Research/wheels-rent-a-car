@@ -20,9 +20,8 @@ This folder contains the build-ready specification for the Wheels Rent A Car web
 | Order | File                            | Routes                                                 | Why this order                                     |
 | ----- | ------------------------------- | ------------------------------------------------------ | -------------------------------------------------- |
 | 0     | `00_global.md`                  | (cross-cutting)                                        | Foundation — read first, always.                   |
-| 1     | `01_home.md`                    | `/`                                                    | Landing page, anchors the brand.                   |
+| 1     | `landingpage.md`                | `/`                                                    | Canonical home spec (supersedes `01_home.md`).     |
 | 2     | `02_fleet_browse.md`            | `/vehicles`, `/vehicles/[category]`                    | Discovery surface; introduces the vehicle card.    |
-| 3     | `03_vehicle_detail.md`          | `/vehicles/[slug]`                                     | The PDP — sells each car.                          |
 | 4     | `04_booking_flow.md`            | `/book/*` (5 steps)                                    | Conversion engine.                                 |
 | 5     | `05_locations.md`               | `/locations/*`                                         | Trust + BEY airport pickup.                        |
 | 6     | `06_long_term.md`               | `/long-term`                                           | High-margin lead capture.                          |
@@ -76,8 +75,8 @@ This folder contains the build-ready specification for the Wheels Rent A Car web
 When implementing a feature, you will commonly need to read multiple files together:
 
 - **Building any page:** `00_global.md` (always) + the module file.
-- **Building a vehicle card:** `02_fleet_browse.md` (definition) + `03_vehicle_detail.md` and `04_booking_flow.md` (variants).
-- **Building the booking summary panel:** `03_vehicle_detail.md` (PDP variant) + `04_booking_flow.md` (flow variant).
+- **Building a vehicle card:** `02_fleet_browse.md` (definition + inline expansion) + `04_booking_flow.md` (booking variants).
+- **Building the booking summary panel:** `02_fleet_browse.md` (inline car-selected variant) + `04_booking_flow.md` (flow variant).
 - **Building forms:** `00_global.md` §9 (form rules) + the module's form section.
 - **Building modals:** `00_global.md` §7 (modal rules) + the module-specific modal section.
 - **Building auth gating:** `12_account.md` (account routes) + `14_auth.md` (auth flow).

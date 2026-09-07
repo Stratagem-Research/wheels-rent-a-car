@@ -384,7 +384,6 @@ export function toInternalBooking(data: BookingData, options: ToInternalBookingO
 
   const ref = data.reference ?? synthesizeBookingRef(data.id, clock());
 
-  // Adam Aug 9: cash/offline stay pending until Wizard approval.
   // Online card methods still map to confirmed when the PSP path completes.
   const state =
     data.status === "confirmed" || data.status === "approved"

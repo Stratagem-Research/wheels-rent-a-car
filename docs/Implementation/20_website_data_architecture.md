@@ -16,7 +16,7 @@ Define the website-owned persistence layer and boundaries that sit outside Wizar
 - `long_term_enquiries`: marketing lead capture for >3 month rentals.
 - optional `cms_pages`: static marketing content blocks.
 
-## Vehicle catalog model (Adam 2026-06-22)
+## Vehicle catalog model (2026-06-22)
 
 Wizard remains the source of truth for operational vehicles. The website must not maintain a manual numeric ID map in production.
 
