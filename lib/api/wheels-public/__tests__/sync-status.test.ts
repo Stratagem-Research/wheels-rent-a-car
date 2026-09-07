@@ -23,7 +23,7 @@ describe("wheels-public/sync-status", () => {
     expect(payload.sync_type).toBe(REQUEST_STATE_SYNC_TYPE.refund_requested);
   });
 
-  it("maps payment_failed to Adam sync_type", () => {
+  it("maps payment_failed to sync_type", () => {
     const payload = mapWebsiteSyncToWizardPayload({
       lifecycleState: "pending",
       paymentStatus: "payment_failed",

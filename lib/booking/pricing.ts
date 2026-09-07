@@ -25,7 +25,7 @@ import { computeDeliveryFeeCents } from "./delivery-pricing";
  */
 
 const TAX_RATE = 0.11;
-/** Adam Q8: online booking max 3 months (~92 days). */
+/** Q8: online booking max 3 months (~92 days). */
 export const MAX_ONLINE_RENTAL_DAYS = 92;
 const FLEXIBLE_MULTIPLIER = 1.15;
 const UNLIMITED_MULTIPLIER = 1.1;
