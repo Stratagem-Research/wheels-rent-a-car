@@ -196,7 +196,7 @@ If no licence on file: empty state with `Upload licence` CTA, opens upload modal
 
 #### 2. ID / Passport
 
-Same pattern.
+Same pattern. Lebanese residents (`country === LB`) see **National ID card** (front + back). Other nationalities see **Passport** (photo page). Checkout at `/book/checkout` uses the same rule and pre-fills from this vault.
 
 #### 3. Verification status
 

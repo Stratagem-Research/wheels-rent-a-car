@@ -315,6 +315,9 @@ export type AdminBookingDetail = {
   vehicleName: string | null;
   licenceFrontUrl?: string;
   licenceBackUrl?: string;
+  identityDocType?: "id" | "passport";
+  identityFrontUrl?: string;
+  identityBackUrl?: string;
   additionalDriverName?: string | null;
   additionalDriverFrontUrl?: string;
   additionalDriverBackUrl?: string;
@@ -421,6 +424,21 @@ export async function getAdminBookingDetail(bookingReference: string): Promise<A
     licenceBackPath = vault?.storage_path_back ?? licenceBackPath;
   }
 
+  // Identity document (national ID or passport) from vault
+  let identityDocType: "id" | "passport" | undefined;
+  let identityFrontPath: string | null = null;
+  let identityBackPath: string | null = null;
+  if (userId) {
+    const idVault = await findUserDocument(supabase, userId, "id").catch(() => null);
+    const passportVault = await findUserDocument(supabase, userId, "passport").catch(() => null);
+    const preferred = idVault ?? passportVault;
+    if (preferred) {
+      identityDocType = idVault ? "id" : "passport";
+      identityFrontPath = preferred.storage_path_front ?? preferred.storage_path ?? null;
+      identityBackPath = idVault ? (preferred.storage_path_back ?? null) : null;
+    }
+  }
+
   let additionalFrontPath = scans.additionalFrontPath ?? row.additionalDriverFrontPath;
   let additionalBackPath = scans.additionalBackPath ?? row.additionalDriverBackPath;
   let additionalDriverName =
@@ -433,10 +451,12 @@ export async function getAdminBookingDetail(bookingReference: string): Promise<A
       additionalDriverName || `${extraDriver.firstName} ${extraDriver.lastName}`.trim() || null;
   }
 
-  const [licenceFrontUrl, licenceBackUrl, additionalFromPathFront, additionalFromPathBack] =
+  const [licenceFrontUrl, licenceBackUrl, identityFrontUrl, identityBackUrl, additionalFromPathFront, additionalFromPathBack] =
     await Promise.all([
       signedStorageUrl(licenceFrontPath),
       signedStorageUrl(licenceBackPath),
+      signedStorageUrl(identityFrontPath),
+      signedStorageUrl(identityBackPath),
       signedStorageUrl(additionalFrontPath),
       signedStorageUrl(additionalBackPath),
     ]);
@@ -475,6 +495,7 @@ export async function getAdminBookingDetail(bookingReference: string): Promise<A
     vehicleName,
     licenceFrontUrl,
     licenceBackUrl,
+    ...(identityDocType ? { identityDocType, identityFrontUrl, identityBackUrl } : {}),
     additionalDriverName,
     additionalDriverFrontUrl,
     additionalDriverBackUrl,

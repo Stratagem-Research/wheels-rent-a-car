@@ -201,6 +201,29 @@ export default function AdminBookingDetailPage() {
               </div>
             </section>
           ) : null}
+          {detail.identityFrontUrl || detail.identityBackUrl ? (
+            <section className="bg-paper border-border flex flex-col gap-3 rounded-xl border p-5">
+              <h2 className="headline-xs text-ink-100">
+                {detail.identityDocType === "id" ? "National ID card" : "Passport"}
+              </h2>
+              <div className="flex flex-wrap gap-3">
+                {detail.identityFrontUrl ? (
+                  <DocumentScanPreview
+                    scanUrl={detail.identityFrontUrl}
+                    alt={detail.identityDocType === "id" ? "Front of ID card" : "Passport photo page"}
+                    size="md"
+                  />
+                ) : null}
+                {detail.identityBackUrl ? (
+                  <DocumentScanPreview
+                    scanUrl={detail.identityBackUrl}
+                    alt="Back of ID card"
+                    size="md"
+                  />
+                ) : null}
+              </div>
+            </section>
+          ) : null}
         </div>
 
         <aside className="bg-paper border-border flex h-fit flex-col gap-4 rounded-xl border p-5">

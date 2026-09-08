@@ -23,6 +23,7 @@ import { Card } from "@/components/ui/Card";
 import { useSession } from "@/hooks/useSession";
 import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
+import { isLebaneseResident } from "@/lib/booking/identity-document";
 import type { DocumentType, UserDocument } from "@/types/domain";
 
 type AdditionalDriverRecord = {
@@ -44,7 +45,10 @@ type ModalMode = "upload" | "edit" | "replace";
 
 export default function DocumentsPage() {
   const t = useTranslations("accountDocuments");
+  const { session } = useSession();
   const [docs, setDocs] = React.useState<UserDocument[] | null>(null);
+  const country = session?.user.country ?? "LB";
+  const lebanese = isLebaneseResident(country);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -96,14 +100,12 @@ export default function DocumentsPage() {
   }
 
   const licence = docs.find((d) => d.type === "licence") ?? null;
-  const id = docs.find((d) => d.type === "id" || d.type === "passport") ?? null;
+  const idCard = docs.find((d) => d.type === "id") ?? null;
+  const passport = docs.find((d) => d.type === "passport") ?? null;
 
   const onSaveDoc = (saved: UserDocument) => {
     setDocs((curr) => {
-      const withoutSlot =
-        saved.type === "licence"
-          ? (curr ?? []).filter((d) => d.type !== "licence")
-          : (curr ?? []).filter((d) => d.type !== "id" && d.type !== "passport");
+      const withoutSlot = (curr ?? []).filter((d) => d.type !== saved.type);
       return [...withoutSlot, saved];
     });
     toast.success(t("documentSaved"));
@@ -132,16 +134,41 @@ export default function DocumentsPage() {
         onDelete={onDeleteDoc}
       />
 
-      <DocumentSection
-        docType="id"
-        title={t("idCardTitle")}
-        sectionLabel={t("idSection")}
-        sectionId="dv-id"
-        uploadLabel={t("uploadId")}
-        document={id}
-        onSave={onSaveDoc}
-        onDelete={onDeleteDoc}
-      />
+      {lebanese ? (
+        <>
+          <DocumentSection
+            docType="id"
+            title={t("idCardTitle")}
+            sectionLabel={t("idSection")}
+            sectionId="dv-id"
+            uploadLabel={t("uploadId")}
+            document={idCard}
+            onSave={onSaveDoc}
+            onDelete={onDeleteDoc}
+          />
+          <DocumentSection
+            docType="passport"
+            title={t("passportCardTitle")}
+            sectionLabel={t("passportSection")}
+            sectionId="dv-passport"
+            uploadLabel={t("uploadPassport")}
+            document={passport}
+            onSave={onSaveDoc}
+            onDelete={onDeleteDoc}
+          />
+        </>
+      ) : (
+        <DocumentSection
+          docType="passport"
+          title={t("passportCardTitle")}
+          sectionLabel={t("passportSection")}
+          sectionId="dv-passport"
+          uploadLabel={t("uploadPassport")}
+          document={passport}
+          onSave={onSaveDoc}
+          onDelete={onDeleteDoc}
+        />
+      )}
 
       <AdditionalDriverSection />
     </div>
@@ -472,22 +499,22 @@ function UploadDocumentModalForm({
 
   const title =
     mode === "edit" ? t("editDocument") : mode === "replace" ? t("replaceDocument") : t("uploadDocument");
-  const isLicence = docType === "licence";
+  const isTwoSided = docType === "licence" || docType === "id";
   const showFile = mode !== "edit";
   const requireFile = mode === "replace" || mode === "upload";
   const hasFront = Boolean(frontFile || existing?.scanFrontUrl || existing?.scanUrl);
   const hasBack = Boolean(backFile || existing?.scanBackUrl);
-  const licenceFileOk =
+  const twoSidedFileOk =
     mode === "edit" ||
     (mode === "upload" && Boolean(frontFile && backFile)) ||
     (mode === "replace" && Boolean(frontFile || backFile) && hasFront && hasBack);
-  const fileOk = isLicence ? licenceFileOk : !requireFile || Boolean(file);
+  const fileOk = isTwoSided ? twoSidedFileOk : !requireFile || Boolean(file);
 
   const onSubmit = async () => {
     if (!session?.user.id) return;
-    // Driver's licence uploads have no required fields — any subset of
-    // scans/number/dates can be saved and filled in later.
-    if (!isLicence && requireFile && !file) {
+    // Driver's licence and national ID uploads have no required metadata —
+    // any subset of scans/number/dates can be saved and filled in later.
+    if (!isTwoSided && requireFile && !file) {
       toast.error(t("fileRequired"));
       return;
     }
@@ -499,7 +526,7 @@ function UploadDocumentModalForm({
       form.set("issueDate", issueDate);
       form.set("expiryDate", expiryDate);
       form.set("issuingCountry", country);
-      if (isLicence) {
+      if (isTwoSided) {
         if (frontFile) form.set("fileFront", frontFile);
         if (backFile) form.set("fileBack", backFile);
       } else if (file) {
@@ -523,11 +550,11 @@ function UploadDocumentModalForm({
   };
 
   return (
-    <ModalContent size={isLicence && showFile ? "md" : "sm"}>
+    <ModalContent size={isTwoSided && showFile ? "md" : "sm"}>
         <ModalTitle>{title}</ModalTitle>
 
         <div className="mt-4 flex flex-col gap-3">
-          {mode === "replace" && !isLicence && existing?.scanUrl ? (
+          {mode === "replace" && !isTwoSided && existing?.scanUrl ? (
             <div className="flex flex-col gap-2">
               <p className="label-md text-ink-80">{t("currentScan")}</p>
               <DocumentScanPreview
@@ -537,7 +564,7 @@ function UploadDocumentModalForm({
               />
             </div>
           ) : null}
-          {showFile && isLicence ? (
+          {showFile && isTwoSided ? (
             <LicenceScanFields
               frontFile={frontFile}
               backFile={backFile}
@@ -545,13 +572,13 @@ function UploadDocumentModalForm({
               backUrl={existing?.scanBackUrl}
               onFrontChange={setFrontFile}
               onBackChange={setBackFile}
-              frontLabel={t("licenceFront")}
-              backLabel={t("licenceBack")}
+              frontLabel={docType === "id" ? t("idFront") : t("licenceFront")}
+              backLabel={docType === "id" ? t("idBack") : t("licenceBack")}
               helper={t("uploadDescription")}
               required={false}
             />
           ) : null}
-          {showFile && !isLicence ? (
+          {showFile && !isTwoSided ? (
             <FileUpload
               label={t("dragOrBrowse")}
               accept=".pdf,.jpg,.jpeg,.png"
@@ -562,12 +589,12 @@ function UploadDocumentModalForm({
             />
           ) : null}
           <div className="grid grid-cols-2 gap-3">
-            <Field label={t("documentNumber")} required={!isLicence}>
+            <Field label={t("documentNumber")} required={!isTwoSided}>
               {({ id }) => (
                 <Input id={id} value={number} onChange={(e) => setNumber(e.target.value)} />
               )}
             </Field>
-            <Field label={t("issuingCountry")} required={!isLicence}>
+            <Field label={t("issuingCountry")} required={!isTwoSided}>
               {({ id }) => (
                 <Select id={id} value={country} onChange={(e) => setCountry(e.target.value)}>
                   {COUNTRIES.map((c) => (
@@ -578,7 +605,7 @@ function UploadDocumentModalForm({
                 </Select>
               )}
             </Field>
-            <Field label={t("issueDate")} required={!isLicence}>
+            <Field label={t("issueDate")} required={!isTwoSided}>
               {({ id }) => (
                 <Input
                   id={id}
@@ -588,7 +615,7 @@ function UploadDocumentModalForm({
                 />
               )}
             </Field>
-            <Field label={t("expiryDate")} required={!isLicence}>
+            <Field label={t("expiryDate")} required={!isTwoSided}>
               {({ id }) => (
                 <Input
                   id={id}
@@ -607,7 +634,7 @@ function UploadDocumentModalForm({
           <Button
             variant="primary"
             loading={saving}
-            disabled={saving || (!isLicence && (!number || !issueDate || !expiryDate || !fileOk))}
+            disabled={saving || (!isTwoSided && (!number || !issueDate || !expiryDate || !fileOk))}
             onClick={onSubmit}
           >
             {t("saveDocument")}

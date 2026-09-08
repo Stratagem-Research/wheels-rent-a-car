@@ -42,19 +42,32 @@ export function DocumentVaultCard({
   return (
     <Card variant="default" className="flex flex-col gap-3 p-5">
       <div className="flex items-start gap-4">
-        {document.type === "licence" && (document.scanFrontUrl || document.scanBackUrl || document.scanUrl) ? (
-          <div className="flex shrink-0 gap-2">
-            {document.scanFrontUrl || document.scanUrl ? (
-              <DocumentScanPreview
-                scanUrl={(document.scanFrontUrl || document.scanUrl)!}
-                alt={t("licenceFront")}
-                size="sm"
-              />
-            ) : null}
-            {document.scanBackUrl ? (
-              <DocumentScanPreview scanUrl={document.scanBackUrl} alt={t("licenceBack")} size="sm" />
-            ) : null}
-          </div>
+        {document.type === "licence" || document.type === "id" ? (
+          document.scanFrontUrl || document.scanBackUrl || document.scanUrl ? (
+            <div className="flex shrink-0 gap-2">
+              {document.scanFrontUrl || document.scanUrl ? (
+                <DocumentScanPreview
+                  scanUrl={(document.scanFrontUrl || document.scanUrl)!}
+                  alt={document.type === "id" ? t("idFront") : t("licenceFront")}
+                  size="sm"
+                />
+              ) : null}
+              {document.scanBackUrl ? (
+                <DocumentScanPreview
+                  scanUrl={document.scanBackUrl}
+                  alt={document.type === "id" ? t("idBack") : t("licenceBack")}
+                  size="sm"
+                />
+              ) : null}
+            </div>
+          ) : (
+            <div
+              className="border-border bg-ink-10 text-ink-50 flex h-16 w-24 shrink-0 items-center justify-center rounded-lg border"
+              aria-hidden="true"
+            >
+              <FileText className="size-6" />
+            </div>
+          )
         ) : document.scanUrl ? (
           <DocumentScanPreview
             scanUrl={document.scanUrl}

@@ -58,6 +58,9 @@ export async function fillDriverInfo(page: Page, email: string): Promise<void> {
   };
   await licenceFiles.nth(0).setInputFiles(scan);
   await licenceFiles.nth(1).setInputFiles({ ...scan, name: "licence-back.png" });
+  const identityFiles = page.locator('section[aria-labelledby="identity-info"] input[type="file"]');
+  await identityFiles.nth(0).setInputFiles({ ...scan, name: "id-front.png" });
+  await identityFiles.nth(1).setInputFiles({ ...scan, name: "id-back.png" });
 }
 
 export async function acceptTerms(page: Page): Promise<void> {

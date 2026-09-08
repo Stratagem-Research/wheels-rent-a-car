@@ -98,9 +98,9 @@ export async function POST(request: Request) {
     let storagePathFront: string | null = null;
     let storagePathBack: string | null = null;
 
-    if (parsedType.data === "licence") {
+    if (parsedType.data === "licence" || parsedType.data === "id") {
       if (fileFront instanceof File && fileFront.size > 0) {
-        const uploaded = await uploadScan(auth.supabase, auth.user.id, "licence", "front", fileFront);
+        const uploaded = await uploadScan(auth.supabase, auth.user.id, parsedType.data, "front", fileFront);
         if ("error" in uploaded) {
           return NextResponse.json({ message: uploaded.error }, { status: 500 });
         }
@@ -108,7 +108,7 @@ export async function POST(request: Request) {
         storagePath = uploaded.path;
       }
       if (fileBack instanceof File && fileBack.size > 0) {
-        const uploaded = await uploadScan(auth.supabase, auth.user.id, "licence", "back", fileBack);
+        const uploaded = await uploadScan(auth.supabase, auth.user.id, parsedType.data, "back", fileBack);
         if ("error" in uploaded) {
           return NextResponse.json({ message: uploaded.error }, { status: 500 });
         }

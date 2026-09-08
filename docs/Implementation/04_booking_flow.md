@@ -305,8 +305,11 @@ Customer info, payment method, terms. Single page. Avis pattern.
 │  ☐ Send updates via WhatsApp            │  Total $XXX          │
 │                                         │                      │
 │  DRIVER'S LICENCE                       │  Deposit $XXX held   │
-│  Licence # *  Issue date *  Expiry *    │  (refundable)        │
-│  Issuing country ▾                      │                      │
+│  [ Front scan ]  [ Back scan ]          │  (refundable)        │
+│                                         │                      │
+│  NATIONAL ID / PASSPORT                 │                      │
+│  ID both sides if country = LB,         │                      │
+│  passport photo page otherwise          │                      │
 │                                         │                      │
 │  PICKUP DETAILS  (conditional)          │                      │
 │  Flight number (BEY only)               │                      │
@@ -348,6 +351,14 @@ Customer info, payment method, terms. Single page. Avis pattern.
 - Section heading `headline-md`: "Driver's licence".
 - Fields: Licence number *, Issue date *, Expiry date *, Issuing country *.
 - Helper text: "We'll verify at pickup. Foreign licences must be in Latin script — bring your passport."
+
+### Identity document section
+
+- Driven by **Country of residence** (the field above). Switching country swaps this section live.
+- **Lebanese residents (`LB`):** heading "National ID card". Front + back scans required (same upload pattern as the licence). Saved to the account vault as type `id`.
+- **Everyone else:** heading "Passport". Single photo of the biodata page required. Saved to the account vault as type `passport`.
+- Logged-in customers: scans pre-fill from `/account/documents` when that document is already on file. New uploads are written back to the vault on submit.
+- Guests: scans are uploaded and carried into "Create account" the same way as the licence.
 
 ### Pickup details (conditional)
 

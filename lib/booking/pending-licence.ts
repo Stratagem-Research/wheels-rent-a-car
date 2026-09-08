@@ -84,3 +84,41 @@ export function clearPendingAdditionalDriver(): void {
     // ignore
   }
 }
+
+/** National ID (Lebanese) or passport (foreign) from guest checkout. */
+const IDENTITY_KEY = "wheels.pendingIdentity";
+
+export type PendingIdentity = {
+  type: "id" | "passport";
+  country: string;
+  frontUrl?: string;
+  backUrl?: string;
+};
+
+export function writePendingIdentity(data: PendingIdentity): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem(IDENTITY_KEY, JSON.stringify(data));
+  } catch {
+    // ignore
+  }
+}
+
+export function readPendingIdentity(): PendingIdentity | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(IDENTITY_KEY);
+    return raw ? (JSON.parse(raw) as PendingIdentity) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function clearPendingIdentity(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.removeItem(IDENTITY_KEY);
+  } catch {
+    // ignore
+  }
+}

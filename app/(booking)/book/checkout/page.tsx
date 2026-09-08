@@ -26,13 +26,23 @@ import { isValidPhoneNational, phoneValueFromStored, toE164 } from "@/lib/bookin
 import { computePrice, formatUsd } from "@/lib/booking/pricing";
 import { draftToSearchParams } from "@/lib/booking/draft-to-search-params";
 import { WIZARD_VEHICLE_UNKNOWN } from "@/lib/booking/wizard-vehicle-id";
-import { writePendingLicence, writePendingAdditionalDriver } from "@/lib/booking/pending-licence";
+import {
+  writePendingLicence,
+  writePendingAdditionalDriver,
+  writePendingIdentity,
+} from "@/lib/booking/pending-licence";
 import { ADDITIONAL_DRIVER_ADDON_ID } from "@/lib/booking/addons";
 import { AdditionalDriverFields } from "@/components/booking/AdditionalDriverFields";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
 import type { BookingDriver, PaymentMethod, SubmitBookingResponse, User, UserDocument } from "@/types/domain";
 import { LicenceScanFields } from "@/components/account/LicenceScanFields";
+import { DocumentScanPreview } from "@/components/account/DocumentScanPreview";
+import { FileUpload } from "@/components/ui/FileUpload";
+import {
+  findIdentityDocument,
+  isLebaneseResident,
+} from "@/lib/booking/identity-document";
 
 const COUNTRY_CODES = ["LB", "US", "GB", "FR", "DE", "AE", "SA", "OTHER"] as const;
 
@@ -53,6 +63,12 @@ interface CheckoutFormState {
   licenceBackFile: File | null;
   licenceFrontUrl: string;
   licenceBackUrl: string;
+  // National ID or passport — Lebanese may choose either; international must use passport
+  identityDocType: "id" | "passport";
+  identityFrontFile: File | null;
+  identityBackFile: File | null;
+  identityFrontUrl: string;
+  identityBackUrl: string;
   // Additional driver (only shown when that add-on is active)
   additionalDriverFirstName: string;
   additionalDriverLastName: string;
@@ -89,6 +105,11 @@ const emptyForm = (): CheckoutFormState => ({
   licenceBackFile: null,
   licenceFrontUrl: "",
   licenceBackUrl: "",
+  identityDocType: "id",
+  identityFrontFile: null,
+  identityBackFile: null,
+  identityFrontUrl: "",
+  identityBackUrl: "",
   additionalDriverFirstName: "",
   additionalDriverLastName: "",
   additionalDriverFrontFile: null,
@@ -129,6 +150,7 @@ export default function CheckoutPage() {
 
   const driver = draft?.driver;
   const user = session?.user;
+  const vaultDocsRef = React.useRef<UserDocument[]>([]);
   const prefillReady = ready && sessionReady;
   const prefillKey = prefillReady
     ? `${user?.id ?? "guest"}:${driver?.firstName ?? ""}:${driver?.lastName ?? ""}:${driver?.email ?? ""}:${driver?.phone ?? ""}`
@@ -144,8 +166,9 @@ export default function CheckoutPage() {
     });
   }
 
-  // Prefill licence / additional-driver fields from the vault. setState lives in
-  // the async callbacks — not the effect body — so it stays off the cascading-render path.
+  // Prefill licence / identity / additional-driver fields from the vault.
+  // setState lives in the async callbacks — not the effect body — so it stays
+  // off the cascading-render path.
   React.useEffect(() => {
     if (!ready || !sessionReady || !session?.user) return;
 
@@ -154,12 +177,19 @@ export default function CheckoutPage() {
       .get<{ items: UserDocument[] }>(endpoints.accountDocuments)
       .then((res) => {
         if (cancelled) return;
+        vaultDocsRef.current = res.items;
         const licence = res.items.find((d) => d.type === "licence");
-        if (!licence) return;
-        setForm((prev) => applyLicenceToForm(prev, licence));
+        setForm((prev) => {
+          let next = prev;
+          if (licence) next = applyLicenceToForm(next, licence);
+          const country = session.user.country || next.country;
+          const identity = findIdentityDocument(res.items, country);
+          if (identity) next = applyIdentityToForm(next, identity, true);
+          return next;
+        });
       })
       .catch(() => {
-        // Vault optional — leave licence fields empty if unavailable.
+        // Vault optional — leave document fields empty if unavailable.
       });
 
     void api
@@ -287,6 +317,16 @@ export default function CheckoutPage() {
     if (!form.dob) e.dob = t("dobRequired");
     if (!form.licenceFrontFile && !form.licenceFrontUrl) e.licenceFront = t("licenceFrontRequired");
     if (!form.licenceBackFile && !form.licenceBackUrl) e.licenceBack = t("licenceBackRequired");
+    if (isLebaneseResident(form.country)) {
+      if (form.identityDocType === "id") {
+        if (!form.identityFrontFile && !form.identityFrontUrl) e.identityFront = t("idFrontRequired");
+        if (!form.identityBackFile && !form.identityBackUrl) e.identityBack = t("idBackRequired");
+      } else {
+        if (!form.identityFrontFile && !form.identityFrontUrl) e.identityFront = t("passportRequired");
+      }
+    } else {
+      if (!form.identityFrontFile && !form.identityFrontUrl) e.identityFront = t("passportRequired");
+    }
     if (draft.pickup.type === "airport" && !form.flightNumber.trim()) {
       e.flightNumber = t("flightRequired");
     }
@@ -367,6 +407,11 @@ export default function CheckoutPage() {
         } catch {
           toast.warning(t("licenceProfileSaveFailed"));
         }
+        try {
+          await persistIdentityToProfile(form);
+        } catch {
+          toast.warning(t("identityProfileSaveFailed"));
+        }
         if (hasAdditionalDriver) {
           try {
             await persistAdditionalDriverToProfile(form);
@@ -399,6 +444,23 @@ export default function CheckoutPage() {
         } catch {
           // Best-effort — a guest can still add their licence from their
           // account later, so this never blocks the booking itself.
+        }
+        try {
+          const { identityDocType } = form;
+          const { frontUrl, backUrl } = await uploadGuestScans(
+            form.identityFrontFile,
+            identityDocType === "id" ? form.identityBackFile : null,
+          );
+          if (frontUrl || backUrl) {
+            writePendingIdentity({
+              type: identityDocType,
+              country: form.country,
+              frontUrl,
+              backUrl,
+            });
+          }
+        } catch {
+          // Best-effort — same as the primary licence above.
         }
       }
 
@@ -555,8 +617,9 @@ export default function CheckoutPage() {
             >
               <ArrowLeft className="size-4" aria-hidden="true" /> {t("backToProtection")}
             </Button>
-            <DriverInfoSection form={form} setForm={setForm} errors={errors} />
+            <DriverInfoSection form={form} setForm={setForm} errors={errors} vaultDocsRef={vaultDocsRef} />
             <DriverLicenceSection form={form} setForm={setForm} errors={errors} />
+            <IdentityDocumentSection form={form} setForm={setForm} errors={errors} />
             {hasAdditionalDriver ? (
               <AdditionalDriverFields
                 firstName={form.additionalDriverFirstName}
@@ -676,12 +739,29 @@ function DriverInfoSection({
   form,
   setForm,
   errors,
+  vaultDocsRef,
 }: {
   form: CheckoutFormState;
   setForm: React.Dispatch<React.SetStateAction<CheckoutFormState>>;
   errors: Record<string, string>;
+  vaultDocsRef: React.RefObject<UserDocument[]>;
 }) {
   const t = useTranslations("bookingFlow.checkout");
+  const onCountryChange = (country: string) => {
+    setForm((f) => {
+      const next = {
+        ...f,
+        country,
+        identityDocType: isLebaneseResident(country) ? f.identityDocType : ("passport" as const),
+        identityFrontFile: null,
+        identityBackFile: null,
+        identityFrontUrl: "",
+        identityBackUrl: "",
+      };
+      const identity = findIdentityDocument(vaultDocsRef.current, country);
+      return identity ? applyIdentityToForm(next, identity, false) : next;
+    });
+  };
   return (
     <section aria-labelledby="driver-info" className="flex flex-col gap-5">
       <h2 id="driver-info" className="headline-md text-ink-95">
@@ -754,7 +834,7 @@ function DriverInfoSection({
             <Select
               id={id}
               value={form.country}
-              onChange={(e) => setForm((f) => ({ ...f, country: e.target.value }))}
+              onChange={(e) => onCountryChange(e.target.value)}
             >
               {COUNTRY_CODES.map((code) => (
                 <option key={code} value={code}>
@@ -798,6 +878,114 @@ function DriverLicenceSection({
         backLabel={t("licenceBack")}
         helper={t("licenceUploadHelper")}
       />
+    </section>
+  );
+}
+
+function IdentityDocumentSection({
+  form,
+  setForm,
+  errors,
+}: {
+  form: CheckoutFormState;
+  setForm: React.Dispatch<React.SetStateAction<CheckoutFormState>>;
+  errors: Record<string, string>;
+}) {
+  const t = useTranslations("bookingFlow.checkout");
+  const lebanese = isLebaneseResident(form.country);
+  const isId = form.identityDocType === "id";
+
+  const onTypeChange = (type: "id" | "passport") => {
+    setForm((f) => ({
+      ...f,
+      identityDocType: type,
+      identityFrontFile: null,
+      identityBackFile: null,
+      identityFrontUrl: "",
+      identityBackUrl: "",
+    }));
+  };
+
+  return (
+    <section aria-labelledby="identity-info" className="flex flex-col gap-5">
+      <h2 id="identity-info" className="headline-md text-ink-95">
+        {t("identityHeading")}
+      </h2>
+      <p className="body-sm text-ink-60 -mt-2">
+        {lebanese ? t("identityHelperLebanese") : t("passportHelper")}
+      </p>
+
+      {lebanese ? (
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => onTypeChange("id")}
+            className={`rounded-pill border px-4 py-2 text-sm font-medium transition-colors ${
+              isId
+                ? "bg-ink-100 text-paper border-ink-100"
+                : "border-ink-20 text-ink-60 hover:border-ink-60"
+            }`}
+          >
+            {t("identityTypeId")}
+          </button>
+          <button
+            type="button"
+            onClick={() => onTypeChange("passport")}
+            className={`rounded-pill border px-4 py-2 text-sm font-medium transition-colors ${
+              !isId
+                ? "bg-ink-100 text-paper border-ink-100"
+                : "border-ink-20 text-ink-60 hover:border-ink-60"
+            }`}
+          >
+            {t("identityTypePassport")}
+          </button>
+        </div>
+      ) : null}
+
+      {isId ? (
+        <LicenceScanFields
+          frontFile={form.identityFrontFile}
+          backFile={form.identityBackFile}
+          frontUrl={form.identityFrontUrl || undefined}
+          backUrl={form.identityBackUrl || undefined}
+          onFrontChange={(file) => setForm((f) => ({ ...f, identityFrontFile: file }))}
+          onBackChange={(file) => setForm((f) => ({ ...f, identityBackFile: file }))}
+          frontError={errors.identityFront}
+          backError={errors.identityBack}
+          frontLabel={t("idFront")}
+          backLabel={t("idBack")}
+          helper={t("identityUploadHelper")}
+        />
+      ) : (
+        <div className="w-full max-w-sm">
+          <Field label={t("passportPhoto")} required error={errors.identityFront}>
+            {({ id, invalid }) => (
+              <div className="flex flex-col gap-2">
+                {form.identityFrontUrl && !form.identityFrontFile ? (
+                  <DocumentScanPreview
+                    scanUrl={form.identityFrontUrl}
+                    alt={t("passportPhoto")}
+                    size="md"
+                  />
+                ) : null}
+                <FileUpload
+                  id={id}
+                  label={t("passportPhoto")}
+                  accept=".jpg,.jpeg,.png,.webp,.pdf"
+                  maxSizeBytes={5 * 1024 * 1024}
+                  files={form.identityFrontFile ? [form.identityFrontFile] : []}
+                  onFilesChange={(files) =>
+                    setForm((f) => ({ ...f, identityFrontFile: files[0] ?? null }))
+                  }
+                  onFileRemove={() => setForm((f) => ({ ...f, identityFrontFile: null }))}
+                  helper={t("identityUploadHelper")}
+                  invalid={invalid}
+                />
+              </div>
+            )}
+          </Field>
+        </div>
+      )}
     </section>
   );
 }
@@ -946,6 +1134,22 @@ function applyLicenceToForm(form: CheckoutFormState, licence: UserDocument): Che
   };
 }
 
+function applyIdentityToForm(
+  form: CheckoutFormState,
+  identity: UserDocument,
+  setType: boolean,
+): CheckoutFormState {
+  const type = identity.type as "id" | "passport";
+  const frontUrl = identity.scanFrontUrl || identity.scanUrl || "";
+  const backUrl = identity.scanBackUrl || "";
+  return {
+    ...form,
+    ...(setType ? { identityDocType: type } : {}),
+    identityFrontUrl: form.identityFrontUrl || frontUrl,
+    identityBackUrl: type === "id" ? form.identityBackUrl || backUrl : "",
+  };
+}
+
 function applyAdditionalDriverToForm(
   form: CheckoutFormState,
   driver: { firstName: string; lastName: string; scanFrontUrl?: string; scanBackUrl?: string },
@@ -1004,6 +1208,31 @@ async function persistLicenceToProfile(form: CheckoutFormState): Promise<void> {
     credentials: "same-origin",
   });
   if (!res.ok) throw new Error("Failed to save licence to profile.");
+}
+
+async function persistIdentityToProfile(form: CheckoutFormState): Promise<void> {
+  const { identityDocType: type } = form;
+  const hasNewFiles =
+    Boolean(form.identityFrontFile) || (type === "id" && Boolean(form.identityBackFile));
+  if (!hasNewFiles) return;
+  const body = new FormData();
+  body.set("type", type);
+  body.set("number", "");
+  body.set("issueDate", "");
+  body.set("expiryDate", "");
+  body.set("issuingCountry", form.country);
+  if (type === "id") {
+    if (form.identityFrontFile) body.set("fileFront", form.identityFrontFile);
+    if (form.identityBackFile) body.set("fileBack", form.identityBackFile);
+  } else if (form.identityFrontFile) {
+    body.set("file", form.identityFrontFile);
+  }
+  const res = await fetch(endpoints.accountDocuments, {
+    method: "POST",
+    body,
+    credentials: "same-origin",
+  });
+  if (!res.ok) throw new Error("Failed to save identity document to profile.");
 }
 
 async function persistAdditionalDriverToProfile(form: CheckoutFormState): Promise<void> {

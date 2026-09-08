@@ -25,6 +25,8 @@ import {
   readPendingLicence,
   clearPendingAdditionalDriver,
   readPendingAdditionalDriver,
+  clearPendingIdentity,
+  readPendingIdentity,
 } from "@/lib/booking/pending-licence";
 
 const DRAFT_KEY = "wheels.register.draft";
@@ -134,6 +136,7 @@ export default function RegisterPage() {
       // re-uploaded a second time. Best-effort: never blocks account
       // creation if it fails.
       void saveLicenceFromBooking();
+      void saveIdentityFromBooking();
       void saveAdditionalDriverFromBooking();
       router.push(searchParams?.get("redirect") ?? "/account");
     } catch {
@@ -318,6 +321,35 @@ async function saveLicenceFromBooking(): Promise<void> {
   } catch {
     // Best-effort — the customer can still upload their licence from
     // /account/documents; this never blocks account creation.
+  }
+}
+
+async function saveIdentityFromBooking(): Promise<void> {
+  const pending = readPendingIdentity();
+  clearPendingIdentity();
+  if (!pending) return;
+  if (!pending.frontUrl && !pending.backUrl) return;
+
+  try {
+    const [fileFront, fileBack] = await Promise.all([
+      pending.frontUrl ? urlToFile(pending.frontUrl, `${pending.type}-front`) : null,
+      pending.backUrl ? urlToFile(pending.backUrl, `${pending.type}-back`) : null,
+    ]);
+    const body = new FormData();
+    body.set("type", pending.type);
+    body.set("number", "");
+    body.set("issueDate", "");
+    body.set("expiryDate", "");
+    body.set("issuingCountry", pending.country || (pending.type === "id" ? "LB" : ""));
+    if (pending.type === "id") {
+      if (fileFront) body.set("fileFront", fileFront);
+      if (fileBack) body.set("fileBack", fileBack);
+    } else if (fileFront) {
+      body.set("file", fileFront);
+    }
+    await fetch(endpoints.accountDocuments, { method: "POST", body, credentials: "same-origin" });
+  } catch {
+    // Best-effort — never blocks account creation.
   }
 }
 
