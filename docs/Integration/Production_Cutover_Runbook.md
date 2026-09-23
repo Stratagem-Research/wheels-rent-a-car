@@ -24,7 +24,6 @@ Policy: no test bookings or unrestricted testing against production Wizard until
 | `WHEELS_INTERNAL_API_BASE_URL` | `https://system.wheelsrentacar.com.lb/api/v1` |
 | `WHEELS_INTERNAL_API_TOKEN` | prod token |
 | `WEBSITE_URL` | `https://wheelsrentacar.com.lb` |
-| `NEXT_PUBLIC_SITE_URL` | `https://wheelsrentacar.com.lb` |
 
 Deploy. **Do not** run live E2E checkout against production.
 

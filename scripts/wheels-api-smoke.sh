@@ -13,7 +13,7 @@
 #
 # Safety notes:
 # - Never deletes anything.
-# - Uses sentinel customer email `smoke+<timestamp>@stratagemresearch.co`
+# - Uses sentinel customer email `smoke+<timestamp>@example.com`
 #   so the backend team can grep/purge created bookings.
 # - Picks rental dates ~12 months out so it never collides with real ops.
 # - Posts the same booking payload twice to verify the 409 conflict path
@@ -64,7 +64,7 @@ START_ENC="${START// /%20}"
 END_ENC="${END// /%20}"
 
 TIMESTAMP="$(date +%s)"
-SENTINEL_EMAIL="smoke+${TIMESTAMP}@stratagemresearch.co"
+SENTINEL_EMAIL="smoke+${TIMESTAMP}@example.com"
 SENTINEL_EMAIL_ENC="${SENTINEL_EMAIL//+/%2B}"
 SENTINEL_EMAIL_ENC="${SENTINEL_EMAIL_ENC//@/%40}"
 

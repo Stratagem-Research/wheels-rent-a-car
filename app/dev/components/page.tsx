@@ -214,7 +214,7 @@ function Typography() {
 function Buttons() {
   const [loading, setLoading] = React.useState(false);
   return (
-    <Section title="Buttons" description="One red CTA per screen — see CLAUDE.md §4.">
+    <Section title="Buttons" description="One red CTA per screen — see docs/Design/DESIGN.md.">
       <Row label="On light">
         <Button variant="cta">Pay & confirm</Button>
         <Button variant="primary">Continue</Button>

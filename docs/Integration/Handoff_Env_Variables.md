@@ -2,7 +2,6 @@
 
 ## Public website variables
 
-- `NEXT_PUBLIC_SITE_URL`
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - `NEXT_PUBLIC_API_BASE_URL`
@@ -59,9 +58,12 @@ Retired demo host `lucid-mclean...` must not be used.
 
 ## Auth (Supabase) configuration
 
-`WEBSITE_URL` (or `NEXT_PUBLIC_SITE_URL` as fallback) is the origin used to build
-every auth redirect/callback URL. It **must** be the real production domain
-before go-live — local defaults to `http://localhost:3000`.
+`WEBSITE_URL` is the single origin used to build every auth redirect/callback
+URL, canonical/OG URL, sitemap entry, and payment callback/redirect URL —
+there is no `NEXT_PUBLIC_` variant of it (every consumer runs server-side). It
+**must** be the real production domain before go-live — local defaults to
+`http://localhost:3000`, and on Vercel it falls back to
+`VERCEL_PROJECT_PRODUCTION_URL` if unset.
 
 production origins are env-driven on the website side
 (not hardcoded). Current production values:

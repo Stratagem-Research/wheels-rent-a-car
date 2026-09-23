@@ -6,7 +6,7 @@
  *
  * Safety guarantees (mirror scripts/wheels-api-smoke.sh):
  *  - Never deletes anything.
- *  - Uses sentinel email `live-test+<timestamp>@stratagemresearch.co` so the
+ *  - Uses sentinel email `live-test+<timestamp>@example.com` so the
  *    backend team can grep / purge.
  *  - Picks rental dates 12+ months out so it can't collide with real ops.
  *  - The conflict assertion uses the same payload twice — the second call
@@ -30,7 +30,7 @@ const BASE_URL =
 
 const START = "2027-04-15 10:00";
 const END = "2027-04-19 10:00";
-const SENTINEL_EMAIL = `live-test+${Date.now()}@stratagemresearch.co`;
+const SENTINEL_EMAIL = `live-test+${Date.now()}@example.com`;
 let createdReference: string | null = null;
 let createdPublicToken: string | null = null;
 

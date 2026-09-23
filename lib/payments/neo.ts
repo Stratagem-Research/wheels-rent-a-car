@@ -59,7 +59,7 @@ export class NeoClient {
 export function getNeoClient(): NeoClient {
   const merchantId = process.env.NEO_MERCHANT_ID?.trim();
   const apiKey = process.env.NEO_API_KEY?.trim();
-  const websiteUrl = process.env.WEBSITE_URL?.trim() || process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  const websiteUrl = process.env.WEBSITE_URL?.trim();
   if (!merchantId || !apiKey || !websiteUrl) {
     throw new Error("NEO payment is not configured.");
   }

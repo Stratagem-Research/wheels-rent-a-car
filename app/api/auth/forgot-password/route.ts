@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createRouteHandlerSupabaseClient } from "@/lib/supabase/route-handler";
-import { getSiteUrl } from "@/lib/server/env";
+import { getRequestOrigin } from "@/lib/server/env";
 
 const ForgotPasswordSchema = z.object({
   email: z.string().email(),
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
   // The recovery link lands on /auth/callback, which exchanges the code for a
   // session (using the PKCE verifier cookie set by this very request) and then
   // forwards to /reset-password where the user picks a new password.
-  const redirectTo = `${getSiteUrl()}/api/auth/callback?next=${encodeURIComponent("/reset-password")}`;
+  const redirectTo = `${getRequestOrigin(request)}/api/auth/callback?next=${encodeURIComponent("/reset-password")}`;
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
     redirectTo,
   });

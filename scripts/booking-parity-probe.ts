@@ -97,7 +97,7 @@ function buildDraft(
     driver: {
       firstName: "Parity",
       lastName: "Probe",
-      email: `parity+${Date.now()}@stratagemresearch.co`,
+      email: `parity+${Date.now()}@example.com`,
       phone: "+96170000099",
       dob: "1990-01-01",
       licenceNumber: "PARITY-1",

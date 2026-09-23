@@ -1,6 +1,6 @@
 # Wheels Rent A Car — Implementation Specs
 
-This folder contains the build-ready specification for the Wheels Rent A Car website (Phase 1, English). Files focus on **UI / UX / layout / sections / components** — not on code. Claude Code (or any other dev agent) reads these files alongside the design system to implement the site.
+This folder contains the build-ready specification for the Wheels Rent A Car website (Phase 1, English). Files focus on **UI / UX / layout / sections / components** — not on code. Read these files alongside the design system to implement the site.
 
 ## Companion specs (read together)
 

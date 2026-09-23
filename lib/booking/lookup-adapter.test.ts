@@ -12,8 +12,8 @@ const rioLookup = {
   start_date_time: "2026-08-13 10:00:00",
   end_date_time: "2026-08-16 10:00:00",
   customer: {
-    name: "Fatema Nawrin",
-    email: "wheelstest@yopmail.com",
+    name: "Test Customer",
+    email: "guest@example.com",
     phone_number: "+96170123457",
   },
   vehicle: { id: 137, name: "RIO", model: "RIO" },

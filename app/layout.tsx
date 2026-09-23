@@ -9,9 +9,10 @@ import { CookieBanner } from "@/components/consent/CookieBanner";
 import { SavedVehiclesProvider } from "@/components/providers/SavedVehiclesProvider";
 import { SessionProvider } from "@/components/providers/SessionProvider";
 import { isRtlLocale, routing } from "@/i18n/routing";
+import { getSiteUrl } from "@/lib/server/env";
 import "./globals.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const siteUrl = getSiteUrl();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

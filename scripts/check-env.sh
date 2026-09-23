@@ -4,12 +4,12 @@ set -euo pipefail
 mode="${1:-staging}"
 
 required_public=(
-  "NEXT_PUBLIC_SITE_URL"
   "NEXT_PUBLIC_SUPABASE_URL"
   "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
 )
 
 required_server=(
+  "WEBSITE_URL"
   "SUPABASE_SERVICE_ROLE_KEY"
   "DATABASE_URL"
   "WHEELS_INTERNAL_API_BASE_URL"
@@ -21,7 +21,6 @@ required_server=(
 required_payment=(
   "WHISH_CHANNEL"
   "WHISH_SECRET"
-  "WEBSITE_URL"
 )
 
 missing=()

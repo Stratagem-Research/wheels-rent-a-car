@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { appendBookingState, getPaymentEventByExternalId, recordPaymentEvent } from "@/lib/server/payment-events";
+import { getSiteUrl } from "@/lib/server/env";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -27,6 +28,6 @@ export async function GET(request: Request) {
     provider: "neo",
   });
 
-  const failureRedirect = `${process.env.WEBSITE_URL ?? "http://localhost:3000"}/book/checkout?payment=failed`;
+  const failureRedirect = `${getSiteUrl()}/book/checkout?payment=failed`;
   return NextResponse.redirect(failureRedirect);
 }

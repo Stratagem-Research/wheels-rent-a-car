@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getLocalizedString } from "@/lib/i18n/localized";
 import { getPageSeoByKey } from "@/lib/supabase/seo-repository";
+import { getSiteUrl } from "@/lib/server/env";
 
 const OG_LOCALE_MAP: Record<string, string> = {
   en: "en_US",
@@ -11,7 +12,7 @@ const OG_LOCALE_MAP: Record<string, string> = {
 const DEFAULT_OG_IMAGE_PATH = "/images/Hero Images/ramy-kabalan-mF4_MHgp4ps-unsplash.jpg";
 
 function siteUrl(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  return getSiteUrl();
 }
 
 export interface ResolvePageMetadataOptions {

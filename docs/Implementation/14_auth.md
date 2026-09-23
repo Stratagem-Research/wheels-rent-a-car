@@ -327,7 +327,7 @@ authenticated.
 ### Go-live action items (external config — cannot be done in code)
 
 1. **Supabase → Auth → URL Configuration:** add the production origin and `https://<domain>/api/auth/callback` to the allowed redirect URLs. (`supabase/config.toml` currently only lists `https://127.0.0.1:3000` for local.)
-2. **Set `WEBSITE_URL` and `NEXT_PUBLIC_SITE_URL`** to the production domain (currently `http://localhost:3000` in `.env`). These drive every auth redirect/callback URL.
+2. **Set `WEBSITE_URL`** to the production domain (currently `http://localhost:3000` in `.env`; there is no `NEXT_PUBLIC_` variant — it is server-only). It drives every auth redirect/callback URL, canonical/OG URL, and payment callback/redirect URL.
 3. **Configure SMTP** in Supabase (Auth → Emails) so confirmation and password-reset emails actually send. Without it, `enable_confirmations` will block sign-in.
 4. **Decide on email confirmation:** if you want instant sign-in on register, disable confirmations in the hosted project (local `config.toml` already has `enable_confirmations = false`). Otherwise keep the confirm-email UX.
 5. **Replace placeholder secrets** in `.env` (`WHISH_*`, `WHEELS_INTERNAL_API_TOKEN`) before enabling payments/booking sync — unrelated to auth but required for `getServerEnv()` consumers to boot.

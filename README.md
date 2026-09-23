@@ -49,7 +49,7 @@ API before exercising authenticated or booking flows.
 
 | Var                                | Purpose |
 | ---------------------------------- | -------------------------------------------------- |
-| `NEXT_PUBLIC_SITE_URL`             | Sitemap + canonical URLs. Defaults to `http://localhost:3000`. |
+| `WEBSITE_URL`                      | Canonical site origin — auth redirects, sitemap, canonical/OG URLs, payment callbacks. Defaults to `http://localhost:3000`. |
 | `NEXT_PUBLIC_API_BASE_URL`         | Optional prefix for external API calls; empty uses same-origin route handlers. |
 | `NEXT_PUBLIC_WHEELS_API_BASE_URL`  | Wheels Laravel public API base. Defaults to the test URL. |
 | `NEXT_PUBLIC_SUPABASE_URL`         | Supabase project URL (public). |
@@ -60,7 +60,6 @@ API before exercising authenticated or booking flows.
 | `DATABASE_URL`                     | Website-owned Postgres connection URL (Supabase). |
 | `WHISH_CHANNEL`                    | Whish merchant channel id (server-only). |
 | `WHISH_SECRET`                     | Whish merchant secret (server-only). |
-| `WEBSITE_URL`                      | Canonical base URL used for callback/redirect URLs. |
 | `RUN_LIVE_API_TESTS`               | `"1"` un-skips `tests/integration/wheels-public.live.test.ts`. Off by default. |
 | `NEXT_PUBLIC_MAINTENANCE_MODE`     | `"true"` routes every request to `/maintenance` (admin cookie `wheels.admin=1` bypasses). |
 | `NEXT_PUBLIC_SENTRY_DSN`           | Browser Sentry DSN. Empty = no error reporting. |
@@ -167,7 +166,7 @@ Pnpm version comes from `package.json#packageManager`; do **not** also pass `ver
 
 Built for Vercel. Push to `main` → Vercel deploys. Required environment in Vercel project settings:
 
-- `NEXT_PUBLIC_SITE_URL` — production origin (`https://wheels.example.com`).
+- `WEBSITE_URL` — production origin (`https://wheels.example.com`).
 - `NEXT_PUBLIC_WHEELS_API_BASE_URL` — Wheels public booking API URL.
 - `WHEELS_INTERNAL_API_BASE_URL` + `WHEELS_INTERNAL_API_TOKEN` — server-side sync.
 - Sentry envs as documented above.
@@ -177,7 +176,7 @@ Built for Vercel. Push to `main` → Vercel deploys. Required environment in Ver
 - **One red CTA per screen.** The `cta` Button variant is reserved for the highest-conversion action on the route.
 - **Tokens, not hex.** Every visual decision resolves to `styles/tokens.css`. No `bg-[#…]` arbitrary values.
 - **No external Wizard backend services in this repo.** Website-owned persistence/auth/services live here; Wizard-owned booking internals stay external.
-- **Definition of done** per `CLAUDE.md §9` applied before every merge.
+- **Definition of done** checklist applied before every merge: typecheck, lint, unit tests, and the chromium smoke suite all green.
 
 ## License
 

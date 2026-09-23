@@ -10,7 +10,7 @@ Version 2.0 · Prepared by Stratagem Research
 | Document | Wheels Rent A Car — PRD, UX & Sitemap |
 | Version | **2.0** (supersedes v1.0) |
 | Status | Released — Phase 1 build shipped |
-| Owner | Stratagem Research — Marc Khamis (`marc@stratagemresearch.co`) |
+| Owner | Stratagem Research |
 | Audience | Internal team, development agency, design partners |
 | Scope | Phase 1 only — customer-facing site (English) |
 | Out of scope | Native mobile apps, marketing automation, multilingual (Phase 2+) |

@@ -29,8 +29,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "Invalid NEO create payload." }, { status: 400 });
   }
 
-  const websiteUrl =
-    process.env.WEBSITE_URL?.trim() || process.env.NEXT_PUBLIC_SITE_URL?.trim() || "http://localhost:3000";
+  const websiteUrl = process.env.WEBSITE_URL?.trim();
+  if (!websiteUrl) {
+    return NextResponse.json(
+      { message: "Bank Audi NEO is not configured (WEBSITE_URL missing). Choose another payment method." },
+      { status: 503 },
+    );
+  }
   const neo = getNeoClient();
   const externalId = neo.generateExternalId();
   const result = await neo.createPayment({

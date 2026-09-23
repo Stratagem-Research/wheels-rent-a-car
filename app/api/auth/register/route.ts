@@ -3,7 +3,7 @@ import { z } from "zod";
 import { createRouteHandlerSupabaseClient } from "@/lib/supabase/route-handler";
 import { toDomainUser } from "@/lib/auth/map-user";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
-import { getSiteUrl } from "@/lib/server/env";
+import { getRequestOrigin } from "@/lib/server/env";
 import { claimGuestBookingsAfterAuth } from "@/lib/server/claim-guest-bookings";
 
 const RegisterSchema = z.object({
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
         whatsapp_opt_in: true,
         country: "LB",
       },
-      emailRedirectTo: `${getSiteUrl()}/api/auth/callback?next=${encodeURIComponent("/account")}`,
+      emailRedirectTo: `${getRequestOrigin(request)}/api/auth/callback?next=${encodeURIComponent("/account")}`,
     },
   });
 

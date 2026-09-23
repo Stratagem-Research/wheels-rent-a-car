@@ -1,8 +1,7 @@
 # Wheels — Full Overhaul Plan (INK & SIGNAL)
 
-> **Canonical source of truth.** Maintained in-repo so any session can pick
-> up the redesign by reading this file. Mirrors the harness plan at
-> `~/.claude/plans/we-need-to-create-graceful-dahl.md`.
+> **Canonical source of truth.** Maintained in-repo so anyone can pick up
+> the redesign by reading this file.
 
 ---
 
@@ -116,7 +115,7 @@ We executed an 11-sprint Phase-1 build (commit `e464915`) and started a Sixt-aes
 - **Admin dashboard at `/admin`.** Demo-grade client-side gate via `lib/admin/auth.ts` (hardcoded `admin / admin123`, sessionStorage). `lib/admin/store.ts` wraps localStorage with namespaced keys (`wheels.admin.{trips|itineraries|faqs|corporate}`) backed by the seeded fixtures. `lib/admin/useAdminStore.ts` exposes `useTrips()`, `useItineraries()`, `useFaqs()`, `useCorporateTiers()` hooks that subscribe via the `storage` event so admin writes reflect live on public pages with no reload. Routes: `/admin/login`, `/admin` dashboard, `/admin/trips` (+ `/new`, `/[slug]`), `/admin/itineraries` (+ `/new`, `/[slug]`), `/admin/faqs` (two-pane sections + questions), `/admin/corporate` (multi-tier editor). Shared admin primitives under `components/admin/`: `AdminSidebar`, `AdminPageShell`, `AdminDataTable`, `AdminFormShell`, `TripForm`, `ItineraryForm`. Middleware adds `X-Robots-Tag: noindex, nofollow` to every `/admin/*` route so crawlers ignore it.
 - **Public pages wired to the store.** `ExploreLebanon`, `/trips`, `/trips/[slug]`, `/itineraries`, `/itineraries/[slug]`, `/chauffeur`, `/corporate`, and `/help/faq` all read from `useAdminStore` hooks now (with fixture fallback). Editing a trip, itinerary, FAQ section/question, or corporate tier in the admin reflects immediately on the corresponding public surface.
 - **Sitemap updated.** `app/sitemap.ts` adds `/corporate`, `/trips`, `/itineraries`.
-- **Docs synced.** PRD v2, Sitemap v2 SVG, this PLAN file, `docs/Implementation/README.md`, `CLAUDE.md`, and the revision walkthrough all updated. New module specs `docs/Implementation/16_trips.md`, `17_itineraries.md`, `18_admin.md`. Specs `07_chauffeur.md` and `08_corporate.md` un-deprecated.
+- **Docs synced.** PRD v2, Sitemap v2 SVG, this PLAN file, `docs/Implementation/README.md`, and the revision walkthrough all updated. New module specs `docs/Implementation/16_trips.md`, `17_itineraries.md`, `18_admin.md`. Specs `07_chauffeur.md` and `08_corporate.md` un-deprecated.
 
 > **Important: the admin gate is staging-only.** Replace before production with: real auth endpoint, HttpOnly session cookie, CSRF protection on writes, rate limiting, and audit logging. The swap-in points are flagged in `lib/admin/auth.ts` and `lib/admin/store.ts`.
 
@@ -487,8 +486,8 @@ CI: typecheck + lint + unit + smoke chromium green on every commit.
 ## How to resume in a new session
 
 1. Read this file (`docs/Plan/PLAN.md`) end to end.
-2. Read `CLAUDE.md` — it has the latest brand rules + read order pointers.
-3. Read `docs/Design/DESIGN.md` (INK & SIGNAL) — the design system.
+2. Read `docs/Design/DESIGN.md` (INK & SIGNAL) — the design system and the brand rules.
+3. Read `docs/Implementation/00_global.md` — cross-cutting rules and read order.
 4. Read `docs/Implementation/landingpage.md` for the home spec; other module specs live alongside in `docs/Implementation/NN_*.md`.
 5. **Redesign + Revision 2 complete.** Phases 1–12 all shipped. Last phase: **Phase 12 — Revision 2 (Hero photo, Corporate restored, Trips/Itineraries, Admin)**. Future work picks up post-launch.
 6. Before any phase: run `git pull origin main` to make sure you have the latest. Run `pnpm install` to pick up any deps changes (Phase 3 installed `geist`; Phase 11 installed `framer-motion`; Phase 12 added no new deps).

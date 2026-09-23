@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { HELP_ARTICLES } from "@/lib/content/help";
 import { routing } from "@/i18n/routing";
 import { getPublicVehicles } from "@/lib/server/public-content";
+import { getSiteUrl } from "@/lib/server/env";
 
 // getPublicVehicles() hits Supabase/Wizard fresh on every call (no caching
 // layer) — cache the sitemap route itself so a crawler doesn't trigger a
@@ -17,7 +18,7 @@ export const revalidate = 3600;
  * Falls back to localhost for local dev — overwritten in CI.
  */
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const siteUrl = getSiteUrl();
 
 function url(path: string): string {
   return `${siteUrl}${path}`;

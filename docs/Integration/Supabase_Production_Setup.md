@@ -77,7 +77,6 @@ Set on Vercel / deployment target:
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-only |
 | `DATABASE_URL` | Pooler connection string |
 | `WEBSITE_URL` | `https://wheelsrentacar.com.lb` |
-| `NEXT_PUBLIC_SITE_URL` | Same as WEBSITE_URL |
 
 ### 6. Handover package for Wheels
 

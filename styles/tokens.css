@@ -8,7 +8,7 @@
  * :root for components that bypass Tailwind (inline focus rings, dynamic
  * styles, animation tokens).
  *
- * Brand rules — see CLAUDE.md §4:
+ * Brand rules — see /docs/Design/DESIGN.md:
  * - Black (ink-100) is the spine. Default primary CTA on light pages.
  * - White (paper) is the canvas.
  * - Red (signal-red) is reserved for the SINGLE highest-conversion CTA per

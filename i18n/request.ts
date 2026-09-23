@@ -7,9 +7,9 @@ import { routing, isAppLocale } from "./routing";
  * single locale, single message bundle. Phase 2 adds AR + FR by switching
  * `locale` to read from a cookie/route param and loading per-locale JSON.
  *
- * Per CLAUDE.md §5: "Architecture must be ready for Arabic (RTL) and French
- * in Phase 2 — use a routing-aware i18n library (next-intl) and put copy in
- * message catalogs from day one."
+ * Architecture must be ready for Arabic (RTL) and French in Phase 2 — use a
+ * routing-aware i18n library (next-intl) and keep all copy in message
+ * catalogs from day one.
  */
 export default getRequestConfig(async ({ requestLocale }) => {
   const fallbackLocale = routing.defaultLocale ?? "en";

@@ -268,10 +268,10 @@ describe("wheels-public/client", () => {
 
       const result = await client().getBookingByReferenceEmail(
         "WRC-260628-9KXG",
-        "smoke@stratagemresearch.co",
+        "smoke@example.com",
       );
       expect(result.data.reference).toBe("WRC-260628-9KXG");
-      expect(new URL(capturedUrl).searchParams.get("email")).toBe("smoke@stratagemresearch.co");
+      expect(new URL(capturedUrl).searchParams.get("email")).toBe("smoke@example.com");
     });
   });
 

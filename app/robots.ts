@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { getSiteUrl } from "@/lib/server/env";
 
 /**
  * robots.txt per 00_global.md §14.
@@ -6,7 +7,7 @@ import type { MetadataRoute } from "next";
  * Allow everything except private funnel pages, the account area, and any
  * /api/ surface that ships with Phase 1.
  */
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const siteUrl = getSiteUrl();
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -14,7 +15,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/account/", "/book/checkout", "/book/confirmation/", "/api/"],
+        disallow: ["/account/", "/book/checkout", "/book/confirmation/", "/api/", "/dev/"],
       },
     ],
     sitemap: `${siteUrl}/sitemap.xml`,

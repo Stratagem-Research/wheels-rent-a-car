@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createRouteHandlerSupabaseClient } from "@/lib/supabase/route-handler";
-import { getSiteUrl } from "@/lib/server/env";
+import { getRequestOrigin } from "@/lib/server/env";
 import { SESSION_COOKIE_NAME } from "@/lib/auth/session";
 import { claimGuestBookingsAfterAuth } from "@/lib/server/claim-guest-bookings";
 
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
   const code = url.searchParams.get("code");
   const next = safeNext(url.searchParams.get("next"));
   const errorDescription = url.searchParams.get("error_description");
-  const origin = getSiteUrl();
+  const origin = getRequestOrigin(request);
 
   if (errorDescription) {
     const dest = new URL(next, origin);

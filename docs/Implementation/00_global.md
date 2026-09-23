@@ -1,6 +1,6 @@
 # 00 — Global Implementation
 
-> **Audience:** Claude Code building the Wheels Rent A Car website.
+> **Audience:** engineers building the Wheels Rent A Car website.
 > **Scope:** cross-cutting UI/UX rules that apply to every module. Read this file first; every other file in `/Implementation/` references the patterns defined here.
 > **Companion specs:** `/Design/DESIGN.md` (design tokens), `/PRD/Wheels_Rent_A_Car_PRD_v1.docx` (full PRD).
 
@@ -476,7 +476,7 @@ The draft is cleared once the booking is confirmed or after 24h of inactivity.
 
 ## 21. File header pattern
 
-Every module file under `/Implementation/` starts with the same header so Claude Code can scan quickly:
+Every module file under `/Implementation/` starts with the same header so the specs stay quick to scan:
 
 ```
 # {NN} — {Module Name}
