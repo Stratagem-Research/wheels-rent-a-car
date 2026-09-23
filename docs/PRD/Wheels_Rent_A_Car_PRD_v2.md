@@ -37,7 +37,7 @@ The walkthrough call with Wheels (May 2026) approved the INK & SIGNAL direction 
 2. **`/corporate` un-descoped.** New page with hero, value props, 3-tier comparison (Starter / Growth / Enterprise), how-it-works, FAQ, and a corporate enquiry form posting to `/api/leads/corporate`.
 3. **Trips / blog surface.** New self-drive trip articles: homepage Explore Lebanon carousels through them, `/trips` lists all with region filters, `/trips/[slug]` is the article template.
 4. **Sample Itineraries (chauffeur).** `/chauffeur` Sample Itineraries section becomes a scroll-right carousel; new `/itineraries` listing page with category filters; new `/itineraries/[slug]` detail with highlights + schedule timeline.
-5. **Admin dashboard.** `/admin` with hardcoded `admin / admin123` (staging-only client-side gate) for managing Trips, Itineraries, FAQs (sections + questions), and Corporate tier content. Backed by localStorage; drop-in replaceable with real backend. `/admin/*` is excluded from indexing via middleware.
+5. **Admin dashboard.** `/admin` — server-session authenticated (signed HttpOnly cookie, CSRF, audit log), Supabase-backed CMS — for managing Trips, Itineraries, FAQs (sections + questions), and Corporate tier content. `/admin/*` is excluded from indexing via middleware. See §6.15 for the remaining pre-launch hardening punch list.
 
 The v1.0 PDF and DOCX remain in `/docs/PRD/` as historical artefacts. **This v2 Markdown (Revision 2) is the source of truth.**
 
@@ -190,8 +190,8 @@ The site is organised around the booking task, with discovery and trust-building
 | `/terms` | Terms of service | Public |
 | `/cookies` | Cookie policy | Public |
 | `/404`, `/error`, `/maintenance` | Error & utility pages | Public |
-| `/admin` | Admin dashboard home (staging-only, client-gated, `noindex`) | Admin |
-| `/admin/login` | Admin sign-in (hardcoded `admin/admin123`) | Public (no SEO) |
+| `/admin` | Admin dashboard home (server-session gated, `noindex`) | Admin |
+| `/admin/login` | Admin sign-in (server-validated via `/api/admin/sessions`) | Public (no SEO) |
 | `/admin/trips` | Trips CRUD (list + new + edit) | Admin |
 | `/admin/itineraries` | Itineraries CRUD | Admin |
 | `/admin/faqs` | FAQ sections + questions editor | Admin |
@@ -402,14 +402,14 @@ Inverse hero band (display-xl "Drive longer. Save more.", primary-inverse + tert
 
 ### 6.15 Admin — `/admin/*`
 
-**Added in Revision 2 — staging only.** Demo-grade CMS for the dynamic content surfaces. Routes:
-- `/admin/login` — paper-canvas sign-in. Hardcoded `admin / admin123`, sessionStorage-backed gate.
+**Added in Revision 2.** CMS for the dynamic content surfaces. Routes:
+- `/admin/login` — paper-canvas sign-in. Credentials validated server-side via `/api/admin/sessions`.
 - `/admin` — dashboard with 4 quick-action tiles + live counts pulled from the store.
 - `/admin/trips`, `/admin/itineraries` — list + create + edit, with delete + reset-to-defaults.
 - `/admin/faqs` — two-pane sections / questions editor.
 - `/admin/corporate` — multi-tier editor with inline price, inclusions, popular flag.
 
-Writes persist to `localStorage` via `lib/admin/store.ts`. Public pages read from the same store through `useAdminStore` hooks, falling back to seed fixtures. Middleware adds `X-Robots-Tag: noindex, nofollow` so admin routes never appear in search results. The whole layer is designed for swap-out — replace the auth helpers + store with real backend calls before production.
+Authentication is server-session based (`lib/server/admin-auth.ts`): env-driven password and session secret (`ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`, no fallback defaults), HMAC-signed HttpOnly session cookie, CSRF token on every mutating route, and an audit log written to Supabase. Writes persist through `/api/cms/*` to Supabase via `lib/admin/store.ts` — not `localStorage`. Public pages read from the same store through `useAdminStore` hooks, falling back to seed fixtures. Middleware adds `X-Robots-Tag: noindex, nofollow` so admin routes never appear in search results. Neither the auth nor the storage layer is a placeholder; the remaining pre-launch punch list (login rate limiting/lockout, richer audit fields, confirm-dialog polish, RLS negative-test sign-off) is tracked in `docs/Implementation/18_admin.md` § "Remaining hardening before production."
 
 ### 6.9 About — `/about`
 
@@ -773,4 +773,4 @@ Browser API traffic goes through Next.js route handlers typed against `/types/do
 | --- | --- | --- |
 | 1.0 | 2025-05-15 | Initial PRD (docx + pdf). 8 top-level pages including Chauffeur + Corporate. PDP route. Multi-branch model. |
 | 2.0 | 2026-05-15 | INK & SIGNAL redesign. PDP removed. Single Hazmieh branch. Chauffeur + Corporate descoped. Unified `/vehicles`. Sitemap regenerated as `Wheels_Sitemap_v2.svg`. |
-| **2.1 (Revision 2)** | 2026-05-17 | Hero cinematic photo. Chauffeur + Corporate restored. New `/trips`, `/trips/[slug]`, `/itineraries`, `/itineraries/[slug]`. New `/admin/*` CMS dashboard (staging-only). Sitemap regenerated to include the four new top-level surfaces. |
+| **2.1 (Revision 2)** | 2026-05-17 | Hero cinematic photo. Chauffeur + Corporate restored. New `/trips`, `/trips/[slug]`, `/itineraries`, `/itineraries/[slug]`. New `/admin/*` CMS dashboard. Sitemap regenerated to include the four new top-level surfaces. |

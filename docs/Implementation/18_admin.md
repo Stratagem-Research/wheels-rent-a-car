@@ -3,7 +3,10 @@
 > Routes: `/admin/*`
 > Depends on: `16_trips.md`, `17_itineraries.md`, `10_help_faq.md`, `08_corporate.md`
 > Related: PRD §6.15, `lib/admin/auth.ts`, `lib/admin/store.ts`
-> Status: **Staging-first.** Security hardening required before production.
+> Status: **Production-track.** Auth is server-session based (signed HttpOnly
+> cookies, CSRF, audit logging) and storage is Supabase-backed — neither is a
+> placeholder. See "Remaining hardening before production" for the punch list
+> that's still open.
 
 ## Purpose & success criteria
 
@@ -21,7 +24,7 @@ Current implementation:
 - Public pages read from `useAdminStore` hooks and reflect writes after CMS events/refetch.
 - `proxy.ts` adds `X-Robots-Tag: noindex, nofollow` on every `/admin/*` route so crawlers never see the editor.
 
-Before production launch, replace the auth + store layer with the real backend (see "Swap-in path" below).
+The auth and store layers above are already real — there is no separate backend swap-in required. Before production launch, work through the punch list in "Remaining hardening before production" below.
 
 ## Routes
 

@@ -77,7 +77,7 @@ app/
   (booking)/      slim funnel shell — /book/* steps + confirmation
   (auth)/         centred-card login/register/forgot/reset
   (account)/      gated dashboard + bookings + profile + documents + saved
-  admin/          staging CMS (trips, itineraries, FAQs, corporate tiers) — harden before production
+  admin/          CMS (trips, itineraries, FAQs, corporate tiers) — server-session auth + Supabase-backed store
   dev/components  internal QA route (every primitive in every state; not linked from the site)
   api/            Route handlers (auth, leads, Whish payments, wizard sync, notifications)
   sitemap.ts      Next metadata sitemap

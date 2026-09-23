@@ -302,7 +302,7 @@
   <text x="1270" y="1340" class="legend">Admin / authenticated</text>
 
   <!-- Footer notes -->
-  <text x="40" y="1395" class="legend">Revision 2 (Phase 12): Chauffeur + Corporate restored; new /trips and /itineraries CMS-driven surfaces; staging-only /admin dashboard at admin/admin123; hero cinematic photo.</text>
+  <text x="40" y="1395" class="legend">Revision 2 (Phase 12): Chauffeur + Corporate restored; new /trips and /itineraries CMS-driven surfaces; server-session /admin dashboard; hero cinematic photo.</text>
   <text x="40" y="1415" class="legend">Carried over from v2: PDP removed (Sixt-style inline expansion); /vehicles is canonical (category/select/step via query); single Hazmieh branch; /book/select-vehicle redirects to /vehicles?step=1.</text>
   <text x="40" y="1440" class="legend">Design system: WHEELS / INK &amp; SIGNAL — Geist typography, ink-100 spine, paper canvas, signal-red singular CTA, signal-blue informational. See /docs/Design/DESIGN.md.</text>
 </svg>
