@@ -9,6 +9,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { NewsletterPopup } from "@/components/consent/NewsletterPopup";
 import { getFeaturedVehicles, getPublicBranches, getPublicReviews } from "@/lib/server/public-content";
 import { resolvePageMetadata } from "@/lib/seo/resolve-metadata";
+import { SOCIAL_SAME_AS } from "@/lib/marketing/social-links";
 
 /**
  * Home page — INK & SIGNAL rebuild per /docs/Implementation/landingpage.md.
@@ -42,7 +43,7 @@ const jsonLd = {
       name: "Wheels Rent A Car",
       url: "https://wheelsrentacar.com.lb",
       logo: "https://wheelsrentacar.com.lb/images/Logo/wheels-logo.svg",
-      sameAs: ["https://instagram.com/", "https://facebook.com/", "https://linkedin.com/"],
+      sameAs: SOCIAL_SAME_AS,
       contactPoint: [
         {
           "@type": "ContactPoint",

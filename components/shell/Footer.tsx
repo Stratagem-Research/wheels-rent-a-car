@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Phone, MessageCircle, Mail } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { whatsAppHref } from "@/lib/whatsapp";
+import { SOCIAL_LINKS } from "@/lib/marketing/social-links";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { LocaleSwitcher } from "./LocaleSwitcher";
@@ -148,13 +149,13 @@ export function Footer() {
             </Link>
             <LocaleSwitcher variant="footer" />
             <div className="flex items-center gap-2">
-              <SocialIcon href="https://www.instagram.com/wheelsrentacar.lb?igsi=c3Bwem1lNnNxM2Jm&utm_source=qr" label="Instagram">
+              <SocialIcon href={SOCIAL_LINKS.instagram} label="Instagram">
                 <InstagramGlyph />
               </SocialIcon>
-              <SocialIcon href="https://www.facebook.com/share/1DadsyiQ7h/?mibextid=wwXIfr" label="Facebook">
+              <SocialIcon href={SOCIAL_LINKS.facebook} label="Facebook">
                 <FacebookGlyph />
               </SocialIcon>
-              <SocialIcon href="https://www.tiktok.com/@wheelsrentacar.lb?_r=1&_t=ZS-99GBZYQ0UCL" label="TikTok">
+              <SocialIcon href={SOCIAL_LINKS.tiktok} label="TikTok">
                 <TikTokGlyph />
               </SocialIcon>
             </div>

@@ -11,12 +11,9 @@ import { PageHero } from "@/components/marketing/PageHero";
 import { PAGE_HERO_IMAGES } from "@/lib/marketing/hero-images";
 import { BRANCHES } from "@/lib/api/fixtures/branches";
 import { whatsAppHref } from "@/lib/whatsapp";
+import { SOCIAL_LINKS_LIST } from "@/lib/marketing/social-links";
 
-const SOCIALS = [
-  { label: "Instagram", href: "https://instagram.com/" },
-  { label: "Facebook", href: "https://facebook.com/" },
-  { label: "LinkedIn", href: "https://linkedin.com/" },
-];
+const SOCIALS = SOCIAL_LINKS_LIST;
 
 const PHONE_HOURS = {
   weekdayStart: 8,

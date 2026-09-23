@@ -10,6 +10,7 @@ import { PAGE_HERO_IMAGES } from "@/lib/marketing/hero-images";
 import { getPublicAboutContent, getPublicBranches } from "@/lib/server/public-content";
 import { getLocalizedString, getLocalizedStringArray } from "@/lib/i18n/localized";
 import { resolvePageMetadata } from "@/lib/seo/resolve-metadata";
+import { SOCIAL_SAME_AS } from "@/lib/marketing/social-links";
 
 export async function generateMetadata() {
   const [locale, t] = await Promise.all([getLocale(), getTranslations("meta")]);
@@ -179,11 +180,7 @@ export default async function AboutPage() {
             url: "/",
             founder: { "@type": "Person", name: "Marc Khamis" },
             address: { "@type": "PostalAddress", addressCountry: "LB" },
-            sameAs: [
-              "https://instagram.com/wheelsrentacar",
-              "https://facebook.com/wheelsrentacar",
-              "https://linkedin.com/company/wheelsrentacar",
-            ],
+            sameAs: SOCIAL_SAME_AS,
           }),
         }}
       />
