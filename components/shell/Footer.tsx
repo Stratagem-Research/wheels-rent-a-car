@@ -50,7 +50,7 @@ const HELP_LINKS = [
 export function Footer() {
   const whatsAppHref = useWhatsAppHref();
   const telHref = useTelHref();
-  const { phone } = useContactSettings();
+  const { phone, email } = useContactSettings();
   const tFooter = useTranslations("footer");
   const tNav = useTranslations("nav");
   const tGlobal = useTranslations("global");
@@ -124,11 +124,11 @@ export function Footer() {
               {tGlobal("whatsapp")}
             </a>
             <a
-              href="mailto:hello@wheelsrentacar.com.lb"
+              href={`mailto:${email}`}
               className="body-sm text-paper/85 hover:text-paper inline-flex items-center gap-2"
             >
               <Mail className="size-4" aria-hidden="true" />
-              hello@wheelsrentacar.com.lb
+              {email}
             </a>
             <FooterLink href="/contact">{tFooter("allChannels")}</FooterLink>
           </FooterColumn>

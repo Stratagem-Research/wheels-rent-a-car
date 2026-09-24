@@ -1,14 +1,14 @@
 "use client";
 
 import * as React from "react";
-import { MessageCircle, Phone } from "lucide-react";
+import { MessageCircle, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/FormAtoms";
 import { Input } from "@/components/ui/Input";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
 import { getAdminCsrfHeader } from "@/lib/admin/csrf";
-import { DEFAULT_CONTACT_SETTINGS, telHref, whatsAppDigits } from "@/lib/contact/settings";
+import { DEFAULT_CONTACT_SETTINGS, emailHref, telHref, whatsAppDigits } from "@/lib/contact/settings";
 import type { ContactSettings } from "@/types/domain";
 
 /**
@@ -83,7 +83,7 @@ export default function AdminContactPage() {
     >
       <AdminFormShell
         title="Contact channels"
-        helper="Enter both numbers as they should be dialed. A leading + is only needed for a number that requires a country code. Spacing is cosmetic — links are built from the digits."
+        helper="Enter both numbers as they should be dialed. A leading + is only needed for a number that requires a country code."
         footer={
           <Button onClick={() => void save()} loading={saving} disabled={loading}>
             Save contact settings
@@ -120,6 +120,22 @@ export default function AdminContactPage() {
               />
             )}
           </Field>
+          <Field
+            label="Customer email"
+            className="sm:col-span-2"
+          >
+            {({ id }) => (
+              <Input
+                id={id}
+                type="email"
+                inputMode="email"
+                autoComplete="off"
+                placeholder="hello@wheelsrentacar.com.lb"
+                value={settings.email}
+                onChange={(e) => setSettings((s) => ({ ...s, email: e.target.value }))}
+              />
+            )}
+          </Field>
         </div>
 
         <div className="border-border bg-ink-05 flex flex-col gap-2 rounded-lg border p-4">
@@ -131,6 +147,10 @@ export default function AdminContactPage() {
           <p className="body-sm text-ink-100 flex items-center gap-2">
             <MessageCircle className="size-4 shrink-0" aria-hidden="true" />
             <code className="font-mono">https://wa.me/{whatsAppDigits(settings.whatsapp)}</code>
+          </p>
+          <p className="body-sm text-ink-100 flex items-center gap-2">
+            <Mail className="size-4 shrink-0" aria-hidden="true" />
+            <code className="font-mono">{emailHref(settings.email)}</code>
           </p>
         </div>
 

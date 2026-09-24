@@ -8,6 +8,7 @@ import type { ContactSettings } from "@/types/domain";
 export const DEFAULT_CONTACT_SETTINGS: ContactSettings = {
   phone: "05 959 860",
   whatsapp: "+961 3 337 228",
+  email: "hello@wheelsrentacar.com.lb",
 };
 
 /** Digits only, no leading "+" — the shape `wa.me` expects. */
@@ -25,4 +26,12 @@ export function telHref(number: string): string {
   const digits = whatsAppDigits(number);
   const prefix = number.trim().startsWith("+") ? "+" : "";
   return `tel:${prefix}${digits}`;
+}
+
+/**
+ * `mailto:` href derived from the stored email. Trims surrounding
+ * whitespace — the admin form's free-text field can pick up stray spaces.
+ */
+export function emailHref(email: string): string {
+  return `mailto:${email.trim()}`;
 }

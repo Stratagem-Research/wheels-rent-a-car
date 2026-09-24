@@ -149,6 +149,8 @@ export interface ContactSettings {
   phone: string;
   /** WhatsApp Business number, international display form. */
   whatsapp: string;
+  /** Customer service email — used in footer, contact page, mailto links. */
+  email: string;
 }
 
 /** Admin-editable delivery-fee formula for non-branch pickup addresses. */

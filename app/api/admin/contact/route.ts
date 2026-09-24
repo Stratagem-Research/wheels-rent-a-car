@@ -24,9 +24,16 @@ const phoneSchema = z
     return digits >= 8 && digits <= 15;
   }, "Must contain between 8 and 15 digits");
 
+const emailSchema = z
+  .string()
+  .trim()
+  .min(1, "Required")
+  .email("Enter a valid email address");
+
 const SettingsSchema = z.object({
   phone: phoneSchema,
   whatsapp: phoneSchema,
+  email: emailSchema,
 });
 
 export async function GET(request: Request) {

@@ -35,7 +35,7 @@ function isPhoneOpen(now: Date) {
 export default function ContactPage() {
   const whatsAppHref = useWhatsAppHref();
   const telHref = useTelHref();
-  const { phone, whatsapp } = useContactSettings();
+  const { phone, whatsapp, email } = useContactSettings();
   const t = useTranslations("contact");
   // Stable snapshot of "now" to drive the phone Open/Closed state without
   // shifting during the render lifecycle.
@@ -90,9 +90,9 @@ export default function ContactPage() {
                 icon={<Mail className="size-6" aria-hidden="true" />}
                 title={t("emailTitle")}
                 description={t("emailDescription")}
-                contact="hello@wheelsrentacar.com.lb"
+                contact={email}
                 hours={t("emailHours")}
-                cta={{ label: t("email"), href: "mailto:hello@wheelsrentacar.com.lb" }}
+                cta={{ label: t("email"), href: `mailto:${email}` }}
               />
             </li>
           </ul>
@@ -177,6 +177,7 @@ export default function ContactPage() {
             "@context": "https://schema.org",
             "@type": "Organization",
             name: "Wheels Rent A Car",
+            email,
             contactPoint: [
               {
                 "@type": "ContactPoint",

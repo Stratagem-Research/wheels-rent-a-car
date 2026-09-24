@@ -7,6 +7,7 @@ import type {
   LocalizedStringArray,
   Vehicle,
 } from "@/types/domain";
+import { DEFAULT_CONTACT_SETTINGS } from "@/lib/contact/settings";
 import { isLocalizedString, isLocalizedStringArray, toLocalizedString } from "@/lib/i18n/localized";
 import { parseVehicleMedia, toPublicVehicleImages } from "@/lib/vehicles/vehicle-media";
 import { composeVehicleTitle } from "@/lib/vehicles/display-name";
@@ -568,9 +569,13 @@ export async function getContactSettings(): Promise<ContactSettings | null> {
     .eq("id", "default")
     .limit(1);
   if (error) throw new Error(error.message);
-  const row = (data ?? [])[0] as { phone: string; whatsapp: string } | undefined;
+  const row = (data ?? [])[0] as { phone: string; whatsapp: string; email?: string } | undefined;
   if (!row) return null;
-  return { phone: row.phone, whatsapp: row.whatsapp };
+  return {
+    phone: row.phone,
+    whatsapp: row.whatsapp,
+    email: row.email ?? DEFAULT_CONTACT_SETTINGS.email,
+  };
 }
 
 export async function replaceContactSettings(settings: ContactSettings): Promise<void> {
@@ -579,9 +584,29 @@ export async function replaceContactSettings(settings: ContactSettings): Promise
     id: "default",
     phone: settings.phone,
     whatsapp: settings.whatsapp,
+    email: settings.email,
     updated_at: new Date().toISOString(),
   });
-  if (error) throw new Error(error.message);
+  if (error) {
+    // PostgREST validates the payload against its cached schema. Right
+    // after the `email` column is added by a direct-pg migration, the
+    // cache hasn't refreshed yet and rejects `email` with
+    // "Could not find the 'email' column ... in the schema cache". Retry
+    // without `email` so phone/WhatsApp still persist; the next save
+    // (after the cache refreshes) will pick up `email`. Matches the
+    // graceful-degradation pattern used for vehicle metadata columns.
+    if (/email/i.test(error.message) && /schema cache|could not find/i.test(error.message)) {
+      const { error: retryError } = await supabase.from("contact_settings").upsert({
+        id: "default",
+        phone: settings.phone,
+        whatsapp: settings.whatsapp,
+        updated_at: new Date().toISOString(),
+      });
+      if (retryError) throw new Error(retryError.message);
+      return;
+    }
+    throw new Error(error.message);
+  }
 }
 
 export async function listPromotions(): Promise<PromotionRow[]> {
