@@ -20,9 +20,10 @@ import { VehicleCard } from "@/components/vehicle/VehicleCard";
 import { EnquiryFormLongTerm } from "@/components/leads/EnquiryFormLongTerm";
 import { ServiceJsonLd } from "@/components/seo/ServiceJsonLd";
 import { useLongTermCatalog } from "@/hooks/useLongTermCatalog";
-import { whatsAppHref } from "@/lib/whatsapp";
+import { useWhatsAppHref } from "@/components/providers/ContactSettingsProvider";
 
 export default function LongTermPage() {
+  const whatsAppHref = useWhatsAppHref();
   const t = useTranslations("longTerm");
   const { tiers: LONG_TERM_TIERS, vehicles: popularVehicles } = useLongTermCatalog();
   const howItWorks = t.raw("howSteps") as { title: string; body: string }[];

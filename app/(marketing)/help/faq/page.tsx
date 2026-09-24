@@ -6,7 +6,7 @@ import { FaqTopicNav } from "@/app/(marketing)/help/faq/_components/FaqTopicNav"
 import { FaqAccordion } from "@/components/help/FaqAccordion";
 import { Button } from "@/components/ui/Button";
 import { useFaqs } from "@/lib/admin/useAdminStore";
-import { whatsAppHref } from "@/lib/whatsapp";
+import { useWhatsAppHref } from "@/components/providers/ContactSettingsProvider";
 import { getLocalizedString } from "@/lib/i18n/localized";
 
 /**
@@ -16,6 +16,7 @@ import { getLocalizedString } from "@/lib/i18n/localized";
  * JSON-LD is rendered from the same hook so structured data matches visible content.
  */
 export default function FaqPage() {
+  const whatsAppHref = useWhatsAppHref();
   const faqs = useFaqs();
   const locale = useLocale();
   const t = useTranslations("helpUi");

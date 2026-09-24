@@ -9,7 +9,7 @@ import { CancelBookingModal, ModifyBookingModal } from "@/components/account/Boo
 import { bookingToIcs, downloadIcs } from "@/lib/booking/calendar";
 import { buildManageBookingUrl } from "@/lib/booking/manage-booking-url";
 import { useBookingCatalog } from "@/hooks/useBookingCatalog";
-import { whatsAppHref } from "@/lib/whatsapp";
+import { useWhatsAppHref } from "@/components/providers/ContactSettingsProvider";
 import type { Booking } from "@/types/domain";
 
 export type BookingSelfServiceContext = "confirmation" | "account" | "guest";
@@ -26,6 +26,7 @@ export function BookingSelfServiceActions({
   context,
   showCard = true,
 }: BookingSelfServiceActionsProps) {
+  const whatsAppHref = useWhatsAppHref();
   const tAccount = useTranslations("accountPages.detail");
   const tConfirmation = useTranslations("bookingFlow.confirmation");
   const { branches } = useBookingCatalog();

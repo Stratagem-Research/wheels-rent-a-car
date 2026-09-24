@@ -4,7 +4,11 @@ import { useTranslations } from "next-intl";
 import { Phone, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { TocSidebar, type TocEntry } from "./TocSidebar";
-import { whatsAppHref } from "@/lib/whatsapp";
+import {
+  useContactSettings,
+  useTelHref,
+  useWhatsAppHref,
+} from "@/components/providers/ContactSettingsProvider";
 import { Link } from "@/i18n/navigation";
 
 /**
@@ -20,6 +24,9 @@ export interface LegalArticleLayoutProps {
 }
 
 export function LegalArticleLayout({ title, lastUpdated, toc, children }: LegalArticleLayoutProps) {
+  const whatsAppHref = useWhatsAppHref();
+  const telHref = useTelHref();
+  const { phone } = useContactSettings();
   const t = useTranslations("helpUi");
   return (
     <>
@@ -65,8 +72,8 @@ export function LegalArticleLayout({ title, lastUpdated, toc, children }: LegalA
               </a>
             </Button>
             <Button asChild variant="secondary" size="md">
-              <a href="tel:+9611629100">
-                <Phone className="size-4" aria-hidden="true" /> {t("call")} +961 1 629 100
+              <a href={telHref}>
+                <Phone className="size-4" aria-hidden="true" /> {t("call")} {phone}
               </a>
             </Button>
             <Button asChild variant="tertiary" size="md">

@@ -3,7 +3,8 @@
 import * as React from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { whatsAppHref, type WhatsAppContext, type WhatsAppContextDetails } from "@/lib/whatsapp";
+import { type WhatsAppContext, type WhatsAppContextDetails } from "@/lib/whatsapp";
+import { useWhatsAppHref } from "@/components/providers/ContactSettingsProvider";
 import { track } from "@/lib/analytics/dataLayer";
 import { EVENTS } from "@/lib/analytics/events";
 
@@ -35,6 +36,7 @@ export interface WhatsAppFabProps {
 }
 
 export function WhatsAppFab({ context, details }: WhatsAppFabProps = {}) {
+  const whatsAppHref = useWhatsAppHref();
   const pathname = usePathname();
   const ctx = context ?? contextForPath(pathname ?? "");
 

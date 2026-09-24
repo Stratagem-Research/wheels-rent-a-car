@@ -1,12 +1,22 @@
+import { cache } from "react";
 import * as Sentry from "@sentry/nextjs";
-import type { Branch, DeliveryPricingSettings, Review, SiteConfig, Vehicle } from "@/types/domain";
+import type {
+  Branch,
+  ContactSettings,
+  DeliveryPricingSettings,
+  Review,
+  SiteConfig,
+  Vehicle,
+} from "@/types/domain";
 import { BRANCHES as FALLBACK_BRANCHES } from "@/lib/api/fixtures/branches";
 import { SITE_CONFIG as FALLBACK_SITE_CONFIG } from "@/lib/api/fixtures/content";
 import { VEHICLES as FALLBACK_VEHICLES } from "@/lib/api/fixtures/vehicles";
 import { listReviewsFromDb } from "@/lib/supabase/reviews-repository";
 import { ABOUT_CONTENT_SEED } from "@/lib/supabase/seed-data";
 import { DEFAULT_DELIVERY_PRICING_SETTINGS } from "@/lib/booking/delivery-pricing";
+import { DEFAULT_CONTACT_SETTINGS } from "@/lib/contact/settings";
 import {
+  getContactSettings,
   getDeliveryPricingSettings,
   listAboutContent,
   listLocations,
@@ -44,15 +54,45 @@ function reportFixtureFallback(source: string, reason: string, err?: unknown) {
   }
 }
 
+/**
+ * Admin-managed phone + WhatsApp numbers. Read in the root layout and handed
+ * to the whole client tree via ContactSettingsProvider, so every `tel:`/
+ * `wa.me` link on the site resolves to the same pair. Server components that
+ * build hrefs or JSON-LD call this directly; `cache()` collapses those into
+ * one query per request.
+ */
+export const getPublicContactSettings = cache(async (): Promise<ContactSettings> => {
+  try {
+    const settings = await getContactSettings();
+    if (settings) return settings;
+    reportFixtureFallback("contact-settings", "getContactSettings() returned no row");
+  } catch (err) {
+    reportFixtureFallback("contact-settings", "getContactSettings() threw", err);
+  }
+  return DEFAULT_CONTACT_SETTINGS;
+});
+
 export async function getPublicBranches(): Promise<Branch[]> {
+  const contact = await getPublicContactSettings();
   try {
     const branches = await listLocations();
-    if (branches.length > 0) return branches;
+    if (branches.length > 0) return branches.map((branch) => withContactNumbers(branch, contact));
     reportFixtureFallback("branches", "listLocations() returned zero rows");
   } catch (err) {
     reportFixtureFallback("branches", "listLocations() threw", err);
   }
-  return FALLBACK_BRANCHES;
+  return FALLBACK_BRANCHES.map((branch) => withContactNumbers(branch, contact));
+}
+
+/**
+ * Wheels runs a single physical hub, so a branch never has its own line:
+ * the admin-managed contact numbers (/admin/contact) are the one source of
+ * truth. Overlaying them here centralizes every consumer of `Branch.phone`
+ * and `Branch.whatsapp` at once - the locations page, the contact page
+ * branch list, and the CarRental JSON-LD.
+ */
+function withContactNumbers(branch: Branch, contact: ContactSettings): Branch {
+  return { ...branch, phone: contact.phone, whatsapp: contact.whatsapp };
 }
 
 export async function getPublicDeliveryPricing(): Promise<DeliveryPricingSettings> {
@@ -143,7 +183,10 @@ export async function getFeaturedVehicles(count = 4): Promise<Vehicle[]> {
 
   const seen = new Set<string>();
   const picked: Vehicle[] = [];
-  for (const v of [...recentVehicles, ...[...vehicles].sort((a, b) => b.dailyRateFromCents - a.dailyRateFromCents)]) {
+  for (const v of [
+    ...recentVehicles,
+    ...[...vehicles].sort((a, b) => b.dailyRateFromCents - a.dailyRateFromCents),
+  ]) {
     if (seen.has(v.id)) continue;
     seen.add(v.id);
     picked.push(v);

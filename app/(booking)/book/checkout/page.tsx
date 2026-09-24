@@ -19,7 +19,7 @@ import { HoldTimer, clearHold } from "@/components/booking/HoldTimer";
 import { PaymentMethodSelector } from "@/components/booking/PaymentMethodSelector";
 import { useBookingFunnelPage } from "@/hooks/useBookingFunnelPage";
 import { useSession } from "@/hooks/useSession";
-import { whatsAppHref } from "@/lib/whatsapp";
+import { useWhatsAppHref } from "@/components/providers/ContactSettingsProvider";
 import { api, ApiError } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
 import { isValidPhoneNational, phoneValueFromStored, toE164 } from "@/lib/booking/phone";
@@ -126,6 +126,7 @@ const emptyForm = (): CheckoutFormState => ({
 });
 
 export default function CheckoutPage() {
+  const whatsAppHref = useWhatsAppHref();
   const tPayment = useTranslations("checkoutPayment");
   const t = useTranslations("bookingFlow.checkout");
   const router = useRouter();
@@ -274,7 +275,7 @@ export default function CheckoutPage() {
       events.forEach((e) => document.removeEventListener(e, arm));
       if (id !== null) window.clearTimeout(id);
     };
-  }, [t]);
+  }, [t, whatsAppHref]);
 
   if (showSkeleton || !draft || !draft.vehicle) {
     return (

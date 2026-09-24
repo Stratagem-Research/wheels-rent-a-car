@@ -164,7 +164,7 @@ export default async function LocationsPage() {
                   </a>
                   {branch.whatsapp ? (
                     <a
-                      href={whatsAppHref("default")}
+                      href={whatsAppHref("default", {}, branch.whatsapp)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="body-md text-ink-95 hover:text-ink-100 inline-flex items-center gap-2"

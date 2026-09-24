@@ -7,7 +7,12 @@ import { ServicePromos } from "./_components/ServicePromos";
 import { Reviews } from "./_components/Reviews";
 import { getLocale, getTranslations } from "next-intl/server";
 import { NewsletterPopup } from "@/components/consent/NewsletterPopup";
-import { getFeaturedVehicles, getPublicBranches, getPublicReviews } from "@/lib/server/public-content";
+import {
+  getFeaturedVehicles,
+  getPublicBranches,
+  getPublicContactSettings,
+  getPublicReviews,
+} from "@/lib/server/public-content";
 import { resolvePageMetadata } from "@/lib/seo/resolve-metadata";
 import { SOCIAL_SAME_AS } from "@/lib/marketing/social-links";
 
@@ -35,42 +40,45 @@ export async function generateMetadata() {
   });
 }
 
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "Organization",
-      name: "Wheels Rent A Car",
-      url: "https://wheelsrentacar.com.lb",
-      logo: "https://wheelsrentacar.com.lb/images/Logo/wheels-logo.svg",
-      sameAs: SOCIAL_SAME_AS,
-      contactPoint: [
-        {
-          "@type": "ContactPoint",
-          telephone: "+961-1-629100",
-          contactType: "customer service",
-          availableLanguage: ["en"],
-          areaServed: "LB",
-        },
-      ],
-    },
-    {
-      "@type": "WebSite",
-      url: "https://wheelsrentacar.com.lb",
-      name: "Wheels Rent A Car",
-      potentialAction: {
-        "@type": "SearchAction",
-        target: {
-          "@type": "EntryPoint",
-          urlTemplate: "https://wheelsrentacar.com.lb/book/select-vehicle?{search_term_string}",
-        },
-        "query-input": "required name=search_term_string",
+function buildJsonLd(phone: string) {
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        name: "Wheels Rent A Car",
+        url: "https://wheelsrentacar.com.lb",
+        logo: "https://wheelsrentacar.com.lb/images/Logo/wheels-logo.svg",
+        sameAs: SOCIAL_SAME_AS,
+        contactPoint: [
+          {
+            "@type": "ContactPoint",
+            telephone: phone,
+            contactType: "customer service",
+            availableLanguage: ["en"],
+            areaServed: "LB",
+          },
+        ],
       },
-    },
-  ],
-};
+      {
+        "@type": "WebSite",
+        url: "https://wheelsrentacar.com.lb",
+        name: "Wheels Rent A Car",
+        potentialAction: {
+          "@type": "SearchAction",
+          target: {
+            "@type": "EntryPoint",
+            urlTemplate: "https://wheelsrentacar.com.lb/book/select-vehicle?{search_term_string}",
+          },
+          "query-input": "required name=search_term_string",
+        },
+      },
+    ],
+  };
+}
 
 export default async function Home() {
+  const contact = await getPublicContactSettings();
   const branches = await getPublicBranches();
   const featuredVehicles = await getFeaturedVehicles(4);
   const reviews = await getPublicReviews(20);
@@ -79,7 +87,7 @@ export default async function Home() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(buildJsonLd(contact.phone)) }}
       />
       <Hero branches={branches} />
       <Categories />

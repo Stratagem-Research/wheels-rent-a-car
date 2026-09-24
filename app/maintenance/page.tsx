@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { whatsAppHref } from "@/lib/whatsapp";
+import { WhatsAppLink } from "@/components/shell/WhatsAppLink";
 
 export async function generateMetadata() {
   const t = await getTranslations("maintenance");
@@ -37,14 +37,9 @@ export default async function MaintenancePage() {
           <p className="lead-lg text-ink-60 max-w-md">{t("body")}</p>
           <p className="label-md text-ink-50 mt-3">
             {t("needToBook")}{" "}
-            <a
-              href={whatsAppHref("default")}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-ink-100 underline-offset-4 hover:underline"
-            >
+            <WhatsAppLink className="text-ink-100 underline-offset-4 hover:underline">
               {t("messageWhatsapp")} →
-            </a>
+            </WhatsAppLink>
           </p>
         </div>
       </section>

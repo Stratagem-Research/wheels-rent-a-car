@@ -17,7 +17,7 @@ import {
 } from "@/lib/booking/delivery-pricing";
 import { FLEET_PAY_NOW_RATE } from "@/lib/vehicles/fleet-card-rates";
 import { vehicleDisplayName } from "@/lib/vehicles/display-name";
-import { whatsAppHref } from "@/lib/whatsapp";
+import { useWhatsAppHref } from "@/components/providers/ContactSettingsProvider";
 import type {
   Branch,
   BookingPickup,
@@ -94,6 +94,7 @@ export function VehicleCardExpanded({
   onClose,
   className,
 }: VehicleCardExpandedProps) {
+  const whatsAppHref = useWhatsAppHref();
   const t = useTranslations("fleet");
   const panelRef = React.useRef<HTMLElement>(null);
 

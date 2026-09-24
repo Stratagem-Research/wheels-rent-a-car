@@ -1,4 +1,6 @@
 import nodemailer from "nodemailer";
+import { DEFAULT_CONTACT_SETTINGS, whatsAppDigits } from "@/lib/contact/settings";
+import { getPublicContactSettings } from "@/lib/server/public-content";
 
 export interface SendEmailInput {
   to: string;
@@ -64,19 +66,22 @@ function getSmtpConfig(): SmtpConfig | null {
 export function renderNotificationTemplate(
   template: string,
   payload: Record<string, unknown>,
+  /** Admin-managed WhatsApp number for the footer support link. */
+  whatsApp: string = DEFAULT_CONTACT_SETTINGS.whatsapp,
 ): { subject: string; html: string; text: string } {
   const ref = String(payload.ref ?? payload.bookingReference ?? "");
   const vehicle = String(payload.vehicle ?? "");
   switch (template) {
     case "booking_request_received":
-      return renderRichBookingEmail("requested", ref, vehicle, payload);
+      return renderRichBookingEmail("requested", ref, vehicle, payload, whatsApp);
     case "booking_confirmation":
-      return renderRichBookingEmail("confirmed", ref, vehicle, payload);
+      return renderRichBookingEmail("confirmed", ref, vehicle, payload, whatsApp);
     case "booking_cancel_requested":
       return {
         subject: ref ? `Cancellation request received — ${ref}` : "Cancellation request received",
         html: brandShell(
           `<h1 style="margin:0 0 16px 0; font-size:22px; font-weight:800; color:#0a0a0a;">Cancellation request received</h1><p style="margin:0; font-size:15px; line-height:1.6; color:#404040;">We received your cancellation request${ref ? ` for <strong style="color:#0a0a0a;">${escapeHtml(ref)}</strong>` : ""}. Our team will review it and email you once it is processed.</p>`,
+          whatsApp,
         ),
         text: `We received your cancellation request${ref ? ` for ${ref}` : ""}.`,
       };
@@ -85,6 +90,7 @@ export function renderNotificationTemplate(
         subject: ref ? `Wheels booking cancelled — ${ref}` : "Wheels booking cancelled",
         html: brandShell(
           `<h1 style="margin:0 0 16px 0; font-size:22px; font-weight:800; color:#0a0a0a;">Booking cancelled</h1><p style="margin:0 0 8px 0; font-size:15px; line-height:1.6; color:#404040;">Your Wheels booking has been cancelled${ref ? ` (<strong style="color:#0a0a0a;">${escapeHtml(ref)}</strong>)` : ""}.</p>${vehicle ? `<p style="margin:0 0 8px 0; font-size:15px; line-height:1.6; color:#404040;">Vehicle: ${escapeHtml(vehicle)}</p>` : ""}<p style="margin:0; font-size:15px; line-height:1.6; color:#404040;">If you did not request this, please contact us.</p>`,
+          whatsApp,
         ),
         text: `Your Wheels booking has been cancelled${ref ? ` (${ref})` : ""}.${vehicle ? ` Vehicle: ${vehicle}.` : ""}`,
       };
@@ -93,20 +99,23 @@ export function renderNotificationTemplate(
         subject: ref ? `Change request received — ${ref}` : "Change request received",
         html: brandShell(
           `<h1 style="margin:0 0 16px 0; font-size:22px; font-weight:800; color:#0a0a0a;">Change request received</h1><p style="margin:0; font-size:15px; line-height:1.6; color:#404040;">We received your booking change request${ref ? ` for <strong style="color:#0a0a0a;">${escapeHtml(ref)}</strong>` : ""}. Our team will review it and contact you shortly.</p>`,
+          whatsApp,
         ),
         text: `We received your booking change request${ref ? ` for ${ref}` : ""}.`,
       };
     default:
       return {
         subject: "Wheels notification",
-        html: brandShell(`<p style="margin:0; font-size:15px; color:#404040;">${escapeHtml(template)}</p>`),
+        html: brandShell(
+          `<p style="margin:0; font-size:15px; color:#404040;">${escapeHtml(template)}</p>`,
+          whatsApp,
+        ),
         text: `${template}\n${JSON.stringify(payload)}`,
       };
   }
 }
 
-const EMAIL_FONT =
-  "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+const EMAIL_FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
 
 /**
  * Wraps an email body in the Wheels ink/paper/signal-red shell — wordmark
@@ -114,7 +123,7 @@ const EMAIL_FONT =
  * branded Supabase auth templates (docs/email-templates/). Table-based
  * layout + inline styles throughout: required for Outlook/Gmail parity.
  */
-function brandShell(bodyHtml: string): string {
+function brandShell(bodyHtml: string, whatsApp: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
   <head>
@@ -151,7 +160,7 @@ function brandShell(bodyHtml: string): string {
             <tr>
               <td style="padding:24px 40px 36px 40px; font-family:${EMAIL_FONT};">
                 <p style="margin:0; font-size:12px; line-height:1.6; color:#a3a3a3;">
-                  Wheels Rent A Car · Hazmieh, Beirut, Lebanon · <a href="https://wa.me/9613100200" style="color:#a3a3a3;">WhatsApp support</a>
+                  Wheels Rent A Car · Hazmieh, Beirut, Lebanon · <a href="https://wa.me/${whatsAppDigits(whatsApp)}" style="color:#a3a3a3;">WhatsApp support</a>
                 </p>
               </td>
             </tr>
@@ -196,7 +205,7 @@ const BOOKING_EMAIL_COPY: Record<
     headline: (ref: string) => string;
     textHeadline: (ref: string) => string;
     footer: string;
-    minimalHtml: (ref: string, vehicle: string) => string;
+    minimalHtml: (ref: string, vehicle: string, whatsApp: string) => string;
     minimalText: (ref: string, vehicle: string) => string;
   }
 > = {
@@ -209,9 +218,10 @@ const BOOKING_EMAIL_COPY: Record<
       `Thank you — we have received your booking request${ref ? ` (${ref})` : ""}.`,
     footer:
       "Our team will review it and email you once it is approved. This message confirms receipt of your request, not that payment has been verified.",
-    minimalHtml: (ref, vehicle) =>
+    minimalHtml: (ref, vehicle, whatsApp) =>
       brandShell(
         `<p style="margin:0 0 12px 0; font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#c8102e;">Request received</p><h1 style="margin:0 0 16px 0; font-size:24px; line-height:1.3; font-weight:800; color:#0a0a0a;">Thank you — we've got your booking request</h1><p style="margin:0 0 8px 0; font-size:15px; line-height:1.6; color:#404040;">${ref ? `Reference <strong style="color:#0a0a0a;">${escapeHtml(ref)}</strong>` : ""}${vehicle ? `${ref ? " · " : ""}Vehicle: ${escapeHtml(vehicle)}` : ""}</p><p style="margin:0; font-size:15px; line-height:1.6; color:#404040;">Our team will review it and email you once it is approved. This message confirms receipt of your request, not that payment has been verified.</p>`,
+        whatsApp,
       ),
     minimalText: (ref, vehicle) =>
       `Thank you — we have received your booking request${ref ? ` (${ref})` : ""}.${vehicle ? ` Vehicle: ${vehicle}.` : ""} Our team will review it and email you once it is approved.`,
@@ -222,9 +232,10 @@ const BOOKING_EMAIL_COPY: Record<
       `Your Wheels booking is confirmed${ref ? ` (<strong style="color:#0a0a0a;">${escapeHtml(ref)}</strong>)` : ""}.`,
     textHeadline: (ref) => `Your Wheels booking is confirmed${ref ? ` (${ref})` : ""}.`,
     footer: "We will contact you before pickup with any final details.",
-    minimalHtml: (ref, vehicle) =>
+    minimalHtml: (ref, vehicle, whatsApp) =>
       brandShell(
         `<p style="margin:0 0 12px 0; font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#c8102e;">Booking confirmed</p><h1 style="margin:0 0 16px 0; font-size:24px; line-height:1.3; font-weight:800; color:#0a0a0a;">You're all set</h1><p style="margin:0 0 8px 0; font-size:15px; line-height:1.6; color:#404040;">${ref ? `Reference <strong style="color:#0a0a0a;">${escapeHtml(ref)}</strong>` : ""}${vehicle ? `${ref ? " · " : ""}Vehicle: ${escapeHtml(vehicle)}` : ""}</p><p style="margin:0; font-size:15px; line-height:1.6; color:#404040;">We will contact you before pickup with any final details.</p>`,
+        whatsApp,
       ),
     minimalText: (ref, vehicle) =>
       `Your Wheels booking is confirmed${ref ? ` (${ref})` : ""}.${vehicle ? ` Vehicle: ${vehicle}.` : ""}`,
@@ -245,6 +256,7 @@ function renderRichBookingEmail(
   ref: string,
   vehicle: string,
   payload: Record<string, unknown>,
+  whatsApp: string,
 ): { subject: string; html: string; text: string } {
   const copy = BOOKING_EMAIL_COPY[kind];
   const subject = copy.subject(ref);
@@ -257,7 +269,7 @@ function renderRichBookingEmail(
     // No rich payload attached — degrade to the original minimal message.
     return {
       subject,
-      html: copy.minimalHtml(ref, vehicle),
+      html: copy.minimalHtml(ref, vehicle, whatsApp),
       text: copy.minimalText(ref, vehicle),
     };
   }
@@ -295,7 +307,8 @@ function renderRichBookingEmail(
   const headlineText =
     kind === "requested" ? "Thank you — we've got your booking request" : "You're all set";
 
-  const html = brandShell(`
+  const html = brandShell(
+    `
     <p style="margin:0 0 12px 0; font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#c8102e;">${eyebrowLabel}</p>
     <h1 style="margin:0 0 12px 0; font-size:24px; line-height:1.3; font-weight:800; color:#0a0a0a;">${headlineText}</h1>
     <p style="margin:0 0 24px 0; font-size:15px; line-height:1.6; color:#404040;">${copy.headline(ref)}</p>
@@ -333,22 +346,37 @@ function renderRichBookingEmail(
       ${htmlRow("Security deposit (refundable)", str(payload, "priceDeposit"))}
     </table>
     <p style="margin:28px 0 0 0; font-size:14px; line-height:1.6; color:#737373;">${copy.footer}</p>
-  `);
+  `,
+    whatsApp,
+  );
 
   const text = [
     copy.textHeadline(ref),
     "",
     textLine("Vehicle", vehicleLabel),
-    textLine("Pickup", `${pickupDate} at ${pickupTime}${pickupLocation ? ` — ${pickupLocation}` : ""}`),
-    textLine("Return", `${returnDate} at ${returnTime}${returnLocation ? ` — ${returnLocation}` : ""}`),
+    textLine(
+      "Pickup",
+      `${pickupDate} at ${pickupTime}${pickupLocation ? ` — ${pickupLocation}` : ""}`,
+    ),
+    textLine(
+      "Return",
+      `${returnDate} at ${returnTime}${returnLocation ? ` — ${returnLocation}` : ""}`,
+    ),
     textLine("Flight number", flightNumber),
     textLine("Driver", driverName),
     textLine("Email", driverEmail),
     textLine("Phone", driverPhone),
-    textLine("Protection plan", protectionName ? `${protectionName}${protectionPriceLabel ? ` (${protectionPriceLabel})` : ""}` : ""),
+    textLine(
+      "Protection plan",
+      protectionName
+        ? `${protectionName}${protectionPriceLabel ? ` (${protectionPriceLabel})` : ""}`
+        : "",
+    ),
     textLine("Payment method", paymentMethod),
     paymentNote ? `\n${paymentNote}\n` : "",
-    extrasLines.length > 0 ? `\nSelected extras:\n${extrasLines.map((l) => `- ${l}`).join("\n")}\n` : "",
+    extrasLines.length > 0
+      ? `\nSelected extras:\n${extrasLines.map((l) => `- ${l}`).join("\n")}\n`
+      : "",
     "\nPrice breakdown:",
     textLine("Base rate", str(payload, "priceBaseRate")),
     textLine("Extras", str(payload, "priceExtras")),
@@ -444,7 +472,8 @@ export async function sendEmailNotification(input: {
   recipient: string;
   payload?: Record<string, unknown>;
 }): Promise<SendEmailResult> {
-  const content = renderNotificationTemplate(input.template, input.payload ?? {});
+  const contact = await getPublicContactSettings();
+  const content = renderNotificationTemplate(input.template, input.payload ?? {}, contact.whatsapp);
   const smtp = getSmtpConfig();
   if (smtp) {
     return sendViaSmtp(smtp, content, input.recipient);

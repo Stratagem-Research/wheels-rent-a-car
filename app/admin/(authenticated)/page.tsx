@@ -11,6 +11,7 @@ import {
   MapPinned,
   Megaphone,
   Package,
+  PhoneCall,
   Route,
   Settings2,
   Star,
@@ -138,6 +139,14 @@ export default function AdminDashboardPage() {
       title: "Reviews",
       count: "Homepage marquee",
       body: "Google and Trustpilot quotes on the landing page.",
+    },
+    {
+      href: "/admin/contact",
+      icon: <PhoneCall className="size-5" aria-hidden="true" />,
+      eyebrow: "Content",
+      title: "Contact",
+      count: "Phone + WhatsApp",
+      body: "The numbers behind every Call link, WhatsApp CTA, and the floating WhatsApp button.",
     },
     {
       href: "/admin/ops",

@@ -8,8 +8,10 @@ import { RouteProgressBar, SkipToContent, ToastProvider } from "@/components/ui"
 import { CookieBanner } from "@/components/consent/CookieBanner";
 import { SavedVehiclesProvider } from "@/components/providers/SavedVehiclesProvider";
 import { SessionProvider } from "@/components/providers/SessionProvider";
+import { ContactSettingsProvider } from "@/components/providers/ContactSettingsProvider";
 import { isRtlLocale, routing } from "@/i18n/routing";
 import { getSiteUrl } from "@/lib/server/env";
+import { getPublicContactSettings } from "@/lib/server/public-content";
 import "./globals.css";
 
 const siteUrl = getSiteUrl();
@@ -61,6 +63,7 @@ export default async function RootLayout({
 }>) {
   const locale = await getLocale();
   const messages = await getMessages();
+  const contactSettings = await getPublicContactSettings();
   const direction = isRtlLocale(locale) ? "rtl" : "ltr";
   const language = routing.locales.includes(locale as (typeof routing.locales)[number])
     ? locale
@@ -70,17 +73,19 @@ export default async function RootLayout({
     <html lang={language} dir={direction} className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body>
         <NextIntlClientProvider messages={messages}>
-          <SessionProvider>
-            <SavedVehiclesProvider>
-              <SkipToContent />
-              <Suspense fallback={null}>
-                <RouteProgressBar />
-              </Suspense>
-              {children}
-              <ToastProvider />
-              <CookieBanner />
-            </SavedVehiclesProvider>
-          </SessionProvider>
+          <ContactSettingsProvider settings={contactSettings}>
+            <SessionProvider>
+              <SavedVehiclesProvider>
+                <SkipToContent />
+                <Suspense fallback={null}>
+                  <RouteProgressBar />
+                </Suspense>
+                {children}
+                <ToastProvider />
+                <CookieBanner />
+              </SavedVehiclesProvider>
+            </SessionProvider>
+          </ContactSettingsProvider>
         </NextIntlClientProvider>
       </body>
     </html>

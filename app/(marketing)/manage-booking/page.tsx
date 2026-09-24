@@ -10,7 +10,7 @@ import { BookingLookupForm } from "@/components/account/BookingLookupForm";
 import { BookingDetailPanel } from "@/components/account/BookingDetailPanel";
 import { BookingSelfServiceActions } from "@/components/account/BookingSelfServiceActions";
 import { useSession } from "@/hooks/useSession";
-import { whatsAppHref } from "@/lib/whatsapp";
+import { useWhatsAppHref } from "@/components/providers/ContactSettingsProvider";
 import type { Booking } from "@/types/domain";
 
 /**
@@ -20,6 +20,7 @@ import type { Booking } from "@/types/domain";
  * with the full bookings list + filters).
  */
 export default function ManageBookingPage() {
+  const whatsAppHref = useWhatsAppHref();
   const t = useTranslations("manageBooking");
   const router = useRouter();
   const searchParams = useSearchParams();

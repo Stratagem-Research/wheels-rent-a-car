@@ -16,8 +16,8 @@ export const BRANCHES: Branch[] = [
     city: "Hazmieh",
     lat: 33.8693,
     lng: 35.5398,
-    phone: "+961 1 629 100",
-    whatsapp: "+961 3 100 200",
+    phone: "05 959 860",
+    whatsapp: "+961 3 337 228",
     hours: [
       { day: 1, open: "08:00", close: "20:00" },
       { day: 2, open: "08:00", close: "20:00" },
@@ -37,8 +37,8 @@ export const BRANCHES: Branch[] = [
     city: "Beirut",
     lat: 33.8209,
     lng: 35.4884,
-    phone: "+961 1 629 100",
-    whatsapp: "+961 3 100 200",
+    phone: "05 959 860",
+    whatsapp: "+961 3 337 228",
     // Airport meet-and-greet is on call any time a flight lands, same staff
     // as Hazmieh, just dispatched on demand.
     hours: [

@@ -19,7 +19,7 @@ import { PAGE_HERO_IMAGES } from "@/lib/marketing/hero-images";
 import { EnquiryFormCorporate } from "@/components/leads/EnquiryFormCorporate";
 import { useCorporateTiers } from "@/lib/admin/useAdminStore";
 import { ServiceJsonLd } from "@/components/seo/ServiceJsonLd";
-import { whatsAppHref } from "@/lib/whatsapp";
+import { useWhatsAppHref } from "@/components/providers/ContactSettingsProvider";
 import { getLocalizedString, getLocalizedStringArray } from "@/lib/i18n/localized";
 
 /*
@@ -45,6 +45,7 @@ const VALUE_PROP_ICONS = [
 ];
 
 export default function CorporatePage() {
+  const whatsAppHref = useWhatsAppHref();
   const t = useTranslations("corporate");
   const valueProps = t.raw("valueProps") as { title: string; body: string }[];
   const howItWorks = t.raw("howSteps") as { title: string; body: string }[];

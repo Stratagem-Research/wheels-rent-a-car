@@ -4,7 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import * as Sentry from "@sentry/nextjs";
 import { Button } from "@/components/ui/Button";
-import { whatsAppHref } from "@/lib/whatsapp";
+import { useWhatsAppHref } from "@/components/providers/ContactSettingsProvider";
 
 /**
  * Per-route error boundary per 15_legal_and_utility.md.
@@ -24,6 +24,7 @@ export default function RouteError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const whatsAppHref = useWhatsAppHref();
   const [autoRetried, setAutoRetried] = React.useState(false);
   // Lazy state init keeps the ref stable across re-renders and satisfies
   // react-hooks/purity (Math.random is impure during render).

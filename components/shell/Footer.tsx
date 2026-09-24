@@ -4,7 +4,11 @@ import * as React from "react";
 import Image from "next/image";
 import { Phone, MessageCircle, Mail } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { whatsAppHref } from "@/lib/whatsapp";
+import {
+  useContactSettings,
+  useTelHref,
+  useWhatsAppHref,
+} from "@/components/providers/ContactSettingsProvider";
 import { SOCIAL_LINKS } from "@/lib/marketing/social-links";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
@@ -44,6 +48,9 @@ const HELP_LINKS = [
 ] as const;
 
 export function Footer() {
+  const whatsAppHref = useWhatsAppHref();
+  const telHref = useTelHref();
+  const { phone } = useContactSettings();
   const tFooter = useTranslations("footer");
   const tNav = useTranslations("nav");
   const tGlobal = useTranslations("global");
@@ -101,11 +108,11 @@ export function Footer() {
 
           <FooterColumn title={tFooter("contact")}>
             <a
-              href="tel:+9611629100"
+              href={telHref}
               className="body-sm text-paper/85 hover:text-paper inline-flex items-center gap-2"
             >
               <Phone className="size-4" aria-hidden="true" />
-              +961 1 629 100
+              {phone}
             </a>
             <a
               href={whatsAppHref("default")}

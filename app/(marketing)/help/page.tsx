@@ -13,6 +13,8 @@ import { HelpSearchBar } from "@/components/help/HelpSearchBar";
 import { HELP_TOPICS, type HelpTopicIconName } from "@/lib/content/help";
 import { HELP_TOPIC_T } from "@/lib/supabase/seed-i18n";
 import { whatsAppHref } from "@/lib/whatsapp";
+import { getPublicContactSettings } from "@/lib/server/public-content";
+import { telHref } from "@/lib/contact/settings";
 import { Link } from "@/i18n/navigation";
 import { resolvePageMetadata } from "@/lib/seo/resolve-metadata";
 
@@ -48,6 +50,7 @@ export async function generateMetadata() {
 export default async function HelpHubPage() {
   const t = await getTranslations("helpUi");
   const locale = await getLocale();
+  const contact = await getPublicContactSettings();
   return (
     <>
       {/* Inverse hero — keep the search input on a paper card for visibility. */}
@@ -73,7 +76,9 @@ export default async function HelpHubPage() {
                 <li key={topic.slug}>
                   <Link
                     href={
-                      topic.slug === "whatsapp" ? whatsAppHref("default") : `/help/${topic.slug}`
+                      topic.slug === "whatsapp"
+                        ? whatsAppHref("default", {}, contact.whatsapp)
+                        : `/help/${topic.slug}`
                     }
                     target={topic.slug === "whatsapp" ? "_blank" : undefined}
                     rel={topic.slug === "whatsapp" ? "noopener noreferrer" : undefined}
@@ -102,12 +107,18 @@ export default async function HelpHubPage() {
           <p className="lead-md text-ink-60">{t("supportAvailability")}</p>
           <div className="mt-2 flex flex-wrap items-center justify-center gap-3">
             <Button asChild variant="whatsapp" size="md">
-              <a href={whatsAppHref("default")} target="_blank" rel="noopener noreferrer">
+              <a
+                href={whatsAppHref("default", {}, contact.whatsapp)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 {t("chatOnWhatsapp")}
               </a>
             </Button>
             <Button asChild variant="secondary" size="md">
-              <a href="tel:+9611629100">{t("call")} +961 1 629 100</a>
+              <a href={telHref(contact.phone)}>
+                {t("call")} {contact.phone}
+              </a>
             </Button>
           </div>
         </div>

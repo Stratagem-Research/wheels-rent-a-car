@@ -15,7 +15,7 @@ import {
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Reveal } from "@/components/motion/Reveal";
-import { whatsAppHref } from "@/lib/whatsapp";
+import { useWhatsAppHref } from "@/components/providers/ContactSettingsProvider";
 
 /**
  * Our Benefits — landingpage.md §3 + TravelPerk feature-row pattern.
@@ -46,6 +46,7 @@ type BenefitItem = {
 };
 
 export function OurBenefits() {
+  const whatsAppHref = useWhatsAppHref();
   const t = useTranslations("landing.benefits");
   const scrollerRef = React.useRef<HTMLUListElement>(null);
 

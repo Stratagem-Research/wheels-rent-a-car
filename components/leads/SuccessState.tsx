@@ -2,13 +2,14 @@
 
 import { Check } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { whatsAppHref } from "@/lib/whatsapp";
+import { useWhatsAppHref } from "@/components/providers/ContactSettingsProvider";
 
 /**
  * Inline success block shown in place of a form after submission.
  * Used by all three lead forms per 06/07/08 specs.
  */
 export function LeadFormSuccess({ message }: { message?: string }) {
+  const whatsAppHref = useWhatsAppHref();
   const t = useTranslations("leads");
   return (
     <div className="bg-success-bg text-success flex flex-col items-center gap-3 rounded-md p-6 text-center">

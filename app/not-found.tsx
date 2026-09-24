@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/Button";
-import { whatsAppHref } from "@/lib/whatsapp";
+import { WhatsAppLink } from "@/components/shell/WhatsAppLink";
 
 /**
  * 404 page per 15_legal_and_utility.md.
@@ -44,14 +44,9 @@ export default async function NotFound() {
           </div>
           <p className="label-md text-ink-50 mt-3">
             {t("orChat")}{" "}
-            <a
-              href={whatsAppHref("default")}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-ink-100 underline-offset-4 hover:underline"
-            >
+            <WhatsAppLink className="text-ink-100 underline-offset-4 hover:underline">
               {t("whatsapp")} →
-            </a>
+            </WhatsAppLink>
           </p>
         </div>
       </section>

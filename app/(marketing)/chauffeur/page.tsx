@@ -19,7 +19,7 @@ import { PAGE_HERO_IMAGES } from "@/lib/marketing/hero-images";
 import { EnquiryFormChauffeur } from "@/components/leads/EnquiryFormChauffeur";
 import { useItineraries } from "@/lib/admin/useAdminStore";
 import { ServiceJsonLd } from "@/components/seo/ServiceJsonLd";
-import { whatsAppHref } from "@/lib/whatsapp";
+import { useWhatsAppHref } from "@/components/providers/ContactSettingsProvider";
 
 /**
  * /chauffeur — INK & SIGNAL.
@@ -50,6 +50,7 @@ const TRUST_ICONS = [
 ];
 
 export default function ChauffeurPage() {
+  const whatsAppHref = useWhatsAppHref();
   const t = useTranslations("chauffeur");
   const categories = t.raw("categories") as { title: string; body: string; from: string }[];
   const vehicleClasses = t.raw("vehicleClasses") as { title: string; body: string }[];

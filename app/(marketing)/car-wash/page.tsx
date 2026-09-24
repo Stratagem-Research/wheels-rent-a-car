@@ -19,7 +19,7 @@ import { PAGE_HERO_IMAGES } from "@/lib/marketing/hero-images";
 import { EnquiryFormCarWash } from "@/components/leads/EnquiryFormCarWash";
 import { useCarWashCatalog } from "@/hooks/useCarWashCatalog";
 import { ServiceJsonLd } from "@/components/seo/ServiceJsonLd";
-import { whatsAppHref } from "@/lib/whatsapp";
+import { useWhatsAppHref } from "@/components/providers/ContactSettingsProvider";
 
 const TRUST_ICONS = [
   <Award key="award" className="size-5" aria-hidden="true" />,
@@ -28,6 +28,7 @@ const TRUST_ICONS = [
 ];
 
 export default function CarWashPage() {
+  const whatsAppHref = useWhatsAppHref();
   const t = useTranslations("carWash");
   const { packages } = useCarWashCatalog();
   const howItWorks = t.raw("howSteps") as { title: string; body: string }[];

@@ -135,6 +135,22 @@ export interface Branch {
   closedReason?: string;
 }
 
+/**
+ * Admin-editable contact channels. Single source of truth for every
+ * `tel:` link, `wa.me` deep-link, and JSON-LD `telephone` on the site —
+ * edited at /admin/contact, served by /api/contact-settings.
+ *
+ * Both numbers are stored in international display form (e.g.
+ * "+961 3 337 228"); hrefs are derived by stripping non-digits, so the
+ * spacing is free to change without breaking links.
+ */
+export interface ContactSettings {
+  /** Primary phone number, international display form. */
+  phone: string;
+  /** WhatsApp Business number, international display form. */
+  whatsapp: string;
+}
+
 /** Admin-editable delivery-fee formula for non-branch pickup addresses. */
 export interface DeliveryPricingSettings {
   baseFeeCents: number;

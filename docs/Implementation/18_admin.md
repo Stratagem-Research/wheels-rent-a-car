@@ -40,6 +40,7 @@ The auth and store layers above are already real — there is no separate backen
 | `/admin/itineraries/[slug]` | `<ItineraryForm />` pre-loaded. |
 | `/admin/faqs` | Two-pane editor: sections (left) + questions inside the active section (right). Inline add / rename / delete on both. |
 | `/admin/corporate` | Multi-tier editor with per-tier inclusions repeater. Save / Discard / Reset to defaults. |
+| `/admin/contact` | Site-wide contact channels: the phone and WhatsApp numbers used by every `tel:` link, `wa.me` deep-link, booking email footer, and JSON-LD `telephone` on the customer site. Singleton settings row; `GET`/`PUT /api/admin/contact`. |
 
 ## Page sections
 
@@ -92,6 +93,15 @@ fetchItineraries() / writeItineraries()
 fetchFaqs() / writeFaqs()
 fetchCorporateTiers() / writeCorporateTiers()
 ```
+
+Contact settings are a singleton rather than a list, so they sit outside that
+wrapper: `getContactSettings()` / `replaceContactSettings()` in
+`lib/supabase/admin-repository.ts`, table `contact_settings` (row id
+`default`), seeded by `supabase/migrations/20260924_000001_contact_settings.sql`.
+The customer site reads them through `getPublicContactSettings()` in
+`lib/server/public-content.ts`, which falls back to
+`DEFAULT_CONTACT_SETTINGS` (`lib/contact/settings.ts`) if the table is
+missing or Supabase is unreachable.
 
 Data persistence/repository layer:
 - API routes: `app/api/cms/{trips|itineraries|faqs|corporate}/route.ts`

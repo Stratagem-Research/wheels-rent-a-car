@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import { Plus, RefreshCcw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Field } from "@/components/ui/FormAtoms";
@@ -179,25 +180,18 @@ export default function AdminLocationsPage() {
                   />
                 )}
               </Field>
-              <Field label="Phone" required>
-                {({ id }) => (
-                  <Input
-                    id={id}
-                    value={branch.phone}
-                    onChange={(e) => updateBranch(i, { phone: e.target.value })}
-                  />
-                )}
-              </Field>
-              <Field label="WhatsApp" helper="Optional.">
-                {({ id }) => (
-                  <Input
-                    id={id}
-                    value={branch.whatsapp ?? ""}
-                    onChange={(e) => updateBranch(i, { whatsapp: e.target.value })}
-                  />
-                )}
-              </Field>
-              <div />
+              {/* Phone and WhatsApp are site-wide, not per-branch: Wheels runs a
+                  single hub, so both numbers live in Settings > Contact and are
+                  applied to every branch on the customer site. */}
+              <div className="border-border bg-ink-05 rounded-lg border p-3 sm:col-span-2">
+                <p className="body-sm text-ink-60">
+                  Phone and WhatsApp numbers are managed site-wide in{" "}
+                  <Link href="/admin/contact" className="text-signal-blue underline">
+                    Settings &gt; Contact
+                  </Link>
+                  .
+                </p>
+              </div>
               <Field label="Latitude" helper="Decimal degrees.">
                 {({ id }) => (
                   <Input
@@ -335,62 +329,62 @@ function DeliveryPricingPanel() {
         title="Delivery pricing"
         helper="Fee for delivering to an address instead of a branch, based on distance from the nearest branch."
       >
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Field label="Base fee (USD)" helper="Charged within the free radius.">
-          {({ id }) => (
-            <Input
-              id={id}
-              type="number"
-              min={0}
-              step="0.01"
-              value={String(settings.baseFeeCents / 100)}
-              onChange={(e) =>
-                setSettings((s) => ({
-                  ...s,
-                  baseFeeCents: Math.round(Number(e.target.value || 0) * 100),
-                }))
-              }
-            />
-          )}
-        </Field>
-        <Field label="Free radius (km)" helper="Distance covered by the base fee.">
-          {({ id }) => (
-            <Input
-              id={id}
-              type="number"
-              min={0}
-              step="0.1"
-              value={String(settings.freeRadiusKm)}
-              onChange={(e) =>
-                setSettings((s) => ({ ...s, freeRadiusKm: Number(e.target.value || 0) }))
-              }
-            />
-          )}
-        </Field>
-        <Field label="Per km beyond radius (USD)">
-          {({ id }) => (
-            <Input
-              id={id}
-              type="number"
-              min={0}
-              step="0.01"
-              value={String(settings.perKmCents / 100)}
-              onChange={(e) =>
-                setSettings((s) => ({
-                  ...s,
-                  perKmCents: Math.round(Number(e.target.value || 0) * 100),
-                }))
-              }
-            />
-          )}
-        </Field>
-      </div>
-      {error ? <p className="body-md text-danger">{error}</p> : null}
-      <div className="flex justify-end">
-        <Button onClick={() => void save()} loading={saving} disabled={loading}>
-          Save delivery pricing
-        </Button>
-      </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Field label="Base fee (USD)" helper="Charged within the free radius.">
+            {({ id }) => (
+              <Input
+                id={id}
+                type="number"
+                min={0}
+                step="0.01"
+                value={String(settings.baseFeeCents / 100)}
+                onChange={(e) =>
+                  setSettings((s) => ({
+                    ...s,
+                    baseFeeCents: Math.round(Number(e.target.value || 0) * 100),
+                  }))
+                }
+              />
+            )}
+          </Field>
+          <Field label="Free radius (km)" helper="Distance covered by the base fee.">
+            {({ id }) => (
+              <Input
+                id={id}
+                type="number"
+                min={0}
+                step="0.1"
+                value={String(settings.freeRadiusKm)}
+                onChange={(e) =>
+                  setSettings((s) => ({ ...s, freeRadiusKm: Number(e.target.value || 0) }))
+                }
+              />
+            )}
+          </Field>
+          <Field label="Per km beyond radius (USD)">
+            {({ id }) => (
+              <Input
+                id={id}
+                type="number"
+                min={0}
+                step="0.01"
+                value={String(settings.perKmCents / 100)}
+                onChange={(e) =>
+                  setSettings((s) => ({
+                    ...s,
+                    perKmCents: Math.round(Number(e.target.value || 0) * 100),
+                  }))
+                }
+              />
+            )}
+          </Field>
+        </div>
+        {error ? <p className="body-md text-danger">{error}</p> : null}
+        <div className="flex justify-end">
+          <Button onClick={() => void save()} loading={saving} disabled={loading}>
+            Save delivery pricing
+          </Button>
+        </div>
       </AdminFormShell>
     </div>
   );

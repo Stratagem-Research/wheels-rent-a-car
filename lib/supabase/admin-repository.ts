@@ -1,6 +1,7 @@
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 import type {
   Branch,
+  ContactSettings,
   DeliveryPricingSettings,
   LocalizedString,
   LocalizedStringArray,
@@ -554,6 +555,30 @@ export async function replaceDeliveryPricingSettings(
     base_fee_cents: settings.baseFeeCents,
     free_radius_km: settings.freeRadiusKm,
     per_km_cents: settings.perKmCents,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function getContactSettings(): Promise<ContactSettings | null> {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("contact_settings")
+    .select("*")
+    .eq("id", "default")
+    .limit(1);
+  if (error) throw new Error(error.message);
+  const row = (data ?? [])[0] as { phone: string; whatsapp: string } | undefined;
+  if (!row) return null;
+  return { phone: row.phone, whatsapp: row.whatsapp };
+}
+
+export async function replaceContactSettings(settings: ContactSettings): Promise<void> {
+  const supabase = getSupabaseAdminClient();
+  const { error } = await supabase.from("contact_settings").upsert({
+    id: "default",
+    phone: settings.phone,
+    whatsapp: settings.whatsapp,
     updated_at: new Date().toISOString(),
   });
   if (error) throw new Error(error.message);

@@ -10,7 +10,11 @@ import { LocationsMap } from "@/components/locations/LocationsMap";
 import { PageHero } from "@/components/marketing/PageHero";
 import { PAGE_HERO_IMAGES } from "@/lib/marketing/hero-images";
 import { BRANCHES } from "@/lib/api/fixtures/branches";
-import { whatsAppHref } from "@/lib/whatsapp";
+import {
+  useContactSettings,
+  useTelHref,
+  useWhatsAppHref,
+} from "@/components/providers/ContactSettingsProvider";
 import { SOCIAL_LINKS_LIST } from "@/lib/marketing/social-links";
 
 const SOCIALS = SOCIAL_LINKS_LIST;
@@ -29,6 +33,9 @@ function isPhoneOpen(now: Date) {
 }
 
 export default function ContactPage() {
+  const whatsAppHref = useWhatsAppHref();
+  const telHref = useTelHref();
+  const { phone, whatsapp } = useContactSettings();
   const t = useTranslations("contact");
   // Stable snapshot of "now" to drive the phone Open/Closed state without
   // shifting during the render lifecycle.
@@ -56,7 +63,7 @@ export default function ContactPage() {
                 icon={<MessageCircle className="size-6" aria-hidden="true" />}
                 title={t("whatsappTitle")}
                 description={t("whatsappDescription")}
-                contact="+961 3 100 200"
+                contact={whatsapp}
                 hours={t("whatsappHours")}
                 cta={{
                   label: t("chatNow"),
@@ -71,9 +78,9 @@ export default function ContactPage() {
                 icon={<Phone className="size-6" aria-hidden="true" />}
                 title={t("phoneTitle")}
                 description={t("phoneDescription")}
-                contact="+961 1 629 100"
+                contact={phone}
                 hours={t("phoneHours")}
-                cta={{ label: t("call"), href: "tel:+9611629100" }}
+                cta={{ label: t("call"), href: telHref }}
                 closed={!phoneOpen}
                 closedMessage={t("closedMessage")}
               />
@@ -174,13 +181,13 @@ export default function ContactPage() {
               {
                 "@type": "ContactPoint",
                 contactType: "customer service",
-                telephone: "+961 1 629 100",
+                telephone: phone,
                 availableLanguage: ["English", "French", "Arabic"],
               },
               {
                 "@type": "ContactPoint",
                 contactType: "WhatsApp",
-                telephone: "+961 3 100 200",
+                telephone: whatsapp,
               },
             ],
           }),

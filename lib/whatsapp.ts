@@ -2,11 +2,14 @@
  * WhatsApp deep-link helpers. Per 00_global.md §6, the FAB and inline
  * WhatsApp CTAs across the site use context-aware pre-filled messages.
  *
- * The WHATSAPP_NUMBER is the operations team's WhatsApp Business number —
- * change once here, propagate everywhere.
+ * The number itself is admin-managed (/admin/contact). Client components
+ * read it from `useContactSettings()`; server components from
+ * `getPublicContactSettings()`. Both hand it to `whatsAppHref` as the third
+ * argument — the DEFAULT_CONTACT_SETTINGS fallback only applies when
+ * neither has been resolved yet.
  */
 
-export const WHATSAPP_NUMBER = "9613XXXXXXX"; // placeholder, no leading "+"
+import { DEFAULT_CONTACT_SETTINGS, whatsAppDigits } from "@/lib/contact/settings";
 
 export type WhatsAppContext =
   | "default"
@@ -51,7 +54,8 @@ export function whatsAppMessage(
 export function whatsAppHref(
   context: WhatsAppContext,
   details: WhatsAppContextDetails = {},
+  number: string = DEFAULT_CONTACT_SETTINGS.whatsapp,
 ): string {
   const message = whatsAppMessage(context, details);
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  return `https://wa.me/${whatsAppDigits(number)}?text=${encodeURIComponent(message)}`;
 }

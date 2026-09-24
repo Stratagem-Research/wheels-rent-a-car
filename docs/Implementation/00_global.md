@@ -192,7 +192,8 @@ Language switcher shows EN active; AR and FR appear with "Coming soon" badge.
 - **Size:** 56px circle, `rounded-full`, WhatsApp green (`colors.whatsapp` / `#25D366`), white WhatsApp icon (28px).
 - **Shadow:** `elevation-3`.
 - **Hover/pressed:** background swaps to `colors.whatsapp-pressed`.
-- **Click behavior:** opens `https://wa.me/9613XXXXXXX?text=<context-message>` in a new tab.
+- **Click behavior:** opens `https://wa.me/<number>?text=<context-message>` in a new tab.
+- **Number source:** the WhatsApp number is admin-managed at `/admin/contact` (see `18_admin.md`) and is never hardcoded in a component. Client components read it via `useWhatsAppHref()` from `components/providers/ContactSettingsProvider`; server components pass `getPublicContactSettings().whatsapp` as the third argument to `whatsAppHref()`. The same applies to the phone number behind every `tel:` link (`useTelHref()` / `telHref()`).
 
 ### Context-aware pre-filled messages
 
