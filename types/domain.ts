@@ -496,6 +496,24 @@ export interface CorporateTier {
   ctaLabel?: LocalizedStringValue;
 }
 
+// ── Help articles (long-form help content) ───────────────────────────────
+
+export interface HelpArticleSection {
+  /** Stable id used as the in-page anchor and TOC key. */
+  id: string;
+  heading: LocalizedStringValue;
+  body: LocalizedStringValue;
+}
+
+export interface HelpArticle {
+  slug: string;
+  title: LocalizedStringValue;
+  intro: LocalizedStringValue;
+  /** `YYYY-MM-DD`. */
+  lastUpdated: ISODate;
+  sections: HelpArticleSection[];
+}
+
 // ── Trips (self-drive blog content) ──────────────────────────────────────
 
 export type TripRegion = "mountains" | "coast" | "bekaa" | "cultural" | "north" | "south";

@@ -468,3 +468,47 @@ export const LEGAL_ARTICLE_T: Record<string, ArticleLocales> = {
     },
   },
 };
+
+/**
+ * Build a domain `HelpArticle` (LocalizedString fields) from the English
+ * fixture in `lib/content/help.ts`, overlaid with the AR/FR translations
+ * held in `HELP_ARTICLE_T`. Used as the fallback when a help article is not
+ * yet managed in the CMS — gives the marketing page a single render path
+ * that consumes `HelpArticle` whether the source is CMS or fixture.
+ */
+export function buildLocalizedHelpArticle(
+  slug: string,
+  fixture:
+    | {
+        slug: string;
+        title: string;
+        lastUpdated: string;
+        intro: string;
+        sections: { id: string; heading: string; body: string }[];
+      }
+    | undefined,
+): import("@/types/domain").HelpArticle | null {
+  if (!fixture) return null;
+  const overlays = HELP_ARTICLE_T[slug];
+  const ar = overlays?.ar;
+  const fr = overlays?.fr;
+  return {
+    slug: fixture.slug,
+    title: { en: fixture.title, ar: ar?.title, fr: fr?.title },
+    intro: { en: fixture.intro, ar: ar?.intro, fr: fr?.intro },
+    lastUpdated: fixture.lastUpdated,
+    sections: fixture.sections.map((s) => ({
+      id: s.id,
+      heading: {
+        en: s.heading,
+        ar: ar?.sections[s.id]?.heading,
+        fr: fr?.sections[s.id]?.heading,
+      },
+      body: {
+        en: s.body,
+        ar: ar?.sections[s.id]?.body,
+        fr: fr?.sections[s.id]?.body,
+      },
+    })),
+  };
+}

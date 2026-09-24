@@ -4,7 +4,7 @@
  * Admin CMS client — reads/writes via /api/cms/* (Supabase-backed).
  */
 
-import type { CorporateTier, FaqGroup, Itinerary, Trip } from "@/types/domain";
+import type { CorporateTier, FaqGroup, HelpArticle, Itinerary, Trip } from "@/types/domain";
 import { notifyCmsUpdated, type CmsResource } from "@/lib/admin/cms-events";
 import type { CorporateLead, FleetPartnershipLead } from "@/lib/supabase/admin-repository";
 
@@ -75,6 +75,41 @@ export async function fetchCorporateTiers(): Promise<CorporateTier[]> {
 
 export async function writeCorporateTiers(items: CorporateTier[]): Promise<void> {
   await cmsPut("/api/cms/corporate", items, "corporate");
+}
+
+export async function fetchHelpArticles(): Promise<HelpArticle[]> {
+  return cmsGet<HelpArticle[]>("/api/cms/help-articles");
+}
+
+/** Upsert a single help article by slug. */
+export async function writeHelpArticle(article: HelpArticle): Promise<void> {
+  const csrf = getAdminCsrfToken();
+  const res = await fetch(`/api/cms/help-articles/${encodeURIComponent(article.slug)}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      ...(csrf ? { "x-admin-csrf": csrf } : {}),
+    },
+    body: JSON.stringify({ item: article }),
+  });
+  if (!res.ok) {
+    const data = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new Error(data.message ?? "Save failed.");
+  }
+  notifyCmsUpdated("help-articles");
+}
+
+export async function deleteHelpArticle(slug: string): Promise<void> {
+  const csrf = getAdminCsrfToken();
+  const res = await fetch(`/api/cms/help-articles/${encodeURIComponent(slug)}`, {
+    method: "DELETE",
+    headers: { ...(csrf ? { "x-admin-csrf": csrf } : {}) },
+  });
+  if (!res.ok) {
+    const data = (await res.json().catch(() => ({}))) as { message?: string };
+    throw new Error(data.message ?? "Delete failed.");
+  }
+  notifyCmsUpdated("help-articles");
 }
 
 export type AdminLeadsResponse = {

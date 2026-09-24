@@ -217,3 +217,40 @@ export async function getPublicReviews(limit = 10): Promise<Review[]> {
     return REVIEWS.slice(0, limit);
   }
 }
+
+/**
+ * Public help article for /help/[slug]. Reads from the CMS table first; on
+ * any failure or missing row, falls back to the localized fixture built
+ * from `HELP_ARTICLES` + AR/FR overlays so the page keeps rendering and
+ * translating through a Supabase outage or before the table is seeded.
+ */
+export async function getPublicHelpArticle(
+  slug: string,
+): Promise<import("@/types/domain").HelpArticle | null> {
+  try {
+    const { listHelpArticlesFromDb } = await import("@/lib/supabase/cms-repository");
+    const rows = await listHelpArticlesFromDb();
+    const match = rows.find((a) => a.slug === slug);
+    if (match) return match;
+    reportFixtureFallback("help-articles", `no CMS row for slug "${slug}"`);
+  } catch (err) {
+    reportFixtureFallback("help-articles", `listHelpArticlesFromDb() threw for "${slug}"`, err);
+  }
+  const { HELP_ARTICLES } = await import("@/lib/content/help");
+  const { buildLocalizedHelpArticle } = await import("@/lib/content/content-i18n");
+  return buildLocalizedHelpArticle(slug, HELP_ARTICLES[slug]);
+}
+
+/** All public help-article slugs (CMS + fixture), for generateStaticParams. */
+export async function getPublicHelpArticleSlugs(): Promise<string[]> {
+  const slugs = new Set<string>();
+  try {
+    const { listHelpArticlesFromDb } = await import("@/lib/supabase/cms-repository");
+    for (const a of await listHelpArticlesFromDb()) slugs.add(a.slug);
+  } catch (err) {
+    reportFixtureFallback("help-articles-slugs", "listHelpArticlesFromDb() threw", err);
+  }
+  const { HELP_ARTICLES } = await import("@/lib/content/help");
+  for (const slug of Object.keys(HELP_ARTICLES)) slugs.add(slug);
+  return [...slugs];
+}

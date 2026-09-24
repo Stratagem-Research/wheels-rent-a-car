@@ -31,9 +31,12 @@ import {
 import {
   replaceCorporateTiersInDb,
   replaceFaqsInDb,
+  replaceHelpArticlesInDb,
   replaceItinerariesInDb,
   replaceTripsInDb,
 } from "@/lib/supabase/cms-repository";
+import { HELP_ARTICLES } from "@/lib/content/help";
+import { buildLocalizedHelpArticle } from "@/lib/content/content-i18n";
 
 /** Known Wizard mapping from live API tests (yaris). Extend as IDs are confirmed. */
 const WIZARD_VEHICLE_MAP: Record<string, number> = {
@@ -45,6 +48,7 @@ export type SeedResource =
   | "itineraries"
   | "faqs"
   | "corporate"
+  | "help-articles"
   | "vehicle_metadata"
   | "vehicle_wizard_map"
   | "locations"
@@ -66,6 +70,7 @@ export async function seedWebsiteData(resources: SeedResource[] = ["all"]): Prom
         "itineraries",
         "faqs",
         "corporate",
+        "help-articles",
         "vehicle_metadata",
         "vehicle_wizard_map",
         "locations",
@@ -97,6 +102,14 @@ export async function seedWebsiteData(resources: SeedResource[] = ["all"]): Prom
   if (targets.includes("corporate")) {
     await replaceCorporateTiersInDb(CORPORATE_TIERS);
     results.push({ resource: "corporate", count: CORPORATE_TIERS.length });
+  }
+
+  if (targets.includes("help-articles")) {
+    const articles = Object.keys(HELP_ARTICLES)
+      .map((slug) => buildLocalizedHelpArticle(slug, HELP_ARTICLES[slug]))
+      .filter((a): a is NonNullable<typeof a> => a != null);
+    await replaceHelpArticlesInDb(articles);
+    results.push({ resource: "help-articles", count: articles.length });
   }
 
   if (targets.includes("vehicle_metadata")) {

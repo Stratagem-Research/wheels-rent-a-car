@@ -1,5 +1,5 @@
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
-import type { CorporateTier, FaqGroup, Itinerary, Trip } from "@/types/domain";
+import type { CorporateTier, FaqGroup, HelpArticle, HelpArticleSection, Itinerary, Trip } from "@/types/domain";
 import {
   toLocalizedString,
   toLocalizedStringArray,
@@ -300,5 +300,88 @@ export async function replaceCorporateTiersInDb(items: CorporateTier[]): Promise
   const { error } = await supabase
     .from("cms_corporate_tiers")
     .insert(items.map((tier, index) => corporateToRow(tier, index)));
+  if (error) throw new Error(error.message);
+}
+
+// ── Help articles ────────────────────────────────────────────────────────
+
+type HelpArticleSectionRow = {
+  id: string;
+  heading: unknown;
+  body: unknown;
+};
+
+type HelpArticleRow = {
+  slug: string;
+  title: unknown;
+  intro: unknown;
+  last_updated: string;
+  sections: HelpArticleSectionRow[];
+  updated_at: string;
+};
+
+function helpArticleSectionFromRow(row: HelpArticleSectionRow): HelpArticleSection {
+  return {
+    id: row.id,
+    heading: toLocalizedString(coerceLocalized(row.heading)),
+    body: toLocalizedString(coerceLocalized(row.body)),
+  };
+}
+
+function helpArticleFromRow(row: HelpArticleRow): HelpArticle {
+  return {
+    slug: row.slug,
+    title: toLocalizedString(coerceLocalized(row.title)),
+    intro: toLocalizedString(coerceLocalized(row.intro)),
+    lastUpdated: row.last_updated,
+    sections: (row.sections ?? []).map(helpArticleSectionFromRow),
+  };
+}
+
+function helpArticleToRow(article: HelpArticle): HelpArticleRow {
+  return {
+    slug: article.slug,
+    title: toLocalizedString(article.title),
+    intro: toLocalizedString(article.intro),
+    last_updated: article.lastUpdated,
+    sections: article.sections.map((section) => ({
+      id: section.id,
+      heading: toLocalizedString(section.heading),
+      body: toLocalizedString(section.body),
+    })),
+    updated_at: new Date().toISOString(),
+  };
+}
+
+export async function listHelpArticlesFromDb(): Promise<HelpArticle[]> {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase.from("cms_help_articles").select("*").order("slug");
+  if (error) throw new Error(error.message);
+  return ((data ?? []) as HelpArticleRow[]).map(helpArticleFromRow);
+}
+
+export async function upsertHelpArticleInDb(article: HelpArticle): Promise<void> {
+  const supabase = getSupabaseAdminClient();
+  const { error } = await supabase
+    .from("cms_help_articles")
+    .upsert(helpArticleToRow(article), { onConflict: "slug" });
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteHelpArticleFromDb(slug: string): Promise<void> {
+  const supabase = getSupabaseAdminClient();
+  const { error } = await supabase.from("cms_help_articles").delete().eq("slug", slug);
+  if (error) throw new Error(error.message);
+}
+
+/** Batch replace used by the seed script (mirrors replaceTripsInDb). */
+export async function replaceHelpArticlesInDb(items: HelpArticle[]): Promise<void> {
+  const supabase = getSupabaseAdminClient();
+  const { error: clearError } = await supabase.from("cms_help_articles").delete().neq("slug", "");
+  if (clearError) throw new Error(clearError.message);
+  if (items.length === 0) return;
+  const { error } = await supabase
+    .from("cms_help_articles")
+    .insert(items.map(helpArticleToRow));
   if (error) throw new Error(error.message);
 }

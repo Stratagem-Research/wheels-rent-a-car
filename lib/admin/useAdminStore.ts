@@ -1,9 +1,16 @@
 "use client";
 
 import * as React from "react";
-import type { CorporateTier, FaqGroup, Itinerary, Trip } from "@/types/domain";
+import type { CorporateTier, FaqGroup, HelpArticle, Itinerary, Trip } from "@/types/domain";
 import { CMS_UPDATED_EVENT, type CmsResource } from "@/lib/admin/cms-events";
-import { fetchCorporateTiers, fetchFaqs, fetchItineraries, fetchTrips } from "@/lib/admin/store";
+import {
+  deleteHelpArticle,
+  fetchCorporateTiers,
+  fetchFaqs,
+  fetchHelpArticles,
+  fetchItineraries,
+  fetchTrips,
+} from "@/lib/admin/store";
 
 function useCmsResource<T>(resource: CmsResource, fetcher: () => Promise<T[]>): T[] {
   const [value, setValue] = React.useState<T[]>([]);
@@ -48,4 +55,8 @@ export function useFaqs(): FaqGroup[] {
 
 export function useCorporateTiers(): CorporateTier[] {
   return useCmsResource("corporate", fetchCorporateTiers);
+}
+
+export function useHelpArticles(): HelpArticle[] {
+  return useCmsResource("help-articles", fetchHelpArticles);
 }

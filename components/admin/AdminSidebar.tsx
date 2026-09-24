@@ -151,6 +151,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/trips", label: "Trips", icon: Compass },
       { href: "/admin/itineraries", label: "Itineraries", icon: MapIcon },
       { href: "/admin/faqs", label: "FAQs", icon: HelpCircle },
+      { href: "/admin/help-articles", label: "Help articles", icon: BookOpen },
       { href: "/admin/corporate", label: "Corporate", icon: Building2 },
       { href: "/admin/car-wash", label: "Car wash", icon: SprayCan },
       { href: "/admin/about", label: "About", icon: Info },

@@ -91,6 +91,22 @@ export const itineraryPayloadSchema = z.object({ items: z.array(itinerarySchema)
 export const faqPayloadSchema = z.object({ items: z.array(faqGroupSchema) });
 export const corporatePayloadSchema = z.object({ items: z.array(corporateTierSchema) });
 
+export const helpArticleSectionSchema = z.object({
+  id: z.string().min(1),
+  heading: localizedStringSchema,
+  body: localizedStringSchema,
+});
+
+export const helpArticleSchema = z.object({
+  slug: z.string().min(1),
+  title: localizedStringSchema,
+  intro: localizedStringSchema,
+  lastUpdated: z.string().min(1),
+  sections: z.array(helpArticleSectionSchema),
+});
+
+export const helpArticlePayloadSchema = z.object({ item: helpArticleSchema });
+
 export const aboutContentSchema = z.object({
   storyParagraphs: localizedStringArraySchema,
   pullQuote: localizedStringSchema,
