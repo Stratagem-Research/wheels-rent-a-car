@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "@/lib/admin/auth";
+import { confirmUnsavedChanges } from "@/hooks/useUnsavedChangesGuard";
 
 const COLLAPSE_STORAGE_KEY = "wheels.admin.sidebarCollapsed";
 const GROUP_COLLAPSE_STORAGE_KEY = "wheels.admin.sidebarCollapsedGroups";
@@ -397,7 +398,16 @@ export function AdminMobileBar() {
         <select
           aria-label="Admin sections"
           value={activeHref}
-          onChange={(event) => router.push(event.target.value)}
+          onChange={(event) => {
+            if (event.target.value === activeHref) return;
+            if (!confirmUnsavedChanges()) {
+              // Re-select the current section so the UI stays in sync after the
+              // user declines the discard prompt.
+              event.target.value = activeHref;
+              return;
+            }
+            router.push(event.target.value);
+          }}
           className={cn(
             "body-sm h-10 w-full min-w-0 cursor-pointer appearance-none rounded-full bg-white/10 pr-9 pl-4",
             "text-paper truncate outline-none transition-colors hover:bg-white/15",

@@ -5,6 +5,7 @@ import { RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
+import { toast } from "@/components/ui/Toast";
 import { getAdminCsrfHeader } from "@/lib/admin/csrf";
 
 type OpsResponse = {
@@ -17,11 +18,9 @@ type OpsResponse = {
 export default function AdminOpsPage() {
   const [data, setData] = React.useState<OpsResponse | null>(null);
   const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
 
   const refresh = React.useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
       const res = await fetch("/api/admin/ops", { cache: "no-store" });
       if (!res.ok) {
@@ -30,7 +29,7 @@ export default function AdminOpsPage() {
       }
       setData((await res.json()) as OpsResponse);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load ops data.");
+      toast.error(err instanceof Error ? err.message : "Failed to load ops data.");
     } finally {
       setLoading(false);
     }
@@ -68,7 +67,6 @@ export default function AdminOpsPage() {
       }
     >
       {loading ? <p className="body-md text-ink-60">Loading ops metrics…</p> : null}
-      {error ? <p className="body-md text-danger">{error}</p> : null}
       {data ? (
         <div className="flex flex-col gap-8">
           <section className="flex flex-col gap-3">
@@ -138,9 +136,11 @@ export default function AdminOpsPage() {
                     size="sm"
                     variant="tertiary"
                     onClick={() =>
-                      retryOutbox(String(row.id)).catch((err) =>
-                        alert(err instanceof Error ? err.message : "Retry failed."),
-                      )
+                      retryOutbox(String(row.id))
+                        .then(() => toast.success("Notification retried."))
+                        .catch((err) =>
+                          toast.error(err instanceof Error ? err.message : "Retry failed."),
+                        )
                     }
                   >
                     Retry

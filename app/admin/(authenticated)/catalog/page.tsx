@@ -45,12 +45,14 @@ export default function AdminCatalogPage() {
     write: writeAdminAddons,
     loadError: "Failed to load add-ons.",
     saveError: "Failed to save add-ons.",
+    saveSuccess: "Saved add-ons.",
   });
   const protectionTiers = useAdminReplaceList<ProtectionTier>({
     fetch: fetchAdminProtectionTiers,
     write: writeAdminProtectionTiers,
     loadError: "Failed to load protection tiers.",
     saveError: "Failed to save protection tiers.",
+    saveSuccess: "Saved protection tiers.",
     beforeSave: trimInclusions,
   });
   const longTermTiers = useAdminReplaceList<LongTermTier>({
@@ -58,6 +60,7 @@ export default function AdminCatalogPage() {
     write: writeAdminLongTermTiers,
     loadError: "Failed to load long-term tiers.",
     saveError: "Failed to save long-term tiers.",
+    saveSuccess: "Saved long-term tiers.",
     beforeSave: trimInclusions,
   });
 

@@ -8,6 +8,7 @@ import { Select } from "@/components/ui/Select";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { useConfirmDialog } from "@/components/admin/ConfirmDialog";
+import { toast } from "@/components/ui/Toast";
 import { getAdminCsrfHeader } from "@/lib/admin/csrf";
 import type { AdminWebsiteBooking } from "@/lib/supabase/admin-bookings-repository";
 import type { HoldCustomerType, HoldInventoryStatus } from "@/lib/supabase/vehicle-booking-holds-repository";
@@ -78,7 +79,6 @@ export default function AdminBookingsPage() {
   const confirmDialog = useConfirmDialog();
   const [data, setData] = React.useState<BookingsResponse | null>(null);
   const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
   const [customerFilter, setCustomerFilter] = React.useState<CustomerFilter>("all");
   const [holdFilter, setHoldFilter] = React.useState<HoldFilter>("all");
   const [rangeFilter, setRangeFilter] = React.useState<RangeFilter>("7");
@@ -90,7 +90,6 @@ export default function AdminBookingsPage() {
 
   const refresh = React.useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
       const res = await fetch("/api/admin/bookings", { cache: "no-store" });
       if (!res.ok) {
@@ -99,7 +98,7 @@ export default function AdminBookingsPage() {
       }
       setData((await res.json()) as BookingsResponse);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load bookings.");
+      toast.error(err instanceof Error ? err.message : "Failed to load bookings.");
     } finally {
       setLoading(false);
     }
@@ -134,8 +133,9 @@ export default function AdminBookingsPage() {
         throw new Error(details.message ?? `Failed to ${action} booking.`);
       }
       await refresh();
+      toast.success(action === "confirm" ? `Confirmed ${bookingReference}.` : `Cancelled ${bookingReference}.`);
     } catch (err) {
-      alert(err instanceof Error ? err.message : `Failed to ${action} booking.`);
+      toast.error(err instanceof Error ? err.message : `Failed to ${action} booking.`);
     } finally {
       setActing(null);
     }
@@ -205,7 +205,6 @@ export default function AdminBookingsPage() {
       }
     >
       {loading ? <p className="body-md text-ink-60">Loading bookings…</p> : null}
-      {error ? <p className="body-md text-danger">{error}</p> : null}
       {data ? (
         <div className="flex flex-col gap-6">
           <ul className="grid gap-2 sm:grid-cols-4">

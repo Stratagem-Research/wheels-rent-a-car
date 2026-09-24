@@ -19,6 +19,7 @@ import {
   updateLocalizedString,
   updateLocalizedStringArray,
 } from "@/lib/i18n/localized";
+import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 
 /**
  * ItineraryForm — shared create/edit form for /admin/itineraries/{new,[slug]}.
@@ -63,6 +64,14 @@ export function ItineraryForm({ slug }: ItineraryFormProps) {
     initial.priceFromCents > 0 ? String(initial.priceFromCents / 100) : "0",
   );
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+
+  const dirty = React.useMemo(
+    () =>
+      JSON.stringify(form) !== JSON.stringify(initial) ||
+      priceUsd !== (initial.priceFromCents > 0 ? String(initial.priceFromCents / 100) : "0"),
+    [form, initial, priceUsd],
+  );
+  useUnsavedChangesGuard(dirty);
 
   React.useEffect(() => {
     // Keep local draft synchronized when the backing itinerary loads/changes.

@@ -32,20 +32,20 @@ export function AdminReplaceListToolbar<T>({ editor }: { editor: AdminReplaceLis
   );
 }
 
-/** Loading, error, and list body for admin replace-on-save editors. */
+/**
+ * Loading and list body for admin replace-on-save editors. Load/save
+ * failures surface as toasts from `useAdminReplaceList` itself, not here.
+ */
 export function AdminReplaceListEditor<T>({
   editor,
   loadingMessage,
   children,
 }: Omit<AdminReplaceListEditorProps<T>, "saveLabel">) {
-  const { loading, error, items, update, remove, append } = editor;
+  const { loading, items, update, remove, append } = editor;
 
   if (loading) return <p className="body-md text-ink-60">{loadingMessage}</p>;
 
   return (
-    <div className="flex flex-col gap-4">
-      {error ? <p className="body-md text-danger">{error}</p> : null}
-      {children({ items, update, remove, append })}
-    </div>
+    <div className="flex flex-col gap-4">{children({ items, update, remove, append })}</div>
   );
 }

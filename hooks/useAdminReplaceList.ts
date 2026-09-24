@@ -1,12 +1,16 @@
 "use client";
 
 import * as React from "react";
+import { toast } from "@/components/ui/Toast";
+import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 
 export type UseAdminReplaceListOptions<T> = {
   fetch: () => Promise<T[]>;
   write: (items: T[]) => Promise<void>;
   loadError?: string;
   saveError?: string;
+  /** Toast shown on a successful save. Defaults to a generic "Saved." */
+  saveSuccess?: string;
   beforeSave?: (items: T[]) => T[];
 };
 
@@ -15,7 +19,6 @@ export type AdminReplaceListControls<T> = {
   loading: boolean;
   saving: boolean;
   dirty: boolean;
-  error: string | null;
   load: () => Promise<void>;
   save: () => Promise<void>;
   update: (index: number, patch: Partial<T>) => void;
@@ -28,22 +31,23 @@ export function useAdminReplaceList<T>({
   write,
   loadError = "Failed to load.",
   saveError = "Failed to save.",
+  saveSuccess = "Saved.",
   beforeSave,
 }: UseAdminReplaceListOptions<T>): AdminReplaceListControls<T> {
   const [items, setItems] = React.useState<T[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [dirty, setDirty] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+
+  useUnsavedChangesGuard(dirty);
 
   const load = React.useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
       setItems(await fetch());
       setDirty(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : loadError);
+      toast.error(err instanceof Error ? err.message : loadError);
     } finally {
       setLoading(false);
     }
@@ -75,25 +79,24 @@ export function useAdminReplaceList<T>({
 
   const save = React.useCallback(async () => {
     setSaving(true);
-    setError(null);
     try {
       const payload = beforeSave ? beforeSave(items) : items;
       await write(payload);
       setDirty(false);
       await load();
+      toast.success(saveSuccess);
     } catch (err) {
-      setError(err instanceof Error ? err.message : saveError);
+      toast.error(err instanceof Error ? err.message : saveError);
     } finally {
       setSaving(false);
     }
-  }, [beforeSave, items, load, saveError, write]);
+  }, [beforeSave, items, load, saveError, saveSuccess, write]);
 
   return {
     items,
     loading,
     saving,
     dirty,
-    error,
     load,
     save,
     update,

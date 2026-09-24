@@ -5,6 +5,7 @@ import { RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
+import { toast } from "@/components/ui/Toast";
 import { fetchAdminLeads, type AdminLeadsResponse, updateAdminLeadStatus } from "@/lib/admin/store";
 
 type LeadKind = "corporate" | "fleet-partnership";
@@ -69,8 +70,9 @@ function StatusControls({
               adminNotes: notes.trim() || undefined,
             });
             await onSaved();
+            toast.success("Saved lead status.");
           } catch (error) {
-            alert(error instanceof Error ? error.message : "Could not save lead status.");
+            toast.error(error instanceof Error ? error.message : "Could not save lead status.");
           } finally {
             setSaving(false);
           }
@@ -85,16 +87,14 @@ function StatusControls({
 export default function AdminLeadsPage() {
   const [data, setData] = React.useState<AdminLeadsResponse | null>(null);
   const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
 
   const refresh = React.useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
       const next = await fetchAdminLeads();
       setData(next);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load leads.");
+      toast.error(err instanceof Error ? err.message : "Failed to load leads.");
     } finally {
       setLoading(false);
     }
@@ -119,7 +119,6 @@ export default function AdminLeadsPage() {
       }
     >
       {loading ? <p className="body-md text-ink-60">Loading leads…</p> : null}
-      {error ? <p className="body-md text-danger">{error}</p> : null}
       {data ? (
         <div className="flex flex-col gap-8">
           <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">

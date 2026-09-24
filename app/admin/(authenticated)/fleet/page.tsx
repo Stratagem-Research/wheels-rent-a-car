@@ -45,6 +45,7 @@ import {
   type VehicleOperational,
 } from "@/lib/vehicles/vehicle-operational";
 import { VehicleOperationalFields } from "@/components/admin/VehicleOperationalFields";
+import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 
 /**
  * /admin/fleet — website-owned vehicle copy/media.
@@ -346,13 +347,15 @@ export default function AdminFleetPage() {
   const [loading, setLoading] = React.useState(true);
   const [savingKey, setSavingKey] = React.useState<string | null>(null);
   const [syncing, setSyncing] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
   const [creating, setCreating] = React.useState(false);
   const [selectedUnitIds, setSelectedUnitIds] = React.useState<Record<string, string>>({});
   const [heldIds, setHeldIds] = React.useState<Set<string>>(() => new Set());
   const [sourceFilter, setSourceFilter] = React.useState<SourceFilter>("all");
   const [addUnitIds, setAddUnitIds] = React.useState<Record<string, string>>({});
   const [addUnitErrors, setAddUnitErrors] = React.useState<Record<string, string>>({});
+  const [dirty, setDirty] = React.useState(false);
+
+  useUnsavedChangesGuard(dirty);
 
   const allGroups = React.useMemo(
     () => groupDraftsByModel(drafts.map((draft, index) => ({ draft, index }))),
@@ -373,7 +376,6 @@ export default function AdminFleetPage() {
 
   const refresh = React.useCallback(async (opts?: { keepLocalNames?: boolean }) => {
     setLoading(true);
-    setError(null);
     try {
       const metadataRes = await readJson<{ items: MetadataItem[]; held_ids?: string[] }>(
         "/api/admin/fleet/metadata",
@@ -383,8 +385,9 @@ export default function AdminFleetPage() {
       setDrafts((prev) => (opts?.keepLocalNames ? preserveWebsiteBrandModel(prev, incoming) : incoming));
       setHeldIds(new Set(Array.isArray(metadataRes.held_ids) ? metadataRes.held_ids : []));
       setDeletedIds([]);
+      setDirty(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load fleet admin data.");
+      toast.error(err instanceof Error ? err.message : "Failed to load fleet admin data.");
     } finally {
       setLoading(false);
     }
@@ -399,10 +402,12 @@ export default function AdminFleetPage() {
   const updateGroup = (indices: number[], patch: Partial<MetaDraft>) => {
     const ids = new Set(indices);
     setDrafts((list) => list.map((m, i) => (ids.has(i) ? { ...m, ...patch } : m)));
+    setDirty(true);
   };
 
   const updateAt = (index: number, patch: Partial<MetaDraft>) => {
     setDrafts((list) => list.map((m, i) => (i === index ? { ...m, ...patch } : m)));
+    setDirty(true);
   };
 
   const patchGroupOperational = (indices: number[], patch: Partial<VehicleOperational>) => {
@@ -410,6 +415,7 @@ export default function AdminFleetPage() {
     setDrafts((list) =>
       list.map((m, i) => (ids.has(i) ? { ...m, operational: { ...m.operational, ...patch } } : m)),
     );
+    setDirty(true);
   };
 
   const addCar = () => {
@@ -424,6 +430,7 @@ export default function AdminFleetPage() {
     setCreating(false);
     setSearch("");
     setPage(1);
+    setDirty(true);
   };
 
   const addUnitToGroup = (source: MetaDraft, groupSaveKey: string) => {
@@ -447,6 +454,7 @@ export default function AdminFleetPage() {
     setAddUnitIds((prev) => ({ ...prev, [groupSaveKey]: "" }));
     setAddUnitErrors((prev) => ({ ...prev, [groupSaveKey]: "" }));
     setSelectedUnitIds((prev) => ({ ...prev, [groupSaveKey]: storedId }));
+    setDirty(true);
     toast.success(`Added unit "${displayManualUnitId(storedId)}".`);
   };
 
@@ -459,15 +467,13 @@ export default function AdminFleetPage() {
     if (!ok) return;
     setDeletedIds((prev) => [...prev, unitId]);
     setDrafts((list) => list.filter((draft) => draft.frontend_vehicle_id !== unitId));
-    setError(null);
+    setDirty(true);
     try {
       await putMetadata([], [unitId]);
       setDeletedIds((prev) => prev.filter((id) => id !== unitId));
       toast.success(`Removed unit "${displayManualUnitId(unitId)}".`);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to remove unit.";
-      setError(message);
-      toast.error(message);
+      toast.error(err instanceof Error ? err.message : "Failed to remove unit.");
     }
   };
 
@@ -488,18 +494,18 @@ export default function AdminFleetPage() {
       .filter((id): id is string => Boolean(id));
     setDeletedIds((prev) => [...prev, ...removedIds]);
     setDrafts((list) => list.filter((_, i) => !drop.has(i)));
-    setError(null);
+    setDirty(true);
     try {
       await putMetadata([], removedIds);
       setDeletedIds((prev) => prev.filter((id) => !removedIds.includes(id)));
+      toast.success(`Removed ${label}.`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to remove vehicle.");
+      toast.error(err instanceof Error ? err.message : "Failed to remove vehicle.");
     }
   };
 
   const syncFromWizard = async () => {
     setSyncing(true);
-    setError(null);
     try {
       const res = await fetch("/api/admin/fleet/sync", {
         method: "POST",
@@ -514,7 +520,7 @@ export default function AdminFleetPage() {
       );
       await refresh({ keepLocalNames: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to sync from Wizard.");
+      toast.error(err instanceof Error ? err.message : "Failed to sync from Wizard.");
     } finally {
       setSyncing(false);
     }
@@ -539,12 +545,11 @@ export default function AdminFleetPage() {
     const source = drafts[indices[0]!];
     if (!source) return;
     if (isWebsiteOnlyDraft(source) && !isManualCardReady(source)) {
-      setError("Fill brand, model, year, and daily rate before saving.");
+      toast.error("Fill brand, model, year, and daily rate before saving.");
       return;
     }
     const key = groupKeyForDraft(source);
     setSavingKey(key);
-    setError(null);
     try {
       const members = indices
         .map((index) => drafts[index])
@@ -554,7 +559,7 @@ export default function AdminFleetPage() {
       setDeletedIds([]);
       toast.success(`Saved ${vehicleCardTitle(source)}.`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save vehicle.");
+      toast.error(err instanceof Error ? err.message : "Failed to save vehicle.");
     } finally {
       setSavingKey(null);
     }
@@ -589,8 +594,6 @@ export default function AdminFleetPage() {
         </>
       }
     >
-      {error ? <p className="body-md text-danger mb-4">{error}</p> : null}
-
       {creating ? (
         <div className="mb-6">
           <ManualVehicleCreateForm

@@ -53,7 +53,6 @@ function matchesSearch(row: SeoRow, query: string): boolean {
 export default function AdminSeoPage() {
   const [rows, setRows] = React.useState<SeoRow[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
   const [savingKey, setSavingKey] = React.useState<string | null>(null);
   const [kindFilter, setKindFilter] = React.useState<KindFilter>("all");
   const [search, setSearch] = React.useState("");
@@ -62,7 +61,6 @@ export default function AdminSeoPage() {
 
   const refresh = React.useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
       const res = await fetch("/api/admin/seo", { cache: "no-store" });
       if (!res.ok) {
@@ -72,7 +70,7 @@ export default function AdminSeoPage() {
       const body = (await res.json()) as { items: SeoRow[] };
       setRows(Array.isArray(body.items) ? body.items : []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load SEO data.");
+      toast.error(err instanceof Error ? err.message : "Failed to load SEO data.");
     } finally {
       setLoading(false);
     }
@@ -102,7 +100,6 @@ export default function AdminSeoPage() {
 
   const saveRow = async (row: SeoRow) => {
     setSavingKey(row.page_key);
-    setError(null);
     try {
       const res = await fetch("/api/admin/seo", {
         method: "PUT",
@@ -128,7 +125,7 @@ export default function AdminSeoPage() {
       }
       toast.success(`Saved ${row.label}.`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save SEO data.");
+      toast.error(err instanceof Error ? err.message : "Failed to save SEO data.");
     } finally {
       setSavingKey(null);
     }
@@ -140,8 +137,6 @@ export default function AdminSeoPage() {
       title="Page metadata"
       description="Manage meta titles, descriptions, and OG images for every page and vehicle."
     >
-      {error ? <p className="body-md text-danger mb-4">{error}</p> : null}
-
       <section className="flex flex-col gap-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <p className="body-sm text-ink-60">

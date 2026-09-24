@@ -6,6 +6,7 @@ import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/Accordion";
 import { Button } from "@/components/ui/Button";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { toast } from "@/components/ui/Toast";
 import { DocumentScanPreview } from "@/components/account/DocumentScanPreview";
 import { formatUsd } from "@/lib/booking/pricing";
 import type { User, UserDocument } from "@/types/domain";
@@ -68,7 +69,6 @@ export default function AdminUsersPage() {
   const [page, setPage] = React.useState(1);
   const [data, setData] = React.useState<UsersResponse | null>(null);
   const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
   const [expanded, setExpanded] = React.useState("");
   const [details, setDetails] = React.useState<Record<string, UserDetail>>({});
   const [detailError, setDetailError] = React.useState<Record<string, string>>({});
@@ -78,20 +78,16 @@ export default function AdminUsersPage() {
   if (activePage !== page) {
     setActivePage(page);
     setLoading(true);
-    setError(null);
   }
 
   React.useEffect(() => {
     let cancelled = false;
     readJson<UsersResponse>(`/api/admin/users?page=${page}&perPage=${PER_PAGE}`)
       .then((next) => {
-        if (!cancelled) {
-          setData(next);
-          setError(null);
-        }
+        if (!cancelled) setData(next);
       })
       .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load accounts.");
+        if (!cancelled) toast.error(err instanceof Error ? err.message : "Failed to load accounts.");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -130,8 +126,6 @@ export default function AdminUsersPage() {
       title="Users"
       description="Every registered customer account, and everything they've saved to their profile."
     >
-      {error ? <p className="body-md text-danger mb-4">{error}</p> : null}
-
       {loading && !data ? (
         <div className="flex flex-col gap-2">
           <Skeleton className="h-16 rounded-lg" />

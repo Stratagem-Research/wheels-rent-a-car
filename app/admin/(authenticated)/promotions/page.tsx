@@ -4,6 +4,7 @@ import * as React from "react";
 import { RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
+import { toast } from "@/components/ui/Toast";
 
 type Promotion = {
   id: string;
@@ -18,11 +19,9 @@ export default function AdminPromotionsPage() {
   const [items, setItems] = React.useState<Promotion[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
 
   const refresh = React.useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
       const res = await fetch("/api/admin/promotions", { cache: "no-store" });
       if (!res.ok) {
@@ -32,7 +31,7 @@ export default function AdminPromotionsPage() {
       const data = (await res.json()) as { items: Promotion[] };
       setItems(data.items);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load promotions.");
+      toast.error(err instanceof Error ? err.message : "Failed to load promotions.");
     } finally {
       setLoading(false);
     }
@@ -46,7 +45,6 @@ export default function AdminPromotionsPage() {
 
   const save = async () => {
     setSaving(true);
-    setError(null);
     try {
       const res = await fetch("/api/admin/promotions", {
         method: "PUT",
@@ -58,8 +56,9 @@ export default function AdminPromotionsPage() {
         throw new Error(data.message ?? "Failed to save promotions.");
       }
       await refresh();
+      toast.success("Saved promotions.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save promotions.");
+      toast.error(err instanceof Error ? err.message : "Failed to save promotions.");
     } finally {
       setSaving(false);
     }
@@ -82,7 +81,6 @@ export default function AdminPromotionsPage() {
         </>
       }
     >
-      {error ? <p className="body-md text-danger mb-4">{error}</p> : null}
       <div className="flex flex-col gap-4">
         {items.map((item, index) => (
           <section key={item.id} className="bg-paper border-border rounded-xl border p-5">

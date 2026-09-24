@@ -5,6 +5,7 @@ import { RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { AdminDataTable } from "@/components/admin/AdminDataTable";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
+import { toast } from "@/components/ui/Toast";
 import { updateAdminLeadStatus } from "@/lib/admin/store";
 import type { ChauffeurLead } from "@/lib/supabase/admin-repository";
 
@@ -42,8 +43,9 @@ function AdminNotesControl({
               adminNotes: notes.trim() || undefined,
             });
             await onSaved();
+            toast.success("Saved notes.");
           } catch (error) {
-            alert(error instanceof Error ? error.message : "Could not save notes.");
+            toast.error(error instanceof Error ? error.message : "Could not save notes.");
           } finally {
             setSaving(false);
           }
@@ -68,15 +70,13 @@ async function fetchChauffeurRequests(): Promise<ChauffeurLead[]> {
 export default function AdminChauffeurRequestsPage() {
   const [leads, setLeads] = React.useState<ChauffeurLead[]>([]);
   const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
 
   const refresh = React.useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
       setLeads(await fetchChauffeurRequests());
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load.");
+      toast.error(err instanceof Error ? err.message : "Failed to load.");
     } finally {
       setLoading(false);
     }
@@ -86,13 +86,10 @@ export default function AdminChauffeurRequestsPage() {
     let cancelled = false;
     void fetchChauffeurRequests()
       .then((next) => {
-        if (!cancelled) {
-          setLeads(next);
-          setError(null);
-        }
+        if (!cancelled) setLeads(next);
       })
       .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load.");
+        if (!cancelled) toast.error(err instanceof Error ? err.message : "Failed to load.");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -115,8 +112,7 @@ export default function AdminChauffeurRequestsPage() {
       }
     >
       {loading ? <p className="body-md text-ink-60">Loading…</p> : null}
-      {error ? <p className="body-md text-danger">{error}</p> : null}
-      {!loading && !error ? (
+      {!loading ? (
         <div className="flex flex-col gap-6">
           <AdminDataTable
             rows={leads}

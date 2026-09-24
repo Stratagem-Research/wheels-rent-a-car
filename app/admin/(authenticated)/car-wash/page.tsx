@@ -14,6 +14,7 @@ import { fetchAdminCarWashPackages, writeAdminCarWashPackages } from "@/lib/admi
 import type { CarWashPackage } from "@/types/domain";
 import type { CmsLocale } from "@/lib/i18n/localized";
 import { getLocalizedString, updateLocalizedString } from "@/lib/i18n/localized";
+import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 
 export default function AdminCarWashPage() {
   const confirmDialog = useConfirmDialog();
@@ -22,6 +23,8 @@ export default function AdminCarWashPage() {
   const [dirty, setDirty] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const [activeLocale, setActiveLocale] = React.useState<CmsLocale>("en");
+
+  useUnsavedChangesGuard(dirty);
 
   React.useEffect(() => {
     let cancelled = false;

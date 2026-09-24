@@ -19,6 +19,7 @@ import {
   updateLocalizedString,
   updateLocalizedStringArray,
 } from "@/lib/i18n/localized";
+import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 
 /**
  * TripForm — shared create/edit form for /admin/trips/{new,[slug]}.
@@ -70,6 +71,12 @@ export function TripForm({ slug }: TripFormProps) {
     getLocalizedStringArray(initial.tags, "en").join(", "),
   );
   const [errors, setErrors] = React.useState<Record<string, string>>({});
+
+  const dirty = React.useMemo(
+    () => JSON.stringify(form) !== JSON.stringify(initial) || tagsInput !== getLocalizedStringArray(initial.tags, "en").join(", "),
+    [form, initial, tagsInput],
+  );
+  useUnsavedChangesGuard(dirty);
 
   React.useEffect(() => {
     // Keep local draft synchronized when the backing trip record loads/changes.

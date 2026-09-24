@@ -7,6 +7,7 @@ import { Field } from "@/components/ui/FormAtoms";
 import { Input } from "@/components/ui/Input";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
+import { toast } from "@/components/ui/Toast";
 import { getAdminCsrfHeader } from "@/lib/admin/csrf";
 import { DEFAULT_CONTACT_SETTINGS, emailHref, telHref, whatsAppDigits } from "@/lib/contact/settings";
 import type { ContactSettings } from "@/types/domain";
@@ -23,12 +24,9 @@ export default function AdminContactPage() {
   const [settings, setSettings] = React.useState<ContactSettings>(DEFAULT_CONTACT_SETTINGS);
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  const [saved, setSaved] = React.useState(false);
 
   const refresh = React.useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
       const res = await fetch("/api/admin/contact", { cache: "no-store" });
       if (!res.ok) {
@@ -38,7 +36,7 @@ export default function AdminContactPage() {
       const data = (await res.json()) as { settings: ContactSettings };
       setSettings(data.settings);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load contact settings.");
+      toast.error(err instanceof Error ? err.message : "Failed to load contact settings.");
     } finally {
       setLoading(false);
     }
@@ -52,8 +50,6 @@ export default function AdminContactPage() {
 
   const save = async () => {
     setSaving(true);
-    setError(null);
-    setSaved(false);
     try {
       const res = await fetch("/api/admin/contact", {
         method: "PUT",
@@ -65,9 +61,9 @@ export default function AdminContactPage() {
         throw new Error(data.message ?? "Failed to save contact settings.");
       }
       await refresh();
-      setSaved(true);
+      toast.success("Saved contact settings.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save contact settings.");
+      toast.error(err instanceof Error ? err.message : "Failed to save contact settings.");
     } finally {
       setSaving(false);
     }
@@ -153,9 +149,6 @@ export default function AdminContactPage() {
             <code className="font-mono">{emailHref(settings.email)}</code>
           </p>
         </div>
-
-        {error ? <p className="body-md text-danger">{error}</p> : null}
-
       </AdminFormShell>
     </AdminPageShell>
   );

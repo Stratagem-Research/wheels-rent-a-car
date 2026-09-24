@@ -19,6 +19,7 @@ import {
   updateLocalizedString,
   updateLocalizedStringArray,
 } from "@/lib/i18n/localized";
+import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 
 /**
  * /admin/corporate — corporate tier editor.
@@ -33,6 +34,8 @@ export default function AdminCorporatePage() {
   const [working, setWorking] = React.useState<CorporateTier[]>(tiers);
   const [dirty, setDirty] = React.useState(false);
   const [activeLocale, setActiveLocale] = React.useState<CmsLocale>("en");
+
+  useUnsavedChangesGuard(dirty);
 
   // Reset working copy whenever the persisted store changes from elsewhere.
   /* eslint-disable react-hooks/set-state-in-effect */

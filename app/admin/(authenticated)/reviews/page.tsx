@@ -10,8 +10,10 @@ import { Textarea } from "@/components/ui/Textarea";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { useConfirmDialog } from "@/components/admin/ConfirmDialog";
+import { toast } from "@/components/ui/Toast";
 import { fetchAdminReviews, writeAdminReviews } from "@/lib/admin/catalog-store";
 import type { Review } from "@/types/domain";
+import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 
 /** /admin/reviews — homepage reviews marquee. */
 export default function AdminReviewsPage() {
@@ -20,16 +22,16 @@ export default function AdminReviewsPage() {
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [dirty, setDirty] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+
+  useUnsavedChangesGuard(dirty);
 
   const load = React.useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
       setItems(await fetchAdminReviews());
       setDirty(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load reviews.");
+      toast.error(err instanceof Error ? err.message : "Failed to load reviews.");
     } finally {
       setLoading(false);
     }
@@ -55,13 +57,13 @@ export default function AdminReviewsPage() {
 
   const save = async () => {
     setSaving(true);
-    setError(null);
     try {
       await writeAdminReviews(items);
       setDirty(false);
       await load();
+      toast.success("Saved reviews.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save reviews.");
+      toast.error(err instanceof Error ? err.message : "Failed to save reviews.");
     } finally {
       setSaving(false);
     }
@@ -83,7 +85,6 @@ export default function AdminReviewsPage() {
         </>
       }
     >
-      {error ? <p className="body-md text-danger mb-4">{error}</p> : null}
       {loading ? (
         <p className="body-md text-ink-60">Loading reviews…</p>
       ) : (

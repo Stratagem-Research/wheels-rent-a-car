@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
 import { AdminImageUpload } from "@/components/admin/AdminImageUpload";
+import { toast } from "@/components/ui/Toast";
 import type { CmsLocale } from "@/lib/i18n/localized";
 import {
   getLocalizedString,
@@ -17,6 +18,7 @@ import {
   updateLocalizedStringArray,
 } from "@/lib/i18n/localized";
 import type { LocalizedString, LocalizedStringArray } from "@/types/domain";
+import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 
 /**
  * /admin/about — structured editor for the /about page content.
@@ -53,12 +55,13 @@ export default function AdminAboutPage() {
   const [content, setContent] = React.useState<AboutContent | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
   const [activeLocale, setActiveLocale] = React.useState<CmsLocale>("en");
+  const [dirty, setDirty] = React.useState(false);
+
+  useUnsavedChangesGuard(dirty);
 
   const refresh = React.useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
       const res = await fetch("/api/admin/about", { cache: "no-store" });
       if (!res.ok) {
@@ -67,8 +70,9 @@ export default function AdminAboutPage() {
       }
       const data = (await res.json()) as { content: unknown };
       setContent(normalizeAboutPayload(data.content));
+      setDirty(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load about content.");
+      toast.error(err instanceof Error ? err.message : "Failed to load about content.");
     } finally {
       setLoading(false);
     }
@@ -83,7 +87,6 @@ export default function AdminAboutPage() {
   const save = async () => {
     if (!content) return;
     setSaving(true);
-    setError(null);
     try {
       const res = await fetch("/api/admin/about", {
         method: "PUT",
@@ -95,15 +98,18 @@ export default function AdminAboutPage() {
         throw new Error(data.message ?? "Failed to save about content.");
       }
       await refresh();
+      toast.success("Saved about content.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save about content.");
+      toast.error(err instanceof Error ? err.message : "Failed to save about content.");
     } finally {
       setSaving(false);
     }
   };
 
-  const patch = (next: Partial<AboutContent>) =>
+  const patch = (next: Partial<AboutContent>) => {
     setContent((c) => (c ? { ...c, ...next } : c));
+    setDirty(true);
+  };
 
   return (
     <AdminPageShell
@@ -132,8 +138,6 @@ export default function AdminAboutPage() {
         </div>
       }
     >
-      {error ? <p className="body-md text-danger mb-4">{error}</p> : null}
-
       {!content ? (
         <p className="body-md text-ink-60">{loading ? "Loading…" : "No content."}</p>
       ) : (
@@ -440,6 +444,7 @@ export default function AdminAboutPage() {
           }
         : c,
     );
+    setDirty(true);
   }
 }
 

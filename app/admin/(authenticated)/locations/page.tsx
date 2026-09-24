@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/Checkbox";
 import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
 import { useConfirmDialog } from "@/components/admin/ConfirmDialog";
+import { toast } from "@/components/ui/Toast";
 import type { Branch, BranchHours, DeliveryPricingSettings } from "@/types/domain";
 import { DEFAULT_DELIVERY_PRICING_SETTINGS } from "@/lib/booking/delivery-pricing";
 
@@ -37,11 +38,9 @@ export default function AdminLocationsPage() {
   const [items, setItems] = React.useState<Branch[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
 
   const refresh = React.useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
       const res = await fetch("/api/admin/locations", { cache: "no-store" });
       if (!res.ok) {
@@ -51,7 +50,7 @@ export default function AdminLocationsPage() {
       const data = (await res.json()) as { items: Branch[] };
       setItems(Array.isArray(data.items) ? data.items : []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load locations.");
+      toast.error(err instanceof Error ? err.message : "Failed to load locations.");
     } finally {
       setLoading(false);
     }
@@ -91,7 +90,6 @@ export default function AdminLocationsPage() {
 
   const save = async () => {
     setSaving(true);
-    setError(null);
     try {
       const payload = items.map((b) => ({
         ...b,
@@ -108,8 +106,9 @@ export default function AdminLocationsPage() {
         throw new Error(data.message ?? "Failed to save locations.");
       }
       await refresh();
+      toast.success("Saved branch locations.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save locations.");
+      toast.error(err instanceof Error ? err.message : "Failed to save locations.");
     } finally {
       setSaving(false);
     }
@@ -132,8 +131,6 @@ export default function AdminLocationsPage() {
         </>
       }
     >
-      {error ? <p className="body-md text-danger mb-4">{error}</p> : null}
-
       <DeliveryPricingPanel />
 
       {items.length === 0 && !loading ? (
@@ -276,11 +273,9 @@ function DeliveryPricingPanel() {
   );
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
 
   const refresh = React.useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
       const res = await fetch("/api/admin/delivery-pricing", { cache: "no-store" });
       if (!res.ok) {
@@ -290,7 +285,7 @@ function DeliveryPricingPanel() {
       const data = (await res.json()) as { settings: DeliveryPricingSettings };
       setSettings(data.settings);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load delivery pricing.");
+      toast.error(err instanceof Error ? err.message : "Failed to load delivery pricing.");
     } finally {
       setLoading(false);
     }
@@ -304,7 +299,6 @@ function DeliveryPricingPanel() {
 
   const save = async () => {
     setSaving(true);
-    setError(null);
     try {
       const res = await fetch("/api/admin/delivery-pricing", {
         method: "PUT",
@@ -316,8 +310,9 @@ function DeliveryPricingPanel() {
         throw new Error(data.message ?? "Failed to save delivery pricing.");
       }
       await refresh();
+      toast.success("Saved delivery pricing.");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to save delivery pricing.");
+      toast.error(err instanceof Error ? err.message : "Failed to save delivery pricing.");
     } finally {
       setSaving(false);
     }
@@ -379,7 +374,6 @@ function DeliveryPricingPanel() {
             )}
           </Field>
         </div>
-        {error ? <p className="body-md text-danger">{error}</p> : null}
         <div className="flex justify-end">
           <Button onClick={() => void save()} loading={saving} disabled={loading}>
             Save delivery pricing
