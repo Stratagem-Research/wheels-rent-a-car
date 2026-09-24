@@ -11,6 +11,7 @@ type ReviewRow = {
   source: Review["source"];
   sort_order: number;
   active: boolean;
+  link: string | null;
 };
 
 function toReview(row: ReviewRow): Review {
@@ -21,6 +22,7 @@ function toReview(row: ReviewRow): Review {
     author: row.reviewer_name,
     date: row.review_date,
     source: row.source,
+    link: row.link ?? undefined,
   };
 }
 
@@ -50,10 +52,24 @@ export async function replaceReviewsInDb(items: Review[]): Promise<void> {
     reviewer_name: item.author,
     review_date: item.date,
     source: item.source,
+    link: item.link?.trim() ? item.link.trim() : null,
     sort_order: index,
     active: true,
     updated_at: new Date().toISOString(),
   }));
   const { error } = await supabase.from("cms_reviews").insert(rows);
-  if (error) throw new Error(error.message);
+  if (error) {
+    // PostgREST schema-cache lag after the `link` column is added by a
+    // direct-pg migration: the cache hasn't refreshed, so it rejects the
+    // `link` field. Retry without `link` so the save still lands; the next
+    // save (after the cache refreshes) will persist `link`. Matches the
+    // graceful-degradation pattern used for contact_settings.email.
+    if (/link/i.test(error.message) && /schema cache|could not find/i.test(error.message)) {
+      const rowsWithoutLink = rows.map(({ link: _link, ...rest }) => rest);
+      const { error: retryError } = await supabase.from("cms_reviews").insert(rowsWithoutLink);
+      if (retryError) throw new Error(retryError.message);
+      return;
+    }
+    throw new Error(error.message);
+  }
 }

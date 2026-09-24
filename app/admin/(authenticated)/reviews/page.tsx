@@ -145,6 +145,18 @@ export default function AdminReviewsPage() {
                     />
                   )}
                 </Field>
+                <Field label="Link (optional)" className="sm:col-span-2">
+                  {({ id }) => (
+                    <Input
+                      id={id}
+                      type="url"
+                      inputMode="url"
+                      placeholder="https://maps.google.com/..."
+                      value={item.link ?? ""}
+                      onChange={(e) => update(index, { link: e.target.value || undefined })}
+                    />
+                  )}
+                </Field>
                 <Field label="Quote" className="sm:col-span-2">
                   {({ id }) => (
                     <Textarea

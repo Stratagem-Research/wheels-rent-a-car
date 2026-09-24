@@ -49,6 +49,7 @@ async function reviewsFromDb(): Promise<Review[]> {
     author: row.reviewer_name as string,
     date: row.review_date as string,
     source: row.source as Review["source"],
+    link: (row.link as string | null) ?? undefined,
   }));
 }
 

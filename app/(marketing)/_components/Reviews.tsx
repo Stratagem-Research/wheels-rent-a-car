@@ -81,6 +81,7 @@ export function Reviews({ reviews }: { reviews: Review[] }) {
                 reviewerName={r.author}
                 date={r.date}
                 source={r.source as "google" | "trustpilot" | undefined}
+                link={r.link}
               />
             </li>
           ))}

@@ -416,6 +416,8 @@ export interface Review {
   author: string;
   body: string;
   date: ISODate;
+  /** Optional URL of the original review on Google/Trustpilot. */
+  link?: string;
 }
 
 export interface FaqEntry {

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Star } from "lucide-react";
+import { Star, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -22,6 +22,8 @@ export interface ReviewCardProps {
   reviewerName: string;
   date: string;
   source?: "google" | "trustpilot";
+  /** Optional URL of the original review. Renders a "Read review" link. */
+  link?: string;
   className?: string;
 }
 
@@ -36,6 +38,7 @@ export function ReviewCard({
   reviewerName,
   date,
   source,
+  link,
   className,
 }: ReviewCardProps) {
   return (
@@ -63,7 +66,20 @@ export function ReviewCard({
 
       <footer className="flex flex-col gap-0.5">
         <span className="label-md text-ink-95">{reviewerName}</span>
-        <span className="label-sm text-ink-50">{date}</span>
+        <div className="flex items-center justify-between gap-2">
+          <span className="label-sm text-ink-50">{date}</span>
+          {link ? (
+            <a
+              href={link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="label-sm text-signal-blue hover:text-signal-blue/80 inline-flex items-center gap-1 underline underline-offset-4"
+            >
+              Read review
+              <ArrowUpRight className="size-3.5" aria-hidden="true" />
+            </a>
+          ) : null}
+        </div>
       </footer>
     </article>
   );

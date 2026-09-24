@@ -12,6 +12,12 @@ const ReviewSchema = z.object({
   author: z.string().min(1),
   body: z.string().min(1),
   date: z.string().min(1),
+  link: z
+    .string()
+    .trim()
+    .url("Enter a valid URL, e.g. https://maps.google.com/...")
+    .optional()
+    .or(z.literal("")),
 });
 
 const PayloadSchema = z.object({ items: z.array(ReviewSchema) });
