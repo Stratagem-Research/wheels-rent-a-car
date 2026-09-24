@@ -153,7 +153,7 @@ Sticky bottom bar (or right rail):
 
 #### Modify modal
 
-- Allows changing pickup/return time (within policy: free up to 24h before pickup).
+- Allows changing pickup/return time (within policy: free up to 7 days before pickup).
 - Recomputes pricing live; user confirms before applying.
 - Adding/removing add-ons or changing protection requires re-checkout for differential payment.
 

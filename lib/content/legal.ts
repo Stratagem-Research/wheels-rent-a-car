@@ -97,7 +97,7 @@ export const LEGAL_ARTICLES: Record<LegalArticle["slug"], LegalArticle> = {
       {
         id: "cancellation",
         heading: "Cancellation",
-        body: "Free cancellation up to 24 hours before pickup. Within 24 hours of pickup a one-day rate fee applies. Best-Price (pay now) rates are non-refundable except where Lebanese consumer law requires.",
+        body: "Free cancellation up to 7 days before pickup. Within 7 days of pickup a one-day rate fee applies. Best-Price (pay now) rates are non-refundable except where Lebanese consumer law requires.",
       },
       {
         id: "damages",

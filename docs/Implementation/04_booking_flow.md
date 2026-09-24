@@ -135,7 +135,7 @@ Inspired by Sixt's inline rate selector. When the user clicks `Select` on a card
 | Option        | Price hint                          | Description                                         |
 | ------------- | ----------------------------------- | --------------------------------------------------- |
 | ◉ Best Price  | Included (default)                  | Pay now. Non-refundable.                            |
-| ○ Flexible    | +$X/day                             | Free cancellation up to 24h before pickup.          |
+| ○ Flexible    | +$X/day                             | Free cancellation up to 7 days before pickup.       |
 
 **Mileage panel:**
 

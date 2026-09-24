@@ -220,14 +220,14 @@ export const HELP_ARTICLE_T: Record<string, ArticleLocales> = {
     ar: {
       title: "سياسة الإلغاء",
       intro:
-        "مجاني حتى 24 ساعة قبل الاستلام. خلال 24 ساعة تُطبَّق رسوم بقيمة يوم واحد. أسعار «أفضل سعر» غير قابلة للاسترداد إلا حيث يفرض القانون اللبناني ذلك.",
+        "مجاني حتى 7 أيام قبل الاستلام. خلال 7 أيام تُطبَّق رسوم بقيمة يوم واحد. أسعار «أفضل سعر» غير قابلة للاسترداد إلا حيث يفرض القانون اللبناني ذلك.",
       sections: {
         "free-window": {
           heading: "نافذة الإلغاء المجاني",
-          body: "ألغِ حتى 24 ساعة قبل الاستلام ونعيد المبلغ كاملاً. التعديلات (تغيير التاريخ أو الموقع) مجانية ضمن النافذة نفسها.",
+          body: "ألغِ حتى 7 أيام قبل الاستلام ونعيد المبلغ كاملاً. التعديلات (تغيير التاريخ أو الموقع) مجانية ضمن النافذة نفسها.",
         },
-        "within-24h": {
-          heading: "خلال 24 ساعة من الاستلام",
+        "within-7d": {
+          heading: "خلال 7 أيام من الاستلام",
           body: "تُطبَّق رسوم بقيمة يوم واحد. نتنازل عنها في حالات اضطراب السفر الموثّقة (رحلات ملغاة، طقس قاسٍ), راسلنا مع إثبات وسنراجع الأمر.",
         },
         "best-price": {
@@ -243,14 +243,14 @@ export const HELP_ARTICLE_T: Record<string, ArticleLocales> = {
     fr: {
       title: "Politique d'annulation",
       intro:
-        "Gratuit jusqu'à 24 heures avant le retrait. Dans les 24 heures, des frais d'une journée s'appliquent. Les tarifs « Meilleur prix » sont non remboursables sauf si le droit de la consommation libanais l'exige.",
+        "Gratuit jusqu'à 7 jours avant le retrait. Dans les 7 jours, des frais d'une journée s'appliquent. Les tarifs « Meilleur prix » sont non remboursables sauf si le droit de la consommation libanais l'exige.",
       sections: {
         "free-window": {
           heading: "Fenêtre d'annulation gratuite",
-          body: "Annulez jusqu'à 24 heures avant le retrait et nous remboursons l'intégralité. Les modifications (dates ou lieu) sont gratuites dans la même fenêtre.",
+          body: "Annulez jusqu'à 7 jours avant le retrait et nous remboursons l'intégralité. Les modifications (dates ou lieu) sont gratuites dans la même fenêtre.",
         },
-        "within-24h": {
-          heading: "Dans les 24 heures du retrait",
+        "within-7d": {
+          heading: "Dans les 7 jours du retrait",
           body: "Des frais d'une journée s'appliquent. Nous y renonçons en cas de perturbations de voyage documentées (vols annulés, météo sévère), écrivez-nous avec un justificatif et nous examinerons.",
         },
         "best-price": {
@@ -356,7 +356,7 @@ export const LEGAL_ARTICLE_T: Record<string, ArticleLocales> = {
         },
         cancellation: {
           heading: "الإلغاء",
-          body: "إلغاء مجاني حتى 24 ساعة قبل الاستلام. وخلال 24 ساعة من الاستلام تُطبَّق رسوم بقيمة يوم واحد. أسعار «أفضل سعر» (الدفع الآن) غير قابلة للاسترداد إلا حيث يفرض قانون المستهلك اللبناني ذلك.",
+          body: "إلغاء مجاني حتى 7 أيام قبل الاستلام. وخلال 7 أيام من الاستلام تُطبَّق رسوم بقيمة يوم واحد. أسعار «أفضل سعر» (الدفع الآن) غير قابلة للاسترداد إلا حيث يفرض قانون المستهلك اللبناني ذلك.",
         },
         damages: {
           heading: "الأضرار",
@@ -395,7 +395,7 @@ export const LEGAL_ARTICLE_T: Record<string, ArticleLocales> = {
         },
         cancellation: {
           heading: "Annulation",
-          body: "Annulation gratuite jusqu'à 24 heures avant le retrait. Dans les 24 heures, des frais d'une journée s'appliquent. Les tarifs « Meilleur prix » (payer maintenant) sont non remboursables sauf si le droit de la consommation libanais l'exige.",
+          body: "Annulation gratuite jusqu'à 7 jours avant le retrait. Dans les 7 jours, des frais d'une journée s'appliquent. Les tarifs « Meilleur prix » (payer maintenant) sont non remboursables sauf si le droit de la consommation libanais l'exige.",
         },
         damages: {
           heading: "Dommages",

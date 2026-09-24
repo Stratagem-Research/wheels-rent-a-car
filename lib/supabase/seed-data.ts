@@ -210,7 +210,7 @@ export const FAQS: FaqGroup[] = [
         id: "f-c-2",
         group: "g-cancel",
         question: "Is cancellation free?",
-        answer: "Yes if cancelled â‰¥ 24h before pickup. Within 24h, a one-day rate fee applies.",
+        answer: "Yes if cancelled ≥ 7 days before pickup. Within 7 days, a one-day rate fee applies.",
       },
       {
         id: "f-c-3",

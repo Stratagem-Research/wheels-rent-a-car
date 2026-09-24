@@ -122,7 +122,7 @@ Card with explainer:
 
 - Background `colors.primary-10`, white text.
 - Headline `headline-md`: "Ready to land and drive?"
-- Subhead `body-md`: "Book your car now — free cancellation up to 24h."
+- Subhead `body-md`: "Book your car now — free cancellation up to 7 days."
 - `button-cta` red: "Browse cars".
 
 #### 7. Footer

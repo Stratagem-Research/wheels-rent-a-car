@@ -195,7 +195,7 @@ function Typography() {
             lead-lg — Premium cars from $25/day. Free Hazmieh pickup. 24/7 WhatsApp support.
           </span>
           <span className="body-md text-ink-80">
-            body-md — Plans change. Cancel for free up to 24 hours before pickup. No questions, no
+            body-md — Plans change. Cancel for free up to 7 days before pickup. No questions, no
             fees.
           </span>
           <span className="body-sm text-ink-60">
@@ -383,7 +383,7 @@ function Toggles() {
       <Row label="Radio group">
         <RadioGroup value={rateType} onValueChange={setRateType}>
           <RadioItem value="best" label="Best Price — pay now, non-refundable" />
-          <RadioItem value="flex" label="Flexible — free cancellation up to 24h" />
+          <RadioItem value="flex" label="Flexible — free cancellation up to 7 days" />
         </RadioGroup>
       </Row>
       <Row label="Switch">

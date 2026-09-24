@@ -258,7 +258,7 @@ We executed an 11-sprint Phase-1 build (commit `e464915`) and started a Sixt-aes
    - 4 paper cards on the tinted band (no border, no shadow — the band's tint defines edges). 32px padding. Top icon → `headline-sm` title → `body-md` body.
    - The 4 benefits per spec, **with the BEY → Hazmieh swap from Phase 1**:
      1. FREE PICKUP AT HAZMIEH (was "FREE BEY PICKUP")
-     2. FREE CANCELLATION UP TO 24H
+     2. FREE CANCELLATION UP TO 7 DAYS
      3. WHATSAPP 24/7
      4. PAY HOW YOU WANT
 6. **Reviews (§7)** — 3 tinted cards, `card-tint`, stars in ink-100 (monochrome on purpose, not yellow).

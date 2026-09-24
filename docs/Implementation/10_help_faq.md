@@ -43,7 +43,7 @@ Each card → corresponding `/help/[topic]` page.
 └────────────────┘ └────────────────┘ └────────────────┘
 ┌────────────────┐ ┌────────────────┐ ┌────────────────┐
 │ 🔄 Cancellation│ │ ❓ FAQ         │ │ 💬 WhatsApp us │
-│ Free up to 24h │ │ Most common    │ │ Real humans,   │
+│ Free up to 7d  │ │ Most common    │ │ Real humans,   │
 │                │ │ questions      │ │ 24/7           │
 └────────────────┘ └────────────────┘ └────────────────┘
 ```

@@ -31,8 +31,8 @@ Rentals include either capped (200 km/day, 1,000 km/week) or unlimited mileage d
 
 ## 6. Cancellation
 
-- Free cancellation up to 24 hours before pickup.
-- Cancellations within 24 hours of pickup incur a one-day rate fee.
+- Free cancellation up to 7 days before pickup.
+- Cancellations within 7 days of pickup incur a one-day rate fee.
 - "Best Price" (pay now) rates are non-refundable except where Lebanese consumer law requires.
 
 ## 7. Damages

@@ -158,12 +158,12 @@ export function CancelBookingModal({
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
 
-  // Estimated refund IF the request is approved: free if ≥ 24h before pickup.
+  // Estimated refund IF the request is approved: free if ≥ 7 days before pickup.
   const hoursToPickup = Math.max(
     0,
     differenceInHours(parseISO(booking.pickup.datetime), new Date()),
   );
-  const refundFull = hoursToPickup >= 24;
+  const refundFull = hoursToPickup >= 7 * 24;
   const oneDayCents = Math.round(booking.price.baseRateCents / Math.max(1, daysBetween(booking)));
   const refundCents = refundFull
     ? booking.price.totalCents

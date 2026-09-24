@@ -129,16 +129,16 @@ export const HELP_ARTICLES: Record<string, HelpArticle> = {
     title: "Cancellation policy",
     lastUpdated: "2026-05-15",
     intro:
-      "Free up to 24 hours before pickup. Within 24 hours, a one-day rate fee applies. Best-Price rates are non-refundable except where Lebanese law requires.",
+      "Free up to 7 days before pickup. Within 7 days, a one-day rate fee applies. Best-Price rates are non-refundable except where Lebanese law requires.",
     sections: [
       {
         id: "free-window",
         heading: "Free cancellation window",
-        body: "Cancel up to 24 hours before pickup and we refund the full amount. Modifications (date or location changes) are free in the same window.",
+        body: "Cancel up to 7 days before pickup and we refund the full amount. Modifications (date or location changes) are free in the same window.",
       },
       {
-        id: "within-24h",
-        heading: "Within 24 hours of pickup",
+        id: "within-7d",
+        heading: "Within 7 days of pickup",
         body: "A one-day rate fee applies. We waive this for documented travel disruptions (cancelled flights, severe weather), message us with proof and we'll review.",
       },
       {
@@ -182,7 +182,7 @@ export const HELP_TOPICS = [
   {
     slug: "cancellation-policy",
     title: "Cancellation policy",
-    blurb: "Free up to 24h before pickup. Within 24h: one-day fee.",
+    blurb: "Free up to 7 days before pickup. Within 7 days: one-day fee.",
     iconName: "calendar-x",
   },
   {

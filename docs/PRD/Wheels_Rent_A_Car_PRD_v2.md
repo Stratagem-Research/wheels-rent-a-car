@@ -284,7 +284,7 @@ For each page below: purpose, content blocks, layout description, primary action
 1. **Hero** — paper canvas, `display-2xl` headline "Drive Lebanon, your way.", `lead-lg` sub, HeroSearchTabs + SearchBar, trust chips beneath ("★ 4.8 on Google · 1,000+ rentals · Hazmieh hub · 24/7 WhatsApp"). **No hero image** — the headline IS the hero.
 2. **Hero promo** — Tripadvisor-style inverse marketing block: "Travelers' choice — the cars you trust at Hazmieh." White pill CTA "Browse fleet →".
 3. **Categories** — 4 Rivian-pattern cards (Sedan, SUV, Luxury, 7-Seater) with the category name set in `display-mega` (144px desktop, 112px mobile) behind the vehicle photo. Each card opens to `/vehicles?category=<slug>`.
-4. **Our Benefits** — tinted ink-10 band, 4 paper cards: "Free pickup at Hazmieh", "Free cancellation up to 24h", "WhatsApp 24/7", "Pay how you want".
+4. **Our Benefits** — tinted ink-10 band, 4 paper cards: "Free pickup at Hazmieh", "Free cancellation up to 7 days", "WhatsApp 24/7", "Pay how you want".
 5. **Featured 4 Cars** — full-bleed ink-100 band with 4 dark VehicleCards. Cards lift to ink-90 to read off the band. CTA "View the full fleet →" routes to `/vehicles`.
 6. **Explore Lebanon** — 3 editorial tiles (Cedars, Baalbek & Anjar, Tyre & Sidon) with bottom-anchored scrim text.
 7. **Long-term promo** — full-bleed ink-100 band with `display-xl` "Drive longer. Save more.", XL primary-inverse white pill "Get a quote →" routing to `/long-term`.
@@ -527,7 +527,7 @@ Below: contact form on a paper card (ink-10 band), branch map with selected-stat
 ### 8.5 Manage booking
 
 - `/manage-booking` — booking ref + email lookup → booking detail page with same actions as authenticated.
-- Edit pickup / return time within policy (free up to 24h before pickup).
+- Edit pickup / return time within policy (free up to 7 days before pickup).
 - Cancel booking — refund logic per `/help/cancellation-policy`; show refund preview before confirm.
 - Add extras / change protection tier post-booking (re-charges or asks for additional payment at counter).
 

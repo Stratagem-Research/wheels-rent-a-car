@@ -161,8 +161,8 @@ export const FAQ_T: Record<string, { question: LocaleText; answer: LocaleText }>
   "f-c-2": {
     question: { ar: "هل الإلغاء مجاني؟", fr: "L'annulation est-elle gratuite ?" },
     answer: {
-      ar: "نعم إذا أُلغي قبل الاستلام بـ 24 ساعة على الأقل. وخلال 24 ساعة، تُطبَّق رسوم بقيمة يوم واحد.",
-      fr: "Oui si annulée ≥ 24h avant le retrait. Dans les 24h, des frais d'une journée s'appliquent.",
+      ar: "نعم إذا أُلغي قبل الاستلام بـ 7 أيام على الأقل. وخلال 7 أيام، تُطبَّق رسوم بقيمة يوم واحد.",
+      fr: "Oui si annulée ≥ 7 jours avant le retrait. Dans les 7 jours, des frais d'une journée s'appliquent.",
     },
   },
   "f-c-3": {
@@ -586,7 +586,7 @@ export const HELP_TOPIC_T: Record<string, { title: LocaleText; blurb: LocaleText
   },
   "cancellation-policy": {
     title: { ar: "سياسة الإلغاء", fr: "Politique d'annulation" },
-    blurb: { ar: "مجاني حتى 24 ساعة قبل الاستلام. خلال 24 ساعة: رسوم يوم.", fr: "Gratuit jusqu'à 24h avant le retrait. Dans les 24h : frais d'un jour." },
+    blurb: { ar: "مجاني حتى 7 أيام قبل الاستلام. خلال 7 أيام: رسوم يوم.", fr: "Gratuit jusqu'à 7 jours avant le retrait. Dans les 7 jours : frais d'un jour." },
   },
   faq: {
     title: { ar: "الأسئلة الشائعة", fr: "FAQ" },

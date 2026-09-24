@@ -259,7 +259,7 @@ A 4-up benefit grid that builds trust before the next CTA push. Inspired by the 
 **The 4 benefits (in order)**
 
 1. **FREE BEY PICKUP** — `airplane` icon. "Meet our agent at arrivals. Drive in 15 minutes."
-2. **FREE CANCELLATION UP TO 24H** — `calendar-x` icon. "Plans change. Cancel free up to 24h before pickup."
+2. **FREE CANCELLATION UP TO 7 DAYS** — `calendar-x` icon. "Plans change. Cancel free up to 7 days before pickup."
 3. **WHATSAPP 24/7** — `message-circle` icon. "Real humans. No bots, no hold music. Reach us in one tap."
 4. **PAY HOW YOU WANT** — `wallet` icon. "Card, cash, bank transfer or OMT/Whish. Whatever's easiest."
 
@@ -562,7 +562,7 @@ fallbacks.
 ## SEO & metadata
 
 - **Title:** `WHEELS RENT A CAR — PREMIUM CAR RENTAL IN LEBANON · FREE BEY PICKUP`
-- **Description:** "Premium car rental in Lebanon. Free Beirut Airport pickup. WhatsApp support 24/7. Free cancellation up to 24 hours. Book in under 90 seconds."
+- **Description:** "Premium car rental in Lebanon. Free Beirut Airport pickup. WhatsApp support 24/7. Free cancellation up to 7 days. Book in under 90 seconds."
 - **OG image:** the inverse promo block's hero image, branded with logomark top-left, headline "DRIVE LEBANON, YOUR WAY." overlaid.
 - **JSON-LD:** `Organization` + `WebSite` (with `SearchAction` pointing to the search bar).
 - **H1:** the hero headline ("DRIVE LEBANON, YOUR WAY.") — set as a real `<h1>` even though visually it uses `display-2xl`.
