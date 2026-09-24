@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { RotateCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface TeamCardProps {
@@ -27,17 +28,17 @@ export function TeamCard({
   className,
 }: TeamCardProps) {
   return (
-    <article className={cn("group relative", className)}>
+    <article className={cn("group relative h-full", className)}>
       <button
         type="button"
-        className="focus-visible:ring-ink-100 focus-visible:ring-offset-paper relative block w-full rounded-xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+        className="focus-visible:ring-ink-100 focus-visible:ring-offset-paper relative block h-full w-full rounded-xl text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
         onClick={onToggle}
         aria-expanded={flipped}
         aria-label={`${flipped ? "Hide" : "Show"} profile details for ${name}`}
       >
         <div
           className={cn(
-            "relative min-h-[460px] rounded-xl transition-transform duration-500 motion-reduce:transition-none",
+            "grid h-full rounded-xl transition-transform duration-500 motion-reduce:transition-none",
             flipped
               ? "motion-safe:[transform:rotateY(180deg)]"
               : "motion-safe:[transform:rotateY(0deg)]",
@@ -45,7 +46,7 @@ export function TeamCard({
           style={{ transformStyle: "preserve-3d" }}
         >
           <div
-            className="bg-paper border-border absolute inset-0 rounded-xl border p-4"
+            className="bg-paper border-border relative rounded-xl border p-4 pb-16 [grid-area:1/1]"
             style={{ backfaceVisibility: "hidden" }}
           >
             <div className="bg-ink-10 relative aspect-square overflow-hidden rounded-lg">
@@ -65,14 +66,19 @@ export function TeamCard({
                   &ldquo;{quote}&rdquo;
                 </blockquote>
               ) : null}
-              <p className="label-sm text-ink-60 mt-4">Tap to read full profile</p>
             </div>
+            <span
+              aria-hidden="true"
+              className="border-border bg-paper text-ink-100 absolute right-4 bottom-4 inline-flex h-9 w-9 items-center justify-center rounded-full border shadow-[var(--shadow-elevation-1)] transition-transform duration-200 group-hover:rotate-45"
+            >
+              <RotateCw className="h-4 w-4" strokeWidth={1.5} />
+            </span>
           </div>
           <div
-            className="bg-paper border-border absolute inset-0 rounded-xl border p-4"
+            className="bg-paper border-border relative rounded-xl border p-4 pb-16 [grid-area:1/1]"
             style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
           >
-            <div className="flex h-full flex-col">
+            <div className="flex h-full flex-col justify-center">
               <div>
                 <div className="headline-sm text-ink-100">{name}</div>
                 <div className="label-md text-ink-60 mt-1">{role}</div>
@@ -90,8 +96,13 @@ export function TeamCard({
                   ))}
                 </ul>
               ) : null}
-              <p className="label-sm text-ink-60 mt-auto pt-4">Tap again to close</p>
             </div>
+            <span
+              aria-hidden="true"
+              className="border-border bg-paper text-ink-100 absolute right-4 bottom-4 inline-flex h-9 w-9 items-center justify-center rounded-full border shadow-[var(--shadow-elevation-1)] transition-transform duration-200 group-hover:rotate-45"
+            >
+              <RotateCw className="h-4 w-4" strokeWidth={1.5} />
+            </span>
           </div>
         </div>
       </button>

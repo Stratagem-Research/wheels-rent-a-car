@@ -130,7 +130,7 @@ typography:
     textTransform: uppercase
 
   # ── HEADLINES — uppercase, Extra Bold (800), tight ───────────────────────
-  headline-lg:
+  headline-xl:
     fontFamily: Geist
     fontSize: 44px
     fontWeight: 800

@@ -25,13 +25,10 @@ export const metadata: Metadata = {
   description:
     "Rent a premium car in Lebanon. Pickup at our Hazmieh hub, 24/7 WhatsApp support, free cancellation. Book online in under 90 seconds.",
   icons: {
-    icon: [
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
-      { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
-    ],
-    shortcut: "/favicon-32.png",
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
+    // Modern browsers use app/icon.svg (Next.js auto-injects <link rel="icon">).
+    // /favicon.ico covers legacy browsers that auto-request the canonical URL.
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
   alternates: {
     languages: {

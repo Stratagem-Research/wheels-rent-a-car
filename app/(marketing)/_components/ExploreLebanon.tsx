@@ -27,11 +27,11 @@ export function ExploreLebanon() {
 
   return (
     <Reveal as="section" className="bg-paper">
-      <div className="mx-auto max-w-[var(--container-default)] px-5 py-16 sm:px-10 lg:py-32">
+      <div className="mx-auto max-w-(--container-default) px-5 py-16 sm:px-10 lg:py-32">
         <div className="mb-10 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end lg:mb-14">
-          <div className="flex max-w-2xl flex-col gap-4">
+          <div className="flex max-w-3xl flex-col gap-4">
             <p className="text-ink-60 overline">{t("eyebrow")}</p>
-            <h2 className="display-xl text-ink-100 text-[clamp(48px,7vw,88px)] leading-[0.96]">
+            <h2 className="display-lg text-ink-100 leading-[0.96]">
               {t("heading")}
             </h2>
             <p className="lead-lg text-ink-60">{t("subtitle")}</p>

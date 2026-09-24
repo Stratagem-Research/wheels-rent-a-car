@@ -247,7 +247,7 @@
 }
 
 /* ── HEADLINES — uppercase, ExtraBold (800), tight tracking ──────────────── */
-@utility headline-lg {
+@utility headline-xl {
   font-family: var(--font-sans);
   font-size: 44px;
   font-weight: 800;
