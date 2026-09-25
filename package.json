@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
+    "build:plesk": "next build && node scripts/plesk-postbuild.mjs",
     "start": "next start",
+    "start:plesk": "node server.js",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
