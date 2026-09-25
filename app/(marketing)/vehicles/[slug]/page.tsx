@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { VehicleImageSlider } from "@/components/vehicle/VehicleImageSlider";
 import { formatUsd } from "@/lib/booking/pricing";
-import { bodyClassKey, vehicleDisplayName } from "@/lib/vehicles/display-name";
+import { vehicleDisplayName } from "@/lib/vehicles/display-name";
 import { getVehicleBySlug } from "@/lib/server/vehicles-service";
 import { resolvePageMetadata } from "@/lib/seo/resolve-metadata";
 import { vehiclePageKey } from "@/lib/supabase/seo-repository";
@@ -159,7 +159,6 @@ export default async function VehicleDetailPage({ params }: PageProps) {
                   label={t(vehicle.transmission === "automatic" ? "transAutomatic" : "transManual")}
                 />
                 <SpecTile icon={<Fuel className="size-4" aria-hidden="true" />} label={capitalize(vehicle.fuel)} />
-                <SpecTile icon={<Gauge className="size-4" aria-hidden="true" />} label={t(bodyClassKey(vehicle))} />
                 {vehicle.engine ? (
                   <SpecTile icon={<Wrench className="size-4" aria-hidden="true" />} label={vehicle.engine} />
                 ) : null}

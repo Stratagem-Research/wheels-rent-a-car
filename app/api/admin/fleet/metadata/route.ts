@@ -29,6 +29,7 @@ const MetadataItemSchema = z.object({
   badges: z.array(z.string()).optional().default([]),
   media: z.array(z.record(z.string(), z.unknown())).optional().default([]),
   operational: z.record(z.string(), z.unknown()).optional().default({}),
+  class_label: z.string().nullable().optional(),
   updated_at: z.string().optional(),
 });
 
@@ -60,6 +61,14 @@ function itemFromWizard(wiz: WizardVehicleRow, meta: VehicleMetadataRow | undefi
   const name = wizardName(wiz);
   const brand = firstText(meta?.brand, wiz.brand);
   const model = firstText(meta?.model, wiz.model);
+  const metaOp = parseOperational(meta?.operational);
+  const wizDailyRate = wiz.operational?.daily_rate;
+  const dailyRate =
+    typeof metaOp.daily_rate === "number" && metaOp.daily_rate > 0
+      ? metaOp.daily_rate
+      : typeof wizDailyRate === "number"
+        ? wizDailyRate
+        : null;
   return {
     frontend_vehicle_id: frontendId,
     slug: meta?.slug ?? defaultSlug,
@@ -71,7 +80,8 @@ function itemFromWizard(wiz: WizardVehicleRow, meta: VehicleMetadataRow | undefi
     features: meta?.features ?? [],
     badges: meta?.badges ?? [],
     media: meta?.media ?? [],
-    operational: meta?.operational ?? {},
+    operational: { ...metaOp, daily_rate: dailyRate },
+    class_label: meta?.class_label ?? null,
     updated_at: meta?.updated_at,
     wizard_vehicle_id: wiz.wizard_vehicle_id,
     wizard_display_name: name,
@@ -94,6 +104,7 @@ function itemFromManualMetadata(meta: VehicleMetadataRow) {
     badges: meta.badges ?? [],
     media: meta.media ?? [],
     operational: meta.operational ?? {},
+    class_label: meta.class_label ?? null,
     updated_at: meta.updated_at,
     wizard_vehicle_id: parseWizardVehicleId(meta.frontend_vehicle_id),
     wizard_display_name: parseOperational(meta.operational).display_name || meta.title,
@@ -174,6 +185,7 @@ export async function PUT(request: Request) {
         badges: item.badges,
         media: item.media,
         operational: item.operational ?? {},
+        class_label: item.class_label?.trim() ? item.class_label.trim() : null,
         updated_at: item.updated_at ?? new Date().toISOString(),
       })),
     );

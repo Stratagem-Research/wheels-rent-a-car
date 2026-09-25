@@ -10,7 +10,7 @@ import { SaveVehicleButton } from "@/components/vehicle/SaveVehicleButton";
 import { VehicleImageSlider } from "@/components/vehicle/VehicleImageSlider";
 import { formatUsd, perDayRate, rentalDays } from "@/lib/booking/pricing";
 import { FLEET_PAY_NOW_RATE } from "@/lib/vehicles/fleet-card-rates";
-import { bodyClassKey, vehicleDisplayName } from "@/lib/vehicles/display-name";
+import { vehicleDisplayName } from "@/lib/vehicles/display-name";
 import type { Vehicle, VehicleBadge } from "@/types/domain";
 
 /*
@@ -22,10 +22,8 @@ import type { Vehicle, VehicleBadge } from "@/types/domain";
  * is no separate "Select" button.
  *
  * Layout choices:
- *   - Title alone in the header (no second "Mini Sedan Automatic" line) —
- *     the class chip carries the same information cleaner.
- *   - Class chip sits at the TOP next to the title; the seats/bags/transmission
- *     spec chips sit right below it. Single chip rhythm.
+ *   - Title in the header; optional admin-set class chip under the name.
+ *   - Spec chips (seats / bags / transmission) sit under the title.
  *   - The Popular / Best-deal / New badge sits at the BOTTOM of the card next
  *     to the price, NOT overlaying the photo — keeps the photo clean.
  *
@@ -111,8 +109,6 @@ export function VehicleCard({
   const fromPriceParts = splitPrice(perDay);
   const totalLabel = pickupISO && returnISO ? formatUsd(totalCents) : null;
 
-  const classChip = t(bodyClassKey(vehicle));
-
   return (
     <article
       className={cn(
@@ -122,7 +118,7 @@ export function VehicleCard({
         dark
           ? "bg-ink-95 text-paper hover:shadow-[0_8px_32px_rgba(0,0,0,0.35),0_0_0_1px_rgba(255,255,255,0.08)]"
           : "bg-paper text-ink-95 border-border border hover:shadow-[0_8px_32px_rgba(0,0,0,0.12),0_0_0_1px_rgba(0,0,0,0.06)]",
-        selected && "outline-signal-red outline outline-2 outline-offset-0",
+        selected && "outline-signal-red outline outline-offset-0",
         className,
       )}
       style={dark ? { backgroundImage: CARD_GRADIENT_DARK } : undefined}
@@ -139,16 +135,10 @@ export function VehicleCard({
         aria-label={t("selectAria", { vehicle: vehicleLabel })}
         className={cn(
           "flex flex-col gap-4 p-5 pb-0 sm:p-6 sm:pb-0",
-          "focus-visible:rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px]",
+          "focus-visible:rounded-xl focus-visible:outline  focus-visible:outline-offset-[-2px]",
           dark ? "focus-visible:outline-paper" : "focus-visible:outline-ink-100",
         )}
       >
-        {/* Title row — make + model, with the body class (e.g. "Economy
-         * sedan") as a plain uppercase subtitle below. The old chip-pill
-         * treatment around the class felt like an extra chrome element
-         * competing with the spec chips below; a quiet label-md subtitle
-         * reads cleaner and gives the title block a single, ordered
-         * hierarchy: make/model → class → specs. */}
         <header className="flex flex-col gap-1">
           <h3
             className={cn(
@@ -158,14 +148,16 @@ export function VehicleCard({
           >
             {vehicleLabel}
           </h3>
-          <span
-            className={cn(
-              "label-md tracking-[0.1em] uppercase",
-              dark ? "text-paper/60" : "text-ink-50",
-            )}
-          >
-            {classChip}
-          </span>
+          {vehicle.classLabel?.trim() ? (
+            <span
+              className={cn(
+                "label-sm font-semibold tracking-[0.08em] uppercase",
+                dark ? "text-paper/55" : "text-ink-50",
+              )}
+            >
+              {vehicle.classLabel.trim()}
+            </span>
+          ) : null}
           {availableCount != null ? (
             <span className={cn("body-sm mt-1", dark ? "text-paper/75" : "text-ink-60")}>
               {t("availableCount", { count: availableCount })}
@@ -222,7 +214,7 @@ export function VehicleCard({
         tabIndex={-1}
         className={cn(
           "flex flex-1 flex-col justify-end gap-4 p-5 pt-2 sm:p-6 sm:pt-2",
-          "focus-visible:rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px]",
+          "focus-visible:rounded-xl focus-visible:outline focus-visible:outline-offset-[-2px]",
           dark ? "focus-visible:outline-paper" : "focus-visible:outline-ink-100",
         )}
       >
@@ -271,9 +263,9 @@ export function VehicleCard({
         <div
           aria-hidden="true"
           className={cn(
-            "absolute -bottom-[10px] left-1/2 z-10 -translate-x-1/2",
+            "absolute -bottom-2.5 left-1/2 z-10 -translate-x-1/2",
             "size-0 border-x-8 border-x-transparent",
-            "border-t-signal-red border-t-[10px]",
+            "border-t-signal-red border-t-10px",
           )}
         />
       ) : null}

@@ -11,6 +11,10 @@ import { DEFAULT_CONTACT_SETTINGS } from "@/lib/contact/settings";
 import { isLocalizedString, isLocalizedStringArray, toLocalizedString } from "@/lib/i18n/localized";
 import { parseVehicleMedia, toPublicVehicleImages } from "@/lib/vehicles/vehicle-media";
 import { composeVehicleTitle } from "@/lib/vehicles/display-name";
+import {
+  dailyRateCentsFromOperational,
+  parseOperational,
+} from "@/lib/vehicles/vehicle-operational";
 import { deletePageSeoByKeys, ensureVehicleSeoRows, vehiclePageKey } from "@/lib/supabase/seo-repository";
 
 export type AdminLeadStatus = "new" | "in-progress" | "won" | "lost";
@@ -115,6 +119,7 @@ export type VehicleMetadataRow = {
   badges: unknown;
   media: unknown;
   operational: unknown;
+  class_label: string | null;
   updated_at: string;
 };
 
@@ -859,6 +864,7 @@ export function toVehicleWithMetadata(
   const title = row.title?.trim() || vehicle.title;
   const brand = row.brand?.trim();
   const model = row.model?.trim() || vehicle.model;
+  const operational = parseOperational(row.operational);
   return {
     ...vehicle,
     slug: row.slug || vehicle.slug,
@@ -867,7 +873,9 @@ export function toVehicleWithMetadata(
     model,
     tagline: row.tagline ?? vehicle.tagline,
     description: row.description ?? vehicle.description,
+    classLabel: row.class_label?.trim() || undefined,
     features,
     images,
+    dailyRateFromCents: dailyRateCentsFromOperational(operational, vehicle.dailyRateFromCents),
   };
 }

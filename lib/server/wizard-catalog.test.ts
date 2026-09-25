@@ -15,6 +15,7 @@ const baseMeta = (overrides: Partial<VehicleMetadataRow>): VehicleMetadataRow =>
   badges: [],
   media: [],
   operational: {},
+  class_label: null,
   updated_at: "2026-08-19T00:00:00.000Z",
   ...overrides,
 });
@@ -32,6 +33,28 @@ describe("toVehicleWithMetadata", () => {
     expect(result.title).toBe("Kia Rio");
     expect(result.make).toBe("Kia");
     expect(result.model).toBe("Rio");
+  });
+
+  it("maps an admin class label onto the public vehicle", () => {
+    const vehicle = VEHICLES[0]!;
+    const result = toVehicleWithMetadata(vehicle, [
+      baseMeta({ class_label: "Economy sedan" }),
+    ]);
+    expect(result.classLabel).toBe("Economy sedan");
+  });
+
+  it("overrides the listing price from website metadata", () => {
+    const vehicle = VEHICLES[0]!;
+    const result = toVehicleWithMetadata(vehicle, [
+      baseMeta({ operational: { daily_rate: 40 } }),
+    ]);
+    expect(result.dailyRateFromCents).toBe(4000);
+  });
+
+  it("keeps the Wizard price when no website daily rate is set", () => {
+    const vehicle = VEHICLES[0]!;
+    const result = toVehicleWithMetadata(vehicle, [baseMeta({ operational: { website_enabled: false } })]);
+    expect(result.dailyRateFromCents).toBe(vehicle.dailyRateFromCents);
   });
 });
 

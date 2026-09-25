@@ -107,6 +107,16 @@ export function categoryFromOperational(operational: VehicleOperational): Vehicl
   return "economy";
 }
 
+/** Website `daily_rate` is stored in USD; public vehicles use cents. */
+export function dailyRateCentsFromOperational(
+  operational: VehicleOperational,
+  fallbackCents: number,
+): number {
+  return typeof operational.daily_rate === "number" && operational.daily_rate > 0
+    ? Math.round(operational.daily_rate * 100)
+    : fallbackCents;
+}
+
 export function applyOperationalSpecs(
   vehicle: Vehicle,
   operational: VehicleOperational,
@@ -119,10 +129,7 @@ export function applyOperationalSpecs(
     typeof operational.number_of_doors === "number" && operational.number_of_doors > 0
       ? operational.number_of_doors
       : vehicle.doors;
-  const dailyRate =
-    typeof operational.daily_rate === "number" && operational.daily_rate > 0
-      ? Math.round(operational.daily_rate * 100)
-      : vehicle.dailyRateFromCents;
+  const dailyRate = dailyRateCentsFromOperational(operational, vehicle.dailyRateFromCents);
   const year =
     typeof operational.year === "number" && operational.year > 1900
       ? operational.year

@@ -16,9 +16,10 @@ export async function POST(request: Request) {
   if (csrfResponse) return csrfResponse;
 
   const updatedSince = new URL(request.url).searchParams.get("updated_since")?.trim() || undefined;
+  const keepOverrides = new URL(request.url).searchParams.get("keep_overrides") === "1";
 
   try {
-    const result = await syncWizardVehiclesFromApi({ updatedSince });
+    const result = await syncWizardVehiclesFromApi({ updatedSince, keepOverrides });
     await writeAdminAuditLog({
       actor: auth.session.username,
       role: auth.session.role,

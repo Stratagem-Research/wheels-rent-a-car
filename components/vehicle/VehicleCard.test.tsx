@@ -56,6 +56,16 @@ describe("VehicleCard", () => {
     expect(screen.queryByText("Custom Name")).not.toBeInTheDocument();
   });
 
+  it("hides the class chip when no category is set", () => {
+    renderCard(<VehicleCard vehicle={fixture} />);
+    expect(screen.queryByText(/economy sedan/i)).not.toBeInTheDocument();
+  });
+
+  it("shows the admin category as the class chip", () => {
+    renderCard(<VehicleCard vehicle={{ ...fixture, classLabel: "Economy sedan" }} />);
+    expect(screen.getByText("Economy sedan")).toBeInTheDocument();
+  });
+
   it("renders the from-price in dollars", () => {
     renderCard(<VehicleCard vehicle={fixture} />);
     expect(screen.getByText("$25")).toBeInTheDocument();

@@ -14,6 +14,7 @@ import { parseVehicleMedia, toPublicVehicleImages } from "@/lib/vehicles/vehicle
 import { composeVehicleTitle } from "@/lib/vehicles/display-name";
 import {
   applyOperationalSpecs,
+  dailyRateCentsFromOperational,
   isHiddenFromVehiclesPage,
   isManualVehiclePublic,
   parseOperational,
@@ -58,10 +59,7 @@ export function wizardRowToVehicle(row: WizardVehicleRow, metadataRows: VehicleM
     fuelRaw === "diesel" || fuelRaw === "hybrid" || fuelRaw === "electric"
       ? fuelRaw
       : ("petrol" as const);
-  const dailyRate =
-    typeof operational.daily_rate === "number" && operational.daily_rate > 0
-      ? Math.round(operational.daily_rate * 100)
-      : 2000;
+  const dailyRate = dailyRateCentsFromOperational(operational, 2000);
 
   const base: Vehicle = {
     id: frontendId,
@@ -103,6 +101,7 @@ export function metadataOnlyToVehicle(row: VehicleMetadataRow): Vehicle {
     category: "economy",
     tagline: row.tagline ?? undefined,
     description: row.description ?? undefined,
+    classLabel: row.class_label?.trim() || undefined,
     transmission: "automatic",
     fuel: "petrol",
     seats: 4,

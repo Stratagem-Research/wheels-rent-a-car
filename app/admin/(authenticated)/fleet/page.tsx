@@ -24,6 +24,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/Accordion";
+import {
+  Modal,
+  ModalContent,
+  ModalDescription,
+  ModalFooter,
+  ModalTitle,
+} from "@/components/ui/Modal";
 import { getAdminCsrfHeader } from "@/lib/admin/csrf";
 import {
   displayManualUnitId,
@@ -61,6 +68,7 @@ type MetadataItem = {
   brand?: string | null;
   model?: string | null;
   tagline: string | null;
+  class_label: string | null;
   description: string | null;
   features: string[];
   badges: string[];
@@ -80,6 +88,7 @@ type MetaDraft = {
   brand: string;
   model: string;
   tagline: string;
+  classLabel: string;
   description: string;
   featuresText: string;
   badgesText: string;
@@ -98,6 +107,20 @@ type SyncResult = {
   fetched: number;
   upserted: number;
   websiteEnabled?: number;
+  overridesCleared?: number;
+};
+
+type SyncPreviewItem = {
+  frontend_vehicle_id: string;
+  label: string;
+  adminRate: number;
+  wizardRate: number | null;
+};
+
+type SyncPreview = {
+  fetched: number;
+  items: SyncPreviewItem[];
+  count: number;
 };
 
 const PAGE_SIZE = 10;
@@ -123,6 +146,7 @@ function toDraft(item: MetadataItem): MetaDraft {
     brand,
     model,
     tagline: item.tagline ?? "",
+    classLabel: item.class_label ?? "",
     description: item.description ?? "",
     featuresText: (item.features ?? []).join(", "),
     badgesText: (item.badges ?? []).join(", "),
@@ -210,6 +234,7 @@ function matchesSearch(draft: MetaDraft, query: string): boolean {
     draft.wizard_model,
     draft.slug,
     draft.tagline,
+    draft.classLabel,
     draft.frontend_vehicle_id,
     wizardId != null ? String(wizardId) : "",
   ]
@@ -247,6 +272,7 @@ function toMetadataItem(draft: MetaDraft) {
     brand,
     model,
     tagline: draft.tagline.trim() ? draft.tagline.trim() : null,
+    class_label: draft.classLabel.trim() ? draft.classLabel.trim() : null,
     description: draft.description.trim() ? draft.description.trim() : null,
     features: splitList(draft.featuresText),
     badges: splitList(draft.badgesText),
@@ -269,6 +295,7 @@ function copySharedGroupFields(source: MetaDraft, target: MetaDraft): MetaDraft 
     brand: source.brand,
     model: source.model,
     tagline: source.tagline,
+    classLabel: source.classLabel,
     description: source.description,
     featuresText: source.featuresText,
     badgesText: source.badgesText,
@@ -314,6 +341,7 @@ function draftFromCreate(values: ManualCreateValues, frontendVehicleId: string):
     brand: values.brand,
     model: values.model,
     tagline: "",
+    classLabel: "",
     description: "",
     featuresText: "",
     badgesText: "",
@@ -348,6 +376,8 @@ export default function AdminFleetPage() {
   const [loading, setLoading] = React.useState(true);
   const [savingKey, setSavingKey] = React.useState<string | null>(null);
   const [syncing, setSyncing] = React.useState(false);
+  const [syncPreview, setSyncPreview] = React.useState<SyncPreview | null>(null);
+  const [syncPreviewing, setSyncPreviewing] = React.useState(false);
   const [creating, setCreating] = React.useState(false);
   const [selectedUnitIds, setSelectedUnitIds] = React.useState<Record<string, string>>({});
   const [heldIds, setHeldIds] = React.useState<Set<string>>(() => new Set());
@@ -505,10 +535,11 @@ export default function AdminFleetPage() {
     }
   };
 
-  const syncFromWizard = async () => {
+  const runSync = async (keepOverrides: boolean) => {
     setSyncing(true);
     try {
-      const res = await fetch("/api/admin/fleet/sync", {
+      const url = "/api/admin/fleet/sync" + (keepOverrides ? "?keep_overrides=1" : "");
+      const res = await fetch(url, {
         method: "POST",
         headers: { ...getAdminCsrfHeader() },
       });
@@ -516,8 +547,14 @@ export default function AdminFleetPage() {
       if (!res.ok) {
         throw new Error(body.message ?? "Wizard vehicle sync failed.");
       }
+      const cleared = body.overridesCleared ?? 0;
       toast.success(
-        `Synced from Wizard: fetched ${body.fetched ?? 0}, mirror updated ${body.upserted ?? 0}, website-enabled ${body.websiteEnabled ?? body.upserted ?? 0}. Existing cars were kept.`,
+        `Synced from Wizard: fetched ${body.fetched ?? 0}, mirror updated ${body.upserted ?? 0}, website-enabled ${body.websiteEnabled ?? body.upserted ?? 0}.` +
+          (keepOverrides
+            ? " Admin prices kept."
+            : cleared > 0
+              ? ` ${cleared} admin price override${cleared === 1 ? "" : "s"} reset to Wizard.`
+              : ""),
       );
       await refresh({ keepLocalNames: true });
     } catch (err) {
@@ -525,6 +562,32 @@ export default function AdminFleetPage() {
     } finally {
       setSyncing(false);
     }
+  };
+
+  const syncFromWizard = async () => {
+    setSyncPreviewing(true);
+    try {
+      const res = await fetch("/api/admin/fleet/sync/preview", { cache: "no-store" });
+      const body = (await res.json().catch(() => ({}))) as SyncPreview & { message?: string };
+      if (!res.ok) {
+        throw new Error(body.message ?? "Wizard sync preview failed.");
+      }
+      if (body.count === 0) {
+        // No overrides at risk — run sync directly.
+        await runSync(false);
+        return;
+      }
+      setSyncPreview(body);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to preview Wizard sync.");
+    } finally {
+      setSyncPreviewing(false);
+    }
+  };
+
+  const confirmSync = async (keepOverrides: boolean) => {
+    setSyncPreview(null);
+    await runSync(keepOverrides);
   };
 
   const putMetadata = async (
@@ -586,7 +649,7 @@ export default function AdminFleetPage() {
           <Button
             variant="secondary"
             onClick={() => void syncFromWizard()}
-            loading={syncing}
+            loading={syncing || syncPreviewing}
             disabled={loading || savingKey != null}
           >
             <CloudDownload className="size-4" aria-hidden="true" />
@@ -715,24 +778,38 @@ export default function AdminFleetPage() {
               }
               helper={groupHelper(group.map((item) => item.draft)) || undefined}
             >
-              <Field label={isWebsiteGroup ? "Units" : "Wizard units"}>
-                {({ id }) => (
-                  <Select
-                    id={id}
-                    size="sm"
-                    value={selectedMember.draft.frontend_vehicle_id}
-                    onChange={(e) =>
-                      setSelectedUnitIds((prev) => ({ ...prev, [groupSaveKey]: e.target.value }))
-                    }
-                  >
-                    {group.map(({ draft: unit }) => (
-                      <option key={unit.frontend_vehicle_id} value={unit.frontend_vehicle_id}>
-                        {unitWizardLabel(unit, heldIds.has(unit.frontend_vehicle_id))}
-                      </option>
-                    ))}
-                  </Select>
-                )}
-              </Field>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field label={isWebsiteGroup ? "Units" : "Wizard units"}>
+                  {({ id }) => (
+                    <Select
+                      id={id}
+                      size="sm"
+                      value={selectedMember.draft.frontend_vehicle_id}
+                      onChange={(e) =>
+                        setSelectedUnitIds((prev) => ({ ...prev, [groupSaveKey]: e.target.value }))
+                      }
+                    >
+                      {group.map(({ draft: unit }) => (
+                        <option key={unit.frontend_vehicle_id} value={unit.frontend_vehicle_id}>
+                          {unitWizardLabel(unit, heldIds.has(unit.frontend_vehicle_id))}
+                        </option>
+                      ))}
+                    </Select>
+                  )}
+                </Field>
+                <Field
+                  label="Category"
+                >
+                  {({ id }) => (
+                    <Input
+                      id={id}
+                      value={draft.classLabel}
+                      placeholder="Economy sedan"
+                      onChange={(e) => updateGroup(indices, { classLabel: e.target.value })}
+                    />
+                  )}
+                </Field>
+              </div>
               {isWebsiteGroup ? (
                 <div className="flex flex-col gap-2">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
@@ -802,7 +879,7 @@ export default function AdminFleetPage() {
                   </ul>
                 </div>
               ) : null}
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className={isWebsiteGroup ? "grid gap-4 sm:grid-cols-2" : "grid gap-4 sm:grid-cols-3"}>
                 <Field label="Brand">
                   {({ id }) => (
                     <Input
@@ -823,6 +900,24 @@ export default function AdminFleetPage() {
                     />
                   )}
                 </Field>
+                {!isWebsiteGroup ? (
+                  <Field label="Daily rate" helper="USD per day on the vehicles page.">
+                    {({ id }) => (
+                      <Input
+                        id={id}
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={draft.operational.daily_rate ?? ""}
+                        onChange={(e) =>
+                          patchGroupOperational(indices, {
+                            daily_rate: Number(e.target.value) || null,
+                          })
+                        }
+                      />
+                    )}
+                  </Field>
+                ) : null}
               </div>
               <div className="flex flex-col gap-2">
                 <Checkbox
@@ -963,6 +1058,70 @@ export default function AdminFleetPage() {
           </div>
         ) : null}
       </section>
+
+      <Modal
+        open={syncPreview != null}
+        onOpenChange={(open) => {
+          if (!open) setSyncPreview(null);
+        }}
+      >
+        <ModalContent size="md">
+          {syncPreview ? (
+            <>
+              <ModalTitle>{syncPreview.count} price override{syncPreview.count === 1 ? "" : "s"} on synced vehicles</ModalTitle>
+              <ModalDescription>
+                These vehicles have an admin-set daily rate. Choose whether Wizard's price wins
+                on this sync. Brand, model, photos, category chip, and the hide flag are not
+                affected either way.
+              </ModalDescription>
+              <ul className="border-border mt-5 max-h-72 overflow-y-auto rounded-lg border">
+                {syncPreview.items.map((item) => (
+                  <li
+                    key={item.frontend_vehicle_id}
+                    className="border-border flex items-center justify-between gap-3 border-b px-4 py-2 last:border-b-0"
+                  >
+                    <span className="body-sm text-ink-95 truncate">{item.label}</span>
+                    <span className="label-sm text-ink-60 shrink-0 tabular-nums">
+                      ${item.adminRate.toFixed(2)}{" "}
+                      <span className="text-ink-40">→</span>{" "}
+                      {item.wizardRate != null ? `$${item.wizardRate.toFixed(2)}` : "—"}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <ModalFooter>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="md"
+                  onClick={() => setSyncPreview(null)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="md"
+                  loading={syncing}
+                  onClick={() => void confirmSync(true)}
+                >
+                  Keep my prices
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="md"
+                  className="bg-signal-red hover:bg-signal-red-hover active:bg-signal-red-press"
+                  loading={syncing}
+                  onClick={() => void confirmSync(false)}
+                >
+                  Reset to Wizard
+                </Button>
+              </ModalFooter>
+            </>
+          ) : null}
+        </ModalContent>
+      </Modal>
     </AdminPageShell>
   );
 }

@@ -104,6 +104,21 @@ export async function deleteVehicleMetadataNotIn(keepFrontendIds: string[]): Pro
   return toDelete.length;
 }
 
+/**
+ * Remove the admin `daily_rate` override from `vehicle_metadata.operational`
+ * for the given frontend ids. Called by Wizard sync so Wizard's price wins.
+ * Returns the number of rows actually changed.
+ */
+export async function clearDailyRateOverrides(frontendIds: string[]): Promise<number> {
+  if (frontendIds.length === 0) return 0;
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase.rpc("clear_daily_rate_overrides", {
+    p_frontend_ids: frontendIds,
+  });
+  if (error) throw new Error(error.message);
+  return typeof data === "number" ? data : Number(data ?? 0);
+}
+
 export async function ensureVehicleMetadataStub(input: {
   frontendVehicleId: string;
   slug: string;

@@ -85,6 +85,8 @@ export interface Vehicle {
   category: VehicleCategory;
   /** Short marketing tagline shown under the title. */
   tagline?: string;
+  /** Admin-set class chip on fleet cards (e.g. "Economy sedan"). Hidden when empty. */
+  classLabel?: string;
   /** Long-form prose for the PDP description block (Markdown allowed). */
   description?: string;
   badge?: VehicleBadge;

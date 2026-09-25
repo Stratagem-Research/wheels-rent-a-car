@@ -118,6 +118,7 @@ export async function seedWebsiteData(resources: SeedResource[] = ["all"]): Prom
       frontend_vehicle_id: vehicle.id,
       slug: vehicle.slug,
       tagline: vehicle.tagline ?? null,
+      class_label: vehicle.classLabel ?? null,
       description: vehicle.description ?? null,
       features: vehicle.features,
       badges: vehicle.badge ? [vehicle.badge] : [],
