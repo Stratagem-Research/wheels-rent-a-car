@@ -1070,7 +1070,7 @@ export default function AdminFleetPage() {
             <>
               <ModalTitle>{syncPreview.count} price override{syncPreview.count === 1 ? "" : "s"} on synced vehicles</ModalTitle>
               <ModalDescription>
-                These vehicles have an admin-set daily rate. Choose whether Wizard's price wins
+                These vehicles have an admin-set daily rate. Choose whether Wizard&apos;s price wins
                 on this sync. Brand, model, photos, category chip, and the hide flag are not
                 affected either way.
               </ModalDescription>

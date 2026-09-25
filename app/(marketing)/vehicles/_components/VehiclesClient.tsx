@@ -220,7 +220,7 @@ export function VehiclesClient({
       if (selectedPage <= 1) next.delete("page");
       else next.set("page", String(selectedPage));
     }, true);
-  }, [expandedVehicle, filtered, filters.perPage, page, setQuery]);
+  }, [selectedSlug, expandedVehicle, filtered, filters.perPage, page, setQuery]);
 
   const onConfirm = React.useCallback(
     (vehicleId: string, vehicleSlug: string, choice: { type: RateType; mileage: MileagePlan }) => {
