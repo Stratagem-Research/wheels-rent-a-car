@@ -6,10 +6,10 @@ import { useTranslations } from "next-intl";
 import { Card } from "@/components/ui/Card";
 import { ChannelCard } from "@/components/contact/ChannelCard";
 import { ContactForm } from "@/components/contact/ContactForm";
-import { LocationsMap } from "@/components/locations/LocationsMap";
 import { PageHero } from "@/components/marketing/PageHero";
 import { PAGE_HERO_IMAGES } from "@/lib/marketing/hero-images";
 import { BRANCHES } from "@/lib/api/fixtures/branches";
+import type { Branch } from "@/types/domain";
 import {
   useContactSettings,
   useTelHref,
@@ -18,6 +18,13 @@ import {
 import { SOCIAL_LINKS_LIST } from "@/lib/marketing/social-links";
 
 const SOCIALS = SOCIAL_LINKS_LIST;
+
+// The contact page's "Find a branch" section shows the single physical hub
+// (Hazmieh). The airport meet-and-greet entry is a booking-flow pickup point,
+// not a branch you visit — keep it out of this list.
+const CONTACT_BRANCHES: Branch[] = BRANCHES.filter((b) => !b.isAirport);
+const MAP_BRANCH = CONTACT_BRANCHES[0] ?? BRANCHES[0]!;
+const MAP_QUERY = "Wheels rent a car, Hazmieh, Lebanon";
 
 const PHONE_HOURS = {
   weekdayStart: 8,
@@ -40,7 +47,6 @@ export default function ContactPage() {
   // Stable snapshot of "now" to drive the phone Open/Closed state without
   // shifting during the render lifecycle.
   const [now] = React.useState(() => new Date());
-  const [selectedBranchId, setSelectedBranchId] = React.useState<string | null>(null);
 
   const phoneOpen = isPhoneOpen(now);
 
@@ -116,23 +122,19 @@ export default function ContactPage() {
           <h2 className="headline-lg text-ink-100">{t("findBranchHeading")}</h2>
           <p className="lead-md text-ink-60 mt-2">{t("findBranchSubtitle")}</p>
           <div className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-            <LocationsMap
-              branches={BRANCHES}
-              selectedId={selectedBranchId}
-              onSelect={setSelectedBranchId}
-              className="min-h-[360px]"
-            />
+            <div className="border-border overflow-hidden rounded-xl border">
+              <iframe
+                title={t("mapTitle", { branch: MAP_BRANCH.name })}
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(MAP_QUERY)}&z=15&output=embed`}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                className="h-full min-h-[360px] w-full"
+              />
+            </div>
             <ul className="flex flex-col gap-3">
-              {BRANCHES.map((b) => (
+              {CONTACT_BRANCHES.map((b) => (
                 <li key={b.id}>
-                  <Card
-                    variant="default"
-                    className={
-                      selectedBranchId === b.id
-                        ? "border-ink-100 rounded-xl border-2"
-                        : "rounded-xl"
-                    }
-                  >
+                  <Card variant="default" className="rounded-xl">
                     <div className="headline-xs text-ink-100">{b.name}</div>
                     <a
                       href={`tel:${b.phone.replace(/\s/g, "")}`}

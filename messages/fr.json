@@ -248,7 +248,8 @@
     "sendHeading": "Envoyez-nous un message",
     "sendSubtitle": "Nous répondons sous 4 heures ouvrées.",
     "findBranchHeading": "Trouver une agence",
-    "findBranchSubtitle": "Cliquez sur un repère pour mettre en évidence l'agence correspondante ci-dessous.",
+    "findBranchSubtitle": "Notre comptoir se trouve à Hazmieh Gallery Semaan, face à Sea Sweet.",
+    "mapTitle": "Carte montrant {branch}",
     "followHeading": "Suivez-nous"
   },
   "chauffeur": {

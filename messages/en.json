@@ -275,7 +275,8 @@
     "sendHeading": "Send us a message",
     "sendSubtitle": "We respond within 4 business hours.",
     "findBranchHeading": "Find a branch",
-    "findBranchSubtitle": "Click a pin to highlight the matching branch below.",
+    "findBranchSubtitle": "Our counter is at Hazmieh Gallery Semaan, facing Sea Sweet.",
+    "mapTitle": "Map showing {branch}",
     "followHeading": "Follow us"
   },
   "chauffeur": {
