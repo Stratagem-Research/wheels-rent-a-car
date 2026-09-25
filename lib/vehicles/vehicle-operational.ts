@@ -77,9 +77,14 @@ export function normalizeOperational(
   };
 }
 
+/** Website-owned hide: stays in admin, omitted from /vehicles until turned back on. */
+export function isHiddenFromVehiclesPage(operational: VehicleOperational): boolean {
+  return operational.website_enabled === false;
+}
+
 export function isManualVehiclePublic(operational: VehicleOperational): boolean {
   if (operational.is_sold === true) return false;
-  if (operational.website_enabled === false) return false;
+  if (isHiddenFromVehiclesPage(operational)) return false;
   if (operational.is_publicly_bookable === false) return false;
   return true;
 }

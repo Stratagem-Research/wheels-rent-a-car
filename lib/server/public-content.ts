@@ -24,7 +24,7 @@ import {
   listVehicleMetadata,
   toVehicleWithMetadata,
 } from "@/lib/supabase/admin-repository";
-import { getSyncedPublicVehicles } from "@/lib/server/wizard-catalog";
+import { excludeHiddenFromVehiclesPage, getSyncedPublicVehicles } from "@/lib/server/wizard-catalog";
 import { getCheckoutPaymentMethods } from "@/lib/server/payment-methods";
 import { listRecentlyBookedVehicleIds } from "@/lib/supabase/user-bookings-repository";
 
@@ -152,7 +152,8 @@ export async function getPublicVehicles(): Promise<Vehicle[]> {
     reportFixtureFallback("vehicles", "getSyncedPublicVehicles() returned zero rows");
     const metadata = await listVehicleMetadata();
     if (metadata.length === 0) return FALLBACK_VEHICLES;
-    return FALLBACK_VEHICLES.map((vehicle) => toVehicleWithMetadata(vehicle, metadata));
+    const withMeta = FALLBACK_VEHICLES.map((vehicle) => toVehicleWithMetadata(vehicle, metadata));
+    return excludeHiddenFromVehiclesPage(withMeta, metadata);
   } catch (err) {
     reportFixtureFallback("vehicles", "getSyncedPublicVehicles()/listVehicleMetadata() threw", err);
     return FALLBACK_VEHICLES;

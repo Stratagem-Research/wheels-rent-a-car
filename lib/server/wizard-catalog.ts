@@ -14,6 +14,7 @@ import { parseVehicleMedia, toPublicVehicleImages } from "@/lib/vehicles/vehicle
 import { composeVehicleTitle } from "@/lib/vehicles/display-name";
 import {
   applyOperationalSpecs,
+  isHiddenFromVehiclesPage,
   isManualVehiclePublic,
   parseOperational,
 } from "@/lib/vehicles/vehicle-operational";
@@ -115,6 +116,18 @@ export function metadataOnlyToVehicle(row: VehicleMetadataRow): Vehicle {
   return applyOperationalSpecs(base, operational);
 }
 
+export function excludeHiddenFromVehiclesPage(
+  vehicles: Vehicle[],
+  metadataRows: VehicleMetadataRow[],
+): Vehicle[] {
+  const hiddenIds = new Set(
+    metadataRows
+      .filter((row) => isHiddenFromVehiclesPage(parseOperational(row.operational)))
+      .map((row) => row.frontend_vehicle_id),
+  );
+  return vehicles.filter((vehicle) => !hiddenIds.has(vehicle.id));
+}
+
 export async function getSyncedPublicVehicles(): Promise<Vehicle[]> {
   const [rows, metadata] = await Promise.all([
     listWebsiteEnabledWizardVehicles(),
@@ -128,5 +141,5 @@ export async function getSyncedPublicVehicles(): Promise<Vehicle[]> {
     .filter((row) => !wizardFrontendIds.has(row.frontend_vehicle_id))
     .filter((row) => isManualVehiclePublic(parseOperational(row.operational)))
     .map(metadataOnlyToVehicle);
-  return [...fromWizard, ...manuals];
+  return excludeHiddenFromVehiclesPage([...fromWizard, ...manuals], metadata);
 }

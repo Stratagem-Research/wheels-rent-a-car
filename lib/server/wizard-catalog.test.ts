@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { toVehicleWithMetadata, type VehicleMetadataRow } from "@/lib/supabase/admin-repository";
-import { metadataOnlyToVehicle } from "@/lib/server/wizard-catalog";
+import { excludeHiddenFromVehiclesPage, metadataOnlyToVehicle } from "@/lib/server/wizard-catalog";
 import { VEHICLES } from "@/lib/api/fixtures/vehicles";
 
 const baseMeta = (overrides: Partial<VehicleMetadataRow>): VehicleMetadataRow => ({
@@ -93,5 +93,24 @@ describe("metadataOnlyToVehicle", () => {
       }),
     );
     expect(vehicle.id).toBe("wiz-131");
+  });
+});
+
+describe("excludeHiddenFromVehiclesPage", () => {
+  it("drops vehicles whose metadata sets website_enabled false", () => {
+    const visible = VEHICLES[0]!;
+    const hidden = { ...VEHICLES[1]!, id: "hidden-car" };
+    const result = excludeHiddenFromVehiclesPage(
+      [visible, hidden],
+      [
+        baseMeta({ frontend_vehicle_id: visible.id, operational: { website_enabled: true } }),
+        baseMeta({
+          frontend_vehicle_id: hidden.id,
+          slug: "hidden",
+          operational: { website_enabled: false },
+        }),
+      ],
+    );
+    expect(result.map((v) => v.id)).toEqual([visible.id]);
   });
 });

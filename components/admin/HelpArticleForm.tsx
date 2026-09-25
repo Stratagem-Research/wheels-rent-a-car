@@ -9,12 +9,15 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { AdminFormShell } from "@/components/admin/AdminFormShell";
+import { cn } from "@/lib/utils";
 import { writeHelpArticle } from "@/lib/admin/store";
 import type { HelpArticle, HelpArticleSection } from "@/types/domain";
-import type { CmsLocale } from "@/lib/i18n/localized";
 import {
+  CMS_LOCALES,
+  toLocalizedString,
   getLocalizedString,
   updateLocalizedString,
+  type CmsLocale,
 } from "@/lib/i18n/localized";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 
@@ -27,6 +30,20 @@ import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
  */
 
 const SLUG_PATTERN = /^[a-z0-9-]+$/;
+
+function localeHasOwnCopy(value: HelpArticle["title"], locale: CmsLocale): boolean {
+  return Boolean(toLocalizedString(value)[locale]?.trim());
+}
+
+function localeIsComplete(article: HelpArticle, locale: CmsLocale): boolean {
+  if (!localeHasOwnCopy(article.title, locale) || !localeHasOwnCopy(article.intro, locale)) {
+    return false;
+  }
+  return article.sections.every(
+    (section) =>
+      localeHasOwnCopy(section.heading, locale) && localeHasOwnCopy(section.body, locale),
+  );
+}
 
 export interface HelpArticleFormProps {
   /** When set, edit mode — seed the form from this article. */
@@ -127,23 +144,22 @@ export function HelpArticleForm({ article }: HelpArticleFormProps) {
     }
   };
 
+  const formActions = (
+    <>
+      <Button type="button" variant="secondary" onClick={() => router.push("/admin/help-articles")}>
+        Cancel
+      </Button>
+      <Button type="submit" variant="primary" loading={saving}>
+        {isEdit ? "Save changes" : "Create article"}
+      </Button>
+    </>
+  );
+
   return (
     <form onSubmit={onSubmit} noValidate className="flex flex-col gap-6">
-      <AdminFormShell
-        title={isEdit ? "Edit help article" : "New help article"}
-        footer={
-          <>
-            <Button type="button" variant="secondary" onClick={() => router.push("/admin/help-articles")}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="primary" loading={saving}>
-              {isEdit ? "Save changes" : "Create article"}
-            </Button>
-          </>
-        }
-      >
+      <AdminFormShell footer={formActions}>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Editing locale" helper="Translate fields for EN / AR / FR.">
+          <Field label="Editing locale">
             {({ id }) => (
               <Select
                 id={id}
@@ -156,7 +172,45 @@ export function HelpArticleForm({ article }: HelpArticleFormProps) {
               </Select>
             )}
           </Field>
-          <div />
+          <div className="flex items-end">
+            <div className="flex flex-wrap gap-2 pb-0.5" role="status" aria-label="Translation status">
+              {CMS_LOCALES.map((locale) => {
+                const complete = localeIsComplete(form, locale);
+                const active = locale === activeLocale;
+                return (
+                  <button
+                    key={locale}
+                    type="button"
+                    onClick={() => setActiveLocale(locale)}
+                    aria-pressed={active}
+                    aria-label={`${locale.toUpperCase()} ${complete ? "complete" : "needs copy"}`}
+                    className={cn(
+                      "label-sm rounded-pill inline-flex h-8 items-center gap-1.5 border px-3",
+                      "focus-visible:ring-ink-100 focus-visible:ring-offset-paper focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+                      active
+                        ? "border-ink-100 bg-ink-100 text-paper"
+                        : "border-border bg-paper text-ink-80 hover:bg-ink-05",
+                    )}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "size-1.5 rounded-full",
+                        complete
+                          ? active
+                            ? "bg-paper"
+                            : "bg-ink-100"
+                          : active
+                            ? "border border-paper/70"
+                            : "border border-ink-30",
+                      )}
+                    />
+                    {locale.toUpperCase()}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
           <Field label="Slug" required error={errors.slug} helper="Lowercase, dashes, no spaces. e.g. rental-terms">
             {({ id, describedBy, invalid }) => (
               <Input
@@ -213,6 +267,7 @@ export function HelpArticleForm({ article }: HelpArticleFormProps) {
       <AdminFormShell
         title="Sections"
         helper="Ordered top to bottom. Each section id must be unique within the article and URL-safe."
+        footer={formActions}
       >
         <div className="flex flex-col gap-4">
           {form.sections.map((section, i) => (

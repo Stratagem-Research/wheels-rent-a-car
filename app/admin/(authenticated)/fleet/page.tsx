@@ -3,6 +3,7 @@
 import * as React from "react";
 import { CloudDownload, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { Checkbox } from "@/components/ui/Checkbox";
 import { Chip } from "@/components/ui/Chip";
 import { Field } from "@/components/ui/FormAtoms";
 import { Input } from "@/components/ui/Input";
@@ -705,6 +706,11 @@ export default function AdminFleetPage() {
                       {bookedCount} booked
                     </span>
                   ) : null}
+                  {draft.operational.website_enabled === false ? (
+                    <span className="label-sm bg-ink-10 text-ink-80 rounded-pill px-3 py-1 font-semibold tracking-[0.08em] uppercase">
+                      Hidden
+                    </span>
+                  ) : null}
                 </span>
               }
               helper={groupHelper(group.map((item) => item.draft)) || undefined}
@@ -817,6 +823,16 @@ export default function AdminFleetPage() {
                     />
                   )}
                 </Field>
+              </div>
+              <div className="flex flex-col gap-2">
+                <Checkbox
+                  label="Hide from vehicles page"
+                  checked={draft.operational.website_enabled === false}
+                  onCheckedChange={(checked) =>
+                    patchGroupOperational(indices, { website_enabled: checked !== true })
+                  }
+                />
+
               </div>
               {isWebsiteGroup ? (
                 <Accordion type="single" collapsible className="border-border rounded-lg border px-4">
