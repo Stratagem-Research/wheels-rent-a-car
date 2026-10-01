@@ -72,11 +72,23 @@ function safeEquals(a: string, b: string): boolean {
   return timingSafeEqual(ha, hb);
 }
 
-/** `scrypt$<N>$<r>$<p>$<saltHex>$<keyHex>` — produced by scripts/hash-admin-password.mjs. */
-const SCRYPT_PREFIX = "scrypt$";
+/**
+ * `scrypt:<N>:<r>:<p>:<saltHex>:<keyHex>` — produced by
+ * scripts/hash-admin-password.mjs. Separators are colons because Next's .env
+ * loader expands `$NAME` and would mangle a `$`-delimited value into garbage.
+ * The older `scrypt$…` form is still accepted for values set where nothing
+ * expands them (e.g. Plesk's environment variables).
+ */
+function scryptSeparator(stored: string): ":" | "$" | null {
+  if (stored.startsWith("scrypt:")) return ":";
+  if (stored.startsWith("scrypt$")) return "$";
+  return null;
+}
 
 export function verifyAdminPasswordHash(password: string, stored: string): boolean {
-  const parts = stored.slice(SCRYPT_PREFIX.length).split("$");
+  const separator = scryptSeparator(stored);
+  if (!separator) return false;
+  const parts = stored.slice("scrypt".length + 1).split(separator);
   if (parts.length !== 5) return false;
   const [nRaw, rRaw, pRaw, saltHex, keyHex] = parts as [string, string, string, string, string];
   const N = Number(nRaw);
@@ -100,37 +112,87 @@ export function verifyAdminPasswordHash(password: string, stored: string): boole
 }
 
 /**
- * Wheels signs in with one shared credential. `ADMIN_PASSWORD_HASH` (scrypt)
- * is preferred so a leaked .env or server backup doesn't hand over the live
- * password; `ADMIN_PASSWORD` stays supported as plaintext for deployments
+ * Where a role's password lives. Each role has its own secret: the scrypt hash
+ * (preferred, so a leaked .env or server backup doesn't expose the live
+ * password) with the plaintext variable kept as a fallback for deployments
  * that haven't switched over yet.
  */
-function passwordMatches(password: string): boolean {
-  const hash = process.env.ADMIN_PASSWORD_HASH?.trim();
+type PasswordSource = { hashVar: string; plainVar: string };
+
+const OPS_PASSWORD: PasswordSource = {
+  hashVar: "ADMIN_PASSWORD_HASH",
+  plainVar: "ADMIN_PASSWORD",
+};
+const EDITOR_PASSWORD: PasswordSource = {
+  hashVar: "ADMIN_EDITOR_PASSWORD_HASH",
+  plainVar: "ADMIN_EDITOR_PASSWORD",
+};
+
+/**
+ * `required` makes a missing secret throw (a misconfigured deployment should
+ * be loud, not a silent "invalid password"); without it, a missing secret just
+ * never matches.
+ */
+function passwordMatches(password: string, source: PasswordSource, required: boolean): boolean {
+  const hash = process.env[source.hashVar]?.trim();
   if (hash) {
-    if (!hash.startsWith(SCRYPT_PREFIX)) return false;
+    if (!scryptSeparator(hash)) {
+      // Fail closed, but say why — a mangled hash otherwise just looks like a
+      // wrong password. The usual cause is a `$` in a .env value being expanded.
+      console.warn(
+        `[admin-auth] ${source.hashVar} is set but isn't a valid hash (it should start with "scrypt:"). Regenerate it with \`node scripts/hash-admin-password.mjs\`.`,
+      );
+      return false;
+    }
     return verifyAdminPasswordHash(password, hash);
   }
-  const plaintext = getEnv("ADMIN_PASSWORD");
+  const plaintext = required ? getEnv(source.plainVar) : process.env[source.plainVar];
+  if (!plaintext) return false;
   if (process.env.NODE_ENV === "production") {
     console.warn(
-      "[admin-auth] ADMIN_PASSWORD_HASH is not set — falling back to the plaintext ADMIN_PASSWORD. Generate a hash with `node scripts/hash-admin-password.mjs`.",
+      `[admin-auth] ${source.hashVar} is not set — falling back to the plaintext ${source.plainVar}. Generate a hash with \`node scripts/hash-admin-password.mjs\`.`,
     );
   }
   return safeEquals(password, plaintext);
 }
 
+/**
+ * The role comes from the username, but only a password that belongs to that
+ * role unlocks it — typing the ops username with the editor password fails.
+ *
+ * Editors need `ADMIN_EDITOR_PASSWORD(_HASH)`. With none configured, editor
+ * sign-in is off; it never falls back to the ops password, since that would let
+ * every editor type the ops username and take ops access.
+ */
 export function authenticateAdminCredentials(
   username: string,
   password: string,
 ): { username: string; role: AdminRole } | null {
   const cfg = getConfig();
   const normalized = username.trim();
-  if (!passwordMatches(password)) return null;
-  if (cfg.opsAdmins.includes(normalized)) return { username: normalized, role: "ops-admin" };
+
+  if (cfg.opsAdmins.includes(normalized)) {
+    return passwordMatches(password, OPS_PASSWORD, true)
+      ? { username: normalized, role: "ops-admin" }
+      : null;
+  }
+
   if (cfg.contentEditors.includes(normalized)) {
+    if (!passwordMatches(password, EDITOR_PASSWORD, false)) return null;
+    // An editor password that is also the ops password would hand editors ops
+    // access, undoing the separation — refuse rather than quietly allow it.
+    if (passwordMatches(password, OPS_PASSWORD, false)) {
+      console.warn(
+        "[admin-auth] The editor password is the same as the ops password, so editor sign-in is refused. Set a different ADMIN_EDITOR_PASSWORD(_HASH).",
+      );
+      return null;
+    }
     return { username: normalized, role: "content-editor" };
   }
+
+  // Unknown username: still spend a password check so the response time doesn't
+  // reveal which usernames exist.
+  passwordMatches(password, OPS_PASSWORD, true);
   return null;
 }
 

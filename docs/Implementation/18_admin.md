@@ -19,7 +19,8 @@ The admin dashboard added in Revision 2 (Phase 12) gives Wheels a self-serve con
 
 Current implementation:
 - Authentication is server-session based via `/api/admin/sessions` and signed cookies from `lib/server/admin-auth.ts`.
-- Password and session secret are environment-driven (`ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`) with no fallback defaults.
+- Password and session secret are environment-driven (`ADMIN_PASSWORD_HASH`/`ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`) with no fallback defaults.
+- Ops and content-editors have **separate passwords** (`ADMIN_PASSWORD_HASH` and `ADMIN_EDITOR_PASSWORD_HASH`, or the plaintext `ADMIN_PASSWORD` / `ADMIN_EDITOR_PASSWORD`). A username signs in only with its own role's password, so an editor can't type the ops username and take ops access. With no editor password configured, editor sign-in is disabled (it never falls back to the ops password), and an editor password equal to the ops password is refused.
 - Persistence is Supabase-backed via `lib/admin/store.ts` -> `/api/cms/*` routes.
 - Public pages read from `useAdminStore` hooks and reflect writes after CMS events/refetch.
 - `proxy.ts` adds `X-Robots-Tag: noindex, nofollow` on every `/admin/*` route so crawlers never see the editor.

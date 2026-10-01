@@ -52,9 +52,7 @@ export default function AdminLoginPage() {
             <h1 className="display-md text-ink-100 text-[clamp(28px,4vw,40px)] leading-[1.05]">
               Sign in.
             </h1>
-            <p className="body-sm text-ink-60">
-              Staging credentials only. Real auth replaces this before launch.
-            </p>
+
           </div>
         </div>
 

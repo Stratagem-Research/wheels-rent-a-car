@@ -2,8 +2,11 @@
 /**
  * Generate an ADMIN_PASSWORD_HASH for .env.
  *
- *   node scripts/hash-admin-password.mjs
+ *   node scripts/hash-admin-password.mjs            -> ADMIN_PASSWORD_HASH (ops)
+ *   node scripts/hash-admin-password.mjs --editor   -> ADMIN_EDITOR_PASSWORD_HASH
  *   node scripts/hash-admin-password.mjs "the password"
+ *
+ * Ops and editors have separate passwords; the two must differ.
  *
  * With no argument it asks for the password. The prompt is plain (not hidden):
  * hidden input needs raw-mode terminal support that several shells lack, and a
@@ -27,7 +30,8 @@ function hash(password) {
     p: P,
     maxmem: 256 * 1024 * 1024,
   });
-  return `scrypt$${N}$${R}$${P}$${salt.toString("hex")}$${key.toString("hex")}`;
+  // Colons, not `$`: Next's .env loader expands `$NAME` and would mangle the hash.
+  return ["scrypt", N, R, P, salt.toString("hex"), key.toString("hex")].join(":");
 }
 
 function prompt(question) {
@@ -45,13 +49,18 @@ function prompt(question) {
   });
 }
 
-const fromArg = process.argv[2];
-const password = (fromArg ?? (await prompt("Admin password (visible as you type): "))).trim();
+const args = process.argv.slice(2);
+const forEditor = args.includes("--editor");
+const fromArg = args.find((arg) => !arg.startsWith("--"));
+const label = forEditor ? "Editor" : "Admin";
+const password = (fromArg ?? (await prompt(`${label} password (visible as you type): `))).trim();
 
 if (!password || password.length < 8) {
   console.error("Password must be at least 8 characters.");
   process.exit(1);
 }
 
-console.log("\nAdd this to .env (and drop ADMIN_PASSWORD once every environment has it):\n");
-console.log(`ADMIN_PASSWORD_HASH=${hash(password)}\n`);
+const hashVar = forEditor ? "ADMIN_EDITOR_PASSWORD_HASH" : "ADMIN_PASSWORD_HASH";
+const plainVar = forEditor ? "ADMIN_EDITOR_PASSWORD" : "ADMIN_PASSWORD";
+console.log(`\nAdd this to .env (and drop ${plainVar} once every environment has it):\n`);
+console.log(`${hashVar}=${hash(password)}\n`);
