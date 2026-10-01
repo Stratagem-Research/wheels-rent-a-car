@@ -6,6 +6,8 @@ import { Briefcase, Check, Users } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";
+import { Button } from "@/components/ui/Button";
+import { RequestPriceModal } from "@/components/vehicle/RequestPriceModal";
 import { SaveVehicleButton } from "@/components/vehicle/SaveVehicleButton";
 import { VehicleImageSlider } from "@/components/vehicle/VehicleImageSlider";
 import { formatUsd, perDayRate, rentalDays } from "@/lib/booking/pricing";
@@ -80,6 +82,40 @@ export interface VehicleCardProps {
   className?: string;
 }
 
+/** Renders as a navigating Link, or a plain non-interactive div when the
+ * card has no price to navigate into a booking flow with (see
+ * `isPriceOnRequest` in VehicleCard). */
+function CardFrame({
+  asLink,
+  href,
+  scroll,
+  tabIndex,
+  ariaLabel,
+  className,
+  children,
+}: {
+  asLink: boolean;
+  href: string;
+  scroll?: boolean;
+  tabIndex?: number;
+  ariaLabel?: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  if (asLink) {
+    return (
+      <Link href={href} scroll={scroll} tabIndex={tabIndex} aria-label={ariaLabel} className={className}>
+        {children}
+      </Link>
+    );
+  }
+  return (
+    <div className={className} tabIndex={tabIndex}>
+      {children}
+    </div>
+  );
+}
+
 export function VehicleCard({
   vehicle,
   variant = "default",
@@ -95,6 +131,8 @@ export function VehicleCard({
   const detailHref = href ?? `/vehicles?selected=${encodeURIComponent(vehicle.id)}`;
   const dark = variant === "default";
   const vehicleLabel = vehicleDisplayName(vehicle);
+  const isPriceOnRequest = vehicle.priceOnRequest === true;
+  const [requestPriceOpen, setRequestPriceOpen] = React.useState(false);
 
   // Per-day rate at the best-price + 200-km plan (matches the default
   // selection in VehicleCardExpanded). Falls back to the raw daily rate
@@ -129,14 +167,18 @@ export function VehicleCard({
         inverse={dark}
         className="absolute top-4 right-4 z-10"
       />
-      <Link
+      <CardFrame
+        asLink={!isPriceOnRequest}
         href={detailHref}
         scroll={scrollOnClick}
-        aria-label={t("selectAria", { vehicle: vehicleLabel })}
+        ariaLabel={isPriceOnRequest ? undefined : t("selectAria", { vehicle: vehicleLabel })}
         className={cn(
           "flex flex-col gap-4 p-5 pb-0 sm:p-6 sm:pb-0",
-          "focus-visible:rounded-xl focus-visible:outline  focus-visible:outline-offset-[-2px]",
-          dark ? "focus-visible:outline-paper" : "focus-visible:outline-ink-100",
+          !isPriceOnRequest &&
+            cn(
+              "focus-visible:rounded-xl focus-visible:outline  focus-visible:outline-offset-[-2px]",
+              dark ? "focus-visible:outline-paper" : "focus-visible:outline-ink-100",
+            ),
         )}
       >
         <header className="flex flex-col gap-1">
@@ -193,9 +235,10 @@ export function VehicleCard({
             label={t(vehicle.transmission === "automatic" ? "transAutomatic" : "transManual")}
           />
         </ul>
-      </Link>
+      </CardFrame>
 
-      <Link
+      <CardFrame
+        asLink={!isPriceOnRequest}
         href={detailHref}
         scroll={scrollOnClick}
         tabIndex={-1}
@@ -206,16 +249,20 @@ export function VehicleCard({
           dark={dark}
           sizes="(min-width: 1024px) 360px, (min-width: 640px) 50vw, 100vw"
         />
-      </Link>
+      </CardFrame>
 
-      <Link
+      <CardFrame
+        asLink={!isPriceOnRequest}
         href={detailHref}
         scroll={scrollOnClick}
-        tabIndex={-1}
+        tabIndex={isPriceOnRequest ? undefined : -1}
         className={cn(
           "flex flex-1 flex-col justify-end gap-4 p-5 pt-2 sm:p-6 sm:pt-2",
-          "focus-visible:rounded-xl focus-visible:outline focus-visible:outline-offset-[-2px]",
-          dark ? "focus-visible:outline-paper" : "focus-visible:outline-ink-100",
+          !isPriceOnRequest &&
+            cn(
+              "focus-visible:rounded-xl focus-visible:outline focus-visible:outline-offset-[-2px]",
+              dark ? "focus-visible:outline-paper" : "focus-visible:outline-ink-100",
+            ),
         )}
       >
         {/* Unlimited-km availability — green check + paper text. */}
@@ -231,29 +278,56 @@ export function VehicleCard({
         </div>
 
         {/* Price row + badge at the BOTTOM. Dollar amount upsized to 1.5em
-         * Extra Bold so the price reads first at any glance distance. */}
+         * Extra Bold so the price reads first at any glance distance. Manual
+         * cars with no admin-set rate show a single "Request Price" CTA
+         * instead (00_global.md: never two red CTAs — this replaces, not
+         * adds to, the price block). */}
         <div className="flex items-end justify-between gap-3">
-          <div className="flex flex-col gap-0.5">
-            <span className={cn("price-md tabular-nums", dark ? "text-paper" : "text-ink-95")}>
-              <span className="text-[1.5em] font-extrabold tracking-[-0.02em]">
-                ${fromPriceParts.dollars}
+          {isPriceOnRequest ? (
+            <Button
+              type="button"
+              variant="cta"
+              size="sm"
+              aria-label={t("requestPriceAria", { vehicle: vehicleLabel })}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setRequestPriceOpen(true);
+              }}
+            >
+              {t("requestPrice")}
+            </Button>
+          ) : (
+            <div className="flex flex-col gap-0.5">
+              <span className={cn("price-md tabular-nums", dark ? "text-paper" : "text-ink-95")}>
+                <span className="text-[1.5em] font-extrabold tracking-[-0.02em]">
+                  ${fromPriceParts.dollars}
+                </span>
+                <span className="font-extrabold">.{fromPriceParts.cents}</span>{" "}
+                <span className={cn("body-sm font-medium", dark ? "text-paper/85" : "text-ink-80")}>
+                  {t("perDay")}
+                </span>
               </span>
-              <span className="font-extrabold">.{fromPriceParts.cents}</span>{" "}
-              <span className={cn("body-sm font-medium", dark ? "text-paper/85" : "text-ink-80")}>
-                {t("perDay")}
-              </span>
-            </span>
-            {totalLabel ? (
-              <span className={cn("body-sm tabular-nums", dark ? "text-paper/55" : "text-ink-50")}>
-                {t("total", { price: totalLabel })}
-              </span>
-            ) : null}
-          </div>
+              {totalLabel ? (
+                <span className={cn("body-sm tabular-nums", dark ? "text-paper/55" : "text-ink-50")}>
+                  {t("total", { price: totalLabel })}
+                </span>
+              ) : null}
+            </div>
+          )}
           {vehicle.badge ? (
             <Badge variant={BADGE_VARIANT[vehicle.badge]}>{t(BADGE_KEY[vehicle.badge])}</Badge>
           ) : null}
         </div>
-      </Link>
+      </CardFrame>
+      {isPriceOnRequest ? (
+        <RequestPriceModal
+          open={requestPriceOpen}
+          onOpenChange={setRequestPriceOpen}
+          vehicleId={vehicle.id}
+          vehicleLabel={vehicleLabel}
+        />
+      ) : null}
 
       {/* Pointer-down chevron when selected — a CSS triangle pointing DOWN
        * (apex below the card, base flush with the card's bottom edge). The

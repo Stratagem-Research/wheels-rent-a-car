@@ -683,6 +683,8 @@
     "deliveryUnitPriceValue": "{price} / km",
     "deliveryTotalCost": "Delivery total",
     "payLaterAvailable": "Pay later available",
+    "requestPrice": "Request price",
+    "requestPriceAria": "Request price for {vehicle}",
     "selectAria": "Select {vehicle}",
     "prevImage": "Previous photo",
     "nextImage": "Next photo",
@@ -1182,6 +1184,15 @@
       "count4To10": "4–10 vehicles",
       "count10Plus": "10+ vehicles",
       "notesPlaceholder": "Tell us about your vehicles and what you're looking for..."
+    },
+    "priceRequest": {
+      "title": "Request a price",
+      "description": "Tell us how long you need the {vehicle} and we'll send you a quote.",
+      "daysNeeded": "How many days do you need it?",
+      "daysNeededRequired": "Tell us how many days you need.",
+      "notesPlaceholder": "Preferred start date, delivery needs, anything else...",
+      "submit": "Request price",
+      "success": "Thanks! We'll email you a quote shortly."
     },
     "contactForm": {
       "subject": "Subject",

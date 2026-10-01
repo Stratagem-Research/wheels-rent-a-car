@@ -3,6 +3,7 @@ import { z } from "zod";
 import {
   listCorporateLeads,
   listFleetPartnershipLeads,
+  listPriceRequestLeads,
   updateLeadStatus,
   writeAdminAuditLog,
 } from "@/lib/supabase/admin-repository";
@@ -16,6 +17,7 @@ const LeadKindSchema = z.enum([
   "chauffeur",
   "car-wash",
   "fleet-partnership",
+  "price-request",
   "contact",
 ]);
 
@@ -31,11 +33,12 @@ export async function GET(request: Request) {
   const auth = requireAdminSession(request, ["content-editor", "ops-admin"]);
   if (!auth.ok) return auth.response;
   try {
-    const [corporate, fleetPartnership] = await Promise.all([
+    const [corporate, fleetPartnership, priceRequest] = await Promise.all([
       listCorporateLeads(),
       listFleetPartnershipLeads(),
+      listPriceRequestLeads(),
     ]);
-    const all = [...corporate, ...fleetPartnership];
+    const all = [...corporate, ...fleetPartnership, ...priceRequest];
     const counters = {
       total: all.length,
       new: all.filter((item) => item.status === "new").length,
@@ -47,6 +50,7 @@ export async function GET(request: Request) {
       counters,
       corporate,
       fleetPartnership,
+      priceRequest,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to load leads.";
@@ -77,7 +81,9 @@ export async function PATCH(request: Request) {
               ? "chauffeur_enquiries"
               : parsed.data.kind === "car-wash"
                 ? "car_wash_enquiries"
-                : "fleet_partnership_enquiries";
+                : parsed.data.kind === "fleet-partnership"
+                  ? "fleet_partnership_enquiries"
+                  : "price_request_enquiries";
       await updateLeadStatus(
         table,
         parsed.data.id,

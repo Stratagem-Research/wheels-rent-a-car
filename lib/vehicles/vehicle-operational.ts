@@ -89,6 +89,12 @@ export function isManualVehiclePublic(operational: VehicleOperational): boolean 
   return true;
 }
 
+/** True when an admin left the manual car's daily rate unset (or 0) — the
+ * public card shows "Request Price" instead of a price and booking link. */
+export function isPriceOnRequest(operational: VehicleOperational): boolean {
+  return !(typeof operational.daily_rate === "number" && operational.daily_rate > 0);
+}
+
 function asTransmission(raw: string | null | undefined): Transmission {
   return raw === "manual" ? "manual" : "automatic";
 }

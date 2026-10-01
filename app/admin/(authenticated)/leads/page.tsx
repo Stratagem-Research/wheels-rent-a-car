@@ -8,7 +8,7 @@ import { AdminPageShell } from "@/components/admin/AdminPageShell";
 import { toast } from "@/components/ui/Toast";
 import { fetchAdminLeads, type AdminLeadsResponse, updateAdminLeadStatus } from "@/lib/admin/store";
 
-type LeadKind = "corporate" | "fleet-partnership";
+type LeadKind = "corporate" | "fleet-partnership" | "price-request";
 type LeadStatus = "new" | "in-progress" | "won" | "lost";
 
 function StatusControls({
@@ -27,7 +27,6 @@ function StatusControls({
   onSaved: () => Promise<void>;
 }) {
   const [nextStatus, setNextStatus] = React.useState<LeadStatus>(status);
-  const [nextOwner, setNextOwner] = React.useState(owner ?? "");
   const [notes, setNotes] = React.useState(adminNotes ?? "");
   const [saving, setSaving] = React.useState(false);
 
@@ -43,12 +42,6 @@ function StatusControls({
         <option value="won">Won</option>
         <option value="lost">Lost</option>
       </select>
-      <input
-        className="border-border rounded-pill bg-paper h-9 w-full border px-3 text-sm"
-        placeholder="Owner"
-        value={nextOwner}
-        onChange={(e) => setNextOwner(e.target.value)}
-      />
       <textarea
         className="border-border bg-paper w-full rounded-xl border px-3 py-2 text-sm"
         rows={2}
@@ -66,7 +59,7 @@ function StatusControls({
               id,
               kind,
               status: nextStatus,
-              owner: nextOwner.trim() || undefined,
+              owner: owner?.trim() || undefined,
               adminNotes: notes.trim() || undefined,
             });
             await onSaved();
@@ -110,7 +103,7 @@ export default function AdminLeadsPage() {
     <AdminPageShell
       eyebrow="CRM"
       title="Leads inbox"
-      description="Corporate and fleet partnership enquiries. Long-term, chauffeur, and car wash have their own pages under Data."
+      description="Corporate, fleet partnership, and price-request enquiries. Long-term, chauffeur, and car wash have their own pages under Data."
       actions={
         <Button variant="tertiary" onClick={() => void refresh()}>
           <RefreshCcw className="size-4" aria-hidden="true" />
@@ -143,6 +136,35 @@ export default function AdminLeadsPage() {
               <p className="headline-md text-ink-100 mt-1">{data.counters.lost}</p>
             </li>
           </ul>
+
+          <section id="price-requests" className="flex flex-col gap-3">
+            <h2 className="headline-sm text-ink-100">Price requests</h2>
+            <p className="body-sm text-ink-60">
+              Submitted from fleet cards for manual cars with no published price.
+            </p>
+            <AdminDataTable
+              rows={data.priceRequest}
+              rowKey={(row) => row.id}
+              columns={[
+                { header: "Vehicle", cell: (row) => row.vehicle_title ?? row.vehicle_id },
+                { header: "Email", cell: (row) => row.email, width: "20%" },
+                { header: "Phone", cell: (row) => row.phone ?? "—", width: "14%" },
+                { header: "Days needed", cell: (row) => String(row.days_needed), width: "10%" },
+                { header: "Notes", cell: (row) => row.notes ?? "—", width: "20%" },
+                { header: "Status", cell: (row) => row.status, width: "10%" },
+              ]}
+              rowActions={(row) => (
+                <StatusControls
+                  id={row.id}
+                  kind="price-request"
+                  status={row.status}
+                  owner={row.owner}
+                  adminNotes={row.admin_notes}
+                  onSaved={refresh}
+                />
+              )}
+            />
+          </section>
 
           <section className="flex flex-col gap-3">
             <h2 className="headline-sm text-ink-100">Corporate enquiries</h2>

@@ -137,6 +137,7 @@ This card is **shared with the homepage carousel and the search results page**. 
 **Behavior:**
 - Whole card is a link to `/vehicles/[slug]`. Clicking the CTA goes to PDP, not directly into booking (no dates yet).
 - Image lazy-loads; placeholder is a soft `colors.neutral-95` block while loading.
+- **Request Price (manual cars with no admin-set rate):** when an admin adds a manual/website-only car in the admin fleet editor and leaves the daily rate blank, the card shows a single `signal-red` "Request Price" CTA in place of the price + booking link (card no longer navigates into the booking flow — there's no rate to compute it from). Clicking opens a modal asking for email, days needed, and optional notes; submission is stored as a `price_request_enquiry` and surfaces in the admin **Leads inbox** (`/admin/leads`) for the team to quote manually. See `18_admin.md` § "Data requirements — leads inbox".
 
 #### Grid layout
 

@@ -143,7 +143,7 @@ export function VehicleOperationalFields({
           )}
         </Field>
       </div>
-      <div className="grid gap-4 sm:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-[1fr_1fr_140px_1fr]">
         <Field label="Status">
           {({ id }) => (
             <Select
@@ -159,7 +159,10 @@ export function VehicleOperationalFields({
             </Select>
           )}
         </Field>
-        <Field label="Daily rate" required={requireCoreSpecs}>
+        <Field
+          label="Daily rate"
+          helper="Leave blank to show &ldquo;Request Price&rdquo; on the site instead of a price."
+        >
           {({ id }) => (
             <Input
               id={id}

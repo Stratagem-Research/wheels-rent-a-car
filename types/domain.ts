@@ -102,6 +102,9 @@ export interface Vehicle {
   dailyRateFromCents: Cents;
   /** True if Wheels actually owns one of these; affects "or similar" copy. */
   ownsInFleet: boolean;
+  /** True when an admin left this manual car's daily rate unset — the fleet
+   * card shows a "Request Price" CTA instead of a price and booking flow. */
+  priceOnRequest?: boolean;
 }
 
 // ── Locations ─────────────────────────────────────────────────────────────

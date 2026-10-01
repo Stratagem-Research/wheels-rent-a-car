@@ -56,9 +56,7 @@ export function ManualVehicleCreateForm({
 
   const units = unitIds.length;
   const idsReady = unitIds.length > 0 && unitIds.every((id) => Boolean(normalizeManualUnitId(id)));
-  const specsReady = Boolean(
-    operational.year && operational.year > 1900 && operational.daily_rate != null && operational.daily_rate > 0,
-  );
+  const specsReady = Boolean(operational.year && operational.year > 1900);
   const canAdd = Boolean(brand.trim() && model.trim() && idsReady && specsReady);
 
   const submit = (e: React.FormEvent) => {
@@ -98,7 +96,7 @@ export function ManualVehicleCreateForm({
   return (
     <AdminFormShell
       title="Add car"
-      helper="Website-only cars. Booked on this site — not sent to Wizard. Brand, model, unit ids, year, and daily rate are required."
+      helper=" Brand, model, unit ids, and year are required. Leave daily rate blank to show &ldquo;Request Price&rdquo; instead of a price."
     >
       <form className="flex flex-col gap-4" onSubmit={submit}>
         <div className="grid gap-4 sm:grid-cols-3">

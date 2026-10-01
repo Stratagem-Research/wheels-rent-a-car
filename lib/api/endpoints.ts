@@ -78,6 +78,7 @@ export const endpoints = {
   leadsCorporate: `${API_BASE}/leads/corporate`,
   leadsCarWash: `${API_BASE}/leads/car-wash`,
   leadsFleetPartnership: `${API_BASE}/leads/fleet-partnership`,
+  leadsPriceRequest: `${API_BASE}/leads/price-request`,
   contact: `${API_BASE}/contact`,
 
   // Misc

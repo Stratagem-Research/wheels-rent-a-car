@@ -326,7 +326,7 @@ function operationalSummary(op: VehicleOperational): string {
 }
 
 function hasManualCoreSpecs(op: VehicleOperational): boolean {
-  return Boolean(op.year && op.year > 1900 && op.daily_rate != null && op.daily_rate > 0);
+  return Boolean(op.year && op.year > 1900);
 }
 
 function isManualCardReady(draft: MetaDraft): boolean {
@@ -384,9 +384,21 @@ export default function AdminFleetPage() {
   const [sourceFilter, setSourceFilter] = React.useState<SourceFilter>("all");
   const [addUnitIds, setAddUnitIds] = React.useState<Record<string, string>>({});
   const [addUnitErrors, setAddUnitErrors] = React.useState<Record<string, string>>({});
-  const [dirty, setDirty] = React.useState(false);
+  // Tracked per model-group (not a single flag) so saving one car's edits
+  // doesn't silently clear the "unsaved changes" guard for a different,
+  // still-unsaved car on the same page.
+  const [dirtyGroupKeys, setDirtyGroupKeys] = React.useState<Set<string>>(() => new Set());
+  const markGroupDirty = (key: string) =>
+    setDirtyGroupKeys((prev) => (prev.has(key) ? prev : new Set(prev).add(key)));
+  const clearGroupDirty = (key: string) =>
+    setDirtyGroupKeys((prev) => {
+      if (!prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    });
 
-  useUnsavedChangesGuard(dirty);
+  useUnsavedChangesGuard(dirtyGroupKeys.size > 0);
 
   const allGroups = React.useMemo(
     () => groupDraftsByModel(drafts.map((draft, index) => ({ draft, index }))),
@@ -416,7 +428,7 @@ export default function AdminFleetPage() {
       setDrafts((prev) => (opts?.keepLocalNames ? preserveWebsiteBrandModel(prev, incoming) : incoming));
       setHeldIds(new Set(Array.isArray(metadataRes.held_ids) ? metadataRes.held_ids : []));
       setDeletedIds([]);
-      setDirty(false);
+      setDirtyGroupKeys(new Set());
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to load fleet admin data.");
     } finally {
@@ -432,21 +444,24 @@ export default function AdminFleetPage() {
 
   const updateGroup = (indices: number[], patch: Partial<MetaDraft>) => {
     const ids = new Set(indices);
+    const source = drafts[indices[0]!];
     setDrafts((list) => list.map((m, i) => (ids.has(i) ? { ...m, ...patch } : m)));
-    setDirty(true);
+    if (source) markGroupDirty(groupKeyForDraft(source));
   };
 
   const updateAt = (index: number, patch: Partial<MetaDraft>) => {
+    const source = drafts[index];
     setDrafts((list) => list.map((m, i) => (i === index ? { ...m, ...patch } : m)));
-    setDirty(true);
+    if (source) markGroupDirty(groupKeyForDraft(source));
   };
 
   const patchGroupOperational = (indices: number[], patch: Partial<VehicleOperational>) => {
     const ids = new Set(indices);
+    const source = drafts[indices[0]!];
     setDrafts((list) =>
       list.map((m, i) => (ids.has(i) ? { ...m, operational: { ...m.operational, ...patch } } : m)),
     );
-    setDirty(true);
+    if (source) markGroupDirty(groupKeyForDraft(source));
   };
 
   const addCar = () => {
@@ -461,7 +476,7 @@ export default function AdminFleetPage() {
     setCreating(false);
     setSearch("");
     setPage(1);
-    setDirty(true);
+    if (added[0]) markGroupDirty(groupKeyForDraft(added[0]));
   };
 
   const addUnitToGroup = (source: MetaDraft, groupSaveKey: string) => {
@@ -485,7 +500,7 @@ export default function AdminFleetPage() {
     setAddUnitIds((prev) => ({ ...prev, [groupSaveKey]: "" }));
     setAddUnitErrors((prev) => ({ ...prev, [groupSaveKey]: "" }));
     setSelectedUnitIds((prev) => ({ ...prev, [groupSaveKey]: storedId }));
-    setDirty(true);
+    markGroupDirty(groupKeyForDraft(source));
     toast.success(`Added unit "${displayManualUnitId(storedId)}".`);
   };
 
@@ -496,14 +511,16 @@ export default function AdminFleetPage() {
       confirmLabel: "Remove unit",
     });
     if (!ok) return;
+    const removedDraft = drafts.find((draft) => draft.frontend_vehicle_id === unitId);
     setDeletedIds((prev) => [...prev, unitId]);
     setDrafts((list) => list.filter((draft) => draft.frontend_vehicle_id !== unitId));
-    setDirty(true);
     try {
       await putMetadata([], [unitId]);
       setDeletedIds((prev) => prev.filter((id) => id !== unitId));
+      if (removedDraft) clearGroupDirty(groupKeyForDraft(removedDraft));
       toast.success(`Removed unit "${displayManualUnitId(unitId)}".`);
     } catch (err) {
+      if (removedDraft) markGroupDirty(groupKeyForDraft(removedDraft));
       toast.error(err instanceof Error ? err.message : "Failed to remove unit.");
     }
   };
@@ -520,17 +537,19 @@ export default function AdminFleetPage() {
     });
     if (!ok) return;
     const drop = new Set(indices);
+    const groupKey = first ? groupKeyForDraft(first) : null;
     const removedIds = indices
       .map((i) => drafts[i]?.frontend_vehicle_id)
       .filter((id): id is string => Boolean(id));
     setDeletedIds((prev) => [...prev, ...removedIds]);
     setDrafts((list) => list.filter((_, i) => !drop.has(i)));
-    setDirty(true);
     try {
       await putMetadata([], removedIds);
       setDeletedIds((prev) => prev.filter((id) => !removedIds.includes(id)));
+      if (groupKey) clearGroupDirty(groupKey);
       toast.success(`Removed ${label}.`);
     } catch (err) {
+      if (groupKey) markGroupDirty(groupKey);
       toast.error(err instanceof Error ? err.message : "Failed to remove vehicle.");
     }
   };
@@ -609,7 +628,7 @@ export default function AdminFleetPage() {
     const source = drafts[indices[0]!];
     if (!source) return;
     if (isWebsiteOnlyDraft(source) && !isManualCardReady(source)) {
-      toast.error("Fill brand, model, year, and daily rate before saving.");
+      toast.error("Fill brand, model, and year before saving.");
       return;
     }
     const key = groupKeyForDraft(source);
@@ -621,6 +640,7 @@ export default function AdminFleetPage() {
         .map((draft, i) => (i === 0 ? draft : copySharedGroupFields(source, draft)));
       await putMetadata(members.map(toMetadataItem), deletedIds);
       setDeletedIds([]);
+      clearGroupDirty(key);
       toast.success(`Saved ${vehicleCardTitle(source)}.`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save vehicle.");
@@ -1005,7 +1025,7 @@ export default function AdminFleetPage() {
               />
               <div className="border-border flex flex-col items-end gap-2 border-t pt-4">
                 {isWebsiteGroup && !isManualCardReady(draft) ? (
-                  <p className="body-sm text-ink-60">Fill brand, model, year, and daily rate to save.</p>
+                  <p className="body-sm text-ink-60">Fill brand, model, and year to save.</p>
                 ) : null}
                 <div className="flex justify-end gap-2">
                   <Button type="button" variant="tertiary" onClick={() => void removeGroup(indices)}>

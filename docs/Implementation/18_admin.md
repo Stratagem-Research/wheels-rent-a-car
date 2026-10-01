@@ -109,6 +109,14 @@ Data persistence/repository layer:
 - Supabase repository: `lib/supabase/cms-repository.ts`
 - Admin audit logging: `lib/supabase/admin-repository.ts`
 
+### Data requirements — leads inbox
+
+`/admin/leads` (`app/admin/(authenticated)/leads/page.tsx`) aggregates non-booking enquiries via `fetchAdminLeads()` / `updateAdminLeadStatus()` in `lib/admin/store.ts`, backed by `app/api/admin/leads/route.ts`. Each enquiry kind has its own Supabase table (`*_enquiries`), listed/inserted through `lib/supabase/admin-repository.ts`, sharing the `AdminLeadStatus` lifecycle (`new → in-progress → won/lost`):
+- `corporate_enquiries`, `fleet_partnership_enquiries` — existing B2B leads.
+- `price_request_enquiries` — submitted from a fleet card's "Request Price" CTA (see `02_fleet_browse.md` § "Vehicle card") when a manual car's admin-set daily rate is blank. Columns: `vehicle_id`, `vehicle_title`, `email`, `days_needed`, `start_date`, `notes`, plus the shared status/owner/admin_notes fields. Table defined in `supabase/migrations/20261001_000001_price_request_enquiries.sql`.
+
+This is deliberately kept outside the booking state machine (`types/domain.ts` `BookingState`) — a car with no price can't compute a booking price breakdown, so it's a manual-follow-up lead, not a `pending` booking.
+
 ## Remaining hardening before production
 
 1. Enforce secure admin env provisioning in deployment (`ADMIN_PASSWORD`, `ADMIN_SESSION_SECRET`) and rotate regularly.

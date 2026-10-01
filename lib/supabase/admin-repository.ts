@@ -107,6 +107,22 @@ export type FleetPartnershipLead = {
   updated_at: string;
 };
 
+export type PriceRequestLead = {
+  id: string;
+  vehicle_id: string;
+  vehicle_title: string | null;
+  email: string;
+  phone: string | null;
+  days_needed: number;
+  start_date: string | null;
+  notes: string | null;
+  status: AdminLeadStatus;
+  owner: string | null;
+  admin_notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type VehicleMetadataRow = {
   frontend_vehicle_id: string;
   slug: string;
@@ -242,13 +258,24 @@ export async function listFleetPartnershipLeads(): Promise<FleetPartnershipLead[
   return (data ?? []) as FleetPartnershipLead[];
 }
 
+export async function listPriceRequestLeads(): Promise<PriceRequestLead[]> {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("price_request_enquiries")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as PriceRequestLead[];
+}
+
 export async function updateLeadStatus(
   table:
     | "long_term_enquiries"
     | "corporate_enquiries"
     | "chauffeur_enquiries"
     | "car_wash_enquiries"
-    | "fleet_partnership_enquiries",
+    | "fleet_partnership_enquiries"
+    | "price_request_enquiries",
   id: string,
   status: AdminLeadStatus,
   owner: string | null,
@@ -386,6 +413,33 @@ export async function insertFleetPartnershipLead(input: {
       vehicle_count: input.vehicleCount ?? null,
       notes: input.notes ?? null,
       marketing: input.marketing,
+    })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+  return data.id as string;
+}
+
+export async function insertPriceRequestLead(input: {
+  vehicleId: string;
+  vehicleTitle?: string;
+  email: string;
+  phone: string;
+  daysNeeded: number;
+  startDate?: string;
+  notes?: string;
+}): Promise<string> {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("price_request_enquiries")
+    .insert({
+      vehicle_id: input.vehicleId,
+      vehicle_title: input.vehicleTitle ?? null,
+      email: input.email,
+      phone: input.phone,
+      days_needed: input.daysNeeded,
+      start_date: input.startDate ?? null,
+      notes: input.notes ?? null,
     })
     .select("id")
     .single();

@@ -17,6 +17,7 @@ import {
   dailyRateCentsFromOperational,
   isHiddenFromVehiclesPage,
   isManualVehiclePublic,
+  isPriceOnRequest,
   parseOperational,
 } from "@/lib/vehicles/vehicle-operational";
 
@@ -112,7 +113,10 @@ export function metadataOnlyToVehicle(row: VehicleMetadataRow): Vehicle {
     dailyRateFromCents: 2000,
     ownsInFleet: true,
   };
-  return applyOperationalSpecs(base, operational);
+  return {
+    ...applyOperationalSpecs(base, operational),
+    priceOnRequest: isPriceOnRequest(operational),
+  };
 }
 
 export function excludeHiddenFromVehiclesPage(

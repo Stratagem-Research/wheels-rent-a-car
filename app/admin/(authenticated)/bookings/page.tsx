@@ -198,10 +198,15 @@ export default function AdminBookingsPage() {
       title="Bookings"
       description="Website bookings. Confirm and Cancel on website-only cars while a hold is active."
       actions={
-        <Button variant="tertiary" onClick={() => void refresh()}>
-          <RefreshCcw className="size-4" aria-hidden="true" />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="tertiary" asChild>
+            <Link href="/admin/leads#price-requests">Price requests</Link>
+          </Button>
+          <Button variant="tertiary" onClick={() => void refresh()}>
+            <RefreshCcw className="size-4" aria-hidden="true" />
+            Refresh
+          </Button>
+        </div>
       }
     >
       {loading ? <p className="body-md text-ink-60">Loading bookings…</p> : null}
