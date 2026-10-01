@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
+import { detectLicenceScanFile } from "@/lib/server/licence-scan-file";
 import { getSupabaseAdminClient } from "@/lib/supabase/admin";
 
 const MAX_SIZE_BYTES = 5 * 1024 * 1024;
-const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
 
 /**
  * POST /api/booking/licence-scan — uploads a driver's licence scan during
@@ -26,18 +26,19 @@ export async function POST(request: Request) {
   if (file.size > MAX_SIZE_BYTES) {
     return NextResponse.json({ message: "File too large (max 5 MB)." }, { status: 400 });
   }
-  if (file.type && !ALLOWED_TYPES.has(file.type)) {
+
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const detected = detectLicenceScanFile(buffer);
+  if (!detected) {
     return NextResponse.json({ message: "Unsupported file type." }, { status: 400 });
   }
 
   const supabase = getSupabaseAdminClient();
-  const ext = file.name.split(".").pop() ?? "bin";
-  const path = `guest-checkout/${randomUUID()}/${side}.${ext}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
+  const path = `guest-checkout/${randomUUID()}/${side}.${detected.extension}`;
 
   const { error: uploadError } = await supabase.storage
     .from("user-documents")
-    .upload(path, buffer, { contentType: file.type || "application/octet-stream" });
+    .upload(path, buffer, { contentType: detected.contentType });
   if (uploadError) {
     return NextResponse.json({ message: uploadError.message }, { status: 500 });
   }
