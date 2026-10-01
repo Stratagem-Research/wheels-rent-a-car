@@ -8,6 +8,12 @@ import {
   readAdminSession,
   setAdminAuthCookies,
 } from "@/lib/server/admin-auth";
+import {
+  adminLoginClientKey,
+  checkAdminLoginAllowed,
+  clearAdminLoginFailures,
+  recordAdminLoginFailure,
+} from "@/lib/server/admin-login-throttle";
 import { writeAdminAuditLog } from "@/lib/supabase/admin-repository";
 
 export async function GET(request: Request) {
@@ -19,6 +25,15 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const clientKey = adminLoginClientKey(request);
+  const throttle = checkAdminLoginAllowed(clientKey);
+  if (!throttle.allowed) {
+    return NextResponse.json(
+      { message: "Too many failed attempts. Try again later." },
+      { status: 429, headers: { "Retry-After": String(throttle.retryAfterSeconds) } },
+    );
+  }
+
   const body = (await request.json().catch(() => null)) as {
     username?: string;
     password?: string;
@@ -28,8 +43,17 @@ export async function POST(request: Request) {
   }
   const identity = authenticateAdminCredentials(body.username, body.password);
   if (!identity) {
+    const lockedOut = recordAdminLoginFailure(clientKey);
+    await writeAdminAuditLog({
+      actor: body.username.trim().slice(0, 80),
+      role: "ops-admin",
+      resource: "admin_session",
+      action: lockedOut ? "login_locked_out" : "login_failed",
+      details: { client: clientKey },
+    }).catch(() => undefined);
     return NextResponse.json({ message: "Invalid username or password." }, { status: 401 });
   }
+  clearAdminLoginFailures(clientKey);
   const sessionToken = createAdminSessionToken(identity.username, identity.role);
   const csrfToken = randomUUID().replace(/-/g, "");
   const response = NextResponse.json({ ok: true, user: identity });

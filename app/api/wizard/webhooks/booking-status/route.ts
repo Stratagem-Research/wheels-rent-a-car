@@ -6,6 +6,7 @@ import {
   isApprovalStatus,
   isInventoryReleaseStatus,
 } from "@/lib/server/booking-confirmation";
+import { isInternalRequestAuthorized } from "@/lib/server/internal-api-auth";
 import { appendBookingState } from "@/lib/server/payment-events";
 import { deleteVehicleBookingHold } from "@/lib/supabase/vehicle-booking-holds-repository";
 import { findIndexedBookingByReference } from "@/lib/supabase/user-bookings-repository";
@@ -17,30 +18,13 @@ const BodySchema = z.object({
   vehicle: z.string().optional(),
 });
 
-function getExpectedBearer(): string | null {
-  const token =
-    process.env.WHEELS_INTERNAL_API_TOKEN?.trim() ||
-    process.env.WIZARD_API_TOKEN?.trim() ||
-    "";
-  if (!token || token.startsWith("replace-with")) return null;
-  return token;
-}
-
-function authorize(request: Request): boolean {
-  const expected = getExpectedBearer();
-  if (!expected) return false;
-  const header = request.headers.get("authorization") ?? "";
-  const match = /^Bearer\s+(.+)$/i.exec(header);
-  return Boolean(match && match[1] === expected);
-}
-
 /**
  * Inbound Wizard → website status webhook.
  * Approval: enqueue confirmation email once.
  * Cancel/reject: drop the inventory hold so the car counts as available again.
  */
 export async function POST(request: Request) {
-  if (!authorize(request)) {
+  if (!isInternalRequestAuthorized(request)) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 

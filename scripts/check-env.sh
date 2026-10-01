@@ -14,7 +14,6 @@ required_server=(
   "DATABASE_URL"
   "WHEELS_INTERNAL_API_BASE_URL"
   "WHEELS_INTERNAL_API_TOKEN"
-  "ADMIN_PASSWORD"
   "ADMIN_SESSION_SECRET"
 )
 
@@ -37,6 +36,12 @@ check_group() {
 
 check_group "public" "${required_public[@]}"
 check_group "server" "${required_server[@]}"
+
+# Admin sign-in needs one of the two — the scrypt hash is preferred, plaintext
+# is still accepted for environments that haven't switched over.
+if [[ -z "${ADMIN_PASSWORD_HASH:-}" && -z "${ADMIN_PASSWORD:-}" ]]; then
+  missing+=("ADMIN_PASSWORD_HASH (or ADMIN_PASSWORD)")
+fi
 
 if [[ "$mode" != "payment-deferred" ]]; then
   check_group "payment" "${required_payment[@]}"

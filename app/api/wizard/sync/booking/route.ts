@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { isInternalRequestAuthorized } from "@/lib/server/internal-api-auth";
 import { dispatchWizardSync } from "@/lib/server/wizard-sync";
 import type { WebsiteBookingLifecycleState } from "@/lib/api/wheels-public";
 
@@ -23,6 +24,12 @@ const SyncBookingSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  // Server-to-server only: this relays a lifecycle/payment change to Wheels
+  // using the website's own internal token, so an open route would let anyone
+  // who knows a booking reference cancel, confirm, or mark it paid.
+  if (!isInternalRequestAuthorized(request)) {
+    return NextResponse.json({ message: "Unauthorized." }, { status: 401 });
+  }
   const body = await request.json().catch(() => null);
   const parsed = SyncBookingSchema.safeParse(body);
   if (!parsed.success) {

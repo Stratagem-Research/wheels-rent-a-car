@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "crypto";
+import { createHash, createHmac, scryptSync, timingSafeEqual } from "crypto";
 import { NextResponse } from "next/server";
 
 export type AdminRole = "content-editor" | "ops-admin";
@@ -20,8 +20,6 @@ function getEnv(name: string, fallback?: string): string {
 }
 
 function getConfig() {
-  const password = getEnv("ADMIN_PASSWORD");
-  const secret = getEnv("ADMIN_SESSION_SECRET");
   const contentEditors = (process.env.ADMIN_CONTENT_EDITOR_USERNAMES ?? "editor")
     .split(",")
     .map((value) => value.trim())
@@ -30,7 +28,7 @@ function getConfig() {
     .split(",")
     .map((value) => value.trim())
     .filter(Boolean);
-  return { password, secret, contentEditors, opsAdmins };
+  return { secret: getEnv("ADMIN_SESSION_SECRET"), contentEditors, opsAdmins };
 }
 
 function getSessionSecret(): string | null {
@@ -63,13 +61,72 @@ function parseCookie(cookieHeader: string | null, key: string): string | null {
   return null;
 }
 
+/**
+ * Constant-time string compare. Hashing first keeps the comparison on
+ * fixed-length buffers, so neither the value nor its length leaks through
+ * timing — `timingSafeEqual` throws on a length mismatch.
+ */
+function safeEquals(a: string, b: string): boolean {
+  const ha = createHash("sha256").update(a, "utf8").digest();
+  const hb = createHash("sha256").update(b, "utf8").digest();
+  return timingSafeEqual(ha, hb);
+}
+
+/** `scrypt$<N>$<r>$<p>$<saltHex>$<keyHex>` — produced by scripts/hash-admin-password.mjs. */
+const SCRYPT_PREFIX = "scrypt$";
+
+export function verifyAdminPasswordHash(password: string, stored: string): boolean {
+  const parts = stored.slice(SCRYPT_PREFIX.length).split("$");
+  if (parts.length !== 5) return false;
+  const [nRaw, rRaw, pRaw, saltHex, keyHex] = parts as [string, string, string, string, string];
+  const N = Number(nRaw);
+  const r = Number(rRaw);
+  const p = Number(pRaw);
+  if (!Number.isInteger(N) || !Number.isInteger(r) || !Number.isInteger(p)) return false;
+  const expected = Buffer.from(keyHex, "hex");
+  if (expected.length === 0) return false;
+  try {
+    const actual = scryptSync(password, Buffer.from(saltHex, "hex"), expected.length, {
+      N,
+      r,
+      p,
+      // scrypt's default maxmem (32MB) is below what N=16384,r=8 needs.
+      maxmem: 256 * 1024 * 1024,
+    });
+    return timingSafeEqual(actual, expected);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Wheels signs in with one shared credential. `ADMIN_PASSWORD_HASH` (scrypt)
+ * is preferred so a leaked .env or server backup doesn't hand over the live
+ * password; `ADMIN_PASSWORD` stays supported as plaintext for deployments
+ * that haven't switched over yet.
+ */
+function passwordMatches(password: string): boolean {
+  const hash = process.env.ADMIN_PASSWORD_HASH?.trim();
+  if (hash) {
+    if (!hash.startsWith(SCRYPT_PREFIX)) return false;
+    return verifyAdminPasswordHash(password, hash);
+  }
+  const plaintext = getEnv("ADMIN_PASSWORD");
+  if (process.env.NODE_ENV === "production") {
+    console.warn(
+      "[admin-auth] ADMIN_PASSWORD_HASH is not set — falling back to the plaintext ADMIN_PASSWORD. Generate a hash with `node scripts/hash-admin-password.mjs`.",
+    );
+  }
+  return safeEquals(password, plaintext);
+}
+
 export function authenticateAdminCredentials(
   username: string,
   password: string,
 ): { username: string; role: AdminRole } | null {
   const cfg = getConfig();
   const normalized = username.trim();
-  if (password !== cfg.password) return null;
+  if (!passwordMatches(password)) return null;
   if (cfg.opsAdmins.includes(normalized)) return { username: normalized, role: "ops-admin" };
   if (cfg.contentEditors.includes(normalized)) {
     return { username: normalized, role: "content-editor" };
