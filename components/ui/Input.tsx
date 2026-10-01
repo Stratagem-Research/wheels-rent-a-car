@@ -86,7 +86,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(function Inp
         disabled={disabled}
         aria-invalid={invalid || undefined}
         className={cn(
-          "flex-1 bg-transparent outline-none",
+          // min-w-0: a flex item won't shrink below its intrinsic width, and a
+          // number input's is wide enough to overflow a narrow wrapper — which
+          // pushes the native spin buttons outside the border.
+          "min-w-0 flex-1 bg-transparent outline-none",
           inverse ? "placeholder:text-ink-40" : "placeholder:text-ink-50",
           "disabled:cursor-not-allowed",
         )}

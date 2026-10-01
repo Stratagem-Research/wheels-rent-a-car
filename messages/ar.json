@@ -1215,7 +1215,8 @@
     "depositAtPickup": "التأمين القابل للاسترداد عند الاستلام",
     "baseRateDays": "السعر الأساسي ({days} أيام)",
     "pricingUnavailable": "سيظهر السعر عند تحميل السيارة.",
-    "beirutTimesNote": "أوقات الاستلام والتسليم بتوقيت بيروت (GMT+3) بغض النظر عن موقعك."
+    "beirutTimesNote": "أوقات الاستلام والتسليم بتوقيت بيروت (GMT+3) بغض النظر عن موقعك.",
+    "paymentSurcharge": "رسوم الدفع"
   },
   "booking": {
     "pendingTitle": "استلمنا طلب الحجز",
@@ -1243,8 +1244,14 @@
     "omtTagline": "ادفع عبر OMT أو نسّق مع فريقنا",
     "whishOnlineBody": "سيتم تحويلك إلى Whish لإتمام الدفع بشكل آمن. نؤكد الحجز فقط بعد نجاح التحقق من حالة الدفع في Whish.",
     "cashBody": "احضر الدفعة بالدولار أو بالليرة عند الاستلام. يوجد تأمين مسترد مطلوب عند الكاونتر. الإرسال ينشئ طلب حجز — سنراسل لك عند الموافقة. تواصل معنا على واتساب عند الحاجة.",
-    "transferBank": "المصرف: بنك بيروت ش.م.ل",
-    "transferIban": "IBAN: LB00 0000 0000 0000 0000 0000 0000",
+    "transferDetailsPending": "سنرسل لك تفاصيل حسابنا المصرفي عبر البريد الإلكتروني بمجرد استلام طلبك.",
+    "transferBankLabel": "المصرف",
+    "transferAccountNameLabel": "اسم الحساب",
+    "transferAccountNumberLabel": "رقم الحساب",
+    "transferIbanLabel": "IBAN",
+    "transferSwiftLabel": "SWIFT",
+    "surchargeFixed": "+{amount} رسوم دفع",
+    "surchargePercent": "+{percent}% رسوم دفع ({amount})",
     "omtBranchLine": "ادفع نقداً في أي فرع OMT.",
     "omtCodeLine": "رمز دفع OMT هو رقم مرجع حجزك — يتم تعيينه فور إرسال الحجز، وستراه في الشاشة التالية مباشرة.",
     "choosePaymentMethod": "اختر طريقة الدفع.",

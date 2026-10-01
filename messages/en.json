@@ -597,15 +597,7 @@
     "browseCars": "Browse cars",
     "fleetHeading": "Cars usually at our branch",
     "faqHeading": "Common questions",
-    "days": [
-      "Sun",
-      "Mon",
-      "Tue",
-      "Wed",
-      "Thu",
-      "Fri",
-      "Sat"
-    ],
+    "days": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     "faqs": [
       {
         "q": "Can I pick up after hours?",
@@ -1409,7 +1401,8 @@
     "promoDiscount": "Promo discount",
     "depositAtPickup": "Refundable deposit at pickup",
     "pricingUnavailable": "Pricing will appear once the vehicle is loaded.",
-    "beirutTimesNote": "Pickup and return times are Beirut local time (GMT+3), regardless of where you browse from."
+    "beirutTimesNote": "Pickup and return times are Beirut local time (GMT+3), regardless of where you browse from.",
+    "paymentSurcharge": "Payment fee"
   },
   "booking": {
     "pendingTitle": "We've received your booking request",
@@ -1437,8 +1430,6 @@
     "omtTagline": "Pay at OMT or arrange with our team",
     "whishOnlineBody": "You'll be redirected to Whish to complete payment securely. We only confirm the booking after Whish status verification succeeds.",
     "cashBody": "Bring your payment in USD or LBP at pickup. A refundable security deposit is required at the counter. Submitting creates a booking request — we'll email you once it's approved. Message us on WhatsApp anytime if you need help.",
-    "transferBank": "Bank: Bank of Beirut SAL",
-    "transferIban": "IBAN: LB00 0000 0000 0000 0000 0000 0000",
     "omtBranchLine": "Pay in cash at any OMT branch.",
     "omtCodeLine": "Your OMT payment code is your booking reference — it's assigned the moment you submit, and the next screen shows it.",
     "choosePaymentMethod": "Choose a payment method.",
@@ -1454,7 +1445,15 @@
     "submitPendingVerification": "Submit booking, pending verification",
     "howWouldYouLikeToPay": "How would you like to pay?",
     "payAndConfirm": "Pay & confirm",
-    "confirmReservation": "Confirm reservation"
+    "confirmReservation": "Confirm reservation",
+    "transferDetailsPending": "Our bank details will be sent to you by email once your request is received.",
+    "transferBankLabel": "Bank",
+    "transferAccountNameLabel": "Account name",
+    "transferAccountNumberLabel": "Account number",
+    "transferIbanLabel": "IBAN",
+    "transferSwiftLabel": "SWIFT",
+    "surchargeFixed": "+{amount} payment fee",
+    "surchargePercent": "+{percent}% payment fee ({amount})"
   },
   "accountProfile": {
     "profileLabel": "Profile",

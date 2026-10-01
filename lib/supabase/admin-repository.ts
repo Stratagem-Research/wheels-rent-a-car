@@ -5,9 +5,13 @@ import type {
   DeliveryPricingSettings,
   LocalizedString,
   LocalizedStringArray,
+  PaymentSettings,
+  PaymentSurcharge,
+  PaymentSurchargeMode,
   Vehicle,
 } from "@/types/domain";
 import { DEFAULT_CONTACT_SETTINGS } from "@/lib/contact/settings";
+import { SURCHARGEABLE_PAYMENT_METHODS } from "@/lib/payments/payment-settings";
 import { isLocalizedString, isLocalizedStringArray, toLocalizedString } from "@/lib/i18n/localized";
 import { parseVehicleMedia, toPublicVehicleImages } from "@/lib/vehicles/vehicle-media";
 import { composeVehicleTitle } from "@/lib/vehicles/display-name";
@@ -666,6 +670,82 @@ export async function replaceContactSettings(settings: ContactSettings): Promise
     }
     throw new Error(error.message);
   }
+}
+
+export async function getPaymentSettings(): Promise<PaymentSettings | null> {
+  const supabase = getSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("payment_settings")
+    .select("*")
+    .eq("id", "default")
+    .limit(1);
+  if (error) throw new Error(error.message);
+  const row = (data ?? [])[0] as
+    | {
+        bank_name: string | null;
+        account_name: string | null;
+        account_number: string | null;
+        iban: string | null;
+        swift: string | null;
+        instructions: string | null;
+        surcharges: unknown;
+      }
+    | undefined;
+  if (!row) return null;
+  return {
+    bankTransfer: {
+      bankName: row.bank_name ?? "",
+      accountName: row.account_name ?? "",
+      accountNumber: row.account_number ?? "",
+      iban: row.iban ?? "",
+      swift: row.swift ?? "",
+      instructions: row.instructions ?? "",
+    },
+    surcharges: parseSurcharges(row.surcharges),
+  };
+}
+
+/**
+ * The `surcharges` column is free-form jsonb, so every method falls back to
+ * "no surcharge" rather than trusting the stored shape — a malformed row must
+ * never silently inflate a customer's total.
+ */
+function parseSurcharges(value: unknown): PaymentSettings["surcharges"] {
+  const source = (value ?? {}) as Record<string, unknown>;
+  const modes: PaymentSurchargeMode[] = ["none", "fixed", "percent"];
+  const entries = SURCHARGEABLE_PAYMENT_METHODS.map((method) => {
+    const raw = source[method] as Partial<PaymentSurcharge> | undefined;
+    const mode = modes.includes(raw?.mode as PaymentSurchargeMode)
+      ? (raw!.mode as PaymentSurchargeMode)
+      : "none";
+    const amountCents = Number(raw?.amountCents);
+    const percent = Number(raw?.percent);
+    return [
+      method,
+      {
+        mode,
+        amountCents: Number.isFinite(amountCents) ? Math.max(0, Math.round(amountCents)) : 0,
+        percent: Number.isFinite(percent) ? Math.max(0, percent) : 0,
+      },
+    ] as const;
+  });
+  return Object.fromEntries(entries) as PaymentSettings["surcharges"];
+}
+
+export async function replacePaymentSettings(settings: PaymentSettings): Promise<void> {
+  const supabase = getSupabaseAdminClient();
+  const { error } = await supabase.from("payment_settings").upsert({
+    id: "default",
+    bank_name: settings.bankTransfer.bankName,
+    account_name: settings.bankTransfer.accountName,
+    account_number: settings.bankTransfer.accountNumber,
+    iban: settings.bankTransfer.iban,
+    swift: settings.bankTransfer.swift,
+    instructions: settings.bankTransfer.instructions,
+    surcharges: settings.surcharges,
+    updated_at: new Date().toISOString(),
+  });
+  if (error) throw new Error(error.message);
 }
 
 export async function listPromotions(): Promise<PromotionRow[]> {

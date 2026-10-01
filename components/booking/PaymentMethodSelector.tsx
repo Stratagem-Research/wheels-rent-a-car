@@ -9,7 +9,18 @@ import { Label } from "@/components/ui/FormAtoms";
 import { RadioGroup, RadioItem } from "@/components/ui/RadioGroup";
 import { api } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
-import type { PaymentMethod, PaymentMethodPublicConfig, SiteConfig } from "@/types/domain";
+import { formatUsd } from "@/lib/booking/pricing";
+import {
+  hasBankTransferDetails,
+  paymentSurchargeCents,
+  surchargeFor,
+} from "@/lib/payments/payment-settings";
+import type {
+  PaymentMethod,
+  PaymentMethodPublicConfig,
+  PaymentSettings,
+  SiteConfig,
+} from "@/types/domain";
 
 const OPTION_META: {
   value: PaymentMethod;
@@ -32,6 +43,10 @@ const OPTION_META: {
 export interface PaymentMethodSelectorProps {
   value: PaymentMethod | null;
   onValueChange: (next: PaymentMethod) => void;
+  /** Admin-managed bank details + per-method surcharges (/admin/payment). */
+  settings?: PaymentSettings;
+  /** Total the customer would owe paying cash — the percent-surcharge base. */
+  baseCents?: number;
 }
 
 function isSelectable(config: PaymentMethodPublicConfig): boolean {
@@ -40,7 +55,7 @@ function isSelectable(config: PaymentMethodPublicConfig): boolean {
 
 export function PaymentMethodSelector(props: PaymentMethodSelectorProps) {
   const t = useTranslations("checkoutPayment");
-  const { value, onValueChange } = props;
+  const { value, onValueChange, settings, baseCents = 0 } = props;
   const [methods, setMethods] = React.useState<PaymentMethodPublicConfig[]>([]);
 
   React.useEffect(() => {
@@ -97,9 +112,14 @@ export function PaymentMethodSelector(props: PaymentMethodSelectorProps) {
           >
             <label className="flex cursor-pointer items-start gap-3">
               <RadioItem value={opt.value} className="mt-1" />
-              <OptionCopy opt={opt} config={config} t={t} />
+              <OptionCopy
+                opt={opt}
+                config={config}
+                t={t}
+                surchargeNote={surchargeNote({ method: opt.value, settings, baseCents, t })}
+              />
             </label>
-            {selected ? <MethodPanel method={opt.value} /> : null}
+            {selected ? <MethodPanel method={opt.value} settings={settings} /> : null}
           </div>
         );
       })}
@@ -107,14 +127,41 @@ export function PaymentMethodSelector(props: PaymentMethodSelectorProps) {
   );
 }
 
+/**
+ * Shows what the method adds before the customer picks it, so the total
+ * never moves without an explanation already on screen.
+ */
+function surchargeNote({
+  method,
+  settings,
+  baseCents,
+  t,
+}: {
+  method: PaymentMethod;
+  settings?: PaymentSettings;
+  baseCents: number;
+  t: ReturnType<typeof useTranslations>;
+}): string | null {
+  const surcharge = surchargeFor(method, settings);
+  if (surcharge.mode === "none") return null;
+  const cents = paymentSurchargeCents({ method, settings, baseCents });
+  if (cents <= 0) return null;
+  if (surcharge.mode === "percent") {
+    return t("surchargePercent", { percent: surcharge.percent, amount: formatUsd(cents) });
+  }
+  return t("surchargeFixed", { amount: formatUsd(cents) });
+}
+
 function OptionCopy({
   opt,
   config,
   t,
+  surchargeNote,
 }: {
   opt: (typeof OPTION_META)[number];
   config?: PaymentMethodPublicConfig;
   t: ReturnType<typeof useTranslations>;
+  surchargeNote: string | null;
 }) {
   return (
     <div className="flex flex-1 items-start gap-3">
@@ -122,6 +169,7 @@ function OptionCopy({
       <div className="min-w-0 flex-1">
         <div className="headline-xs text-ink-95">{t(opt.labelKey)}</div>
         <div className="body-sm text-ink-60">{t(opt.taglineKey)}</div>
+        {surchargeNote ? <div className="label-sm text-ink-95 mt-1">{surchargeNote}</div> : null}
         {config?.environment === "sandbox" ? (
           <div className="label-sm text-ink-60 mt-1">{t("sandboxBadge")}</div>
         ) : null}
@@ -130,7 +178,7 @@ function OptionCopy({
   );
 }
 
-function MethodPanel({ method }: { method: PaymentMethod }) {
+function MethodPanel({ method, settings }: { method: PaymentMethod; settings?: PaymentSettings }) {
   switch (method) {
     case "card":
       return null;
@@ -141,7 +189,7 @@ function MethodPanel({ method }: { method: PaymentMethod }) {
     case "cash":
       return <CashPanel />;
     case "transfer":
-      return <TransferPanel />;
+      return <TransferPanel settings={settings} />;
     case "omt":
       return <OmtPanel />;
   }
@@ -174,14 +222,37 @@ function CashPanel() {
   );
 }
 
-function TransferPanel() {
+function TransferPanel({ settings }: { settings?: PaymentSettings }) {
   const t = useTranslations("checkoutPayment");
+  const bank = settings?.bankTransfer;
+  if (!hasBankTransferDetails(settings) || !bank) {
+    return (
+      <Card variant="tint" className="p-4">
+        <p className="body-sm text-ink-80">{t("transferDetailsPending")}</p>
+      </Card>
+    );
+  }
+  const rows: { label: string; value: string }[] = [
+    { label: t("transferBankLabel"), value: bank.bankName },
+    { label: t("transferAccountNameLabel"), value: bank.accountName },
+    { label: t("transferAccountNumberLabel"), value: bank.accountNumber },
+    { label: t("transferIbanLabel"), value: bank.iban },
+    { label: t("transferSwiftLabel"), value: bank.swift },
+  ].filter((row) => row.value.trim().length > 0);
+
   return (
     <Card variant="tint" className="flex flex-col gap-3 p-4">
-      <ul className="body-sm text-ink-80 flex flex-col gap-1">
-        <li>· {t("transferBank")}</li>
-        <li>· {t("transferIban")}</li>
-      </ul>
+      <dl className="body-sm text-ink-80 flex flex-col gap-1">
+        {rows.map((row) => (
+          <div key={row.label} className="flex flex-wrap items-baseline gap-x-2">
+            <dt className="text-ink-60">{row.label}</dt>
+            <dd className="text-ink-95 font-mono">{row.value}</dd>
+          </div>
+        ))}
+      </dl>
+      {bank.instructions.trim() ? (
+        <p className="body-sm text-ink-60">{bank.instructions}</p>
+      ) : null}
     </Card>
   );
 }

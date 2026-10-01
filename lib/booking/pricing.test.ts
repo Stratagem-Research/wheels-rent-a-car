@@ -9,6 +9,7 @@ import {
 } from "./pricing";
 import { VEHICLES } from "@/lib/api/fixtures/vehicles";
 import { ADD_ONS, PROTECTION_TIERS } from "@/lib/api/fixtures/catalog";
+import { DEFAULT_PAYMENT_SETTINGS } from "@/lib/payments/payment-settings";
 import type { BookingDraft } from "@/types/domain";
 
 const yaris = VEHICLES.find((v) => v.slug === "toyota-yaris")!;
@@ -131,6 +132,27 @@ describe("booking/pricing", () => {
     });
     expect(withPromo.discountCents).toBeGreaterThan(0);
     expect(withPromo.totalCents).toBeLessThan(noPromo.totalCents);
+  });
+
+  it("adds the selected method's surcharge on top of the total", () => {
+    const base = computePrice({ draft: draft(), vehicle: yaris, addOns: ADD_ONS, tiers: PROTECTION_TIERS });
+    const withFee = computePrice({
+      draft: draft(),
+      vehicle: yaris,
+      addOns: ADD_ONS,
+      tiers: PROTECTION_TIERS,
+      paymentMethod: "omt",
+      paymentSettings: {
+        ...DEFAULT_PAYMENT_SETTINGS,
+        surcharges: {
+          ...DEFAULT_PAYMENT_SETTINGS.surcharges,
+          omt: { mode: "percent", amountCents: 0, percent: 10 },
+        },
+      },
+    });
+    expect(base.surchargeCents).toBe(0);
+    expect(withFee.surchargeCents).toBe(Math.round(base.totalCents * 0.1));
+    expect(withFee.totalCents).toBe(base.totalCents + withFee.surchargeCents);
   });
 
   it("returns the empty breakdown when no vehicle is set", () => {

@@ -1215,7 +1215,8 @@
     "depositAtPickup": "Caution remboursable à la prise du véhicule",
     "baseRateDays": "Tarif de base ({days} jours)",
     "pricingUnavailable": "Le prix s'affichera une fois le véhicule chargé.",
-    "beirutTimesNote": "Les heures de prise et de retour sont en heure de Beyrouth (GMT+3), où que vous naviguiez."
+    "beirutTimesNote": "Les heures de prise et de retour sont en heure de Beyrouth (GMT+3), où que vous naviguiez.",
+    "paymentSurcharge": "Frais de paiement"
   },
   "booking": {
     "pendingTitle": "Nous avons reçu votre demande",
@@ -1243,8 +1244,14 @@
     "omtTagline": "Payez via OMT ou arrangez avec notre équipe",
     "whishOnlineBody": "Vous serez redirigé vers Whish pour finaliser le paiement en toute sécurité. La réservation est confirmée uniquement après vérification du statut Whish.",
     "cashBody": "Apportez votre paiement en USD ou en LBP au retrait. Une caution remboursable est requise au comptoir. L'envoi crée une demande — nous vous e-mailerons une fois approuvée. WhatsApp pour toute aide.",
-    "transferBank": "Banque : Bank of Beirut SAL",
-    "transferIban": "IBAN : LB00 0000 0000 0000 0000 0000 0000",
+    "transferDetailsPending": "Nos coordonnées bancaires vous seront envoyées par e-mail dès réception de votre demande.",
+    "transferBankLabel": "Banque",
+    "transferAccountNameLabel": "Titulaire du compte",
+    "transferAccountNumberLabel": "Numéro de compte",
+    "transferIbanLabel": "IBAN",
+    "transferSwiftLabel": "SWIFT",
+    "surchargeFixed": "+{amount} de frais de paiement",
+    "surchargePercent": "+{percent}% de frais de paiement ({amount})",
     "omtBranchLine": "Payez en espèces dans une agence OMT.",
     "omtCodeLine": "Votre code de paiement OMT est votre référence de réservation — elle est attribuée dès l'envoi, et l'écran suivant l'affiche directement.",
     "choosePaymentMethod": "Choisissez un mode de paiement.",

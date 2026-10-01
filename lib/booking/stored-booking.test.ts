@@ -49,6 +49,7 @@ const booking = {
     taxesCents: 0,
     feesCents: 0,
     discountCents: 0,
+    surchargeCents: 0,
     totalCents: 4500,
     depositCents: 0,
   },

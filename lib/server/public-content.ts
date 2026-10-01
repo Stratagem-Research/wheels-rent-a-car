@@ -4,6 +4,7 @@ import type {
   Branch,
   ContactSettings,
   DeliveryPricingSettings,
+  PaymentSettings,
   Review,
   SiteConfig,
   Vehicle,
@@ -15,9 +16,11 @@ import { listReviewsFromDb } from "@/lib/supabase/reviews-repository";
 import { ABOUT_CONTENT_SEED } from "@/lib/supabase/seed-data";
 import { DEFAULT_DELIVERY_PRICING_SETTINGS } from "@/lib/booking/delivery-pricing";
 import { DEFAULT_CONTACT_SETTINGS } from "@/lib/contact/settings";
+import { DEFAULT_PAYMENT_SETTINGS } from "@/lib/payments/payment-settings";
 import {
   getContactSettings,
   getDeliveryPricingSettings,
+  getPaymentSettings,
   listAboutContent,
   listLocations,
   listPromotions,
@@ -94,6 +97,22 @@ export async function getPublicBranches(): Promise<Branch[]> {
 function withContactNumbers(branch: Branch, contact: ContactSettings): Branch {
   return { ...branch, phone: contact.phone, whatsapp: contact.whatsapp };
 }
+
+/**
+ * Admin-managed bank-transfer details + per-method surcharges. Read by the
+ * checkout payment panel, the pricing engine's final step, and the booking
+ * confirmation email, so all three quote the same numbers.
+ */
+export const getPublicPaymentSettings = cache(async (): Promise<PaymentSettings> => {
+  try {
+    const settings = await getPaymentSettings();
+    if (settings) return settings;
+    reportFixtureFallback("payment-settings", "getPaymentSettings() returned no row");
+  } catch (err) {
+    reportFixtureFallback("payment-settings", "getPaymentSettings() threw", err);
+  }
+  return DEFAULT_PAYMENT_SETTINGS;
+});
 
 export async function getPublicDeliveryPricing(): Promise<DeliveryPricingSettings> {
   try {

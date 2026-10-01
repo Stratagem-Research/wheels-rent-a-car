@@ -166,6 +166,44 @@ export interface DeliveryPricingSettings {
   perKmCents: number;
 }
 
+/**
+ * Bank account the customer wires to when they pick "Bank transfer" at
+ * checkout. Admin-editable at /admin/payment — shown on the checkout payment
+ * panel and repeated in the confirmation email.
+ */
+export interface BankTransferDetails {
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
+  iban: string;
+  swift: string;
+  /** Free-text line shown under the account details (e.g. reference to quote). */
+  instructions: string;
+}
+
+/** How a payment method's surcharge is derived from the booking. */
+export type PaymentSurchargeMode = "none" | "fixed" | "percent";
+
+/**
+ * Surcharge a non-cash payment method adds to the total. `amountCents` drives
+ * "fixed" (charged once); `percent` drives "percent" (of the pre-surcharge
+ * total).
+ */
+export interface PaymentSurcharge {
+  mode: PaymentSurchargeMode;
+  amountCents: Cents;
+  percent: number;
+}
+
+/** Payment methods that can carry a surcharge. Cash is always free. */
+export type SurchargeablePaymentMethod = Exclude<PaymentMethod, "cash" | "card">;
+
+/** Admin-editable payment configuration, served by /api/payment-settings. */
+export interface PaymentSettings {
+  bankTransfer: BankTransferDetails;
+  surcharges: Record<SurchargeablePaymentMethod, PaymentSurcharge>;
+}
+
 // ── Rates, extras, protection ────────────────────────────────────────────
 
 export type RateType = "best-price" | "flexible";
@@ -322,6 +360,8 @@ export interface BookingPriceBreakdown {
   taxesCents: Cents;
   feesCents: Cents;
   discountCents: Cents;
+  /** Surcharge for the selected non-cash payment method; part of `totalCents`. */
+  surchargeCents: Cents;
   totalCents: Cents;
   /** Refundable deposit held at pickup; not part of `totalCents`. */
   depositCents: Cents;

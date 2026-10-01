@@ -10,7 +10,15 @@ import {
 } from "@/lib/api/fixtures/catalog";
 import { VEHICLES as FALLBACK_VEHICLES } from "@/lib/api/fixtures/vehicles";
 import { DEFAULT_DELIVERY_PRICING_SETTINGS } from "@/lib/booking/delivery-pricing";
-import type { AddOn, Branch, DeliveryPricingSettings, ProtectionTier, Vehicle } from "@/types/domain";
+import { DEFAULT_PAYMENT_SETTINGS } from "@/lib/payments/payment-settings";
+import type {
+  AddOn,
+  Branch,
+  DeliveryPricingSettings,
+  PaymentSettings,
+  ProtectionTier,
+  Vehicle,
+} from "@/types/domain";
 
 type BookingCatalog = {
   addOns: AddOn[];
@@ -18,6 +26,7 @@ type BookingCatalog = {
   vehicles: Vehicle[];
   branches: Branch[];
   deliveryPricing: DeliveryPricingSettings;
+  paymentSettings: PaymentSettings;
   ready: boolean;
 };
 
@@ -27,6 +36,7 @@ const INITIAL: BookingCatalog = {
   vehicles: FALLBACK_VEHICLES,
   branches: FALLBACK_BRANCHES,
   deliveryPricing: DEFAULT_DELIVERY_PRICING_SETTINGS,
+  paymentSettings: DEFAULT_PAYMENT_SETTINGS,
   ready: false,
 };
 
@@ -38,14 +48,21 @@ export function useBookingCatalog(): BookingCatalog {
     let cancelled = false;
     (async () => {
       try {
-        const [addonsRes, tiersRes, vehiclesRes, locationsRes, deliveryPricingRes] =
-          await Promise.all([
-            api.get<{ items: AddOn[] }>(endpoints.addons),
-            api.get<{ items: ProtectionTier[] }>(endpoints.protectionTiers),
-            api.get<{ items: Vehicle[] }>(`${endpoints.vehicles}?perPage=100`),
-            api.get<{ items: Branch[] }>(endpoints.locations),
-            api.get<{ settings: DeliveryPricingSettings }>(endpoints.deliveryPricing),
-          ]);
+        const [
+          addonsRes,
+          tiersRes,
+          vehiclesRes,
+          locationsRes,
+          deliveryPricingRes,
+          paymentSettingsRes,
+        ] = await Promise.all([
+          api.get<{ items: AddOn[] }>(endpoints.addons),
+          api.get<{ items: ProtectionTier[] }>(endpoints.protectionTiers),
+          api.get<{ items: Vehicle[] }>(`${endpoints.vehicles}?perPage=100`),
+          api.get<{ items: Branch[] }>(endpoints.locations),
+          api.get<{ settings: DeliveryPricingSettings }>(endpoints.deliveryPricing),
+          api.get<{ settings: PaymentSettings }>(endpoints.paymentSettings),
+        ]);
         if (cancelled) return;
         setCatalog({
           addOns: addonsRes.items,
@@ -53,6 +70,7 @@ export function useBookingCatalog(): BookingCatalog {
           vehicles: vehiclesRes.items,
           branches: locationsRes.items,
           deliveryPricing: deliveryPricingRes.settings,
+          paymentSettings: paymentSettingsRes.settings,
           ready: true,
         });
       } catch {

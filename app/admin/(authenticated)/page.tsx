@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   BookOpen,
   Building2,
+  CreditCard,
   HelpCircle,
   Info,
   MapIcon,
@@ -147,6 +148,14 @@ export default function AdminDashboardPage() {
       title: "Contact",
       count: "Phone + WhatsApp",
       body: "The numbers behind every Call link, WhatsApp CTA, and the floating WhatsApp button.",
+    },
+    {
+      href: "/admin/payment",
+      icon: <CreditCard className="size-5" aria-hidden="true" />,
+      eyebrow: "Settings",
+      title: "Payment",
+      count: "Bank details + fees",
+      body: "Transfer account shown at checkout, and the fee each non-cash method adds to the total.",
     },
     {
       href: "/admin/ops",

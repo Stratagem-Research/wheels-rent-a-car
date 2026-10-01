@@ -21,6 +21,8 @@ import type {
   BookingPriceBreakdown,
   Branch,
   DeliveryPricingSettings,
+  PaymentMethod,
+  PaymentSettings,
   ProtectionTier,
   Vehicle,
 } from "@/types/domain";
@@ -50,6 +52,10 @@ export interface FlowSummaryPanelProps {
   addOns: AddOn[];
   tiers: ProtectionTier[];
   deliveryPricing?: DeliveryPricingSettings;
+  /** Admin-editable per-method surcharges; only step 4 passes these. */
+  paymentSettings?: PaymentSettings;
+  /** Method selected at step 4, before it reaches the draft. */
+  paymentMethod?: PaymentMethod | null;
   primary: {
     label: string;
     onClick: () => void;
@@ -69,8 +75,19 @@ export function FlowSummaryPanel(props: FlowSummaryPanelProps) {
         tiers: props.tiers,
         branches: props.branches,
         deliveryPricing: props.deliveryPricing,
+        paymentSettings: props.paymentSettings,
+        paymentMethod: props.paymentMethod,
       }),
-    [props.draft, props.vehicle, props.addOns, props.tiers, props.branches, props.deliveryPricing],
+    [
+      props.draft,
+      props.vehicle,
+      props.addOns,
+      props.tiers,
+      props.branches,
+      props.deliveryPricing,
+      props.paymentSettings,
+      props.paymentMethod,
+    ],
   );
 
   return (
@@ -431,6 +448,9 @@ function PriceBreakdownList({
       <PriceRow label={t("taxes11")} value={price.taxesCents} />
       {price.discountCents > 0 ? (
         <PriceRow label={t("promoDiscount")} value={-price.discountCents} />
+      ) : null}
+      {price.surchargeCents > 0 ? (
+        <PriceRow label={t("paymentSurcharge")} value={price.surchargeCents} />
       ) : null}
       {price.depositCents > 0 ? (
         <PriceRow label={t("depositAtPickup")} value={price.depositCents} muted />

@@ -295,6 +295,8 @@ function renderRichBookingEmail(
   const protectionPriceLabel = str(payload, "protectionPriceLabel");
   const extrasLines = strList(payload, "extrasLines");
   const priceDiscount = str(payload, "priceDiscount");
+  const priceSurcharge = str(payload, "priceSurcharge");
+  const bankTransferLines = strList(payload, "bankTransferLines");
 
   const htmlRow = (label: string, value: string) =>
     value
@@ -330,6 +332,11 @@ function renderRichBookingEmail(
         : ""
     }
     ${
+      bankTransferLines.length > 0
+        ? `${emailEyebrow("Where to transfer")}<ul style="margin:0; padding-left:18px; font-size:14px; line-height:1.7; color:#0a0a0a;">${bankTransferLines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>`
+        : ""
+    }
+    ${
       extrasLines.length > 0
         ? `${emailEyebrow("Selected extras")}<ul style="margin:0; padding-left:18px; font-size:14px; line-height:1.7; color:#0a0a0a;">${extrasLines.map((line) => `<li>${escapeHtml(line)}</li>`).join("")}</ul>`
         : ""
@@ -342,6 +349,7 @@ function renderRichBookingEmail(
       ${htmlRow("Taxes", str(payload, "priceTaxes"))}
       ${htmlRow("Fees", str(payload, "priceFees"))}
       ${priceDiscount ? htmlRow("Discount", `-${priceDiscount}`) : ""}
+      ${priceSurcharge ? htmlRow("Payment fee", priceSurcharge) : ""}
       <tr><td style="padding:12px 16px 6px 0; font-size:15px; font-weight:800; color:#0a0a0a; border-top:1px solid #e5e5e5;">Total</td><td style="padding:12px 0 6px 0; font-size:15px; font-weight:800; color:#0a0a0a; border-top:1px solid #e5e5e5;">${escapeHtml(str(payload, "priceTotal"))}</td></tr>
       ${htmlRow("Security deposit (refundable)", str(payload, "priceDeposit"))}
     </table>
@@ -374,6 +382,9 @@ function renderRichBookingEmail(
     ),
     textLine("Payment method", paymentMethod),
     paymentNote ? `\n${paymentNote}\n` : "",
+    bankTransferLines.length > 0
+      ? `\nWhere to transfer:\n${bankTransferLines.map((l) => `- ${l}`).join("\n")}\n`
+      : "",
     extrasLines.length > 0
       ? `\nSelected extras:\n${extrasLines.map((l) => `- ${l}`).join("\n")}\n`
       : "",
@@ -384,6 +395,7 @@ function renderRichBookingEmail(
     textLine("Taxes", str(payload, "priceTaxes")),
     textLine("Fees", str(payload, "priceFees")),
     priceDiscount ? textLine("Discount", `-${priceDiscount}`) : "",
+    priceSurcharge ? textLine("Payment fee", priceSurcharge) : "",
     textLine("Total", str(payload, "priceTotal")),
     textLine("Security deposit (refundable)", str(payload, "priceDeposit")),
     `\n${copy.footer}`,

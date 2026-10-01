@@ -163,6 +163,7 @@ async function fillFromCatalog(row: Row): Promise<Booking | null> {
       taxesCents: 0,
       feesCents: 0,
       discountCents: 0,
+      surchargeCents: 0,
       totalCents: 0,
       depositCents: 0,
     },

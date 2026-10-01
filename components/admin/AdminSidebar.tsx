@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Compass,
+  CreditCard,
   Droplets,
   HelpCircle,
   Info,
@@ -158,6 +159,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/admin/reviews", label: "Reviews", icon: Star },
       { href: "/admin/seo", label: "SEO", icon: Search },
       { href: "/admin/contact", label: "Contact", icon: PhoneCall },
+      { href: "/admin/payment", label: "Payment", icon: CreditCard },
     ],
   },
 ];

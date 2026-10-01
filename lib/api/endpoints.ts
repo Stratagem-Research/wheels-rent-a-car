@@ -46,6 +46,7 @@ export const endpoints = {
   // Locations
   deliveryPricing: `${API_BASE}/delivery-pricing`,
   contactSettings: `${API_BASE}/contact-settings`,
+  paymentSettings: `${API_BASE}/payment-settings`,
   locations: `${API_BASE}/locations`,
   locationBySlug: (slug: string) => `${API_BASE}/locations/${slug}`,
   locationVehicles: (slug: string) => `${API_BASE}/locations/${slug}/vehicles`,

@@ -8,12 +8,15 @@ import type {
   Cents,
   DeliveryPricingSettings,
   MileagePlan,
+  PaymentMethod,
+  PaymentSettings,
   ProtectionTier,
   RateType,
   Vehicle,
 } from "@/types/domain";
 import { promoDiscountCents } from "./promo";
 import { computeDeliveryFeeCents } from "./delivery-pricing";
+import { paymentSurchargeCents } from "@/lib/payments/payment-settings";
 
 /**
  * Client + server shared pricing engine.
@@ -85,6 +88,13 @@ export interface ComputePriceInputs {
   branches?: Branch[];
   /** Admin-editable delivery-fee formula; falls back to seed defaults. */
   deliveryPricing?: DeliveryPricingSettings;
+  /** Admin-editable per-method surcharges; falls back to no surcharge. */
+  paymentSettings?: PaymentSettings;
+  /**
+   * Method being previewed at checkout. The draft only carries the method
+   * once it's submitted, so the step-4 UI passes the in-progress selection.
+   */
+  paymentMethod?: PaymentMethod | null;
 }
 
 export function computePrice({
@@ -95,6 +105,8 @@ export function computePrice({
   promoDiscountPercent = 0,
   branches = [],
   deliveryPricing,
+  paymentSettings,
+  paymentMethod,
 }: ComputePriceInputs): BookingPriceBreakdown {
   if (!vehicle || !draft.vehicle) return emptyBreakdown();
 
@@ -124,7 +136,13 @@ export function computePrice({
     draft.promoCode && promoDiscountPercent > 0
       ? promoDiscountCents(subtotal, promoDiscountPercent)
       : 0;
-  const totalCents = Math.max(0, subtotal + taxesCents - discountCents);
+  const totalBeforeSurchargeCents = Math.max(0, subtotal + taxesCents - discountCents);
+  const surchargeCents = paymentSurchargeCents({
+    method: paymentMethod ?? draft.paymentMethod,
+    settings: paymentSettings,
+    baseCents: totalBeforeSurchargeCents,
+  });
+  const totalCents = totalBeforeSurchargeCents + surchargeCents;
   const depositCents = DEPOSIT_BY_CATEGORY[vehicle.category] ?? 50_000;
 
   return {
@@ -134,6 +152,7 @@ export function computePrice({
     taxesCents,
     feesCents,
     discountCents,
+    surchargeCents,
     totalCents,
     depositCents,
   };
@@ -147,6 +166,7 @@ export function emptyBreakdown(): BookingPriceBreakdown {
     taxesCents: 0,
     feesCents: 0,
     discountCents: 0,
+    surchargeCents: 0,
     totalCents: 0,
     depositCents: 0,
   };

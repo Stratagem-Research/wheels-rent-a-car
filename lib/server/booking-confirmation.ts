@@ -4,9 +4,10 @@ import { bookingFromStoredRow } from "@/lib/booking/stored-booking";
 import { extraQtyLabel } from "@/lib/booking/addons";
 import { formatUsd, rentalDays } from "@/lib/booking/pricing";
 import { listAddOnsFromDb, listProtectionTiersFromDb } from "@/lib/supabase/catalog-repository";
-import { getPublicBranches } from "@/lib/server/public-content";
+import { getPublicBranches, getPublicPaymentSettings } from "@/lib/server/public-content";
+import { DEFAULT_PAYMENT_SETTINGS } from "@/lib/payments/payment-settings";
 import type { UserBookingRow } from "@/lib/supabase/user-bookings-repository";
-import type { Booking } from "@/types/domain";
+import type { Booking, PaymentSettings } from "@/types/domain";
 
 const APPROVAL_STATUSES = new Set(["approved", "confirmed"]);
 const INVENTORY_RELEASE_STATUSES = new Set(["cancelled", "canceled", "rejected"]);
@@ -93,6 +94,22 @@ function formatDateLabel(isoDate: string): string {
   }).format(d);
 }
 
+/** Admin-managed account lines for the "pay by transfer" email block. */
+function bankTransferLines(settings: PaymentSettings): string[] {
+  const bank = settings.bankTransfer;
+  const rows: [string, string][] = [
+    ["Bank", bank.bankName],
+    ["Account name", bank.accountName],
+    ["Account number", bank.accountNumber],
+    ["IBAN", bank.iban],
+    ["SWIFT", bank.swift],
+  ];
+  return rows
+    .filter(([, value]) => value.trim().length > 0)
+    .map(([label, value]) => `${label}: ${value.trim()}`)
+    .concat(bank.instructions.trim() ? [bank.instructions.trim()] : []);
+}
+
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
   card: "Card",
   cash: "Cash on pickup",
@@ -111,10 +128,11 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = {
  * just a booking reference + vehicle name.
  */
 export async function buildBookingEmailPayload(booking: Booking): Promise<Record<string, unknown>> {
-  const [addOns, tiers, branches] = await Promise.all([
+  const [addOns, tiers, branches, paymentSettings] = await Promise.all([
     listAddOnsFromDb().catch(() => []),
     listProtectionTiersFromDb().catch(() => []),
     getPublicBranches().catch(() => []),
+    getPublicPaymentSettings().catch(() => DEFAULT_PAYMENT_SETTINGS),
   ]);
 
   const pickup = splitDatetime(booking.pickup.datetime);
@@ -176,6 +194,10 @@ export async function buildBookingEmailPayload(booking: Booking): Promise<Record
     priceTaxes: formatUsd(booking.price.taxesCents),
     priceFees: formatUsd(booking.price.feesCents),
     priceDiscount: booking.price.discountCents > 0 ? formatUsd(booking.price.discountCents) : "",
+    priceSurcharge:
+      booking.price.surchargeCents > 0 ? formatUsd(booking.price.surchargeCents) : "",
+    bankTransferLines:
+      booking.paymentMethod === "transfer" ? bankTransferLines(paymentSettings) : [],
     priceTotal: formatUsd(booking.price.totalCents),
     priceDeposit: formatUsd(booking.price.depositCents),
   };

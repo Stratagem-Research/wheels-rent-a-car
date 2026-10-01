@@ -81,6 +81,22 @@ vi.mock("@/lib/server/public-content", () => ({
   getPublicDeliveryPricing: vi
     .fn()
     .mockResolvedValue({ baseFeeCents: 1000, freeRadiusKm: 5, perKmCents: 150 }),
+  getPublicPaymentSettings: vi.fn().mockResolvedValue({
+    bankTransfer: {
+      bankName: "",
+      accountName: "",
+      accountNumber: "",
+      iban: "",
+      swift: "",
+      instructions: "",
+    },
+    surcharges: {
+      transfer: { mode: "none", amountCents: 0, percent: 0 },
+      omt: { mode: "none", amountCents: 0, percent: 0 },
+      "whish-online": { mode: "none", amountCents: 0, percent: 0 },
+      neo: { mode: "none", amountCents: 0, percent: 0 },
+    },
+  }),
 }));
 
 vi.mock("@/lib/supabase/admin-repository", () => ({

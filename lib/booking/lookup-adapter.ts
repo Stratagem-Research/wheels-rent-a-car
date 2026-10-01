@@ -141,6 +141,7 @@ export function toBookingFromLookup(lookup: {
       taxesCents: 0,
       feesCents: 0,
       discountCents: 0,
+      surchargeCents: 0,
       totalCents: Math.round(lookup.amount * 100),
       depositCents: 0,
     },

@@ -54,6 +54,7 @@ export type StoredBookingFields = {
   taxesCents: number | null;
   feesCents: number | null;
   discountCents: number | null;
+  surchargeCents: number | null;
   totalCents: number | null;
   depositCents: number | null;
   currency: string | null;
@@ -102,6 +103,7 @@ export const STORED_BOOKING_DB_KEYS = [
   "taxes_cents",
   "fees_cents",
   "discount_cents",
+  "surcharge_cents",
   "total_cents",
   "deposit_cents",
   "currency",
@@ -153,6 +155,7 @@ export function emptyStoredBookingFields(): StoredBookingFields {
     taxesCents: null,
     feesCents: null,
     discountCents: null,
+    surchargeCents: null,
     totalCents: null,
     depositCents: null,
     currency: null,
@@ -207,6 +210,7 @@ export function storedBookingFromDomain(booking: Booking): StoredBookingFields {
     taxesCents: booking.price?.taxesCents ?? null,
     feesCents: booking.price?.feesCents ?? null,
     discountCents: booking.price?.discountCents ?? null,
+    surchargeCents: booking.price?.surchargeCents ?? null,
     totalCents: booking.price?.totalCents ?? null,
     depositCents: booking.price?.depositCents ?? null,
     currency: booking.currency ?? null,
@@ -257,6 +261,7 @@ export function storedBookingToDb(fields: StoredBookingFields): Record<string, u
     taxes_cents: fields.taxesCents,
     fees_cents: fields.feesCents,
     discount_cents: fields.discountCents,
+    surcharge_cents: fields.surchargeCents,
     total_cents: fields.totalCents,
     deposit_cents: fields.depositCents,
     currency: fields.currency,
@@ -319,6 +324,7 @@ export function mapStoredBookingFields(row: Record<string, unknown>): StoredBook
     taxesCents: asNumber(row.taxes_cents),
     feesCents: asNumber(row.fees_cents),
     discountCents: asNumber(row.discount_cents),
+    surchargeCents: asNumber(row.surcharge_cents),
     totalCents: asNumber(row.total_cents),
     depositCents: asNumber(row.deposit_cents),
     currency: asString(row.currency),
@@ -482,6 +488,7 @@ export function bookingFromStoredRow(row: StoredBookingIdentity, authEmail: stri
       taxesCents: row.taxesCents ?? 0,
       feesCents: row.feesCents ?? 0,
       discountCents: row.discountCents ?? 0,
+      surchargeCents: row.surchargeCents ?? 0,
       totalCents: row.totalCents ?? 0,
       depositCents: row.depositCents ?? 0,
     },

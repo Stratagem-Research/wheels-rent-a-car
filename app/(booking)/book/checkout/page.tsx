@@ -141,6 +141,7 @@ export default function CheckoutPage() {
     protectionTiers: PROTECTION_TIERS,
     branches: BRANCHES,
     deliveryPricing: DELIVERY_PRICING,
+    paymentSettings: PAYMENT_SETTINGS,
   } = useBookingFunnelPage({ requireProtection: true });
   const { session, ready: sessionReady } = useSession();
   const [form, setForm] = React.useState<CheckoutFormState>(emptyForm);
@@ -295,6 +296,8 @@ export default function CheckoutPage() {
     tiers: PROTECTION_TIERS,
     branches: BRANCHES,
     deliveryPricing: DELIVERY_PRICING,
+    paymentSettings: PAYMENT_SETTINGS,
+    paymentMethod: form.paymentMethod,
   });
 
   const hasAdditionalDriver = draft.extras.some(
@@ -662,6 +665,8 @@ export default function CheckoutPage() {
               <PaymentMethodSelector
                 value={form.paymentMethod}
                 onValueChange={onPaymentMethod}
+                settings={PAYMENT_SETTINGS}
+                baseCents={price.totalCents - price.surchargeCents}
               />
               {errors.paymentMethod ? <ErrorText>{errors.paymentMethod}</ErrorText> : null}
             </section>
@@ -723,6 +728,8 @@ export default function CheckoutPage() {
               addOns={ADD_ONS}
               tiers={PROTECTION_TIERS}
               deliveryPricing={DELIVERY_PRICING}
+              paymentSettings={PAYMENT_SETTINGS}
+              paymentMethod={form.paymentMethod}
               primary={{
                 label: ctaLabel,
                 onClick: onSubmit,
