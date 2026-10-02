@@ -5,6 +5,7 @@ import {
   CancelRequestSyncError,
   handleBookingCancelRequest,
 } from "@/lib/server/booking-service";
+import { guardBookingLookup, isLookupMiss } from "@/lib/server/booking-lookup-guard";
 
 const CancelRequestSchema = z.object({
   email: z.string().email(),
@@ -24,17 +25,24 @@ export async function POST(request: Request, context: { params: Promise<{ ref: s
     return NextResponse.json({ message: "Invalid cancellation payload." }, { status: 400 });
   }
 
+  const guard = guardBookingLookup(request, { ref, email: parsed.data.email });
+  if (guard.blocked) return guard.blocked;
+
   try {
     const result = await handleBookingCancelRequest({ ref, email: parsed.data.email });
+    guard.succeed();
     return NextResponse.json(result);
   } catch (err) {
+    // These two only happen after the ref + email matched, so they're not misses.
     if (err instanceof BookingNotCancellableError) {
+      guard.succeed();
       return NextResponse.json(
         { message: "This booking can no longer be cancelled." },
         { status: 409 },
       );
     }
     if (err instanceof CancelRequestSyncError) {
+      guard.succeed();
       return NextResponse.json(
         { message: "Couldn't submit the cancellation request. Please try again." },
         { status: 502 },
@@ -42,6 +50,7 @@ export async function POST(request: Request, context: { params: Promise<{ ref: s
     }
     // Lookup mismatch and unknown refs both land here — keep it generic so
     // booking references can't be enumerated.
+    if (isLookupMiss(err)) guard.fail();
     return NextResponse.json({ message: "Booking not found." }, { status: 404 });
   }
 }

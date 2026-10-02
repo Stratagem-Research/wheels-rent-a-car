@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { generateBookingRef, isValidBookingRef, BOOKING_REF_PATTERN } from "./ref";
 
 describe("booking/ref", () => {
@@ -17,6 +17,28 @@ describe("booking/ref", () => {
     const ref = generateBookingRef(new Date("2026-05-20T10:00:00.000Z"));
     expect(ref).toMatch(BOOKING_REF_PATTERN);
     expect(ref.startsWith("WRC-260520-")).toBe(true);
+  });
+
+  it("draws the suffix from the CSPRNG, not Math.random", () => {
+    const random = vi.spyOn(Math, "random");
+    const getRandomValues = vi.spyOn(globalThis.crypto, "getRandomValues");
+    generateBookingRef();
+    expect(random).not.toHaveBeenCalled();
+    expect(getRandomValues).toHaveBeenCalledTimes(1);
+    vi.restoreAllMocks();
+  });
+
+  it("uses every character of the alphabet roughly evenly", () => {
+    const counts = new Map<string, number>();
+    for (let i = 0; i < 4000; i++) {
+      for (const ch of generateBookingRef().split("-")[2]!) counts.set(ch, (counts.get(ch) ?? 0) + 1);
+    }
+    expect(counts.size).toBe(32);
+    // 16000 draws over 32 characters = 500 expected each; allow wide slack.
+    for (const n of counts.values()) {
+      expect(n).toBeGreaterThan(380);
+      expect(n).toBeLessThan(620);
+    }
   });
 
   it("omits ambiguous characters (I, O, 0, 1) from the suffix", () => {

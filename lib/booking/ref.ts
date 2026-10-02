@@ -21,10 +21,11 @@ export function generateBookingRef(date: Date = new Date()): string {
   const yy = String(date.getUTCFullYear()).slice(-2);
   const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
   const dd = String(date.getUTCDate()).padStart(2, "0");
+  // The suffix is half of what stops someone guessing a booking reference, so
+  // it must be unpredictable — `Math.random()` is not. The alphabet is 32
+  // characters, so `byte % 32` is exact (256 divides evenly): no modulo bias.
+  const bytes = globalThis.crypto.getRandomValues(new Uint8Array(4));
   let suffix = "";
-  for (let i = 0; i < 4; i++) {
-    const idx = Math.floor(Math.random() * SAFE_SUFFIX_CHARS.length);
-    suffix += SAFE_SUFFIX_CHARS[idx];
-  }
+  for (const byte of bytes) suffix += SAFE_SUFFIX_CHARS[byte % SAFE_SUFFIX_CHARS.length];
   return `WRC-${yy}${mm}${dd}-${suffix}`;
 }
