@@ -2,8 +2,11 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   adminLoginClientKey,
   checkAdminLoginAllowed,
+  checkAdminUsernameAllowed,
   clearAdminLoginFailures,
+  clearAdminUsernameFailures,
   recordAdminLoginFailure,
+  recordAdminUsernameFailure,
   resetAdminLoginThrottle,
 } from "@/lib/server/admin-login-throttle";
 
@@ -66,5 +69,33 @@ describe("admin-login-throttle", () => {
 
   it("falls back to a stable key when no client IP is present", () => {
     expect(adminLoginClientKey(new Request("http://localhost/api/admin/sessions"))).toBe("unknown");
+  });
+});
+
+describe("admin username lockout", () => {
+  beforeEach(() => {
+    resetAdminLoginThrottle();
+  });
+
+  it("locks a username after 5 misses without affecting another username", () => {
+    for (let i = 0; i < 4; i += 1) {
+      expect(recordAdminUsernameFailure("admin")).toBe(false);
+      expect(checkAdminUsernameAllowed("admin").allowed).toBe(true);
+    }
+    expect(recordAdminUsernameFailure("admin")).toBe(true);
+    expect(checkAdminUsernameAllowed("admin").allowed).toBe(false);
+    expect(checkAdminUsernameAllowed("editor").allowed).toBe(true);
+  });
+
+  it("treats surrounding whitespace as the same username", () => {
+    for (let i = 0; i < 5; i += 1) recordAdminUsernameFailure("  admin  ");
+    expect(checkAdminUsernameAllowed("admin").allowed).toBe(false);
+  });
+
+  it("clears the username count after a successful sign-in", () => {
+    for (let i = 0; i < 4; i += 1) recordAdminUsernameFailure("admin");
+    clearAdminUsernameFailures("admin");
+    expect(recordAdminUsernameFailure("admin")).toBe(false);
+    expect(checkAdminUsernameAllowed("admin").allowed).toBe(true);
   });
 });

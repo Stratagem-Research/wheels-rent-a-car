@@ -11,8 +11,11 @@ import {
 import {
   adminLoginClientKey,
   checkAdminLoginAllowed,
+  checkAdminUsernameAllowed,
   clearAdminLoginFailures,
+  clearAdminUsernameFailures,
   recordAdminLoginFailure,
+  recordAdminUsernameFailure,
 } from "@/lib/server/admin-login-throttle";
 import { writeAdminAuditLog } from "@/lib/supabase/admin-repository";
 
@@ -41,19 +44,28 @@ export async function POST(request: Request) {
   if (!body?.username || !body.password) {
     return NextResponse.json({ message: "Username and password are required." }, { status: 400 });
   }
+  const usernameThrottle = checkAdminUsernameAllowed(body.username);
+  if (!usernameThrottle.allowed) {
+    return NextResponse.json(
+      { message: "Too many failed attempts. Try again later." },
+      { status: 429, headers: { "Retry-After": String(usernameThrottle.retryAfterSeconds) } },
+    );
+  }
   const identity = authenticateAdminCredentials(body.username, body.password);
   if (!identity) {
-    const lockedOut = recordAdminLoginFailure(clientKey);
+    const clientLocked = recordAdminLoginFailure(clientKey);
+    const usernameLocked = recordAdminUsernameFailure(body.username);
     await writeAdminAuditLog({
       actor: body.username.trim().slice(0, 80),
       role: "ops-admin",
       resource: "admin_session",
-      action: lockedOut ? "login_locked_out" : "login_failed",
+      action: clientLocked || usernameLocked ? "login_locked_out" : "login_failed",
       details: { client: clientKey },
     }).catch(() => undefined);
     return NextResponse.json({ message: "Invalid username or password." }, { status: 401 });
   }
   clearAdminLoginFailures(clientKey);
+  clearAdminUsernameFailures(identity.username);
   const sessionToken = createAdminSessionToken(identity.username, identity.role);
   const csrfToken = randomUUID().replace(/-/g, "");
   const response = NextResponse.json({ ok: true, user: identity });
