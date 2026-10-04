@@ -4,7 +4,7 @@ import {
   assertAdminCsrf,
   authenticateAdminCredentials,
   clearAdminAuthCookies,
-  createAdminSessionToken,
+  createAdminSession,
   readAdminSession,
   setAdminAuthCookies,
 } from "@/lib/server/admin-auth";
@@ -17,13 +17,25 @@ import {
   recordAdminLoginFailure,
   recordAdminUsernameFailure,
 } from "@/lib/server/admin-login-throttle";
+import { requireAdminSession } from "@/lib/server/admin-api";
 import { writeAdminAuditLog } from "@/lib/supabase/admin-repository";
+import {
+  insertAdminSession,
+  purgeExpiredAdminSessions,
+  revokeAdminSession,
+} from "@/lib/supabase/admin-sessions-repository";
 
 export async function GET(request: Request) {
-  const session = readAdminSession(request);
-  if (!session) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  const auth = await requireAdminSession(request);
+  if (!auth.ok) {
+    // A cookie that no longer maps to a live session (revoked, expired, or issued
+    // before sessions were tracked) must not linger: the proxy redirects any
+    // visitor holding one away from /admin/login, which would loop with the
+    // layout's redirect back to it. 503 is a transient outage — keep the cookie.
+    if (auth.response.status === 401) clearAdminAuthCookies(auth.response);
+    return auth.response;
   }
+  const { session } = auth;
   return NextResponse.json({ user: { username: session.username, role: session.role } });
 }
 
@@ -66,7 +78,13 @@ export async function POST(request: Request) {
   }
   clearAdminLoginFailures(clientKey);
   clearAdminUsernameFailures(identity.username);
-  const sessionToken = createAdminSessionToken(identity.username, identity.role);
+  const { token: sessionToken, sid, expiresAt } = createAdminSession(identity.username, identity.role);
+  try {
+    await insertAdminSession({ id: sid, username: identity.username, role: identity.role, expiresAt });
+  } catch {
+    return NextResponse.json({ message: "Couldn't start a session. Try again." }, { status: 500 });
+  }
+  void purgeExpiredAdminSessions().catch(() => undefined);
   const csrfToken = randomUUID().replace(/-/g, "");
   const response = NextResponse.json({ ok: true, user: identity });
   setAdminAuthCookies(response, sessionToken, csrfToken);
@@ -88,6 +106,12 @@ export async function DELETE(request: Request) {
   }
   if (!assertAdminCsrf(request)) {
     return NextResponse.json({ message: "CSRF check failed." }, { status: 403 });
+  }
+  // Revoke server-side first: clearing the cookie alone leaves a copied token usable.
+  try {
+    await revokeAdminSession(session.sid);
+  } catch {
+    return NextResponse.json({ message: "Couldn't end the session. Try again." }, { status: 500 });
   }
   const response = NextResponse.json({ ok: true });
   clearAdminAuthCookies(response);

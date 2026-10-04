@@ -16,7 +16,7 @@ import { requireAdminSession } from "@/lib/server/admin-api";
  * overrides that a real sync would reset to the Wizard price. Does not persist.
  */
 export async function GET(request: Request) {
-  const auth = requireAdminSession(request, ["content-editor", "ops-admin"]);
+  const auth = await requireAdminSession(request, ["content-editor", "ops-admin"]);
   if (!auth.ok) return auth.response;
 
   const updatedSince =

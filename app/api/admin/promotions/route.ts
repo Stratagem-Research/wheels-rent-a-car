@@ -19,7 +19,7 @@ const PromotionSchema = z.object({
 const PayloadSchema = z.object({ items: z.array(PromotionSchema) });
 
 export async function GET(request: Request) {
-  const auth = requireAdminSession(request, ["content-editor", "ops-admin"]);
+  const auth = await requireAdminSession(request, ["content-editor", "ops-admin"]);
   if (!auth.ok) return auth.response;
   try {
     const items = await listPromotions();
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
 }
 
 export async function PUT(request: Request) {
-  const auth = requireAdminSession(request, ["content-editor", "ops-admin"]);
+  const auth = await requireAdminSession(request, ["content-editor", "ops-admin"]);
   if (!auth.ok) return auth.response;
   const csrfResponse = requireAdminCsrf(request);
   if (csrfResponse) return csrfResponse;

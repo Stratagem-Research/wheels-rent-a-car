@@ -6,7 +6,7 @@ export async function GET(
   request: Request,
   context: { params: Promise<{ ref: string }> },
 ) {
-  const auth = requireAdminSession(request, ["content-editor", "ops-admin"]);
+  const auth = await requireAdminSession(request, ["content-editor", "ops-admin"]);
   if (!auth.ok) return auth.response;
   try {
     const { ref } = await context.params;

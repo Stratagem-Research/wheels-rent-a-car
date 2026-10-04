@@ -68,8 +68,8 @@ boot requires all of the following — verify with `pnpm env:check:payment-defer
   There is no Vercel fallback here, so it must be set explicitly or URLs default to localhost.
 - `WHEELS_INTERNAL_API_BASE_URL`
 - `WHEELS_INTERNAL_API_TOKEN`
-- `ADMIN_PASSWORD_HASH` (preferred; generate with `node scripts/hash-admin-password.mjs`) or `ADMIN_PASSWORD`
-- `ADMIN_EDITOR_PASSWORD_HASH` (`node scripts/hash-admin-password.mjs --editor`) or `ADMIN_EDITOR_PASSWORD` —
+- `ADMIN_PASSWORD_HASH` (generate with `node scripts/hash-admin-password.mjs`)
+- `ADMIN_EDITOR_PASSWORD_HASH` (`node scripts/hash-admin-password.mjs --editor`) —
   optional, but **editors cannot sign in without it**. It must differ from the ops password.
 - `ADMIN_SESSION_SECRET`
 - `ADMIN_OPS_ADMIN_USERNAMES`, `ADMIN_CONTENT_EDITOR_USERNAMES`

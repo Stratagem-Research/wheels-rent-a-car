@@ -1,9 +1,11 @@
-import { createHash, createHmac, scryptSync, timingSafeEqual } from "crypto";
+import { createHmac, randomUUID, scryptSync, timingSafeEqual } from "crypto";
 import { NextResponse } from "next/server";
 
 export type AdminRole = "content-editor" | "ops-admin";
 
 export type AdminSession = {
+  /** Session id — the key of the revocable server-side record. */
+  sid: string;
   username: string;
   role: AdminRole;
   exp: number;
@@ -11,7 +13,8 @@ export type AdminSession = {
 
 const ADMIN_SESSION_COOKIE = "wheels.admin.session";
 const ADMIN_CSRF_COOKIE = "wheels.admin.csrf";
-const ONE_DAY_SECONDS = 60 * 60 * 24;
+/** Short on purpose: a stolen cookie is useful for hours, not days. */
+export const ADMIN_SESSION_SECONDS = 60 * 60 * 8;
 
 function getEnv(name: string, fallback?: string): string {
   const value = process.env[name] ?? fallback;
@@ -62,17 +65,6 @@ function parseCookie(cookieHeader: string | null, key: string): string | null {
 }
 
 /**
- * Constant-time string compare. Hashing first keeps the comparison on
- * fixed-length buffers, so neither the value nor its length leaks through
- * timing — `timingSafeEqual` throws on a length mismatch.
- */
-function safeEquals(a: string, b: string): boolean {
-  const ha = createHash("sha256").update(a, "utf8").digest();
-  const hb = createHash("sha256").update(b, "utf8").digest();
-  return timingSafeEqual(ha, hb);
-}
-
-/**
  * `scrypt:<N>:<r>:<p>:<saltHex>:<keyHex>` — produced by
  * scripts/hash-admin-password.mjs. Separators are colons because Next's .env
  * loader expands `$NAME` and would mangle a `$`-delimited value into garbage.
@@ -112,55 +104,39 @@ export function verifyAdminPasswordHash(password: string, stored: string): boole
 }
 
 /**
- * Where a role's password lives. Each role has its own secret: the scrypt hash
- * (preferred, so a leaked .env or server backup doesn't expose the live
- * password) with the plaintext variable kept as a fallback for deployments
- * that haven't switched over yet.
+ * Where a role's password lives. Each role has its own secret, stored only as a
+ * scrypt hash so a leaked .env or server backup doesn't expose the live
+ * password. There is no plaintext variable.
  */
-type PasswordSource = { hashVar: string; plainVar: string };
+type PasswordSource = { hashVar: string };
 
-const OPS_PASSWORD: PasswordSource = {
-  hashVar: "ADMIN_PASSWORD_HASH",
-  plainVar: "ADMIN_PASSWORD",
-};
-const EDITOR_PASSWORD: PasswordSource = {
-  hashVar: "ADMIN_EDITOR_PASSWORD_HASH",
-  plainVar: "ADMIN_EDITOR_PASSWORD",
-};
+const OPS_PASSWORD: PasswordSource = { hashVar: "ADMIN_PASSWORD_HASH" };
+const EDITOR_PASSWORD: PasswordSource = { hashVar: "ADMIN_EDITOR_PASSWORD_HASH" };
 
 /**
- * `required` makes a missing secret throw (a misconfigured deployment should
- * be loud, not a silent "invalid password"); without it, a missing secret just
- * never matches.
+ * `required` makes a missing hash throw (a misconfigured deployment should be
+ * loud, not a silent "invalid password"); without it, a missing hash just never
+ * matches.
  */
 function passwordMatches(password: string, source: PasswordSource, required: boolean): boolean {
-  const hash = process.env[source.hashVar]?.trim();
-  if (hash) {
-    if (!scryptSeparator(hash)) {
-      // Fail closed, but say why — a mangled hash otherwise just looks like a
-      // wrong password. The usual cause is a `$` in a .env value being expanded.
-      console.warn(
-        `[admin-auth] ${source.hashVar} is set but isn't a valid hash (it should start with "scrypt:"). Regenerate it with \`node scripts/hash-admin-password.mjs\`.`,
-      );
-      return false;
-    }
-    return verifyAdminPasswordHash(password, hash);
-  }
-  const plaintext = required ? getEnv(source.plainVar) : process.env[source.plainVar];
-  if (!plaintext) return false;
-  if (process.env.NODE_ENV === "production") {
+  const hash = required ? getEnv(source.hashVar).trim() : process.env[source.hashVar]?.trim();
+  if (!hash) return false;
+  if (!scryptSeparator(hash)) {
+    // Fail closed, but say why — a mangled hash otherwise just looks like a
+    // wrong password. The usual cause is a `$` in a .env value being expanded.
     console.warn(
-      `[admin-auth] ${source.hashVar} is not set — falling back to the plaintext ${source.plainVar}. Generate a hash with \`node scripts/hash-admin-password.mjs\`.`,
+      `[admin-auth] ${source.hashVar} is set but isn't a valid hash (it should start with "scrypt:"). Regenerate it with \`node scripts/hash-admin-password.mjs\`.`,
     );
+    return false;
   }
-  return safeEquals(password, plaintext);
+  return verifyAdminPasswordHash(password, hash);
 }
 
 /**
  * The role comes from the username, but only a password that belongs to that
  * role unlocks it — typing the ops username with the editor password fails.
  *
- * Editors need `ADMIN_EDITOR_PASSWORD(_HASH)`. With none configured, editor
+ * Editors need `ADMIN_EDITOR_PASSWORD_HASH`. With none configured, editor
  * sign-in is off; it never falls back to the ops password, since that would let
  * every editor type the ops username and take ops access.
  */
@@ -183,7 +159,7 @@ export function authenticateAdminCredentials(
     // access, undoing the separation — refuse rather than quietly allow it.
     if (passwordMatches(password, OPS_PASSWORD, false)) {
       console.warn(
-        "[admin-auth] The editor password is the same as the ops password, so editor sign-in is refused. Set a different ADMIN_EDITOR_PASSWORD(_HASH).",
+        "[admin-auth] The editor password is the same as the ops password, so editor sign-in is refused. Set a different ADMIN_EDITOR_PASSWORD_HASH.",
       );
       return null;
     }
@@ -196,16 +172,34 @@ export function authenticateAdminCredentials(
   return null;
 }
 
-export function createAdminSessionToken(username: string, role: AdminRole): string {
+/**
+ * The role a username holds *now*, per the current env config. Sessions are
+ * checked against this on every request, so removing someone from the env list
+ * (or demoting them) takes effect immediately rather than at token expiry.
+ */
+export function resolveAdminRole(username: string): AdminRole | null {
+  const cfg = getConfig();
+  if (cfg.opsAdmins.includes(username)) return "ops-admin";
+  if (cfg.contentEditors.includes(username)) return "content-editor";
+  return null;
+}
+
+/**
+ * Mints a signed token for a new session. The caller must persist `sid` (see
+ * admin-sessions-repository) — a token without a live server-side record is
+ * rejected by requireAdminSession.
+ */
+export function createAdminSession(
+  username: string,
+  role: AdminRole,
+): { token: string; sid: string; expiresAt: Date } {
   const secret = getEnv("ADMIN_SESSION_SECRET");
-  const payloadObj: AdminSession = {
-    username,
-    role,
-    exp: Math.floor(Date.now() / 1000) + ONE_DAY_SECONDS,
-  };
+  const sid = randomUUID();
+  const exp = Math.floor(Date.now() / 1000) + ADMIN_SESSION_SECONDS;
+  const payloadObj: AdminSession = { sid, username, role, exp };
   const payload = b64urlEncode(JSON.stringify(payloadObj));
   const signature = sign(payload, secret);
-  return `${payload}.${signature}`;
+  return { token: `${payload}.${signature}`, sid, expiresAt: new Date(exp * 1000) };
 }
 
 export function readAdminSession(request: Request): AdminSession | null {
@@ -223,7 +217,9 @@ export function readAdminSession(request: Request): AdminSession | null {
   try {
     const decoded = JSON.parse(b64urlDecode(payload)) as AdminSession;
     if (!decoded.exp || decoded.exp < Math.floor(Date.now() / 1000)) return null;
-    if (!decoded.username || !decoded.role) return null;
+    if (!decoded.username || !decoded.role || typeof decoded.sid !== "string" || !decoded.sid) {
+      return null;
+    }
     return decoded;
   } catch {
     return null;
@@ -251,14 +247,14 @@ export function setAdminAuthCookies(
     sameSite: "lax",
     secure,
     path: "/",
-    maxAge: ONE_DAY_SECONDS,
+    maxAge: ADMIN_SESSION_SECONDS,
   });
   response.cookies.set(ADMIN_CSRF_COOKIE, csrfToken, {
     httpOnly: false,
     sameSite: "lax",
     secure,
     path: "/",
-    maxAge: ONE_DAY_SECONDS,
+    maxAge: ADMIN_SESSION_SECONDS,
   });
   return response;
 }

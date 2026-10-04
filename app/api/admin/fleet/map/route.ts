@@ -16,7 +16,7 @@ const MapItemSchema = z.object({
 const PayloadSchema = z.object({ items: z.array(MapItemSchema) });
 
 export async function GET(request: Request) {
-  const auth = requireAdminSession(request, ["content-editor", "ops-admin"]);
+  const auth = await requireAdminSession(request, ["content-editor", "ops-admin"]);
   if (!auth.ok) return auth.response;
   try {
     const [items, wizardRows] = await Promise.all([
@@ -36,7 +36,7 @@ export async function GET(request: Request) {
 }
 
 export async function PUT(request: Request) {
-  const auth = requireAdminSession(request, ["content-editor", "ops-admin"]);
+  const auth = await requireAdminSession(request, ["content-editor", "ops-admin"]);
   if (!auth.ok) return auth.response;
   const csrfResponse = requireAdminCsrf(request);
   if (csrfResponse) return csrfResponse;

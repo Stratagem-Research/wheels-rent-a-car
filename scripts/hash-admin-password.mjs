@@ -11,8 +11,7 @@
  * With no argument it asks for the password. The prompt is plain (not hidden):
  * hidden input needs raw-mode terminal support that several shells lack, and a
  * prompt you can't type into is worse than one you can see. Clear your screen
- * afterwards. Paste the printed line into .env and remove ADMIN_PASSWORD once
- * every environment has the hash.
+ * afterwards. Paste the printed line into .env (or the Plesk environment).
  */
 import { randomBytes, scryptSync } from "node:crypto";
 import { createInterface } from "node:readline";
@@ -61,6 +60,5 @@ if (!password || password.length < 8) {
 }
 
 const hashVar = forEditor ? "ADMIN_EDITOR_PASSWORD_HASH" : "ADMIN_PASSWORD_HASH";
-const plainVar = forEditor ? "ADMIN_EDITOR_PASSWORD" : "ADMIN_PASSWORD";
-console.log(`\nAdd this to .env (and drop ${plainVar} once every environment has it):\n`);
+console.log("\nAdd this to .env:\n");
 console.log(`${hashVar}=${hash(password)}\n`);

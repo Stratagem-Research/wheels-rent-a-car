@@ -18,7 +18,7 @@ const MAX_PER_PAGE = 100;
  * wasteful and slow.
  */
 export async function GET(request: Request) {
-  const auth = requireAdminSession(request, ["content-editor", "ops-admin"]);
+  const auth = await requireAdminSession(request, ["content-editor", "ops-admin"]);
   if (!auth.ok) return auth.response;
 
   const url = new URL(request.url);

@@ -30,7 +30,7 @@ const LeadUpdateSchema = z.object({
 });
 
 export async function GET(request: Request) {
-  const auth = requireAdminSession(request, ["content-editor", "ops-admin"]);
+  const auth = await requireAdminSession(request, ["content-editor", "ops-admin"]);
   if (!auth.ok) return auth.response;
   try {
     const [corporate, fleetPartnership, priceRequest] = await Promise.all([
@@ -59,7 +59,7 @@ export async function GET(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const auth = requireAdminSession(request, ["content-editor", "ops-admin"]);
+  const auth = await requireAdminSession(request, ["content-editor", "ops-admin"]);
   if (!auth.ok) return auth.response;
   const csrfResponse = requireAdminCsrf(request);
   if (csrfResponse) return csrfResponse;

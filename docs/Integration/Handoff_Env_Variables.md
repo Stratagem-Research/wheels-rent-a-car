@@ -14,8 +14,8 @@
 - `WHEELS_INTERNAL_API_TOKEN`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `DATABASE_URL`
-- `ADMIN_PASSWORD_HASH` (preferred) or `ADMIN_PASSWORD` — the ops password
-- `ADMIN_EDITOR_PASSWORD_HASH` (preferred) or `ADMIN_EDITOR_PASSWORD` — the editor password; optional, but editors cannot sign in without it and it must differ from the ops password
+- `ADMIN_PASSWORD_HASH` — the ops password (scrypt hash)
+- `ADMIN_EDITOR_PASSWORD_HASH` — the editor password (scrypt hash); optional, but editors cannot sign in without it and it must differ from the ops password
 - `ADMIN_SESSION_SECRET`
 - `ADMIN_OPS_ADMIN_USERNAMES`
 - `ADMIN_CONTENT_EDITOR_USERNAMES`

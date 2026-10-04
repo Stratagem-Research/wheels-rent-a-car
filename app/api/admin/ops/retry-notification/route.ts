@@ -8,7 +8,7 @@ const PayloadSchema = z.object({
 });
 
 export async function POST(request: Request) {
-  const auth = requireAdminSession(request, ["ops-admin"]);
+  const auth = await requireAdminSession(request, ["ops-admin"]);
   if (!auth.ok) return auth.response;
   const csrfResponse = requireAdminCsrf(request);
   if (csrfResponse) return csrfResponse;

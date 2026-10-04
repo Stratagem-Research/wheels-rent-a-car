@@ -19,9 +19,7 @@ describe("admin-auth credentials", () => {
     process.env.ADMIN_SESSION_SECRET = "test-secret";
     process.env.ADMIN_OPS_ADMIN_USERNAMES = "admin";
     process.env.ADMIN_CONTENT_EDITOR_USERNAMES = "editor";
-    delete process.env.ADMIN_PASSWORD;
     delete process.env.ADMIN_PASSWORD_HASH;
-    delete process.env.ADMIN_EDITOR_PASSWORD;
     delete process.env.ADMIN_EDITOR_PASSWORD_HASH;
   });
 
@@ -41,16 +39,8 @@ describe("admin-auth credentials", () => {
       expect(authenticateAdminCredentials("admin", "wrong password")).toBeNull();
     });
 
-    it("prefers the hash over a stale plaintext password", () => {
-      process.env.ADMIN_PASSWORD_HASH = scryptHash("the real one");
-      process.env.ADMIN_PASSWORD = "the old one";
-      expect(authenticateAdminCredentials("admin", "the old one")).toBeNull();
-      expect(authenticateAdminCredentials("admin", "the real one")).not.toBeNull();
-    });
-
-    it("rejects a malformed hash rather than falling back to plaintext", () => {
+    it("rejects a malformed hash", () => {
       process.env.ADMIN_PASSWORD_HASH = "scrypt:not-a-real-hash";
-      process.env.ADMIN_PASSWORD = "plain";
       expect(authenticateAdminCredentials("admin", "plain")).toBeNull();
     });
 
@@ -72,10 +62,17 @@ describe("admin-auth credentials", () => {
       expect(scryptHash("whatever")).not.toContain("$");
     });
 
-    it("still supports a plaintext password when no hash is configured", () => {
+    it("fails loudly when no hash is configured", () => {
+      expect(() => authenticateAdminCredentials("admin", "anything")).toThrow(
+        /ADMIN_PASSWORD_HASH is required/,
+      );
+    });
+
+    it("does not accept a plaintext ADMIN_PASSWORD", () => {
       process.env.ADMIN_PASSWORD = "plain-password";
-      expect(authenticateAdminCredentials("admin", "plain-password")).toEqual(OPS);
-      expect(authenticateAdminCredentials("admin", "nope")).toBeNull();
+      expect(() => authenticateAdminCredentials("admin", "plain-password")).toThrow(
+        /ADMIN_PASSWORD_HASH is required/,
+      );
     });
 
     it("rejects an unknown username even with the right password", () => {
@@ -107,11 +104,10 @@ describe("admin-auth credentials", () => {
       expect(authenticateAdminCredentials("editor", "nope")).toBeNull();
     });
 
-    it("supports a plaintext editor password when no hash is configured", () => {
+    it("does not accept a plaintext ADMIN_EDITOR_PASSWORD", () => {
       delete process.env.ADMIN_EDITOR_PASSWORD_HASH;
       process.env.ADMIN_EDITOR_PASSWORD = "plain-editor-pw";
-      expect(authenticateAdminCredentials("editor", "plain-editor-pw")).toEqual(EDITOR);
-      expect(authenticateAdminCredentials("admin", "plain-editor-pw")).toBeNull();
+      expect(authenticateAdminCredentials("editor", "plain-editor-pw")).toBeNull();
     });
   });
 
@@ -139,11 +135,5 @@ describe("admin-auth credentials", () => {
       expect(authenticateAdminCredentials("admin", "shared-password")).toEqual(OPS);
     });
 
-    it("also catches a plaintext/hash mix of the same value", () => {
-      vi.spyOn(console, "warn").mockImplementation(() => undefined);
-      process.env.ADMIN_PASSWORD = "same-value-123";
-      process.env.ADMIN_EDITOR_PASSWORD_HASH = scryptHash("same-value-123");
-      expect(authenticateAdminCredentials("editor", "same-value-123")).toBeNull();
-    });
   });
 });

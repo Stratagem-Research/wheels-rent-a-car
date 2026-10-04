@@ -28,7 +28,7 @@ export async function GET(_request: Request, context: RouteContext) {
 }
 
 export async function PUT(request: Request, context: RouteContext) {
-  const auth = requireAdminSession(request, ["content-editor", "ops-admin"]);
+  const auth = await requireAdminSession(request, ["content-editor", "ops-admin"]);
   if (!auth.ok) return auth.response;
   const csrfResponse = requireAdminCsrf(request);
   if (csrfResponse) return csrfResponse;
@@ -65,7 +65,7 @@ export async function PUT(request: Request, context: RouteContext) {
 }
 
 export async function DELETE(request: Request, context: RouteContext) {
-  const auth = requireAdminSession(request, ["content-editor", "ops-admin"]);
+  const auth = await requireAdminSession(request, ["content-editor", "ops-admin"]);
   if (!auth.ok) return auth.response;
   const csrfResponse = requireAdminCsrf(request);
   if (csrfResponse) return csrfResponse;

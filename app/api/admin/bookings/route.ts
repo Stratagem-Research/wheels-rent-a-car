@@ -3,7 +3,7 @@ import { listAdminWebsiteBookings } from "@/lib/supabase/admin-bookings-reposito
 import { requireAdminSession } from "@/lib/server/admin-api";
 
 export async function GET(request: Request) {
-  const auth = requireAdminSession(request, ["content-editor", "ops-admin"]);
+  const auth = await requireAdminSession(request, ["content-editor", "ops-admin"]);
   if (!auth.ok) return auth.response;
   try {
     const items = await listAdminWebsiteBookings();

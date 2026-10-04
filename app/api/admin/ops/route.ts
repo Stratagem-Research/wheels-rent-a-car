@@ -8,7 +8,7 @@ import {
 import { requireAdminSession } from "@/lib/server/admin-api";
 
 export async function GET(request: Request) {
-  const auth = requireAdminSession(request, ["ops-admin"]);
+  const auth = await requireAdminSession(request, ["ops-admin"]);
   if (!auth.ok) return auth.response;
   try {
     const [paymentEvents, bookingTimeline, notificationOutbox, notificationLogs] =

@@ -37,10 +37,9 @@ check_group() {
 check_group "public" "${required_public[@]}"
 check_group "server" "${required_server[@]}"
 
-# Admin sign-in needs one of the two — the scrypt hash is preferred, plaintext
-# is still accepted for environments that haven't switched over.
-if [[ -z "${ADMIN_PASSWORD_HASH:-}" && -z "${ADMIN_PASSWORD:-}" ]]; then
-  missing+=("ADMIN_PASSWORD_HASH (or ADMIN_PASSWORD)")
+# Admin sign-in needs the ops password's scrypt hash.
+if [[ -z "${ADMIN_PASSWORD_HASH:-}" ]]; then
+  missing+=("ADMIN_PASSWORD_HASH")
 fi
 
 if [[ "$mode" != "payment-deferred" ]]; then
