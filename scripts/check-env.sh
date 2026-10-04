@@ -42,6 +42,11 @@ if [[ -z "${ADMIN_PASSWORD_HASH:-}" ]]; then
   missing+=("ADMIN_PASSWORD_HASH")
 fi
 
+# A short signing secret can be brute-forced offline from a single admin cookie.
+if [[ -n "${ADMIN_SESSION_SECRET:-}" && ${#ADMIN_SESSION_SECRET} -lt 32 ]]; then
+  missing+=("ADMIN_SESSION_SECRET (must be at least 32 characters)")
+fi
+
 if [[ "$mode" != "payment-deferred" ]]; then
   check_group "payment" "${required_payment[@]}"
 fi

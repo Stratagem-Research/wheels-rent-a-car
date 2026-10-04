@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
+import { ADMIN_HEADERS, SECURITY_HEADERS } from "./lib/server/security-headers";
 
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
@@ -21,6 +22,13 @@ const nextConfig: NextConfig = {
     ],
   },
   typedRoutes: true,
+  async headers() {
+    return [
+      { source: "/:path*", headers: SECURITY_HEADERS },
+      { source: "/admin/:path*", headers: ADMIN_HEADERS },
+      { source: "/api/admin/:path*", headers: ADMIN_HEADERS },
+    ];
+  },
 };
 
 export default withNextIntl(nextConfig);

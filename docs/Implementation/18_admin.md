@@ -122,6 +122,7 @@ This is deliberately kept outside the booking state machine (`types/domain.ts` `
 
 1. Enforce secure admin env provisioning in deployment (`ADMIN_PASSWORD_HASH`, `ADMIN_SESSION_SECRET`) and rotate regularly. Generate the hash with `node scripts/hash-admin-password.mjs`.
 2. Keep CSRF validation mandatory on every mutating admin route.
+2a. ~~Reject weak admin secrets.~~ Done — `ADMIN_SESSION_SECRET` must be 32+ characters (`lib/server/admin-auth.ts`). Security response headers (no framing, nosniff, HSTS, no-store on admin) live in `lib/server/security-headers.ts`.
 3. ~~Add rate limiting and lockout policy on `/api/admin/sessions`.~~ Done — `lib/server/admin-login-throttle.ts`: 5 failures per client → 15-minute lockout, failures and lockouts written to the audit log. In-process state, so it resets on restart and does not span instances; move it to Supabase if Wheels ever runs more than one node.
 4. Replace native `confirm()` with modal confirmations for destructive actions.
 5. Add richer admin audit logs (request IDs, IP/UA attribution, mutation diff payloads).

@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { randomBytes, scryptSync } from "crypto";
-import { authenticateAdminCredentials } from "@/lib/server/admin-auth";
+import { authenticateAdminCredentials, createAdminSession } from "@/lib/server/admin-auth";
 
 function scryptHash(password: string, separator: ":" | "$" = ":"): string {
   const salt = randomBytes(16);
@@ -16,7 +16,7 @@ describe("admin-auth credentials", () => {
 
   beforeEach(() => {
     process.env = { ...originalEnv };
-    process.env.ADMIN_SESSION_SECRET = "test-secret";
+    process.env.ADMIN_SESSION_SECRET = "test-secret-test-secret-test-secret";
     process.env.ADMIN_OPS_ADMIN_USERNAMES = "admin";
     process.env.ADMIN_CONTENT_EDITOR_USERNAMES = "editor";
     delete process.env.ADMIN_PASSWORD_HASH;
@@ -26,6 +26,27 @@ describe("admin-auth credentials", () => {
   afterEach(() => {
     process.env = { ...originalEnv };
     vi.restoreAllMocks();
+  });
+
+  describe("session secret strength", () => {
+    it("refuses to sign anyone in with a secret under 32 characters", () => {
+      process.env.ADMIN_SESSION_SECRET = "too-short";
+      process.env.ADMIN_PASSWORD_HASH = scryptHash("correct horse battery");
+      expect(() => authenticateAdminCredentials("admin", "correct horse battery")).toThrow(
+        /at least 32 characters/,
+      );
+    });
+
+    it("accepts a 32-character secret", () => {
+      process.env.ADMIN_SESSION_SECRET = "x".repeat(32);
+      process.env.ADMIN_PASSWORD_HASH = scryptHash("correct horse battery");
+      expect(authenticateAdminCredentials("admin", "correct horse battery")).toEqual(OPS);
+    });
+
+    it("won't mint or accept a session cookie with a weak secret", () => {
+      process.env.ADMIN_SESSION_SECRET = "short";
+      expect(() => createAdminSession("admin", "ops-admin")).toThrow(/at least 32 characters/);
+    });
   });
 
   describe("ops password", () => {

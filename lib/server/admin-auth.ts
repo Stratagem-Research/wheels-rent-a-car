@@ -22,6 +22,20 @@ function getEnv(name: string, fallback?: string): string {
   return value;
 }
 
+/** HMAC-SHA256 keys shorter than this are guessable offline from one cookie. */
+export const MIN_SESSION_SECRET_LENGTH = 32;
+
+/** The signing secret, or an error if it is missing or too short to trust. */
+function requireSessionSecret(): string {
+  const secret = getEnv("ADMIN_SESSION_SECRET");
+  if (secret.length < MIN_SESSION_SECRET_LENGTH) {
+    throw new Error(
+      `ADMIN_SESSION_SECRET must be at least ${MIN_SESSION_SECRET_LENGTH} characters. Generate one with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`,
+    );
+  }
+  return secret;
+}
+
 function getConfig() {
   const contentEditors = (process.env.ADMIN_CONTENT_EDITOR_USERNAMES ?? "editor")
     .split(",")
@@ -31,13 +45,15 @@ function getConfig() {
     .split(",")
     .map((value) => value.trim())
     .filter(Boolean);
-  return { secret: getEnv("ADMIN_SESSION_SECRET"), contentEditors, opsAdmins };
+  return { secret: requireSessionSecret(), contentEditors, opsAdmins };
 }
 
 function getSessionSecret(): string | null {
   try {
-    return getEnv("ADMIN_SESSION_SECRET");
+    return requireSessionSecret();
   } catch {
+    // Fail closed: with no usable secret no cookie can be verified. Sign-in
+    // surfaces the reason (it throws), so this stays quiet.
     return null;
   }
 }
@@ -193,7 +209,7 @@ export function createAdminSession(
   username: string,
   role: AdminRole,
 ): { token: string; sid: string; expiresAt: Date } {
-  const secret = getEnv("ADMIN_SESSION_SECRET");
+  const secret = requireSessionSecret();
   const sid = randomUUID();
   const exp = Math.floor(Date.now() / 1000) + ADMIN_SESSION_SECONDS;
   const payloadObj: AdminSession = { sid, username, role, exp };
