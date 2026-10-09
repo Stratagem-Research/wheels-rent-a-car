@@ -486,7 +486,7 @@
     "title": "Quelle voiture voulez-vous conduire ?",
     "lowestPrice": "Prix le plus bas",
     "autoOnly": "Automatique uniquement",
-    "carsCount": "{cars, plural, one {# voiture} other {# voitures}} · {models, plural, one {# modèle} other {# modèles}}",
+    "carsCount": "voitures · {models, plural, one {# modèle} other {# modèles}}",
     "resultsAria": "Résultats de véhicules",
     "emptyHeading": "Aucune voiture ne correspond à ces filtres.",
     "emptyBody": "Essayez de retirer un filtre ou d'élargir la fourchette de prix.",

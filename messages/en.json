@@ -648,7 +648,7 @@
     "title": "Which car do you want to drive?",
     "lowestPrice": "Lowest price",
     "autoOnly": "Auto only",
-    "carsCount": "{cars, plural, one {# car} other {# cars}} of {models, plural, one {# model} other {# models}}",
+    "carsCount": "cars of {models, plural, one {# model} other {# models}}",
     "resultsAria": "Vehicle results",
     "emptyHeading": "No cars match these filters.",
     "emptyBody": "Try clearing a filter or expanding the price range.",
