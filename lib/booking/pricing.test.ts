@@ -146,7 +146,7 @@ describe("booking/pricing", () => {
         ...DEFAULT_PAYMENT_SETTINGS,
         surcharges: {
           ...DEFAULT_PAYMENT_SETTINGS.surcharges,
-          omt: { mode: "percent", amountCents: 0, percent: 10 },
+          omt: { mode: "percent", amountCents: 0, percent: 10, dayTiers: [] },
         },
       },
     });

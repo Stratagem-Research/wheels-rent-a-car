@@ -1252,6 +1252,7 @@
     "transferSwiftLabel": "SWIFT",
     "surchargeFixed": "+{amount} رسوم دفع",
     "surchargePercent": "+{percent}% رسوم دفع ({amount})",
+    "surchargeDayTier": "+{amount} رسوم دفع لمدة {days, plural, zero {# يوم} one {يوم واحد} two {يومان} few {# أيام} many {# يوماً} other {# يوم}}",
     "omtBranchLine": "ادفع نقداً في أي فرع OMT.",
     "omtCodeLine": "رمز دفع OMT هو رقم مرجع حجزك — يتم تعيينه فور إرسال الحجز، وستراه في الشاشة التالية مباشرة.",
     "choosePaymentMethod": "اختر طريقة الدفع.",

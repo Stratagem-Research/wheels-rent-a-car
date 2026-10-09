@@ -182,17 +182,32 @@ export interface BankTransferDetails {
 }
 
 /** How a payment method's surcharge is derived from the booking. */
-export type PaymentSurchargeMode = "none" | "fixed" | "percent";
+export type PaymentSurchargeMode = "none" | "fixed" | "percent" | "per-day" | "day-tiers";
+
+/**
+ * One rental-length band of a "day-tiers" surcharge. Matches when the rental
+ * day number falls between `startDay` and `endDay`; a null `endDay` means the
+ * band is open-ended. `perDayCents` is charged for each rental day inside the
+ * band, so a rental spanning several bands pays each band's rate in turn.
+ */
+export interface PaymentSurchargeDayTier {
+  startDay: number;
+  endDay: number | null;
+  perDayCents: Cents;
+}
 
 /**
  * Surcharge a non-cash payment method adds to the total. `amountCents` drives
  * "fixed" (charged once); `percent` drives "percent" (of the pre-surcharge
- * total).
+ * total); `amountCents` also drives "per-day" (charged once per rental day);
+ * `dayTiers` drives "day-tiers" (a per-day rate per
+ * rental-length band).
  */
 export interface PaymentSurcharge {
   mode: PaymentSurchargeMode;
   amountCents: Cents;
   percent: number;
+  dayTiers: PaymentSurchargeDayTier[];
 }
 
 /** Payment methods that can carry a surcharge. Cash is always free. */

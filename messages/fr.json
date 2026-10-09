@@ -1252,6 +1252,7 @@
     "transferSwiftLabel": "SWIFT",
     "surchargeFixed": "+{amount} de frais de paiement",
     "surchargePercent": "+{percent}% de frais de paiement ({amount})",
+    "surchargeDayTier": "+{amount} de frais de paiement pour {days, plural, one {# jour} other {# jours}}",
     "omtBranchLine": "Payez en espèces dans une agence OMT.",
     "omtCodeLine": "Votre code de paiement OMT est votre référence de réservation — elle est attribuée dès l'envoi, et l'écran suivant l'affiche directement.",
     "choosePaymentMethod": "Choisissez un mode de paiement.",

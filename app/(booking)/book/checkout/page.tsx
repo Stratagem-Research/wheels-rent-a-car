@@ -23,7 +23,7 @@ import { useWhatsAppHref } from "@/components/providers/ContactSettingsProvider"
 import { api, ApiError } from "@/lib/api/client";
 import { endpoints } from "@/lib/api/endpoints";
 import { isValidPhoneNational, phoneValueFromStored, toE164 } from "@/lib/booking/phone";
-import { computePrice, formatUsd } from "@/lib/booking/pricing";
+import { computePrice, formatUsd, rentalDays } from "@/lib/booking/pricing";
 import { draftToSearchParams } from "@/lib/booking/draft-to-search-params";
 import { WIZARD_VEHICLE_UNKNOWN } from "@/lib/booking/wizard-vehicle-id";
 import {
@@ -667,6 +667,7 @@ export default function CheckoutPage() {
                 onValueChange={onPaymentMethod}
                 settings={PAYMENT_SETTINGS}
                 baseCents={price.totalCents - price.surchargeCents}
+                days={rentalDays(draft.pickup.datetime, draft.return.datetime)}
               />
               {errors.paymentMethod ? <ErrorText>{errors.paymentMethod}</ErrorText> : null}
             </section>

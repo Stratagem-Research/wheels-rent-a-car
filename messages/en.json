@@ -597,7 +597,15 @@
     "browseCars": "Browse cars",
     "fleetHeading": "Cars usually at our branch",
     "faqHeading": "Common questions",
-    "days": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "days": [
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat"
+    ],
     "faqs": [
       {
         "q": "Can I pick up after hours?",
@@ -1401,7 +1409,7 @@
     "promoDiscount": "Promo discount",
     "depositAtPickup": "Refundable deposit at pickup",
     "pricingUnavailable": "Pricing will appear once the vehicle is loaded.",
-    "beirutTimesNote": "Pickup and return times are Beirut local time (GMT+3), regardless of where you browse from.",
+    "beirutTimesNote": "Pickup and return times are Beirut local time (GMT+3).",
     "paymentSurcharge": "Payment fee"
   },
   "booking": {
@@ -1453,7 +1461,8 @@
     "transferIbanLabel": "IBAN",
     "transferSwiftLabel": "SWIFT",
     "surchargeFixed": "+{amount} payment fee",
-    "surchargePercent": "+{percent}% payment fee ({amount})"
+    "surchargePercent": "+{percent}% payment fee ({amount})",
+    "surchargeDayTier": "+{amount} payment fee for {days, plural, one {# day} other {# days}}"
   },
   "accountProfile": {
     "profileLabel": "Profile",

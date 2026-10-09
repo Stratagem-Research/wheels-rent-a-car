@@ -141,6 +141,7 @@ export function computePrice({
     method: paymentMethod ?? draft.paymentMethod,
     settings: paymentSettings,
     baseCents: totalBeforeSurchargeCents,
+    days,
   });
   const totalCents = totalBeforeSurchargeCents + surchargeCents;
   const depositCents = DEPOSIT_BY_CATEGORY[vehicle.category] ?? 50_000;

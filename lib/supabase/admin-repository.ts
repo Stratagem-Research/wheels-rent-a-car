@@ -7,6 +7,7 @@ import type {
   LocalizedStringArray,
   PaymentSettings,
   PaymentSurcharge,
+  PaymentSurchargeDayTier,
   PaymentSurchargeMode,
   Vehicle,
 } from "@/types/domain";
@@ -19,7 +20,11 @@ import {
   dailyRateCentsFromOperational,
   parseOperational,
 } from "@/lib/vehicles/vehicle-operational";
-import { deletePageSeoByKeys, ensureVehicleSeoRows, vehiclePageKey } from "@/lib/supabase/seo-repository";
+import {
+  deletePageSeoByKeys,
+  ensureVehicleSeoRows,
+  vehiclePageKey,
+} from "@/lib/supabase/seo-repository";
 
 export type AdminLeadStatus = "new" | "in-progress" | "won" | "lost";
 
@@ -712,7 +717,7 @@ export async function getPaymentSettings(): Promise<PaymentSettings | null> {
  */
 function parseSurcharges(value: unknown): PaymentSettings["surcharges"] {
   const source = (value ?? {}) as Record<string, unknown>;
-  const modes: PaymentSurchargeMode[] = ["none", "fixed", "percent"];
+  const modes: PaymentSurchargeMode[] = ["none", "fixed", "percent", "per-day", "day-tiers"];
   const entries = SURCHARGEABLE_PAYMENT_METHODS.map((method) => {
     const raw = source[method] as Partial<PaymentSurcharge> | undefined;
     const mode = modes.includes(raw?.mode as PaymentSurchargeMode)
@@ -726,10 +731,27 @@ function parseSurcharges(value: unknown): PaymentSettings["surcharges"] {
         mode,
         amountCents: Number.isFinite(amountCents) ? Math.max(0, Math.round(amountCents)) : 0,
         percent: Number.isFinite(percent) ? Math.max(0, percent) : 0,
+        dayTiers: parseDayTiers(raw?.dayTiers),
       },
     ] as const;
   });
   return Object.fromEntries(entries) as PaymentSettings["surcharges"];
+}
+
+/** Day tiers are jsonb too: anything unparseable drops the tier entirely. */
+function parseDayTiers(value: unknown): PaymentSurchargeDayTier[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((entry) => {
+    const raw = entry as Partial<PaymentSurchargeDayTier> | null;
+    const startRaw = Number(raw?.startDay);
+    const perDayRaw = Number(raw?.perDayCents);
+    if (!Number.isFinite(startRaw) || !Number.isFinite(perDayRaw)) return [];
+    const endRaw = Number(raw?.endDay);
+    const endDay = raw?.endDay == null || !Number.isFinite(endRaw) ? null : Math.round(endRaw);
+    const startDay = Math.max(1, Math.round(startRaw));
+    if (endDay != null && endDay < startDay) return [];
+    return [{ startDay, endDay, perDayCents: Math.max(0, Math.round(perDayRaw)) }];
+  });
 }
 
 export async function replacePaymentSettings(settings: PaymentSettings): Promise<void> {

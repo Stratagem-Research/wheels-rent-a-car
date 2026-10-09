@@ -17,6 +17,7 @@ import {
 import type {
   PaymentSettings,
   PaymentSurcharge,
+  PaymentSurchargeDayTier,
   PaymentSurchargeMode,
   SurchargeablePaymentMethod,
 } from "@/types/domain";
@@ -38,8 +39,17 @@ const METHOD_LABELS: Record<SurchargeablePaymentMethod, string> = {
 const MODE_LABELS: Record<PaymentSurchargeMode, string> = {
   none: "No charge",
   fixed: "Fixed amount",
+  "per-day": "Per day",
   percent: "Percentage of total",
+  "day-tiers": "By rental length",
 };
+
+/** Next band starts the day after the last one ends, so the ladder has no gap. */
+function nextDayTier(tiers: PaymentSurchargeDayTier[]): PaymentSurchargeDayTier {
+  const last = tiers[tiers.length - 1];
+  const startDay = last ? (last.endDay == null ? last.startDay + 1 : last.endDay + 1) : 1;
+  return { startDay, endDay: null, perDayCents: 0 };
+}
 
 export default function AdminPaymentPage() {
   const [settings, setSettings] = React.useState<PaymentSettings>(DEFAULT_PAYMENT_SETTINGS);
@@ -99,11 +109,35 @@ export default function AdminPaymentPage() {
       surcharges: { ...s.surcharges, [method]: { ...s.surcharges[method], ...patch } },
     }));
 
+  const setDayTiers = (
+    method: SurchargeablePaymentMethod,
+    mutate: (tiers: PaymentSurchargeDayTier[]) => PaymentSurchargeDayTier[],
+  ) =>
+    setSettings((s) => {
+      const current = s.surcharges[method];
+      return {
+        ...s,
+        surcharges: {
+          ...s.surcharges,
+          [method]: { ...current, dayTiers: mutate(current.dayTiers ?? []) },
+        },
+      };
+    });
+
+  const setDayTier = (
+    method: SurchargeablePaymentMethod,
+    index: number,
+    patch: Partial<PaymentSurchargeDayTier>,
+  ) =>
+    setDayTiers(method, (tiers) =>
+      tiers.map((tier, i) => (i === index ? { ...tier, ...patch } : tier)),
+    );
+
   return (
     <AdminPageShell
       eyebrow="Settings"
       title="Payment"
-      description="Bank transfer details shown at checkout, and the fee each non-cash method adds to the total"
+      description="Bank transfer details and the fee each non-cash method adds to the total"
       backHref="/admin"
       backLabel="Back to dashboard"
       actions={
@@ -113,10 +147,7 @@ export default function AdminPaymentPage() {
       }
     >
       <div className="flex flex-col gap-6">
-        <AdminFormShell
-          title="Bank transfer details"
-          helper="Shown on the checkout Bank transfer panel and repeated in the confirmation email. Leave every field blank to hide the block until the account is ready."
-        >
+        <AdminFormShell title="Bank transfer details">
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label="Bank name">
               {({ id }) => (
@@ -215,9 +246,9 @@ export default function AdminPaymentPage() {
                         )}
                       </Field>
                     </div>
-                    {surcharge.mode === "fixed" ? (
+                    {surcharge.mode === "fixed" || surcharge.mode === "per-day" ? (
                       <div className="w-40">
-                        <Field label="USD">
+                        <Field label={surcharge.mode === "per-day" ? "USD per day" : "USD"}>
                           {({ id }) => (
                             <Input
                               id={id}
@@ -260,6 +291,114 @@ export default function AdminPaymentPage() {
                       </div>
                     ) : null}
                   </div>
+                  {surcharge.mode === "day-tiers" ? (
+                    <div className="flex flex-col gap-3 sm:col-span-2">
+                      <p className="body-sm text-ink-60">
+                        Each day of the rental is charged at the rate of the band it falls in. A day
+                        outside every band is charged nothing. Leave &ldquo;End day&rdquo; blank for
+                        an open-ended band.
+                      </p>
+                      {(surcharge.dayTiers ?? []).length === 0 ? (
+                        <p className="body-sm text-ink-60">No day bands yet.</p>
+                      ) : (
+                        <ul className="flex flex-col gap-3">
+                          {(surcharge.dayTiers ?? []).map((tier, index) => (
+                            <li key={index} className="flex flex-wrap items-end gap-3">
+                              <div className="w-28">
+                                <Field label="Start day">
+                                  {({ id }) => (
+                                    <Input
+                                      id={id}
+                                      type="number"
+                                      min={1}
+                                      step="1"
+                                      value={tier.startDay.toString()}
+                                      onChange={(e) =>
+                                        setDayTier(method, index, {
+                                          startDay: Math.max(
+                                            1,
+                                            Math.round(Number(e.target.value || 1)),
+                                          ),
+                                        })
+                                      }
+                                    />
+                                  )}
+                                </Field>
+                              </div>
+                              <div className="w-28">
+                                <Field label="End day">
+                                  {({ id }) => (
+                                    <Input
+                                      id={id}
+                                      type="number"
+                                      min={tier.startDay}
+                                      step="1"
+                                      placeholder="Any"
+                                      value={tier.endDay == null ? "" : tier.endDay.toString()}
+                                      onChange={(e) =>
+                                        setDayTier(method, index, {
+                                          endDay:
+                                            e.target.value.trim() === ""
+                                              ? null
+                                              : Math.max(
+                                                  tier.startDay,
+                                                  Math.round(Number(e.target.value)),
+                                                ),
+                                        })
+                                      }
+                                    />
+                                  )}
+                                </Field>
+                              </div>
+                              <div className="w-40">
+                                <Field label="USD per day">
+                                  {({ id }) => (
+                                    <Input
+                                      id={id}
+                                      type="number"
+                                      min={0}
+                                      step="0.01"
+                                      value={(tier.perDayCents / 100).toString()}
+                                      onChange={(e) =>
+                                        setDayTier(method, index, {
+                                          perDayCents: Math.max(
+                                            0,
+                                            Math.round(Number(e.target.value || 0) * 100),
+                                          ),
+                                        })
+                                      }
+                                    />
+                                  )}
+                                </Field>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="tertiary"
+                                onClick={() =>
+                                  setDayTiers(method, (tiers) =>
+                                    tiers.filter((_, i) => i !== index),
+                                  )
+                                }
+                              >
+                                Remove
+                              </Button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      <div>
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() =>
+                            setDayTiers(method, (tiers) => [...tiers, nextDayTier(tiers)])
+                          }
+                        >
+                          Add day band
+                        </Button>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               );
             })}

@@ -28,17 +28,17 @@ const OPTION_META: {
   labelKey: string;
   taglineKey: string;
 }[] = [
-    { value: "cash", icon: Wallet, labelKey: "cashLabel", taglineKey: "cashTagline" },
-    { value: "transfer", icon: Building2, labelKey: "transferLabel", taglineKey: "transferTagline" },
-    { value: "omt", icon: Coins, labelKey: "omtLabel", taglineKey: "omtTagline" },
-    {
-      value: "whish-online",
-      icon: Smartphone,
-      labelKey: "whishOnlineLabel",
-      taglineKey: "whishOnlineTagline",
-    },
-    { value: "neo", icon: CreditCard, labelKey: "neoLabel", taglineKey: "neoTagline" },
-  ];
+  { value: "cash", icon: Wallet, labelKey: "cashLabel", taglineKey: "cashTagline" },
+  { value: "transfer", icon: Building2, labelKey: "transferLabel", taglineKey: "transferTagline" },
+  { value: "omt", icon: Coins, labelKey: "omtLabel", taglineKey: "omtTagline" },
+  {
+    value: "whish-online",
+    icon: Smartphone,
+    labelKey: "whishOnlineLabel",
+    taglineKey: "whishOnlineTagline",
+  },
+  { value: "neo", icon: CreditCard, labelKey: "neoLabel", taglineKey: "neoTagline" },
+];
 
 export interface PaymentMethodSelectorProps {
   value: PaymentMethod | null;
@@ -47,6 +47,8 @@ export interface PaymentMethodSelectorProps {
   settings?: PaymentSettings;
   /** Total the customer would owe paying cash — the percent-surcharge base. */
   baseCents?: number;
+  /** Rental length in days — picks the band for a day-tiered charge. */
+  days?: number;
 }
 
 function isSelectable(config: PaymentMethodPublicConfig): boolean {
@@ -55,7 +57,7 @@ function isSelectable(config: PaymentMethodPublicConfig): boolean {
 
 export function PaymentMethodSelector(props: PaymentMethodSelectorProps) {
   const t = useTranslations("checkoutPayment");
-  const { value, onValueChange, settings, baseCents = 0 } = props;
+  const { value, onValueChange, settings, baseCents = 0, days = 1 } = props;
   const [methods, setMethods] = React.useState<PaymentMethodPublicConfig[]>([]);
 
   React.useEffect(() => {
@@ -116,7 +118,7 @@ export function PaymentMethodSelector(props: PaymentMethodSelectorProps) {
                 opt={opt}
                 config={config}
                 t={t}
-                surchargeNote={surchargeNote({ method: opt.value, settings, baseCents, t })}
+                surchargeNote={surchargeNote({ method: opt.value, settings, baseCents, days, t })}
               />
             </label>
             {selected ? <MethodPanel method={opt.value} settings={settings} /> : null}
@@ -135,19 +137,24 @@ function surchargeNote({
   method,
   settings,
   baseCents,
+  days,
   t,
 }: {
   method: PaymentMethod;
   settings?: PaymentSettings;
   baseCents: number;
+  days: number;
   t: ReturnType<typeof useTranslations>;
 }): string | null {
   const surcharge = surchargeFor(method, settings);
   if (surcharge.mode === "none") return null;
-  const cents = paymentSurchargeCents({ method, settings, baseCents });
+  const cents = paymentSurchargeCents({ method, settings, baseCents, days });
   if (cents <= 0) return null;
   if (surcharge.mode === "percent") {
     return t("surchargePercent", { percent: surcharge.percent, amount: formatUsd(cents) });
+  }
+  if (surcharge.mode === "per-day" || surcharge.mode === "day-tiers") {
+    return t("surchargeDayTier", { days, amount: formatUsd(cents) });
   }
   return t("surchargeFixed", { amount: formatUsd(cents) });
 }
@@ -250,9 +257,7 @@ function TransferPanel({ settings }: { settings?: PaymentSettings }) {
           </div>
         ))}
       </dl>
-      {bank.instructions.trim() ? (
-        <p className="body-sm text-ink-60">{bank.instructions}</p>
-      ) : null}
+      {bank.instructions.trim() ? <p className="body-sm text-ink-60">{bank.instructions}</p> : null}
     </Card>
   );
 }

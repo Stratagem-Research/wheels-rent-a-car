@@ -8,10 +8,21 @@ import {
 import { DEFAULT_PAYMENT_SETTINGS } from "@/lib/payments/payment-settings";
 import { requireAdminCsrf, requireAdminSession } from "@/lib/server/admin-api";
 
+const DayTierSchema = z
+  .object({
+    startDay: z.number().int().min(1).max(365),
+    endDay: z.number().int().min(1).max(365).nullable(),
+    perDayCents: z.number().int().min(0).max(1_000_000),
+  })
+  .refine((tier) => tier.endDay == null || tier.endDay >= tier.startDay, {
+    message: "A day band's end day must not be before its start day.",
+  });
+
 const SurchargeSchema = z.object({
-  mode: z.enum(["none", "fixed", "percent"]),
+  mode: z.enum(["none", "fixed", "percent", "per-day", "day-tiers"]),
   amountCents: z.number().int().min(0).max(1_000_000),
   percent: z.number().min(0).max(100),
+  dayTiers: z.array(DayTierSchema).max(12).default([]),
 });
 
 const BankTransferSchema = z.object({
