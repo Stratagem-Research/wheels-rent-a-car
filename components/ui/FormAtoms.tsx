@@ -23,7 +23,7 @@ export const Label = React.forwardRef<HTMLLabelElement, LabelProps>(function Lab
   ref,
 ) {
   return (
-    <label ref={ref} className={cn("label-md text-ink-70 block", className)} {...props}>
+    <label ref={ref} className={cn("label-md text-ink-60 block", className)} {...props}>
       {children}
       {required ? (
         <span className="text-signal-red ml-0.5" aria-hidden="true">

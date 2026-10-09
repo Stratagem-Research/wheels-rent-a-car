@@ -10,8 +10,7 @@ import { cn } from "@/lib/utils";
  * for most form fields the native control is faster and more accessible.
  */
 
-export interface SelectProps
-  extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, "size"> {
+export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, "size"> {
   invalid?: boolean;
   size?: "md" | "sm";
 }
@@ -24,8 +23,8 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(function 
   return (
     <div
       className={cn(
-        "bg-surface relative flex items-center rounded-md",
-        compact ? "h-9" : "h-13",
+        "bg-surface relative flex items-center rounded-lg",
+        compact ? "h-10" : "h-12",
         "border transition-colors duration-150 ease-out",
         "focus-within:outline-ink-100 focus-within:outline-2 focus-within:outline-offset-0",
         "focus-within:shadow-[0_0_0_4px_var(--color-signal-blue-bg)]",

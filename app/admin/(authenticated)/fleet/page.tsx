@@ -798,6 +798,14 @@ export default function AdminFleetPage() {
               }
               helper={groupHelper(group.map((item) => item.draft)) || undefined}
             >
+              <Checkbox
+                size="sm"
+                label="Hide from vehicles page"
+                checked={draft.operational.website_enabled === false}
+                onCheckedChange={(checked) =>
+                  patchGroupOperational(indices, { website_enabled: checked !== true })
+                }
+              />
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field label={isWebsiteGroup ? "Units" : "Wizard units"}>
                   {({ id }) => (
@@ -938,16 +946,6 @@ export default function AdminFleetPage() {
                     )}
                   </Field>
                 ) : null}
-              </div>
-              <div className="flex flex-col gap-2">
-                <Checkbox
-                  label="Hide from vehicles page"
-                  checked={draft.operational.website_enabled === false}
-                  onCheckedChange={(checked) =>
-                    patchGroupOperational(indices, { website_enabled: checked !== true })
-                  }
-                />
-
               </div>
               {isWebsiteGroup ? (
                 <Accordion type="single" collapsible className="border-border rounded-lg border px-4">

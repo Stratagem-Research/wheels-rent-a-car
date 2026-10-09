@@ -7,25 +7,29 @@ import { cn } from "@/lib/utils";
 
 export interface CheckboxProps extends Omit<
   React.ComponentPropsWithoutRef<typeof RadixCheckbox.Root>,
-  "asChild"
+  "asChild" | "size"
 > {
   /** Label rendered next to the checkbox. */
   label?: React.ReactNode;
+  /** `sm` pairs with dense admin rows; `md` is the default form size. */
+  size?: "md" | "sm";
 }
 
 export const Checkbox = React.forwardRef<
   React.ElementRef<typeof RadixCheckbox.Root>,
   CheckboxProps
->(function Checkbox({ className, label, id, ...props }, ref) {
+>(function Checkbox({ className, label, id, size = "md", ...props }, ref) {
   const reactId = React.useId();
   const checkboxId = id ?? `checkbox-${reactId}`;
+  const compact = size === "sm";
 
   const control = (
     <RadixCheckbox.Root
       ref={ref}
       id={checkboxId}
       className={cn(
-        "bg-surface size-5 shrink-0 rounded-xs",
+        "bg-surface shrink-0 rounded-xs",
+        compact ? "size-4" : "size-5",
         "border-border-strong border-[1.5px]",
         "transition-colors duration-150 ease-out",
         "data-[state=checked]:bg-ink-95 data-[state=checked]:border-ink-95",
@@ -37,7 +41,7 @@ export const Checkbox = React.forwardRef<
       {...props}
     >
       <RadixCheckbox.Indicator className="text-paper flex items-center justify-center">
-        <Check className="size-3.5" strokeWidth={3} />
+        <Check className={compact ? "size-3" : "size-3.5"} strokeWidth={3} />
       </RadixCheckbox.Indicator>
     </RadixCheckbox.Root>
   );
@@ -45,11 +49,14 @@ export const Checkbox = React.forwardRef<
   if (!label) return control;
 
   return (
-    <div className="inline-flex items-start gap-3">
+    <div className={cn("inline-flex gap-3", compact ? "items-center gap-2" : "items-start")}>
       {control}
       <label
         htmlFor={checkboxId}
-        className="body-md text-ink-95 cursor-pointer leading-snug select-none"
+        className={cn(
+          "cursor-pointer leading-snug select-none",
+          compact ? "label-sm text-ink-80" : "body-md text-ink-95",
+        )}
       >
         {label}
       </label>

@@ -25,7 +25,13 @@ export function VehicleOperationalFields({
 }) {
   return (
     <div className="flex flex-col gap-4">
-      <div className={showDisplayName ? "grid gap-4 sm:grid-cols-2" : undefined}>
+      <div
+        className={
+          showDisplayName
+            ? "grid gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_120px]"
+            : "grid gap-4 sm:grid-cols-[1fr_1fr_120px]"
+        }
+      >
         {showDisplayName ? (
           <Field label="Display name" helper="Wizard display_name / name.">
             {({ id }) => (
@@ -45,6 +51,30 @@ export function VehicleOperationalFields({
               value={value.color ?? ""}
               placeholder="GRAY"
               onChange={(e) => onChange({ color: e.target.value })}
+            />
+          )}
+        </Field>
+        <Field
+          label="Daily rate"
+          helper="Leave blank to show &ldquo;Request Price&rdquo; instead of a price."
+        >
+          {({ id }) => (
+            <Input
+              id={id}
+              type="number"
+              min={0}
+              step="0.01"
+              value={value.daily_rate ?? ""}
+              onChange={(e) => onChange({ daily_rate: Number(e.target.value) || null })}
+            />
+          )}
+        </Field>
+        <Field label="Currency">
+          {({ id }) => (
+            <Input
+              id={id}
+              value={value.currency ?? "USD"}
+              onChange={(e) => onChange({ currency: e.target.value })}
             />
           )}
         </Field>
@@ -143,7 +173,7 @@ export function VehicleOperationalFields({
           )}
         </Field>
       </div>
-      <div className="grid gap-4 sm:grid-cols-[1fr_1fr_140px_1fr]">
+      <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Status">
           {({ id }) => (
             <Select
@@ -157,30 +187,6 @@ export function VehicleOperationalFields({
                 </option>
               ))}
             </Select>
-          )}
-        </Field>
-        <Field
-          label="Daily rate"
-          helper="Leave blank to show &ldquo;Request Price&rdquo; on the site instead of a price."
-        >
-          {({ id }) => (
-            <Input
-              id={id}
-              type="number"
-              min={0}
-              step="0.01"
-              value={value.daily_rate ?? ""}
-              onChange={(e) => onChange({ daily_rate: Number(e.target.value) || null })}
-            />
-          )}
-        </Field>
-        <Field label="Currency">
-          {({ id }) => (
-            <Input
-              id={id}
-              value={value.currency ?? "USD"}
-              onChange={(e) => onChange({ currency: e.target.value })}
-            />
           )}
         </Field>
         <Field label="Location">
@@ -202,21 +208,25 @@ export function VehicleOperationalFields({
       </div>
       <div className="flex flex-wrap gap-4">
         <Checkbox
+          size="sm"
           label="Website enabled"
           checked={value.website_enabled !== false}
           onCheckedChange={(checked) => onChange({ website_enabled: checked === true })}
         />
         <Checkbox
+          size="sm"
           label="Publicly bookable"
           checked={value.is_publicly_bookable !== false}
           onCheckedChange={(checked) => onChange({ is_publicly_bookable: checked === true })}
         />
         <Checkbox
+          size="sm"
           label="Marketplace enabled"
           checked={value.marketplace_enabled !== false}
           onCheckedChange={(checked) => onChange({ marketplace_enabled: checked === true })}
         />
         <Checkbox
+          size="sm"
           label="Sold"
           checked={value.is_sold === true}
           onCheckedChange={(checked) => onChange({ is_sold: checked === true })}
