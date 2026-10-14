@@ -71,7 +71,7 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(fu
   return (
     <div
       className={cn(
-        "bg-surface flex h-10 w-full items-center rounded-md",
+        "bg-surface flex h-10 w-full min-w-0 items-center rounded-md",
         "border transition-colors duration-150 ease-out",
         "focus-within:outline-ink-100 focus-within:outline-2 focus-within:outline-offset-0",
         "focus-within:shadow-[0_0_0_4px_var(--color-signal-blue-bg)]",
@@ -82,7 +82,7 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(fu
         className,
       )}
     >
-      <div className="border-border relative flex h-full items-center border-r pr-2 pl-4">
+      <div className="border-border relative flex h-full shrink-0 items-center border-r pr-2 pl-4">
         <span className="mr-1.5 text-base" aria-hidden="true">
           {country.flag}
         </span>
@@ -118,7 +118,7 @@ export const PhoneInput = React.forwardRef<HTMLInputElement, PhoneInputProps>(fu
         aria-invalid={invalid || aria["aria-invalid"]}
         aria-describedby={aria["aria-describedby"]}
         className={cn(
-          "body-md text-ink-95 flex-1 bg-transparent px-4 outline-none",
+          "body-md text-ink-95 w-full min-w-0 flex-1 bg-transparent px-4 outline-none",
           "placeholder:text-ink-50 tabular-nums",
           "disabled:text-ink-50 disabled:cursor-not-allowed",
         )}

@@ -286,7 +286,7 @@ export function VehiclesClient({
       </section>
 
       <section className="mx-auto max-w-(--container-full) px-4 py-6 sm:px-5 sm:py-8">
-        <h1 className="display-md text-ink-100 text-[clamp(24px,2.5vw,36px)] leading-[1.05] whitespace-nowrap">
+        <h1 className="display-md text-ink-100 text-[clamp(22px,2.5vw,36px)] leading-[1.05] text-balance sm:whitespace-nowrap">
           {t("title")}
         </h1>
 

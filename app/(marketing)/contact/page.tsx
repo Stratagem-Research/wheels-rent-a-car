@@ -121,7 +121,7 @@ export default function ContactPage() {
         <div className="mx-auto max-w-[var(--container-default)] px-5 py-16 sm:px-10 lg:py-24">
           <h2 className="headline-lg text-ink-100">{t("findBranchHeading")}</h2>
           <p className="lead-md text-ink-60 mt-2">{t("findBranchSubtitle")}</p>
-          <div className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+          <div className="mt-8 grid gap-6 [&>*]:min-w-0 lg:grid-cols-[1.4fr_1fr]">
             <div className="border-border overflow-hidden rounded-xl border">
               <iframe
                 title={t("mapTitle", { branch: MAP_BRANCH.name })}
